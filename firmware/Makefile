@@ -3,6 +3,9 @@ BUILD_DIR?=../build/LimeSDR_XTRX_platform
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
 
+# Add debugging symbol flag
+CFLAGS += -g
+
 OBJECTS   = donut.o helloc.o crt0.o main.o
 ifdef WITH_CXX
 	OBJECTS += hellocpp.o

@@ -34,6 +34,8 @@ from litex.soc.cores.clock import *
 from litepcie.phy.s7pciephy import S7PCIEPHY
 from litepcie.software import generate_litepcie_software
 
+from litex.soc.cores.jtag import XilinxJTAG
+
 # CRG ----------------------------------------------------------------------------------------------
 
 class CRG(LiteXModule):
@@ -127,6 +129,19 @@ class BaseSoC(SoCCore):
         #self.comb += platform.request("vctcxo").EN_TCXO.eq(1)
         self.platform.add_platform_command(
             "create_clock -name vctcxo_FPGA_CLK -period {} [get_ports vctcxo_FPGA_CLK]".format(1e9 / 26e6))
+
+        self.jtag = jtag = XilinxJTAG(XilinxJTAG.get_primitive("xc7a"), chain=4)
+
+        self.comb += [
+            self.cpu.jtag_reset.eq(jtag.reset),
+            self.cpu.jtag_capture.eq(jtag.capture),
+            self.cpu.jtag_shift.eq(jtag.shift),
+            self.cpu.jtag_update.eq(jtag.update),
+            self.cpu.jtag_clk.eq(jtag.tck),
+            self.cpu.jtag_tdi.eq(jtag.tdi),
+            self.cpu.jtag_enable.eq(True),
+            jtag.tdo.eq(self.cpu.jtag_tdo),
+        ]
 
 # Build --------------------------------------------------------------------------------------------
 
