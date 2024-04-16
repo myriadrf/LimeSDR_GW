@@ -5,3 +5,12 @@ csr.csv
 analyzer.csv
 prog/
 build/
+
+firmware/demo.bin
+firmware/demo.elf
+firmware/demo.elf.map
+
+.Xil/
+.idea/
+vivado.*
+vivado_*
