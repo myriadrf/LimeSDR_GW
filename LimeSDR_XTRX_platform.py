@@ -4,10 +4,10 @@
 # Copyright (c) 2021 Florent Kermarrec <florent@enjoy-digital.fr>
 # SPDX-License-Identifier: BSD-2-Clause
 
-# https://www.crowdsupply.com/fairwaves/xtrx
+# https://www.crowdsupply.com/lime-micro/limesdr-xtrx
 
 from litex.build.generic_platform import *
-from litex.build.xilinx import XilinxPlatform
+from litex.build.xilinx import Xilinx7SeriesPlatform
 from litex.build.openocd import OpenOCD
 
 # IOs ----------------------------------------------------------------------------------------------
@@ -22,23 +22,23 @@ _io = [
 
     # PCIe.
     ("pcie_x1", 0,
-        Subsignal("PERST", Pins("T3"), IOStandard("LVCMOS33"), Misc("PULLUP=TRUE")),
-        Subsignal("PCIE_REF_CLK_P", Pins("B8")),
-        Subsignal("PCIE_REF_CLK_N", Pins("A8")),
-        Subsignal("PCIE_RX_P",  Pins("B6")),
-        Subsignal("PCIE_RX_N",  Pins("A6")),
-        Subsignal("PCIE_TX_P",  Pins("B2")),
-        Subsignal("PCIE_TX_N",  Pins("A2")),
+        Subsignal("rst_n", Pins("T3"), IOStandard("LVCMOS25"), Misc("PULLUP=TRUE")),
+        Subsignal("clk_p", Pins("B8")),
+        Subsignal("clk_n", Pins("A8")),
+        Subsignal("rx_p",  Pins("B6")),
+        Subsignal("rx_n",  Pins("A6")),
+        Subsignal("tx_p",  Pins("B2")),
+        Subsignal("tx_n",  Pins("A2")),
     ),
 
     ("pcie_x2", 0,
-        Subsignal("PERST", Pins("T3"), IOStandard("LVCMOS33"), Misc("PULLUP=TRUE")),
-        Subsignal("PCIE_REF_CLK_P", Pins("B8")),
-        Subsignal("PCIE_REF_CLK_N", Pins("A8")),
-        Subsignal("PCIE_RX_P",  Pins("B6 B4")),
-        Subsignal("PCIE_RX_N",  Pins("A6 A4")),
-        Subsignal("PCIE_TX_P",  Pins("B2 D2")),
-        Subsignal("PCIE_TX_N",  Pins("A2 D1")),
+        Subsignal("rst_n", Pins("T3"), IOStandard("LVCMOS25"), Misc("PULLUP=TRUE")),
+        Subsignal("clk_p", Pins("B8")),
+        Subsignal("clk_n", Pins("A8")),
+        Subsignal("rx_p",  Pins("B6 B4")),
+        Subsignal("rx_n",  Pins("A6 A4")),
+        Subsignal("tx_p",  Pins("B2 D2")),
+        Subsignal("tx_n",  Pins("A2 D1")),
     ),
 
     # USB
@@ -54,24 +54,24 @@ _io = [
     ),
 
     # SPIFlash.
-    ("FLASH_CFG_CS", 0, Pins("K19"), IOStandard("LVCMOS33")),
+    ("FPGA_CFG_CS", 0, Pins("K19"), IOStandard("LVCMOS33")),
     ("flash", 0,
-        Subsignal("FLASH_CFG_D00_MOSI", Pins("D18")),
-        Subsignal("FLASH_CFG_D01_MISO", Pins("D19")),
-        Subsignal("FLASH_CFG_D02_WP",   Pins("G18")),
-        Subsignal("FLASH_CFG_D03_HOLD", Pins("F18")),
+        Subsignal("mosi", Pins("D18")),
+        Subsignal("miso", Pins("D19")),
+        Subsignal("wp",   Pins("G18")),
+        Subsignal("hold", Pins("F18")),
         IOStandard("LVCMOS33")
     ),
 
     # I2C buses.
     ("i2c", 0,
-        Subsignal("FPGA_I2C1_SCL",Pins("M1"), Misc("PULLUP=True")),
-        Subsignal("FPGA_I2C_SDA", Pins("N1"), Misc("PULLUP=True")),
+        Subsignal("scl",Pins("M1"), Misc("PULLUP=True")),
+        Subsignal("sda", Pins("N1"), Misc("PULLUP=True")),
         IOStandard("LVCMOS33"),
     ),
     ("i2c", 1,
-        Subsignal("FPGA_I2C2_SCL", Pins("U14"), Misc("PULLUP=True")),
-        Subsignal("FPGA_I2C2_SDA", Pins("U15"), Misc("PULLUP=True")),
+        Subsignal("scl", Pins("U14"), Misc("PULLUP=True")),
+        Subsignal("sda", Pins("U15"), Misc("PULLUP=True")),
         IOStandard("LVCMOS33"),
     ),
 
@@ -90,7 +90,7 @@ _io = [
         Subsignal("EN_TCXO",    Pins("R19"), Misc("PULLUP=True")),
         Subsignal("EXT_CLK",    Pins("V17"), Misc("PULLDOWN=True")), # ext_clk
         Subsignal("FPGA_CLK",   Pins("N17"), Misc("PULLDOWN=True")),
-        IOStandard("LVCMOS25")
+        IOStandard("LVCMOS33")
     ),
 
     # RF-Switches / SKY13330, SKY13384.
@@ -147,22 +147,25 @@ _io = [
 
 # Platform -----------------------------------------------------------------------------------------
 
-class Platform(XilinxPlatform):
-    default_clk_name   = "clk60"
-    default_clk_period = 1e9/60e6
-    dev_string = ""
+class Platform(Xilinx7SeriesPlatform):
+    default_clk_name   = "vctcxo_FPGA_CLK"
+    default_clk_period = 1e9/26e6
     dev_short_string = ""
 
-    def __init__(self, nonpro=False):
-        # Pro and non-Pro boards have different FPGA part numbers, but same pins
-        if nonpro:
-            self.dev_string = "xc7a35tcpg236-3"
-            self.dev_short_string = "a35t"
-        else:
-            self.dev_string = "xc7a50tcpg236-2"
-            self.dev_short_string = "a50t"
+    def __init__(self, variant="xc7a50t", toolchain="vivado"):
+        assert variant in ["xc7a35t", "xc7a50t"]
+        self.variant = variant
+        device = {
+            "xc7a35t" : "xc7a35tcpg236-3",
+            "xc7a50t" : "xc7a50tcpg236-2",
+        }[variant]
 
-        XilinxPlatform.__init__(self, self.dev_string, _io, toolchain="vivado")
+        if variant == "xc7a50t":
+            self.dev_short_string = "a50t"
+        else:
+            self.dev_short_string = "a35t"
+
+        Xilinx7SeriesPlatform.__init__(self, "xc7a50tcpg236-2", _io, toolchain=toolchain)
 
         self.toolchain.bitstream_commands = [
             "set_property BITSTREAM.CONFIG.UNUSEDPIN Pulldown [current_design]",
@@ -194,8 +197,8 @@ class Platform(XilinxPlatform):
         ]
 
     def create_programmer(self):
-        return OpenOCD("openocd_xc7_ft232.cfg", "bscan_spi_xc7"+self.dev_short_string+".bit")
+        return OpenOCD("openocd_xc7_ft2232.cfg", "bscan_spi_xc7"+self.dev_short_string+".bit")
 
     def do_finalize(self, fragment):
-        XilinxPlatform.do_finalize(self, fragment)
-        self.add_period_constraint(self.lookup_request("clk60", loose=True), 1e9/60e6)
+        Xilinx7SeriesPlatform.do_finalize(self, fragment)
+        self.add_period_constraint(self.lookup_request("vctcxo_FPGA_CLK", loose=True), 1e9/26e6)
