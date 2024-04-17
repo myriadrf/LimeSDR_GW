@@ -78,12 +78,6 @@ class Blink(Module):
         self.sync += counter.eq(counter + 1)
 
 
-class VCTCXO(Module):
-    def __init__(self, pads):
-        pads.EN_TCXO.eq(1)
-        pads.EXT_CLK.eq(0)
-
-
 class BaseSoC(SoCCore):
     def __init__(self, sys_clk_freq=125e6, with_pcie=False, with_led_chaser=True, **kwargs):
         platform = limesdr_xtrx.Platform()
@@ -123,14 +117,7 @@ class BaseSoC(SoCCore):
                 pads         = platform.request_all("FPGA_LED1"),
                 sys_clk_freq = sys_clk_freq)
 
-        self.blinker = Blink(
-            led=platform.request_all("FPGA_LED2")
-        )
-
-        #self.comb += platform.request("vctcxo").EN_TCXO.eq(1)
-        #self.platform.add_platform_command(
-            #"create_clock -name vctcxo_FPGA_CLK -period {} [get_ports vctcxo_FPGA_CLK]".format(1e9 / 26e6))
-
+        # JTAG instance for GDB
         self.jtag = jtag = XilinxJTAG(XilinxJTAG.get_primitive("xc7a"), chain=4)
 
         self.comb += [
@@ -149,6 +136,21 @@ class BaseSoC(SoCCore):
         # Set all gpio to inputs
         self.comb += self.gpio.GPIO_DIR.eq(0b1111)
         self.comb += self.gpio.GPIO_OUT_VAL.eq(0b1010)
+
+        # Alive signal
+        self.alive = Signal()
+        self.blinker = Blink(
+            led=self.alive
+        )
+
+        # Alive LED - it also can be overridden from CPU
+        self.gpio_led = GpioTop(platform, platform.request("FPGA_LED2"))
+        # Set all gpio to inputs
+        self.comb += self.gpio_led.GPIO_DIR.eq(0b0)
+        self.comb += self.gpio_led.GPIO_OUT_VAL.eq(self.alive)
+
+
+
 
 
 # Build --------------------------------------------------------------------------------------------

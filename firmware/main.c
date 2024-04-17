@@ -86,6 +86,9 @@ static void help(void)
 #ifdef CSR_LEDS_BASE
 	puts("led                - Led demo");
 #endif
+#ifdef CSR_GPIO_LED_BASE
+	puts("gpioled            - GPIO override demo");
+#endif
 	puts("donut              - Spinning Donut demo");
 	puts("helloc             - Hello C");
 #ifdef WITH_CXX
@@ -134,6 +137,26 @@ static void led_cmd(void)
 }
 #endif
 
+#ifdef CSR_GPIO_LED_BASE
+static void gpioled_cmd(void)
+{
+	int i;
+	printf("GPIO Led override demo...\n");
+	gpio_led_control_gpio_override_dir_write(0x0);
+	gpio_led_control_gpio_override_write(0x1);
+	for(i=0; i<32; i++) {
+		gpio_led_control_gpio_override_val_write(0x0);
+		busy_wait(100);
+		gpio_led_control_gpio_override_val_write(0x1);
+		busy_wait(100);
+	}
+
+	gpio_led_control_gpio_override_write(0x0);
+	printf("GPIO Led override demo...ended\n");
+}
+#endif
+
+
 extern void donut(void);
 
 static void donut_cmd(void)
@@ -179,6 +202,10 @@ static void console_service(void)
 #ifdef CSR_LEDS_BASE
 	else if(strcmp(token, "led") == 0)
 		led_cmd();
+#endif
+#ifdef CSR_GPIO_LED_BASE
+	else if(strcmp(token, "gpioled") == 0)
+		gpioled_cmd();
 #endif
 	else if(strcmp(token, "donut") == 0)
 		donut_cmd();

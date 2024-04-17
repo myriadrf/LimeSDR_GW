@@ -24,8 +24,7 @@ class GpioTop(Module, AutoCSR):
 
         self.status   = CSRStatus(fields=[
             CSRField("gpio_val", size=len(pads), offset=0*len(pads), values=[
-                ("``0b0``", "RX Clk from LMS7002M is not detected."),
-                ("``0b1``", "RX Clk from LMS7002M is active.")
+                ("GPIO current value")
             ], reset=0)
         ])
 
