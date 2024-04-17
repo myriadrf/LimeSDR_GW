@@ -1,5 +1,5 @@
 #
-# This file is part of XTRX-Julia.
+# This file is part of LimeSDR-XTRX_LiteX_GW.
 #
 # Copyright (c) 2021 Florent Kermarrec <florent@enjoy-digital.fr>
 # SPDX-License-Identifier: BSD-2-Clause
@@ -89,9 +89,12 @@ _io = [
     ("vctcxo", 0,
         Subsignal("EN_TCXO",    Pins("R19"), Misc("PULLUP=True")),
         Subsignal("EXT_CLK",    Pins("V17"), Misc("PULLDOWN=True")), # ext_clk
-        Subsignal("FPGA_CLK",   Pins("N17"), Misc("PULLDOWN=True")),
+        #Subsignal("FPGA_CLK",   Pins("N17"), Misc("PULLDOWN=True")),
         IOStandard("LVCMOS33")
     ),
+
+    # GPIO (X12, 8-pin FPC connector)
+    ("gpio", 0, Pins("H1 J1 K2 L2"), IOStandard("LVCMOS33")),
 
     # RF-Switches / SKY13330, SKY13384.
     ("rf_switches", 0,
@@ -201,4 +204,4 @@ class Platform(Xilinx7SeriesPlatform):
 
     def do_finalize(self, fragment):
         Xilinx7SeriesPlatform.do_finalize(self, fragment)
-        self.add_period_constraint(self.lookup_request("vctcxo_FPGA_CLK", loose=True), 1e9/26e6)
+        self.add_period_constraint(self.lookup_request("FPGA_CLK", loose=True), 1e9/26e6)

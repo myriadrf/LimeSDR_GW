@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# This file is part of LiteX-Boards.
+# This file is part of LimeSDR-XTRX_LiteX_GW.
 #
 # Copyright (c) 2021 Florent Kermarrec <florent@enjoy-digital.fr>
 # SPDX-License-Identifier: BSD-2-Clause
@@ -36,21 +36,22 @@ from litepcie.software import generate_litepcie_software
 
 from litex.soc.cores.jtag import XilinxJTAG
 
+from gateware.GpioTop import GpioTop
+
 # CRG ----------------------------------------------------------------------------------------------
 
 class CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq, with_pcie=False):
         self.rst    = Signal()
         self.cd_sys = ClockDomain()
-        self.pll_clk_in = Signal()
-        self.vctcxo_pads = platform.request("vctcxo")
 
-        self.comb += self.pll_clk_in.eq(self.vctcxo_pads.FPGA_CLK)
+        self.vctcxo_pads = platform.request("vctcxo")
         self.comb += self.vctcxo_pads.EN_TCXO.eq(1)
         self.comb += self.vctcxo_pads.EXT_CLK.eq(0)
 
         # # #
 
+        fpga_clk = platform.request("FPGA_CLK")
         if with_pcie:
             assert sys_clk_freq == int(125e6)
             self.comb += [
@@ -60,7 +61,7 @@ class CRG(LiteXModule):
         else:
             self.pll = pll = S7PLL(speedgrade=-2)
             self.comb += pll.reset.eq(self.rst)
-            pll.register_clkin(self.pll_clk_in, 26e6)
+            pll.register_clkin(fpga_clk, 26e6)
             pll.create_clkout(self.cd_sys, sys_clk_freq)
 
 # BaseSoC -----------------------------------------------------------------------------------------
@@ -73,7 +74,7 @@ class Blink(Module):
         # combinatorial assignment
         self.comb += led.eq(counter[25])
 
-        # synchronous assignement
+        # synchronous assignment
         self.sync += counter.eq(counter + 1)
 
 
@@ -127,8 +128,8 @@ class BaseSoC(SoCCore):
         )
 
         #self.comb += platform.request("vctcxo").EN_TCXO.eq(1)
-        self.platform.add_platform_command(
-            "create_clock -name vctcxo_FPGA_CLK -period {} [get_ports vctcxo_FPGA_CLK]".format(1e9 / 26e6))
+        #self.platform.add_platform_command(
+            #"create_clock -name vctcxo_FPGA_CLK -period {} [get_ports vctcxo_FPGA_CLK]".format(1e9 / 26e6))
 
         self.jtag = jtag = XilinxJTAG(XilinxJTAG.get_primitive("xc7a"), chain=4)
 
@@ -142,6 +143,13 @@ class BaseSoC(SoCCore):
             self.cpu.jtag_enable.eq(True),
             jtag.tdo.eq(self.cpu.jtag_tdo),
         ]
+
+        # GPIO instance
+        self.gpio = GpioTop(platform, platform.request("gpio"))
+        # Set all gpio to inputs
+        self.comb += self.gpio.GPIO_DIR.eq(0b1111)
+        self.comb += self.gpio.GPIO_OUT_VAL.eq(0b1010)
+
 
 # Build --------------------------------------------------------------------------------------------
 
