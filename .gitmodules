@@ -1,0 +1,3 @@
+[submodule "gateware/LimeIP_HDL"]
+	path = gateware/LimeIP_HDL
+	url = git@github.com:myriadrf/LimeIP_HDL.git
