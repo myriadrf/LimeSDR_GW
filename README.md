@@ -1,5 +1,12 @@
 # LimeSDR-XTRX Gateware 
 
+Cloning repo:
+```
+git clone https://github.com/vbuitvydas/LimeSDR-XTRX_LiteX_GW.git
+git submodule init 
+git submodule update
+```
+
 ## Build gateware and load firmware trough JTAG
 Build/Load gateware bitstream:
 ```
