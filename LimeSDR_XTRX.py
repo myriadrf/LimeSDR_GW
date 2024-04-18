@@ -86,9 +86,9 @@ class BaseSoC(SoCCore):
         self.crg = CRG(platform, sys_clk_freq, with_pcie)
 
         # SoCCore ----------------------------------------------------------------------------------
-        if kwargs["uart_name"] != "jtag_uart":
-            kwargs["uart_name"]     = "crossover"
-            kwargs["with_jtagbone"] = True
+        #if kwargs["uart_name"] != "jtag_uart" and kwargs["uart_name"] != "gpio_uart":
+        #    kwargs["uart_name"]     = "crossover"
+        #    kwargs["with_jtagbone"] = True
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on LimeSDR-XTRX", **kwargs)
 
         # PCIe -------------------------------------------------------------------------------------

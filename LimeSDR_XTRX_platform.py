@@ -146,6 +146,12 @@ _io = [
         IOStandard("LVCMOS33")
     ),
 
+    # GPIO Serial.
+    ("gpio_serial", 0,
+     Subsignal("tx", Pins("H2")),
+     Subsignal("rx", Pins("J2")),
+     IOStandard("LVCMOS33"))
+
 ]
 
 # Platform -----------------------------------------------------------------------------------------
