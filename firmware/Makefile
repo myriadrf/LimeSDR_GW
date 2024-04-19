@@ -6,7 +6,7 @@ include $(SOC_DIRECTORY)/software/common.mak
 # Add debugging symbol flag
 CFLAGS += -g
 
-OBJECTS   = donut.o helloc.o crt0.o main.o
+OBJECTS   = i2c0.o i2c1.o donut.o helloc.o crt0.o main.o
 ifdef WITH_CXX
 	OBJECTS += hellocpp.o
 	CFLAGS += -DWITH_CXX

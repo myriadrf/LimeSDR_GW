@@ -10,6 +10,15 @@
 #include <libbase/console.h>
 #include <generated/csr.h>
 
+#include "i2c0.h"
+#include "i2c1.h"
+
+/*-----------------------------------------------------------------------*/
+/* Constants                                                             */
+/*-----------------------------------------------------------------------*/
+#define LP8758_I2C_ADDR  0x60
+
+
 /*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
@@ -83,6 +92,9 @@ static void help(void)
 	puts("Available commands:");
 	puts("help               - Show this command");
 	puts("reboot             - Reboot CPU");
+	puts("i2c_test           - Test I2C Buses");
+	puts("init_pmic          - Initialize DC-DC switching regulators");
+	puts("dump_pmic          - Dump DC-DC switching regulator configuration");
 #ifdef CSR_LEDS_BASE
 	puts("led                - Led demo");
 #endif
@@ -184,6 +196,181 @@ static void hellocpp_cmd(void)
 #endif
 
 /*-----------------------------------------------------------------------*/
+/* I2C                                                                   */
+/*-----------------------------------------------------------------------*/
+
+static void i2c_test(void)
+{
+	printf("I2C0 Scan...\n");
+	i2c0_scan();
+
+	printf("\n");
+
+	printf("I2C1 Scan...\n");
+	i2c1_scan();
+}
+
+static void dump_pmic(void){
+	unsigned char adr;
+	unsigned char dat;
+	printf("FPGA_I2C1 PMIC Dump...\n");
+	for (adr=0; adr<32; adr++) {
+		i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+		printf("0x%02x: 0x%02x\n", adr, dat);
+	}
+	printf("FPGA_I2C2 PMIC Dump...\n");
+	for (adr=0; adr<32; adr++) {
+		i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+		printf("0x%02x: 0x%02x\n", adr, dat);
+	}
+}
+
+static void init_pmic(void)
+{
+	printf("Initializing DC-DC switching regulators...\n");
+
+	unsigned char adr;
+	unsigned char dat;
+
+	printf("PMICs Initialization...\n");
+	printf("-----------------------\n");
+
+	printf("FPGA_I2C1 PMIC: Check ID ");
+	adr = 0x01;
+	i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+	if (dat != 0xe0) {
+		printf("KO, exiting.\n");
+	} else {
+		printf("OK.\n");
+
+		printf("PMIC: Enable Buck0.\n");
+		adr = 0x02;
+		dat = 0x88;
+		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
+		adr = 0x03;
+		dat = 0xD2;
+		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Enable Buck1.\n");
+		adr = 0x04;
+		dat = 0x88;
+		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
+		adr = 0x05;
+		dat = 0xD2;
+		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Enable Buck2.\n");
+		adr = 0x06;
+		dat = 0x88;
+		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
+		adr = 0x07;
+		dat = 0xD2;
+		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Enable Buck3.\n");
+		adr = 0x08;
+		dat = 0x88;
+		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
+		adr = 0x09;
+		dat = 0xD2;
+		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Set Buck1 to 3.3V.\n");
+		adr = 0x0C;
+		dat = 0xFC;
+		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		busy_wait(1);
+	}
+
+
+	printf("FPGA_I2C2 PMIC: Check ID ");
+	adr = 0x01;
+	i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+	if (dat != 0xe0) {
+		printf("KO, exiting.\n");
+	} else {
+		printf("OK.\n");
+
+		printf("PMIC: Enable Buck0.\n");
+		adr = 0x02;
+		dat = 0x88;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
+		adr = 0x03;
+		dat = 0xD2;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Enable Buck1.\n");
+		adr = 0x04;
+		dat = 0x88;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
+		adr = 0x05;
+		dat = 0xD2;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Enable Buck2.\n");
+		adr = 0x06;
+		dat = 0x88;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
+		adr = 0x07;
+		dat = 0xD2;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Enable Buck3.\n");
+		adr = 0x08;
+		dat = 0x88;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
+		adr = 0x09;
+		dat = 0xD2;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Set Buck0 to 1.5V.\n");
+		adr = 0x0A;
+		dat = 0xA2;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Set Buck1 to 3.3V.\n");
+		adr = 0x0C;
+		dat = 0xFC;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Set Buck2 to 1.75V.\n");
+		adr = 0x0E;
+		dat = 0xAF;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Set Buck3 to 2.05V.\n");
+		adr = 0x10;
+		dat = 0xBE;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		printf("PMIC: Clear INT_BUCK_2_3 Status.\n");
+		adr = 0x1A;
+		dat = 0xFF;
+		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+
+		busy_wait(1);
+	}
+
+}
+
+/*-----------------------------------------------------------------------*/
 /* Console service / Main                                                */
 /*-----------------------------------------------------------------------*/
 
@@ -199,6 +386,12 @@ static void console_service(void)
 		help();
 	else if(strcmp(token, "reboot") == 0)
 		reboot_cmd();
+	else if(strcmp(token, "i2c_test") == 0)
+		i2c_test();
+	else if(strcmp(token, "init_pmic") == 0)
+		init_pmic();
+	else if(strcmp(token, "dump_pmic") == 0)
+		dump_pmic();
 #ifdef CSR_LEDS_BASE
 	else if(strcmp(token, "led") == 0)
 		led_cmd();

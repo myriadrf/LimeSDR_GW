@@ -30,6 +30,7 @@ from litex.soc.integration.builder import *
 
 from litex.soc.cores.led import LedChaser
 from litex.soc.cores.clock import *
+from litex.soc.cores.bitbang import I2CMaster
 
 from litepcie.phy.s7pciephy import S7PCIEPHY
 from litepcie.software import generate_litepcie_software
@@ -148,6 +149,19 @@ class BaseSoC(SoCCore):
         # Set all gpio to inputs
         self.comb += self.gpio_led.GPIO_DIR.eq(0b0)
         self.comb += self.gpio_led.GPIO_OUT_VAL.eq(self.alive)
+
+        # FPGA_I2C1 Bus:
+        # - Temperature Sensor (TMP107  @ 0x4B).
+        # - VCTCXO DAC         (AD5693  @ 0x4C).
+        # - I2C EEPROM (NF)    (M24128  @ 0x50).
+        # - PMIC (IC22)        (LP8758  @ 0x60).
+        self.submodules.i2c0 = I2CMaster(pads=platform.request("i2c", 0))
+
+        # FPGA_I2C2 Bus:
+        # - PMIC (IC31)        (LP8758  @ 0x60).
+        self.submodules.i2c1 = I2CMaster(pads=platform.request("i2c", 1))
+
+
 
 
 
