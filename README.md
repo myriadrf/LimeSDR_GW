@@ -2,7 +2,7 @@
 
 Cloning repo:
 ```
-git clone https://github.com/vbuitvydas/LimeSDR-XTRX_LiteX_GW.git
+git clone https://github.com/myriadrf/LimeSDR-XTRX_LiteX_GW.git
 git submodule init 
 git submodule update
 ```
