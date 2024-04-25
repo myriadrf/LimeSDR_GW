@@ -38,6 +38,7 @@ from litepcie.software import generate_litepcie_software
 from litex.soc.cores.jtag import XilinxJTAG
 
 from gateware.GpioTop import GpioTop
+from gateware.lms7002_top import lms7002_top
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -160,6 +161,15 @@ class BaseSoC(SoCCore):
         # FPGA_I2C2 Bus:
         # - PMIC (IC31)        (LP8758  @ 0x60).
         self.submodules.i2c1 = I2CMaster(pads=platform.request("i2c", 1))
+
+        # LMS TOP
+        self.lms_top = lms7002_top(platform,platform.request("lms7002m"),
+                                   m_clk_domain=self.crg.cd_sys, s_clk_domain=self.crg.cd_sys)
+
+        # loopback as an exaple how to connect
+        # self.comb += self.lms_top.axis_m.connect(self.lms_top.axis_s)
+
+
 
 
 
