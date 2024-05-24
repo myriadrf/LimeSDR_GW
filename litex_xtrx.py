@@ -90,6 +90,7 @@ class BaseSoC(SoCCore):
     def __init__(self, board="limesdr", sys_clk_freq=int(125e6),
         with_cpu      = True, cpu_firmware=None,
         with_jtagbone = True,
+        with_bscan    = False,
     ):
         # Platform ---------------------------------------------------------------------------------
         platform = {
@@ -102,8 +103,11 @@ class BaseSoC(SoCCore):
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = f"LiteX SoC on {board.capitalize()} XTRX ",
             ident_version            = True,
-            cpu_type                 = "vexriscv" if with_cpu else None,
-            cpu_variant              = "minimal",
+            cpu_type                 = "vexriscv_smp" if with_cpu else None,
+            cpu_variant              = "standard",
+            with_rvc                 = True,
+            with_privileged_debug    = with_bscan,
+            hardware_breakpoints     = {True: 4, False: 0}[with_bscan],
             integrated_rom_size      = 0x8000 if with_cpu else 0,
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
             integrated_main_ram_size = 0x4000 if with_cpu else 0,
@@ -123,6 +127,10 @@ class BaseSoC(SoCCore):
             self.add_jtagbone()
             platform.add_period_constraint(self.jtagbone_phy.cd_jtag.clk, 1e9/20e6)
             platform.add_false_path_constraints(self.jtagbone_phy.cd_jtag.clk, self.crg.cd_sys.clk)
+
+        # JTAG CPU Debug ---------------------------------------------------------------------------
+        if with_bscan:
+            self.add_jtag_cpu_debug()
 
         # Leds -------------------------------------------------------------------------------------
         self.leds = LedChaser(
@@ -206,6 +214,25 @@ class BaseSoC(SoCCore):
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       jtag_clk] -asynchronous")
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       icap_clk] -asynchronous")
 
+    def add_jtag_cpu_debug(self):
+        from litex.soc.cores.jtag import XilinxJTAG
+        self.jtag = jtag = XilinxJTAG(XilinxJTAG.get_primitive(self.platform.device), chain=4)
+        self.comb += [
+            self.cpu.jtag_reset.eq(jtag.reset),
+            self.cpu.jtag_capture.eq(jtag.capture),
+            self.cpu.jtag_shift.eq(jtag.shift),
+            self.cpu.jtag_update.eq(jtag.update),
+            self.cpu.jtag_clk.eq(jtag.tck),
+            self.cpu.jtag_tdi.eq(jtag.tdi),
+            self.cpu.jtag_enable.eq(True),
+            jtag.tdo.eq(self.cpu.jtag_tdo),
+        ]
+
+        self.cd_jtag = ClockDomain()
+        self.comb += ClockSignal("jtag").eq(jtag.tck)
+        self.platform.add_period_constraint(self.cd_jtag.clk, 1e9/20e6)
+        self.platform.add_false_path_constraints(self.cd_jtag.clk, self.crg.cd_sys.clk)
+
     def add_pcie_dma_probe(self):
         # DMA TX.
         tx_data = Record([("i0", 16), ("q0", 16), ("i1", 16), ("q1", 16)])
@@ -251,6 +278,7 @@ class BaseSoC(SoCCore):
 def main():
     parser = argparse.ArgumentParser(description="LiteX SoC on Fairwaves/LimeSDR XTRX.")
     parser.add_argument("--board",   default="fairwaves_pro", help="Select XTRX board.", choices=["fairwaves_cs", "fairwaves_pro", "limesdr"])
+    parser.add_argument("--with-bscan", action="store_true",  help="CPU debug over JTAG."),
     parser.add_argument("--build",   action="store_true",     help="Build bitstream.")
     parser.add_argument("--load",    action="store_true",     help="Load bitstream.")
     parser.add_argument("--flash",   action="store_true",     help="Flash bitstream.")
@@ -265,8 +293,10 @@ def main():
         prepare = (run == 0)
         build   = ((run == 1) & args.build)
         soc = BaseSoC(
-            board        = args.board,
-            cpu_firmware = None if prepare else "firmware/demo.bin",
+            board         = args.board,
+            cpu_firmware  = None if prepare else "firmware/demo.bin",
+            with_jtagbone = not args.with_bscan,
+            with_bscan    = args.with_bscan,
         )
         if args.with_pcie_dma_probe:
             soc.add_pcie_dma_probe()
