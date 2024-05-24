@@ -249,6 +249,7 @@ def main():
     parser.add_argument("--build",   action="store_true",     help="Build bitstream.")
     parser.add_argument("--load",    action="store_true",     help="Load bitstream.")
     parser.add_argument("--flash",   action="store_true",     help="Flash bitstream.")
+    parser.add_argument("--cable",   default="digilent_hs2",  help="JTAG cable.")
     parser.add_argument("--driver",  action="store_true",     help="Generate PCIe driver from LitePCIe (override local version).")
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-pcie-dma-probe", action="store_true", help="Enable PCIe DMA LiteScope Probe.")
@@ -274,12 +275,12 @@ def main():
 
     # Load Bistream.
     if args.load:
-        prog = soc.platform.create_programmer()
+        prog = soc.platform.create_programmer(cable=args.cable)
         prog.load_bitstream(os.path.join(builder.gateware_dir, soc.build_name + ".bit"))
 
     # Flash Bitstream.
     if args.flash:
-        prog = soc.platform.create_programmer()
+        prog = soc.platform.create_programmer(cable=args.cable)
         prog.flash(0, os.path.join(builder.gateware_dir, soc.build_name + ".bin"))
 
 if __name__ == "__main__":

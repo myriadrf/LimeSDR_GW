@@ -214,8 +214,8 @@ class Platform(Xilinx7SeriesPlatform):
             "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}_fallback.bit\" -file {build_name}_fallback.bin"
         ]
 
-    def create_programmer(self):
-        return OpenFPGALoader(cable="digilent_hs2", fpga_part=f"{self.variant}cpg236", freq=10e6)
+    def create_programmer(self, cable="digilent_hs2"):
+        return OpenFPGALoader(cable=cable, fpga_part=f"{self.variant}cpg236", freq=10e6)
 
     def do_finalize(self, fragment):
         Xilinx7SeriesPlatform.do_finalize(self, fragment)
