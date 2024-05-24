@@ -68,6 +68,13 @@ cd firmware && make clean all && cd ../
 litex_term jtag --jtag-config=openocd_xc7_ft2232.cfg --kernel firmware/demo.bin
 ```
 
+## Load firmware through PCIe
+
+First *litepcie* driver must be loaded (TBD).
+```bash
+litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
+```
+
 ## Load Gateware trough JTAG (volatile and non-volatile memory)
 
 [openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load
@@ -145,4 +152,22 @@ litex_cli --write gpio_gpio_override 0x07
 litex_cli --write gpio_gpio_override_dir 0x00
 # pins 0 & 2 low, pin 1 high
 litex_cli --write gpio_gpio_override_val 0x05
+```
+
+## Firmware debug
+
+A gateware with debug interface must be build and loaded:
+
+```
+./litex_xtrx.py --with bscan --build --load --flash
+
+
+# Load firmware trough serial
+litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
+
+# Run OpenOCD with the specified configurations:
+openocd -f ./digilent-hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
+
+# Connecting GDB for Debugging:
+gdb-multiarch -q firmware/demo.elf -ex "target extended-remote localhost:3333"
 ```
