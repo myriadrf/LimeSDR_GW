@@ -27,12 +27,16 @@ class GpioTop(LiteXModule):
         # # #
 
         # Signals.
+        self._pads  = Signal(len(pads))
         self.GPIO_I = Signal(len(pads))
         self.GPIO_O = Signal(len(pads))
         self.GPIO_T = Signal(len(pads))
 
         # Assign GPIO current value to status register
-        self.comb += self.gpio_val.status.eq(self.GPIO_IN_VAL)
+        self.comb += [
+            self.gpio_val.status.eq(self.GPIO_IN_VAL),
+            pads.eq(self._pads),
+        ]
 
         # Create instance and assign params
         self.specials += Instance("gpio_top",
@@ -54,7 +58,7 @@ class GpioTop(LiteXModule):
         for n in range(len(pads)):
             self.specials += Instance("IOBUF",
                 o_O     = self.GPIO_I[n],
-                io_IO   = pads[n],
+                io_IO   = self._pads[n],
                 i_I     = self.GPIO_O[n],
                 i_T     = self.GPIO_T[n]
             )
