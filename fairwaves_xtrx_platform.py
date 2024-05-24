@@ -62,6 +62,14 @@ _io = [
         Subsignal("hold", Pins("F18")),
         IOStandard("LVCMOS25")
     ),
+    ("spiflash", 0,
+        Subsignal("cs_n", Pins("K19")),
+        Subsignal("mosi", Pins("D18")),
+        Subsignal("miso", Pins("D19")),
+        Subsignal("wp",   Pins("G18")),
+        Subsignal("hold", Pins("F18")),
+        IOStandard("LVCMOS25")
+    ),
 
     # Power-Down.
     ("pwrdwn_n", 0, Pins("R19"), IOStandard("LVCMOS25")),
