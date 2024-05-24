@@ -129,10 +129,15 @@ class BaseSoC(SoCCore):
             pads         = platform.request_all("user_led"),
             sys_clk_freq = sys_clk_freq
         )
-        self.leds2 = LedChaser(
-            pads         = platform.request_all("user_led2"),
-            sys_clk_freq = sys_clk_freq
-        )
+        #self.leds2 = LedChaser(
+        #    pads         = platform.request_all("user_led2"),
+        #    sys_clk_freq = sys_clk_freq
+        #)
+        from gateware.GpioTop import GpioTop
+        self.gpio = GpioTop(platform, platform.request_all("user_led2"))
+        # Set all gpio to inputs
+        self.comb += self.gpio.GPIO_DIR.eq(0b000)
+        self.comb += self.gpio.GPIO_OUT_VAL.eq(0b010)
 
         # ICAP -------------------------------------------------------------------------------------
         self.icap = ICAP()
