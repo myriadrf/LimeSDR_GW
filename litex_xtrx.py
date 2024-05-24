@@ -19,6 +19,7 @@ import limesdr_xtrx_platform
 from litex.soc.interconnect.csr import *
 from litex.soc.interconnect     import stream
 
+from litex.soc.integration.soc      import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder  import *
 
@@ -91,6 +92,8 @@ class BaseSoC(SoCCore):
         with_cpu      = True, cpu_firmware=None,
         with_jtagbone = True,
         with_bscan    = False,
+        spi_firmware  = False,
+        bios_flash_offset  = 0x190000,
     ):
         # Platform ---------------------------------------------------------------------------------
         platform = {
@@ -108,14 +111,12 @@ class BaseSoC(SoCCore):
             with_rvc                 = True,
             with_privileged_debug    = with_bscan,
             hardware_breakpoints     = {True: 4, False: 0}[with_bscan],
-            integrated_rom_size      = 0x8000 if with_cpu else 0,
+            integrated_rom_size      = 0x8000 if with_cpu and not spi_firmware else 0,
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
             integrated_main_ram_size = 0x4000 if with_cpu else 0,
-            integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
+            integrated_main_ram_init = [] if cpu_firmware is None or spi_firmware else get_mem_data(cpu_firmware, endianness="little"),
             uart_name                = "crossover",
         )
-        # Automatically jump to pre-initialized firmware.
-        self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
@@ -153,8 +154,25 @@ class BaseSoC(SoCCore):
         self.icap.add_timing_constraints(platform, sys_clk_freq, self.crg.cd_sys.clk)
 
         # SPIFlash ---------------------------------------------------------------------------------
-        self.flash_cs_n = GPIOOut(platform.request("flash_cs_n"))
-        self.flash      = S7SPIFlash(platform.request("flash"), sys_clk_freq, 25e6)
+        if spi_firmware:
+            from litespi.modules import N25Q256A
+            from litespi.opcodes import SpiNorFlashOpCodes as Codes
+            self.add_spi_flash(mode="1x", module=N25Q256A(Codes.READ_1_1_1), with_master=False)
+
+            # Add ROM linker region --------------------------------------------------------------------
+            self.bus.add_region("rom", SoCRegion(
+                origin = self.bus.regions["spiflash"].origin + bios_flash_offset,
+                size   = 0x40000, # 256kB
+                linker = True)
+            )
+            self.cpu.set_reset_address(self.bus.regions["rom"].origin)
+            # Automatically jump to pre-initialized firmware.
+            self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["rom"])
+        else:
+            # Automatically jump to pre-initialized firmware.
+            self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
+            self.flash_cs_n = GPIOOut(platform.request("flash_cs_n"))
+            self.flash      = S7SPIFlash(platform.request("flash"), sys_clk_freq, 25e6)
 
         # XADC -------------------------------------------------------------------------------------
         self.xadc = XADC()
@@ -286,6 +304,8 @@ def main():
     parser.add_argument("--driver",  action="store_true",     help="Generate PCIe driver from LitePCIe (override local version).")
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-pcie-dma-probe", action="store_true", help="Enable PCIe DMA LiteScope Probe.")
+    parser.add_argument("--spi-firmware",      action="store_true",help="Write Firmware in Flash instead of RAM.")
+    parser.add_argument("--bios-flash-offset", default=0x190000,   help="Firmware SPI Flash offset.")
     args = parser.parse_args()
 
     # Build SoC.
@@ -293,10 +313,12 @@ def main():
         prepare = (run == 0)
         build   = ((run == 1) & args.build)
         soc = BaseSoC(
-            board         = args.board,
-            cpu_firmware  = None if prepare else "firmware/demo.bin",
-            with_jtagbone = not args.with_bscan,
-            with_bscan    = args.with_bscan,
+            board             = args.board,
+            cpu_firmware      = None if prepare else "firmware/demo.bin",
+            with_jtagbone     = not args.with_bscan,
+            with_bscan        = args.with_bscan,
+            spi_firmware      = args.spi_firmware,
+            bios_flash_offset = args.bios_flash_offset,
         )
         if args.with_pcie_dma_probe:
             soc.add_pcie_dma_probe()
@@ -317,6 +339,12 @@ def main():
     if args.flash:
         prog = soc.platform.create_programmer(cable=args.cable)
         prog.flash(0, os.path.join(builder.gateware_dir, soc.build_name + ".bin"))
+
+    # Flash Firmware.
+    if args.spi_firmware:
+        prog = soc.platform.create_programmer(cable=args.cable)
+        prog.flash(args.bios_flash_offset, "firmware/demo.bin")
+
 
 if __name__ == "__main__":
     main()
