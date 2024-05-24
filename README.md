@@ -70,12 +70,16 @@ litex_term jtag --jtag-config=openocd_xc7_ft2232.cfg --kernel firmware/demo.bin
 
 ## Load Gateware trough JTAG (volatile and non-volatile memory)
 
-* [openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load and/or to flash bitstream.
+[openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load
+and/or to flash bitstream.
 
-* By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this behaviour and to select an
-  alternate cable, one must appends  command line with `--cable xxx` where `xxx` is the cable's name (see `openFPGALoader --list-cables` for a complete list of supported cbles).
+By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this
+behaviour and to select an alternate cable, one must appends  command line with
+`--cable xxx` where `xxx` is the cable's name (see `openFPGALoader --list-cables`
+for a complete list of supported cbles).
 
-After bitstream loaded/flashed, computer must be rebooted or a PCIe Bus rescan must be performed:
+After bitstream loaded/flashed, computer must be rebooted or a PCIe Bus rescan
+must be performed:
 ```bash
 echo 1 | sudo tee /sys/bus/pci/devices/0000\:0X\:00.0/remove (replace X with actual value)
 echo 1 | sudo tee /sys/bus/pci/rescan
@@ -97,3 +101,48 @@ python3 litex_xtrx --load [--cable XXX]
 python3 litex_xtrx --flash [--cable XXX]
 ```
 
+## Using GpioTop (connected to led2)
+
+### Target update
+
+To uses `user_led2` with `GpioTop` instead of `LedChaser`:
+```python
+#self.leds2 = LedChaser(
+#    pads         = platform.request_all("user_led2"),
+#    sys_clk_freq = sys_clk_freq
+#)
+from gateware.GpioTop import GpioTop
+self.gpio = GpioTop(platform, platform.request_all"user_led2"))
+# Set all gpio to outputs
+self.comb += self.gpio.GPIO_DIR.eq(0b000)
+self.comb += self.gpio.GPIO_OUT_VAL.eq(0b010)
+```
+
+**Note:** when `GPIO_DIR` is set as input, bitstream fails due to `IOBUF.O`
+unrouted.
+
+### JTAGBone access
+
+First step is to start a server configured for JTAG access:
+```bash
+litex_server --jtag --jtag-config openocd_xc7_ft232.cfg
+```
+
+`--jtag-config` must be adapted according to the JTAG interface
+
+Now it's possible to read/write `gpioTop` registers:
+
+Value read:
+```bash
+litex_cli --read gpio_gpio_val
+```
+
+HOST access (direction/level)
+```bash
+# control overriden for all pins
+litex_cli --write gpio_gpio_override 0x07
+# set all pins as output
+litex_cli --write gpio_gpio_override_dir 0x00
+# pins 0 & 2 low, pin 1 high
+litex_cli --write gpio_gpio_override_val 0x05
+```
