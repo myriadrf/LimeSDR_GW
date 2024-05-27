@@ -114,7 +114,7 @@ class BaseSoC(SoCCore):
             ident_version            = True,
             cpu_type                 = "vexriscv_smp" if with_cpu else None,
             cpu_variant              = "standard",
-            integrated_rom_size      = 0x8000 if with_cpu and not flash_boot else 0,
+            integrated_rom_size      = 0x8000 if with_cpu else 0,
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
             integrated_main_ram_size = 0x4000 if with_cpu else 0,
             integrated_main_ram_init = [] if cpu_firmware is None or flash_boot else get_mem_data(cpu_firmware, endianness="little"),
@@ -163,14 +163,13 @@ class BaseSoC(SoCCore):
             self.add_spi_flash(mode="1x", module=N25Q256A(Codes.READ_1_1_1), with_master=False)
 
             # Add ROM linker region --------------------------------------------------------------------
-            self.bus.add_region("rom", SoCRegion(
+            self.bus.add_region("flash", SoCRegion(
                 origin = self.bus.regions["spiflash"].origin + bios_flash_offset,
                 size   = 0x40000, # 256kB
                 linker = True)
             )
-            self.cpu.set_reset_address(self.bus.regions["rom"].origin)
-            # Automatically jump to pre-initialized firmware.
-            self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["rom"])
+            ## Automatically jump to pre-initialized firmware.
+            self.add_constant("FLASH_BOOT_ADDRESS", self.bus.regions["flash"].origin)
         else:
             # Automatically jump to pre-initialized firmware.
             self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
@@ -344,9 +343,11 @@ def main():
         prog.flash(0, os.path.join(builder.gateware_dir, soc.build_name + ".bin"))
 
     # Flash Firmware.
-    if args.flash_boot:
+    if args.flash_boot and args.flash:
+        from litex.soc.software.crcfbigen import insert_crc
+        insert_crc("firmware/demo.bin", fbi_mode=True, o_filename="firmware/demo.fbi", little_endian=True)
         prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(args.bios_flash_offset, "firmware/demo.bin")
+        prog.flash(args.bios_flash_offset, "firmware/demo.fbi")
 
 
 if __name__ == "__main__":
