@@ -307,7 +307,7 @@ def main():
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-pcie-dma-probe", action="store_true", help="Enable PCIe DMA LiteScope Probe.")
     parser.add_argument("--flash-boot",       action="store_true", help="Write Firmware in Flash instead of RAM.")
-    parser.add_argument("--bios-flash-offset", default=0x190000,   help="Firmware SPI Flash offset.")
+    parser.add_argument("--bios-flash-offset", default=0x220000,   help="Firmware SPI Flash offset.")
     args = parser.parse_args()
 
     # Build SoC.
