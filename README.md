@@ -88,7 +88,11 @@ for a complete list of supported cbles).
 After bitstream loaded/flashed, computer must be rebooted or a PCIe Bus rescan
 must be performed:
 ```bash
-echo 1 | sudo tee /sys/bus/pci/devices/0000\:0X\:00.0/remove (replace X with actual value)
+# Get PCIe location
+lspci | grep grep -i RF_controller
+# remove device (replace X with actual value, see previous command)
+echo 1 | sudo tee /sys/bus/pci/devices/0000\:0X\:00.0/remove
+# before rescan flash/load new bitstream
 echo 1 | sudo tee /sys/bus/pci/rescan
 ```
 
