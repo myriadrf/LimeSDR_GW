@@ -102,15 +102,18 @@ class BaseSoC(SoCCore):
             "limesdr"       : limesdr_xtrx_platform.Platform()
         }[board]
 
+        if with_bscan:
+            from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
+            VexRiscvSMP.privileged_debug     = True
+            VexRiscvSMP.hardware_breakpoints = 4
+            VexRiscvSMP.with_rvc             = True
+
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = f"LiteX SoC on {board.capitalize()} XTRX ",
             ident_version            = True,
             cpu_type                 = "vexriscv_smp" if with_cpu else None,
             cpu_variant              = "standard",
-            with_rvc                 = True,
-            with_privileged_debug    = with_bscan,
-            hardware_breakpoints     = {True: 4, False: 0}[with_bscan],
             integrated_rom_size      = 0x8000 if with_cpu and not spi_firmware else 0,
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
             integrated_main_ram_size = 0x4000 if with_cpu else 0,
