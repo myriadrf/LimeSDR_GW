@@ -92,7 +92,7 @@ class BaseSoC(SoCCore):
         with_cpu      = True, cpu_firmware=None,
         with_jtagbone = True,
         with_bscan    = False,
-        spi_firmware  = False,
+        flash_boot    = False,
         bios_flash_offset  = 0x190000,
     ):
         # Platform ---------------------------------------------------------------------------------
@@ -114,10 +114,10 @@ class BaseSoC(SoCCore):
             ident_version            = True,
             cpu_type                 = "vexriscv_smp" if with_cpu else None,
             cpu_variant              = "standard",
-            integrated_rom_size      = 0x8000 if with_cpu and not spi_firmware else 0,
+            integrated_rom_size      = 0x8000 if with_cpu and not flash_boot else 0,
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
             integrated_main_ram_size = 0x4000 if with_cpu else 0,
-            integrated_main_ram_init = [] if cpu_firmware is None or spi_firmware else get_mem_data(cpu_firmware, endianness="little"),
+            integrated_main_ram_init = [] if cpu_firmware is None or flash_boot else get_mem_data(cpu_firmware, endianness="little"),
             uart_name                = "crossover",
         )
         # Avoid stalling CPU at startup.
@@ -157,7 +157,7 @@ class BaseSoC(SoCCore):
         self.icap.add_timing_constraints(platform, sys_clk_freq, self.crg.cd_sys.clk)
 
         # SPIFlash ---------------------------------------------------------------------------------
-        if spi_firmware:
+        if flash_boot:
             from litespi.modules import N25Q256A
             from litespi.opcodes import SpiNorFlashOpCodes as Codes
             self.add_spi_flash(mode="1x", module=N25Q256A(Codes.READ_1_1_1), with_master=False)
@@ -307,7 +307,7 @@ def main():
     parser.add_argument("--driver",  action="store_true",     help="Generate PCIe driver from LitePCIe (override local version).")
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-pcie-dma-probe", action="store_true", help="Enable PCIe DMA LiteScope Probe.")
-    parser.add_argument("--spi-firmware",      action="store_true",help="Write Firmware in Flash instead of RAM.")
+    parser.add_argument("--flash-boot",       action="store_true", help="Write Firmware in Flash instead of RAM.")
     parser.add_argument("--bios-flash-offset", default=0x190000,   help="Firmware SPI Flash offset.")
     args = parser.parse_args()
 
@@ -320,7 +320,7 @@ def main():
             cpu_firmware      = None if prepare else "firmware/demo.bin",
             with_jtagbone     = not args.with_bscan,
             with_bscan        = args.with_bscan,
-            spi_firmware      = args.spi_firmware,
+            flash_boot        = args.flash_boot,
             bios_flash_offset = args.bios_flash_offset,
         )
         if args.with_pcie_dma_probe:
@@ -344,7 +344,7 @@ def main():
         prog.flash(0, os.path.join(builder.gateware_dir, soc.build_name + ".bin"))
 
     # Flash Firmware.
-    if args.spi_firmware:
+    if args.flash_boot:
         prog = soc.platform.create_programmer(cable=args.cable)
         prog.flash(args.bios_flash_offset, "firmware/demo.bin")
 
