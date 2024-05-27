@@ -166,7 +166,7 @@ A gateware with debug interface must be build and loaded:
 litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
 
 # Run OpenOCD with the specified configurations:
-openocd -f ./digilent-hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
+openocd -f ./digilent_hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
 
 # Connecting GDB for Debugging:
 gdb-multiarch -q firmware/demo.elf -ex "target extended-remote localhost:3333"
