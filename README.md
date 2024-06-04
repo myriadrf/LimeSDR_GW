@@ -124,7 +124,7 @@ echo 1 | sudo tee /sys/bus/pci/rescan
 **Note:** in this mode gateware will be lost after power cycle.
 
 ```bash
-python3 litex_xtrx --load [--cable XXX]
+python3 limesdr_xtrx.py --load [--cable XXX]
 ```
 
 ## SPI Flash (non-volatile memory)
@@ -132,8 +132,20 @@ python3 litex_xtrx --load [--cable XXX]
 **Note:** in this mode gateware will be automatically loaded after flash and after power cycles.
 
 ```bash
-python3 litex_xtrx --flash [--cable XXX]
+python3 limesdr_xtrx.py --flash [--cable XXX]
 ```
+
+## Writing firmware in SPI flash (instead of shipped into gateware)
+
+By default the CPU's firmware is included into the gateware but its also possible to have an
+external firmware written to the SPI flash. The benefits is to be able to update firmware without
+having to rebuild a full gateware. To enable this option user must use command similar to:
+```bash
+python limesdr_xtrx.py --build --flash-boot --flash [--bios-flash-offset 0xXXXXX]
+```
+
+By default CPU's firmware will be written at 0x220000, with `--with-flash-offset` user is
+free to provides a different offset.
 
 ## Using GpioTop (connected to led2)
 
@@ -185,8 +197,8 @@ litex_cli --write gpio_gpio_override_val 0x05
 
 A gateware with debug interface must be build and loaded:
 
-```
-./litex_xtrx.py --with bscan --build --load --flash
+```bash
+./limesdr_xtrx.py --with bscan --build --load --flash
 
 
 # Load firmware trough serial
