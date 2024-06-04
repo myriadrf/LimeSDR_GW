@@ -7,6 +7,29 @@ git submodule init
 git submodule update
 ```
 
+## Build gateware
+
+Basic usage:
+```bash
+./limesdr_xtrx.py --build [--load] [--flash]
+```
+
+This command will build the gateware for a *fairwaves_pro* XTRX board.
+To select another variant user needs to use `--board` with:
+- `fairwaves_cs` for first version based on *35t*
+- `limesdr` for the *MyriadRF* lastest (current) variant
+
+`--load` and/or `--flash` will update FPGA and/or Flash (see below for details).
+
+Target script provides some aditional options (details are provided in further sections):
+- `--with-bscan` to add JTAG access to the *vexriscv-smp* softcore for debug purpose
+- `--flash-boot` to flash softcore's firmware in SPI (must be used with `--flash` option)
+
+*Note:* `--load`, `--flash` and `--flash-boot` uses **JTAG** to communicates with the FPGA, these actions requires
+an external probe. By default, a *digilent_hs2* cable will be used, to change this behavior user
+must uses `--cable` followed by the cable name (see `openFPGALoader --list-cables` to see full list of
+supported cables.)
+
 ## Build gateware, load firmware trough GPIO UART and launch CPU debug trough JTAG
 
 Required hardware:
