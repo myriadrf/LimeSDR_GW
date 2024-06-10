@@ -74,7 +74,49 @@ IRQ and Debug capabilities are demonstrated in the following sections.
 
 ## PCIe Core with MMAP and DMA Interfaces
 
-TODO
+The `limesdr_xtrx.py` integrates LitePCIe core that provides:
+- MMAP interface to access registers of the design and configure the cores.
+- DMA interfaces to stream data to and from the Host.
+
+MMAP and DMA interfaces are demonstrated by LitePCIe utilities:
+
+### MMAP
+
+```bash
+cd software/user
+./litepcie_util info
+[> FPGA/SoC Information:
+------------------------
+FPGA Identifier:  LiteX SoC on Fairwaves_pro XTRX  2024-06-10 16:34:09.
+FPGA DNA:         0x010a45867a084854
+FPGA Temperature: 80.1 °C
+FPGA VCC-INT:     0.93 V
+FPGA VCC-AUX:     1.77 V
+FPGA VCC-BRAM:    0.93 V
+```
+
+All the information retrieved by this command are directly retrieved from the board from CSR registers
+through the MMAP interface.
+
+### DMA
+
+```bash
+cd software/user
+./litepcie_util dma_test -e
+[> DMA loopback test:
+---------------------
+DMA_SPEED(Gbps)   TX_BUFFERS  RX_BUFFERS  DIFF  ERRORS
+          2.93       8993        8865   128       0
+          2.91      17921       17793   128       0
+          2.91      26849       26721   128       0
+          2.91      35777       35649   128       0
+          2.91      44705       44577   128       0
+```
+
+Exercise the DMA interfaces of the LitePCIe cores that are also the one going to/from `LimeTop` module.
+
+`litepcie_test -play/-record` utilities can also be used exercise the TX/RX DMA interfaces individually
+and play/record directly from/to files.
 
 ## Gateware loading/flashing to SRAM and SPI Flash.
 

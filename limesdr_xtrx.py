@@ -190,7 +190,7 @@ class BaseSoC(SoCCore):
         self.add_pcie(phy=self.pcie_phy, address_width=32, ndmas=1,
             with_dma_buffering    = True, dma_buffering_depth=8192,
             with_dma_loopback     = True,
-            with_dma_synchronizer = True,
+            with_dma_synchronizer = False,
             with_msi              = True
         )
 
@@ -237,8 +237,8 @@ class BaseSoC(SoCCore):
 
         # Connect LimeTop's Streaming interfaces to PCIe.
         self.comb += [
-            self.pcie_dma0.source.connect(self.lime_top.dma_rx, keep={"valid", "ready", "last", "data"}),
-            self.lime_top.dma_tx.connect(self.pcie_dma0.sink,   keep={"valid", "ready", "last", "data"}),
+            self.pcie_dma0.source.connect(self.lime_top.dma_tx, keep={"valid", "ready", "last", "data"}),
+            self.lime_top.dma_rx.connect(self.pcie_dma0.sink,   keep={"valid", "ready", "last", "data"}),
         ]
 
     # JTAG CPU Debug -------------------------------------------------------------------------------

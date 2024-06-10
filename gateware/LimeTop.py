@@ -46,8 +46,8 @@ class LimeTop(LiteXModule):
         self.mmap = axi.AXILiteInterface(address_width=32, data_width=32)
 
         # AXI Stream Buses (From/To PCIe DMAs)
-        self.dma_tx = axi.AXIStreamInterface(data_width=64)
-        self.dma_rx = axi.AXIStreamInterface(data_width=64)
+        self.dma_tx = axi.AXIStreamInterface(data_width=64) # PCIe  -> Logic (or FPGA -> RFIC).
+        self.dma_rx = axi.AXIStreamInterface(data_width=64) # Logic -> PCIe  (or RFIC -> FPGA).
 
         # # #
 
