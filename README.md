@@ -170,7 +170,24 @@ TODO
 
 ## CSR Registers Integration Example
 
-TODO
+To demonstrate the CSR Registers integration with LiteX, a scratch register has been added to `LimeTop`
+module.
+
+First step is to start a server configured for JTAG access:
+```bash
+litex_server --jtag --jtag-config openocd_xc7_ft232.cfg
+```
+
+`--jtag-config` must be adapted according to the JTAG interface
+
+Now it's possible to read/write the scratch CSR register:
+
+```bash
+litex_cli --write lime_top_scratch 0x12345678
+litex_cli --read  lime_top_scratch
+litex_cli --write lime_top_scratch 0x5aa55aa5
+litex_cli --read  lime_top_scratch
+```
 
 ## VHDL Integration Example
 
@@ -217,4 +234,29 @@ litex_cli --write lime_top_gpio_gpio_override_val 0x05
 
 ## LiteScope Logic Analyzer Example
 
-TODO
+First step is to start a server configured for JTAG access:
+```bash
+litex_server --jtag --jtag-config openocd_xc7_ft232.cfg
+```
+or PCIe access:
+```bash
+litex_server --pcie --pcie-bar=04:00.0 (Find pcie-bar with lspci)
+```
+
+Trigger LiteScope on a MMAP access to LiteTop's SRAM memory:
+```bash
+litescope_cli --csv=lime_top_analyzer.csv -r main_lime_top_mmap_ar_valid
+```
+
+Run `mmap` command from firmware to write/read to MMAP SRAM in `LimeTop` module.
+
+```bash
+[running]...
+[uploading]...
+[====================>] 100%
+[writing to dump.vcd]...
+```
+
+The generated dump.vcd can then be opened with a VCD viewer like GTKWave and AXI-Lite accesses from
+mmap firmware test observed.
+
