@@ -159,7 +159,11 @@ TODO
 
 ## VHDL Integration Example
 
-Using GpioTop (connected to led2)
+To demonstrate the VHDL integration with LiteX, the GPIO VHDL module is reused from LimeIP_HDL and
+integrated in the design through a LiteX wrapper. This wrapper is then integrated in the target
+design and connected to the GPIO of the board, here a LED. A test is provided to demonstrate
+integration and control from JTAGBone, but control could  also be done over PCIeBone or directly
+from C code running on the firmware or the Host.
 
 ### Target update
 
