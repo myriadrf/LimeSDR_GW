@@ -182,9 +182,14 @@ from C code running on the firmware or the Host.
 
 ### Target integration
 
-The code is integrated in the `limesdr_xtrx.py` target in `VHDL Integration Example` section.
+The code is integrated in the `LimeTop` module in `VHDL GPIO Example` section.
 
-### JTAGBone access
+### CPU Firmware Test
+
+The GPIO integration can be tested with `gpioled` command of the firmware. The command will blink
+the leds of the board.
+
+### JTAGBone Test
 
 First step is to start a server configured for JTAG access:
 ```bash
@@ -197,17 +202,17 @@ Now it's possible to read/write `gpioTop` registers:
 
 Value read:
 ```bash
-litex_cli --read gpio_gpio_val
+litex_cli --read lime_top_gpio_gpio_val
 ```
 
 HOST access (direction/level)
 ```bash
 # control overriden for all pins
-litex_cli --write gpio_gpio_override 0x07
+litex_cli --write lime_top_gpio_gpio_override 0x07
 # set all pins as output
-litex_cli --write gpio_gpio_override_dir 0x00
+litex_cli --write lime_top_gpio_gpio_override_dir 0x00
 # pins 0 & 2 low, pin 1 high
-litex_cli --write gpio_gpio_override_val 0x05
+litex_cli --write lime_top_gpio_gpio_override_val 0x05
 ```
 
 ## LiteScope Logic Analyzer Example
