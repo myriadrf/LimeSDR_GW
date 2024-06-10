@@ -6,9 +6,9 @@ analyzer.csv
 prog/
 build/
 
-firmware/demo.bin
-firmware/demo.elf
-firmware/demo.elf.map
+firmware/firmware.bin
+firmware/firmware.elf
+firmware/firmware.elf.map
 
 .Xil/
 .idea/

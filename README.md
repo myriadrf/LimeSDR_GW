@@ -126,7 +126,7 @@ sudo ./init.sh
 Then load the firmware over PCIe:
 
 ```bash
-litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
+litex_term /dev/ttyLXU0 --kernel firmware/firmware.bin
 ```
 
 ## Firmware Flashing/Loading to/from SPI Flash
@@ -150,13 +150,13 @@ To build and load a gateware with a debug interface:
 ./limesdr_xtrx.py --with bscan --build --load --flash
 
 # Load firmware through serial:
-litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
+litex_term /dev/ttyLXU0 --kernel firmware/firmware.bin
 
 # Run OpenOCD with the specified configurations:
 openocd -f ./digilent_hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
 
 # Connect GDB for debugging:
-gdb-multiarch -q firmware/demo.elf -ex "target extended-remote localhost:3333"
+gdb-multiarch -q firmware/firmware.elf -ex "target extended-remote localhost:3333"
 ```
 
 Note that instead of using GDB directly, Eclipse IDE can be configured to debug code in a more
@@ -189,7 +189,7 @@ To uses `user_led2` with `GpioTop` instead of `LedChaser`:
 #    sys_clk_freq = sys_clk_freq
 #)
 from gateware.GpioTop import GpioTop
-self.gpio = GpioTop(platform, platform.request_all"user_led2"))
+self.gpio = GpioTop(platform, platform.request_all("user_led2"))
 # Set all gpio to outputs
 self.comb += self.gpio.GPIO_DIR.eq(0b000)
 self.comb += self.gpio.GPIO_OUT_VAL.eq(0b010)

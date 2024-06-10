@@ -316,7 +316,7 @@ def main():
         build   = ((run == 1) & args.build)
         soc = BaseSoC(
             board                 = args.board,
-            cpu_firmware          = None if prepare else "firmware/demo.bin",
+            cpu_firmware          = None if prepare else "firmware/firmware.bin",
             with_jtagbone         = not args.with_bscan,
             with_bscan            = args.with_bscan,
             flash_boot            = args.flash_boot,
@@ -345,9 +345,9 @@ def main():
     # Flash Firmware.
     if args.flash_boot and args.flash:
         from litex.soc.software.crcfbigen import insert_crc
-        insert_crc("firmware/demo.bin", fbi_mode=True, o_filename="firmware/demo.fbi", little_endian=True)
+        insert_crc("firmware/firmware.bin", fbi_mode=True, o_filename="firmware/firmware.fbi", little_endian=True)
         prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(args.firmware_flash_offset, "firmware/demo.fbi")
+        prog.flash(args.firmware_flash_offset, "firmware/firmware.fbi")
 
 
 if __name__ == "__main__":
