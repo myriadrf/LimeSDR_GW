@@ -9,6 +9,7 @@
 #include <libbase/uart.h>
 #include <libbase/console.h>
 #include <generated/csr.h>
+#include <generated/mem.h>
 
 #include "i2c0.h"
 #include "i2c1.h"
@@ -98,8 +99,9 @@ static void help(void)
 #ifdef CSR_LEDS_BASE
 	puts("led                - Led demo");
 #endif
-#ifdef CSR_LIME_TOP_GPIO_GPIO_OVERRIDE_ADDR
+#ifdef CSR_LIME_TOP_BASE
 	puts("gpioled            - GPIO override demo");
+	puts("mmap               - MMAP demo" );
 #endif
 }
 
@@ -144,7 +146,7 @@ static void led_cmd(void)
 }
 #endif
 
-#ifdef CSR_LIME_TOP_GPIO_GPIO_OVERRIDE_ADDR
+#ifdef CSR_LIME_TOP_BASE
 static void gpioled_cmd(void)
 {
 	int i, j;
@@ -164,6 +166,31 @@ static void gpioled_cmd(void)
 	lime_top_gpio_gpio_override_val_write(0x0);
 	printf("GPIO Led override demo...ended\n");
 }
+
+static void mmap_cmd(void)
+{
+	int i;
+
+    volatile uint32_t *mmap_ptr = (volatile uint32_t *)LIME_TOP_MMAP_BASE;
+	printf("MMAP demo...\n");
+
+    /* Write counter values to SRAM. */
+
+    printf("Writing values to SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
+    for (i = 0; i < 8; i++) {
+        mmap_ptr[i] = i;
+        printf("Wrote %d to address 0x%08X\n", i, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
+    }
+
+    /* Read back values from SRAM. */
+    printf("Reading values from SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
+    for (i = 0; i < 8; i++) {
+        uint32_t value = mmap_ptr[i];
+        printf("Read %ld from address 0x%08X\n", value, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
+    }
+
+}
+
 #endif
 
 /*-----------------------------------------------------------------------*/
@@ -367,10 +394,14 @@ static void console_service(void)
 	else if(strcmp(token, "led") == 0)
 		led_cmd();
 #endif
-#ifdef CSR_LIME_TOP_GPIO_GPIO_OVERRIDE_ADDR
+#ifdef CSR_LIME_TOP_BASE
 	else if(strcmp(token, "gpioled") == 0)
 		gpioled_cmd();
+	else if(strcmp(token, "mmap") == 0)
+		mmap_cmd();
 #endif
+
+
 	prompt();
 }
 
