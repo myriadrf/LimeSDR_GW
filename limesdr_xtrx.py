@@ -39,7 +39,7 @@ from litescope import LiteScopeAnalyzer
 
 from gateware.aux import AUX
 
-#from software import generate_litepcie_software
+from software import generate_litepcie_software
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -330,7 +330,7 @@ def main():
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
 
     # Generate LitePCIe Driver.
-    #generate_litepcie_software(soc, "software", use_litepcie_software=args.driver)
+    generate_litepcie_software(soc, "software", use_litepcie_software=args.driver)
 
     # Load Bistream.
     if args.load:

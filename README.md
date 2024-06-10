@@ -27,6 +27,8 @@ git submodule init
 git submodule update
 ```
 
+## Building the Gateware
+
 Basic usage to build the gateware:
 
 ```bash
