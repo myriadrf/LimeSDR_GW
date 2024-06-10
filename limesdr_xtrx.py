@@ -141,15 +141,6 @@ class BaseSoC(SoCCore):
             pads         = platform.request_all("user_led"),
             sys_clk_freq = sys_clk_freq
         )
-        #self.leds2 = LedChaser(
-        #    pads         = platform.request_all("user_led2"),
-        #    sys_clk_freq = sys_clk_freq
-        #)
-        from gateware.GpioTop import GpioTop
-        self.gpio = GpioTop(platform, platform.request_all("user_led2"))
-        # Set all gpio to inputs
-        self.comb += self.gpio.GPIO_DIR.eq(0b000)
-        self.comb += self.gpio.GPIO_OUT_VAL.eq(0b010)
 
         # ICAP -------------------------------------------------------------------------------------
         self.icap = ICAP()
@@ -233,6 +224,12 @@ class BaseSoC(SoCCore):
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks        dna_clk] -asynchronous")
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       jtag_clk] -asynchronous")
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       icap_clk] -asynchronous")
+
+        # VHDL Integration Example -----------------------------------------------------------------
+        from gateware.GpioTop import GpioTop
+
+        gpio_top_led = platform.request_all("user_led2")
+        self.gpio = GpioTop(platform, gpio_top_led)
 
     def add_jtag_cpu_debug(self):
         from litex.soc.cores.jtag import XilinxJTAG

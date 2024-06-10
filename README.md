@@ -180,23 +180,9 @@ design and connected to the GPIO of the board, here a LED. A test is provided to
 integration and control from JTAGBone, but control could  also be done over PCIeBone or directly
 from C code running on the firmware or the Host.
 
-### Target update
+### Target integration
 
-To uses `user_led2` with `GpioTop` instead of `LedChaser`:
-```python
-#self.leds2 = LedChaser(
-#    pads         = platform.request_all("user_led2"),
-#    sys_clk_freq = sys_clk_freq
-#)
-from gateware.GpioTop import GpioTop
-self.gpio = GpioTop(platform, platform.request_all("user_led2"))
-# Set all gpio to outputs
-self.comb += self.gpio.GPIO_DIR.eq(0b000)
-self.comb += self.gpio.GPIO_OUT_VAL.eq(0b010)
-```
-
-**Note:** when `GPIO_DIR` is set as input, bitstream fails due to `IOBUF.O`
-unrouted.
+The code is integrated in the `limesdr_xtrx.py` target in `VHDL Integration Example` section.
 
 ### JTAGBone access
 
