@@ -7,9 +7,9 @@ This repository is based on the [LimeSDR-XTRX LiteX Gateware](https://github.com
 repository with the following added/tested features:
 - VexRiscv-SMP SoftCore CPU with debug capabilities over JTAG and interrupts.
 - PCIe core with MMAP and DMA interfaces (AXI-MMAP and AXI-ST).
-- FPGA programming to SRAM and SPI Flash.
+- Gateware loading/flashing to SRAM and SPI Flash.
 - Firmware loading from PCIe.
-- Firmware loading from SPI Flash.
+- Firmware flashing/loading to/from SPI Flash.
 - Firmware debug through GDB over JTAG.
 - Firmware interrupt handling example.
 - CSR registers integration example.
@@ -76,26 +76,15 @@ IRQ and Debug capabilities are demonstrated in the following sections.
 
 TODO
 
-# FPGA Programming to SRAM and SPI Flash
+## Gateware loading/flashing to SRAM and SPI Flash.
 
-### Load Gateware through JTAG (volatile and non-volatile memory)
+### Loading Gateware through JTAG (volatile and non-volatile memory)
 
 [openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load and/or to flash bitstream.
 
 By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this behaviour and to select
 an alternate cable, one must append the command line with `--cable xxx` where `xxx` is the cable's
 name (see `openFPGALoader --list-cables` for a complete list of supported cables).
-
-After bitstream loaded/flashed, computer must be rebooted or a PCIe Bus rescan must be performed:
-
-```bash
-# Get PCIe location
-lspci | grep -i RF_controller
-# Remove device (replace X with actual value, see previous command)
-echo 1 | sudo tee /sys/bus/pci/devices/0000\:0X\:00.0/remove
-# Rescan PCIe Bus after flashing/loading new bitstream
-echo 1 | sudo tee /sys/bus/pci/rescan
-```
 
 ### RAM (volatile memory)
 
@@ -113,20 +102,21 @@ python3 limesdr_xtrx.py --load [--cable XXX]
 python3 limesdr_xtrx.py --flash [--cable XXX]
 ```
 
-### Writing Firmware in SPI Flash (Instead of including it in Gateware)
-
-By default, the CPU's firmware is included in the gateware, but it is also possible to have an
-external firmware written to the SPI flash. This allows firmware updates without rebuilding the
-full gateware. To enable this option, use a command similar to:
+### PCIe Rescan
+After bitstream loaded/flashed, computer must be rebooted or a PCIe Bus rescan must be performed:
 
 ```bash
-python limesdr_xtrx.py --build --flash-boot --flash [--bios-flash-offset 0xXXXXX]
+# Get PCIe location
+lspci | grep -i RF_controller
+# Remove device (replace X with actual value, see previous command)
+echo 1 | sudo tee /sys/bus/pci/devices/0000\:0X\:00.0/remove
+# Rescan PCIe Bus after flashing/loading new bitstream
+echo 1 | sudo tee /sys/bus/pci/rescan
 ```
 
-The default offset for the CPU's firmware is 0x220000. Use `--with-flash-offset` to specify a
-different offset.
+### Gateware loading/flashing to SRAM and SPI Flash.
 
-# Firmware Loading from PCIe
+## Firmware Loading from PCIe
 
 First, load the *litepcie* driver:
 
@@ -142,9 +132,18 @@ Then load the firmware over PCIe:
 litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
 ```
 
-## Firmware Loading from SPI Flash
+## Firmware Flashing/Loading to/from SPI Flash
 
-TODO
+By default, the CPU's firmware is included in the gateware as ROM in a BlockRAM, but it is also possible
+to have an external firmware written to the SPI flash. This allows firmware updates without rebuilding the
+full gateware. To enable this option, use a command similar to:
+
+```bash
+python limesdr_xtrx.py --build --flash-boot --flash [--bios-flash-offset 0xXXXXX]
+```
+
+The default offset for the CPU's firmware is 0x220000. Use `--with-flash-offset` to specify a
+different offset.
 
 ## Firmware Debug through GDB over JTAG
 
