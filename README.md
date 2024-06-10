@@ -80,27 +80,24 @@ TODO
 
 ### Loading Gateware through JTAG (volatile and non-volatile memory)
 
-[openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load and/or to flash bitstream.
+[openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load and/or flash
+bitstreams and CPU firmware.
 
-By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this behaviour and to select
-an alternate cable, one must append the command line with `--cable xxx` where `xxx` is the cable's
-name (see `openFPGALoader --list-cables` for a complete list of supported cables).
+By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this behavior and select an
+alternate cable, append the command line with `--cable xxx`, where `xxx` is the cable's name
+(see `openFPGALoader --list-cables` for a complete list of supported cables).
 
-### RAM (volatile memory)
+### Loading Gateware to SRAM (Volatile Memory)
 
-**Note:** In this mode, the gateware will be lost after a power cycle.
-```bash
+In this mode, the gateware will be lost after a power cycle.
 
-python3 limesdr_xtrx.py --load [--cable XXX]
-```
+```bash python3 limesdr_xtrx.py --load [--cable XXX] ```
 
-### SPI Flash (non-volatile memory)
+### Flashing Gateware to SPI Flash (Non-Volatile Memory)
 
-**Note:** In this mode, the gateware will be automatically loaded after flashing and power cycles.
+In this mode, the gateware will be automatically loaded after flashing and power cycles.
 
-```bash
-python3 limesdr_xtrx.py --flash [--cable XXX]
-```
+```bash python3 limesdr_xtrx.py --flash [--cable XXX] ```
 
 ### PCIe Rescan
 After bitstream loaded/flashed, computer must be rebooted or a PCIe Bus rescan must be performed:
@@ -134,15 +131,15 @@ litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
 
 ## Firmware Flashing/Loading to/from SPI Flash
 
-By default, the CPU's firmware is included in the gateware as ROM in a BlockRAM, but it is also possible
-to have an external firmware written to the SPI flash. This allows firmware updates without rebuilding the
-full gateware. To enable this option, use a command similar to:
+By default, the CPU's firmware is included in the gateware as ROM in a BlockRAM, but it is also
+possible to have an external firmware written to the SPI flash. This allows firmware updates
+without rebuilding the full gateware. To enable this option, use the following command:
 
 ```bash
-python limesdr_xtrx.py --build --flash-boot --flash [--bios-flash-offset 0xXXXXX]
+python limesdr_xtrx.py --build --flash-boot --flash [--firmware-flash-offset 0xXXXXX]
 ```
 
-The default offset for the CPU's firmware is 0x220000. Use `--with-flash-offset` to specify a
+The default offset for the CPU's firmware is 0x220000. Use `--firmware-flash-offset` to specify a
 different offset.
 
 ## Firmware Debug through GDB over JTAG

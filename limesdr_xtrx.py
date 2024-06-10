@@ -89,11 +89,11 @@ class BaseSoC(SoCCore):
     }
 
     def __init__(self, board="limesdr", sys_clk_freq=int(125e6),
-        with_cpu      = True, cpu_firmware=None,
-        with_jtagbone = True,
-        with_bscan    = False,
-        flash_boot    = False,
-        bios_flash_offset  = 0x190000,
+        with_cpu              = True, cpu_firmware=None,
+        with_jtagbone         = True,
+        with_bscan            = False,
+        flash_boot            = False,
+        firmware_flash_offset = 0x220000,
     ):
         # Platform ---------------------------------------------------------------------------------
         platform = {
@@ -164,11 +164,11 @@ class BaseSoC(SoCCore):
 
             # Add ROM linker region --------------------------------------------------------------------
             self.bus.add_region("flash", SoCRegion(
-                origin = self.bus.regions["spiflash"].origin + bios_flash_offset,
+                origin = self.bus.regions["spiflash"].origin + firmware_flash_offset,
                 size   = 0x40000, # 256kB
                 linker = True)
             )
-            ## Automatically jump to pre-initialized firmware.
+            # Automatically jump to pre-initialized firmware.
             self.add_constant("FLASH_BOOT_ADDRESS", self.bus.regions["flash"].origin)
         else:
             # Automatically jump to pre-initialized firmware.
@@ -298,16 +298,16 @@ class BaseSoC(SoCCore):
 def main():
     parser = argparse.ArgumentParser(description="LiteX SoC on Fairwaves/LimeSDR XTRX.")
     parser.add_argument("--board",   default="fairwaves_pro", help="Select XTRX board.", choices=["fairwaves_cs", "fairwaves_pro", "limesdr"])
-    parser.add_argument("--with-bscan", action="store_true",  help="CPU debug over JTAG."),
-    parser.add_argument("--build",   action="store_true",     help="Build bitstream.")
-    parser.add_argument("--load",    action="store_true",     help="Load bitstream.")
-    parser.add_argument("--flash",   action="store_true",     help="Flash bitstream.")
-    parser.add_argument("--cable",   default="digilent_hs2",  help="JTAG cable.")
-    parser.add_argument("--driver",  action="store_true",     help="Generate PCIe driver from LitePCIe (override local version).")
+    parser.add_argument("--with-bscan",            action="store_true",     help="Enable CPU debug over JTAG."),
+    parser.add_argument("--build",                 action="store_true",     help="Build bitstream.")
+    parser.add_argument("--load",                  action="store_true",     help="Load bitstream.")
+    parser.add_argument("--flash",                 action="store_true",     help="Flash bitstream.")
+    parser.add_argument("--cable",                 default="digilent_hs2",  help="JTAG cable.")
+    parser.add_argument("--driver",                action="store_true",     help="Generate PCIe driver from LitePCIe (override local version).")
+    parser.add_argument("--flash-boot",            action="store_true",     help="Write Firmware in Flash instead of RAM.")
+    parser.add_argument("--firmware-flash-offset", default=0x220000,        help="Firmware SPI Flash offset.")
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-pcie-dma-probe", action="store_true", help="Enable PCIe DMA LiteScope Probe.")
-    parser.add_argument("--flash-boot",       action="store_true", help="Write Firmware in Flash instead of RAM.")
-    parser.add_argument("--bios-flash-offset", default=0x220000,   help="Firmware SPI Flash offset.")
     args = parser.parse_args()
 
     # Build SoC.
@@ -315,12 +315,12 @@ def main():
         prepare = (run == 0)
         build   = ((run == 1) & args.build)
         soc = BaseSoC(
-            board             = args.board,
-            cpu_firmware      = None if prepare else "firmware/demo.bin",
-            with_jtagbone     = not args.with_bscan,
-            with_bscan        = args.with_bscan,
-            flash_boot        = args.flash_boot,
-            bios_flash_offset = args.bios_flash_offset,
+            board                 = args.board,
+            cpu_firmware          = None if prepare else "firmware/demo.bin",
+            with_jtagbone         = not args.with_bscan,
+            with_bscan            = args.with_bscan,
+            flash_boot            = args.flash_boot,
+            firmware_flash_offset = args.firmware_flash_offset,
         )
         if args.with_pcie_dma_probe:
             soc.add_pcie_dma_probe()
@@ -347,7 +347,7 @@ def main():
         from litex.soc.software.crcfbigen import insert_crc
         insert_crc("firmware/demo.bin", fbi_mode=True, o_filename="firmware/demo.fbi", little_endian=True)
         prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(args.bios_flash_offset, "firmware/demo.fbi")
+        prog.flash(args.firmware_flash_offset, "firmware/demo.fbi")
 
 
 if __name__ == "__main__":
