@@ -225,11 +225,12 @@ class BaseSoC(SoCCore):
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       jtag_clk] -asynchronous")
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       icap_clk] -asynchronous")
 
-        # VHDL Integration Example -----------------------------------------------------------------
-        from gateware.GpioTop import GpioTop
+        # Lime Top Level Example -------------------------------------------------------------------
 
-        gpio_top_led = platform.request_all("user_led2")
-        self.gpio = GpioTop(platform, gpio_top_led)
+        from gateware.LimeTop import LimeTop
+        self.lime_top = LimeTop(platform)
+
+    # JTAG CPU Debug -------------------------------------------------------------------------------
 
     def add_jtag_cpu_debug(self):
         from litex.soc.cores.jtag import XilinxJTAG
@@ -250,46 +251,6 @@ class BaseSoC(SoCCore):
         self.platform.add_period_constraint(self.cd_jtag.clk, 1e9/20e6)
         self.platform.add_false_path_constraints(self.cd_jtag.clk, self.crg.cd_sys.clk)
 
-    def add_pcie_dma_probe(self):
-        # DMA TX.
-        tx_data = Record([("i0", 16), ("q0", 16), ("i1", 16), ("q1", 16)])
-        self.comb += [
-            tx_data.i0.eq(self.pcie_dma0.source.data[0*16:1*16]),
-            tx_data.q0.eq(self.pcie_dma0.source.data[1*16:2*16]),
-            tx_data.i1.eq(self.pcie_dma0.source.data[2*16:3*16]),
-            tx_data.q1.eq(self.pcie_dma0.source.data[3*16:4*16]),
-        ]
-
-        # DMA RX.
-        rx_data = Record([("i0", 16), ("q0", 16), ("i1", 16), ("q1", 16)])
-        self.comb += [
-            rx_data.i0.eq(self.pcie_dma0.sink.data[0*16:1*16]),
-            rx_data.q0.eq(self.pcie_dma0.sink.data[1*16:2*16]),
-            rx_data.i1.eq(self.pcie_dma0.sink.data[2*16:3*16]),
-            rx_data.q1.eq(self.pcie_dma0.sink.data[3*16:4*16]),
-        ]
-        analyzer_signals = [
-            # DMA TX.
-            self.pcie_dma0.source.valid,
-            self.pcie_dma0.source.ready,
-            self.pcie_dma0.source.first,
-            self.pcie_dma0.source.last,
-            tx_data,
-
-            # DMA RX.
-            self.pcie_dma0.sink.valid,
-            self.pcie_dma0.sink.ready,
-            self.pcie_dma0.sink.first,
-            self.pcie_dma0.sink.last,
-            rx_data,
-        ]
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 512,
-            clock_domain = "sys",
-            register     = True,
-            csr_csv      = "analyzer.csv"
-        )
-
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -303,8 +264,6 @@ def main():
     parser.add_argument("--driver",                action="store_true",     help="Generate PCIe driver from LitePCIe (override local version).")
     parser.add_argument("--flash-boot",            action="store_true",     help="Write Firmware in Flash instead of RAM.")
     parser.add_argument("--firmware-flash-offset", default=0x220000,        help="Firmware SPI Flash offset.")
-    probeopts = parser.add_mutually_exclusive_group()
-    probeopts.add_argument("--with-pcie-dma-probe", action="store_true", help="Enable PCIe DMA LiteScope Probe.")
     args = parser.parse_args()
 
     # Build SoC.
@@ -319,8 +278,6 @@ def main():
             flash_boot            = args.flash_boot,
             firmware_flash_offset = args.firmware_flash_offset,
         )
-        if args.with_pcie_dma_probe:
-            soc.add_pcie_dma_probe()
         builder = Builder(soc, csr_csv="csr.csv")
         builder.build(run=build)
         if prepare:
