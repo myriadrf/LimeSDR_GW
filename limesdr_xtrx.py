@@ -229,6 +229,7 @@ class BaseSoC(SoCCore):
 
         from gateware.LimeTop import LimeTop
         self.lime_top = LimeTop(platform)
+        self.bus.add_slave(name="lime_top_mmap", slave=self.lime_top.mmap, region=SoCRegion(origin=0x3000_000, size=0x1000))
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 

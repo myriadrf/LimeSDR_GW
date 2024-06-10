@@ -53,7 +53,8 @@ class LimeTop(LiteXModule):
 
         # AXI MMAP.
         # ---------
-        # TODO: Implement AXI-Lite MMAP interface handling here.
+        self.ram = axi.AXILiteSRAM(0x1000)
+        self.comb += self.mmap.connect(self.ram.bus)
 
         # AXI Stream.
         # -----------
