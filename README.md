@@ -65,12 +65,17 @@ cd firmware && make clean all && cd ../
 # Load CPU firmware:
 litex_term jtag --jtag-config=openocd_xc7_ft2232.cfg --kernel firmware/demo.bin
 ```
-### Load Firmware through PCIe
+### Load Firmware over PCIe
 
 First, load the *litepcie* driver:
 
-TBD
+```bash
+cd software/kernel
+make clean all
+sudo ./init.sh
+```
 
+Then load the firmware over PCIe:
 ```bash
 litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
 ```
