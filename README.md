@@ -81,7 +81,9 @@ TODO
 
 [openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load and/or to flash bitstream.
 
-By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this behaviour and to select an alternate cable, one must append the command line with `--cable xxx` where `xxx` is the cable's name (see `openFPGALoader --list-cables` for a complete list of supported cables).
+By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this behaviour and to select
+an alternate cable, one must append the command line with `--cable xxx` where `xxx` is the cable's
+name (see `openFPGALoader --list-cables` for a complete list of supported cables).
 
 After bitstream loaded/flashed, computer must be rebooted or a PCIe Bus rescan must be performed:
 
@@ -112,13 +114,16 @@ python3 limesdr_xtrx.py --flash [--cable XXX]
 
 ### Writing Firmware in SPI Flash (Instead of including it in Gateware)
 
-By default, the CPU's firmware is included in the gateware, but it is also possible to have an external firmware written to the SPI flash. This allows firmware updates without rebuilding the full gateware. To enable this option, use a command similar to:
+By default, the CPU's firmware is included in the gateware, but it is also possible to have an
+external firmware written to the SPI flash. This allows firmware updates without rebuilding the
+full gateware. To enable this option, use a command similar to:
 
 ```bash
 python limesdr_xtrx.py --build --flash-boot --flash [--bios-flash-offset 0xXXXXX]
 ```
 
-The default offset for the CPU's firmware is 0x220000. Use `--with-flash-offset` to specify a different offset.
+The default offset for the CPU's firmware is 0x220000. Use `--with-flash-offset` to specify a
+different offset.
 
 # Firmware Loading from PCIe
 
@@ -157,8 +162,8 @@ openocd -f ./digilent_hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled
 gdb-multiarch -q firmware/demo.elf -ex "target extended-remote localhost:3333"
 ```
 
-Note that instead of using GDB directly, Eclipse IDE can be configured to debug code in a more user-friendly way. Follow this guide to configure Eclipse IDE:
-
+Note that instead of using GDB directly, Eclipse IDE can be configured to debug code in a more
+user-friendly way. Follow this guide to configure Eclipse IDE:
 [Using Eclipse to run and debug the software](https://github.com/SpinalHDL/VexRiscv?tab=readme-ov-file#using-eclipse-to-run-and-debug-the-software)
 
 
