@@ -30,24 +30,25 @@ git submodule update
 
 ## Building the Gateware
 
-Basic usage to build the gateware:
+To build the gateware, use the following command with the appropriate board option:
 
 ```bash
-./limesdr_xtrx.py --build [--load] [--flash]
+./limesdr_xtrx.py --build --board=fairwaves_pro [--load] [--flash]
 ```
 
-This command builds the gateware for a *fairwaves_pro* XTRX board. To select another variant, use
-the `--board` option:
+This command builds the gateware for a *fairwaves_pro* XTRX board by default. To select another
+variant, use the `--board` option with one of the following values:
 
-- `fairwaves_cs` for the commercial version based on *35t*.
-- `limesdr` for the *MyriadRF* latest variant.
+- `fairwaves_pro` for the professional version of the *XTRX* with an *XC7A35T FPGA* (default).
+- `fairwaves_cs` for the commercial version of the *XTRX* with an *XC7A50T FPGA* (default).
+- `limesdr` for the *LimeMicroSystems/MyriadRF* latest variant of the  *XTRX*.
 
-The `--load` and `--flash` options update the FPGA and/or Flash (details below).
+The `--load` and `--flash` options update the FPGA and/or Flash as described below.
 
 Additional options include:
 
 - `--with-bscan` to add JTAG access to the *vexriscv-smp* softcore for debugging.
-- `--flash-boot` to flash the softcore's firmware in SPI (requires `--flash`).
+- `--flash-boot` to flash the CPU Softcore's firmware in SPI (requires `--flash`).
 
 **Note:** `--load`, `--flash`, and `--flash-boot` use **JTAG** to communicate with the FPGA. These
   actions require an external probe, with a *digilent_hs2* cable used by default. Use `--cable`
@@ -99,8 +100,8 @@ echo 1 | sudo tee /sys/bus/pci/rescan
 ### RAM (volatile memory)
 
 **Note:** In this mode, the gateware will be lost after a power cycle.
-
 ```bash
+
 python3 limesdr_xtrx.py --load [--cable XXX]
 ```
 
