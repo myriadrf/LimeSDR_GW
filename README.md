@@ -5,16 +5,17 @@ to efficiently develop and maintain LiteX-based gateware for their LimeSDR XTRX 
 
 This repository is based on the [LimeSDR-XTRX LiteX Gateware](https://github.com/myriadrf/LimeSDR-XTRX_LiteX_GW)
 repository with the following added/tested features:
-- Board programming/tools (SRAM and SPI Flash).
 - VexRiscv SoftCore CPU with debug capabilities over JTAG and interrupts.
 - PCIe core with MMAP and DMA interfaces (AXI-MMAP and AXI-ST).
-- CSR registers example.
-- VHDL integration example.
-- LiteScope example over JTAG or PCIe.
-- Firmware loading from UART.
+- FPGA programming to SRAM and SPI Flash.
+- Firmware loading from PCIe.
 - Firmware loading from SPI Flash.
 - Firmware debug through GDB over JTAG.
-- Interrupt handling example.
+- Firmware interrupt handling example.
+- CSR registers integration example.
+- VHDL integration example.
+- LiteScope logic analyzer example
+
 
 ## Cloning the Repository
 
