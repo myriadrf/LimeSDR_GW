@@ -1,88 +1,60 @@
-# LimeSDR-XTRX Gateware 
+# LimeSDR-XTRX LiteX Gateware infrastructure
 
-Cloning repo:
-```
+The objective of this project is to provide the necessary infrastructure to enable Lime Microsystems
+to efficiently develop and maintain LiteX-based gateware for their LimeSDR XTRX product.
+
+This repository is based on the [LimeSDR-XTRX LiteX Gateware](https://github.com/myriadrf/LimeSDR-XTRX_LiteX_GW)
+repository with the following added/tested features:
+- Board programming/tools (SRAM and SPI Flash).
+- VexRiscv SoftCore CPU with debug capabilities over JTAG and interrupts.
+- PCIe core with MMAP and DMA interfaces (AXI-MMAP and AXI-ST).
+- CSR registers example.
+- VHDL integration example.
+- LiteScope example over JTAG or PCIe.
+- Firmware loading from UART.
+- Firmware loading from SPI Flash.
+- Firmware debug through GDB over JTAG.
+- Interrupt handling example.
+
+## Cloning the Repository
+
+To clone this repository and initialize the submodules, run the following commands:
+
+```bash
 git clone https://github.com/myriadrf/LimeSDR-XTRX_LiteX_GW.git
 git submodule init 
 git submodule update
 ```
 
-## Build gateware
+Basic usage to build the gateware:
 
-Basic usage:
 ```bash
 ./limesdr_xtrx.py --build [--load] [--flash]
 ```
 
-This command will build the gateware for a *fairwaves_pro* XTRX board.
-To select another variant user needs to use `--board` with:
-- `fairwaves_cs` for first version based on *35t*
-- `limesdr` for the *MyriadRF* lastest (current) variant
+This command builds the gateware for a *fairwaves_pro* XTRX board. To select another variant, use
+the `--board` option:
 
-`--load` and/or `--flash` will update FPGA and/or Flash (see below for details).
+- `fairwaves_cs` for the commercial version based on *35t*.
+- `limesdr` for the *MyriadRF* latest variant.
 
-Target script provides some aditional options (details are provided in further sections):
-- `--with-bscan` to add JTAG access to the *vexriscv-smp* softcore for debug purpose
-- `--flash-boot` to flash softcore's firmware in SPI (must be used with `--flash` option)
+The `--load` and `--flash` options update the FPGA and/or Flash (details below).
 
-*Note:* `--load`, `--flash` and `--flash-boot` uses **JTAG** to communicates with the FPGA, these actions requires
-an external probe. By default, a *digilent_hs2* cable will be used, to change this behavior user
-must uses `--cable` followed by the cable name (see `openFPGALoader --list-cables` to see full list of
-supported cables.)
+Additional options include:
 
-## Build gateware, load firmware trough GPIO UART and launch CPU debug trough JTAG
+- `--with-bscan` to add JTAG access to the *vexriscv-smp* softcore for debugging.
+- `--flash-boot` to flash the softcore's firmware in SPI (requires `--flash`).
 
-Required hardware:
-1. LimeSDR-XTRX v1.2 board
-2. Mini PCIe to PCIe adapter
-3. FT2232H mini module connected to PCIe adapter JTAG:
-    ```
-    JTAG       FT2232H
-    ------------------
-    TMS   ->   CN2_12 
-    TDI   ->   CN2_10
-    TDO   ->   CN2_9
-    TCK   ->   CN2_7
-    GND   ->   CN2_2
-    VIO   ->   CN2_11
-    ``` 
-4. USB Serial converter connected to PCIe adapter GPIO
-   ```
-   GPIO              Serial 
-   ------------------------
-   GPIO3N(RX)   <-   TX
-   GPIO3P(TX)  ->    RX
-   ```
+**Note:** `--load`, `--flash`, and `--flash-boot` use **JTAG** to communicate with the FPGA. These
+  actions require an external probe, with a *digilent_hs2* cable used by default. Use `--cable`
+  followed by the cable name to change this (see `openFPGALoader --list-cables` for supported
+  cables).
 
-Steps to load build/load gateware, load firmware and launch debug:
+## Build Gateware and Load Firmware through JTAG
 
-```
-# Build/Load gateware bitstream:
-./LimeSDR_XTRX.py --integrated-main-ram-size 0x8000 --build --load --uart-name=gpio_serial --cpu-type=vexriscv_smp --with-rvc  --with-privileged-debug --hardware-breakpoints 4 --csr-csv=csr.csv
-
-# Build firmware:
-cd firmware && make clean all && cd ../
-
-# Load firmware trough serial
-litex_term --csr-csv csr.csv /dev/ttyUSB0 --kernel firmware/demo.bin
-
-# Run OpenOCD with the specified configurations:
-openocd -f ./limesdr_xtrx.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
-
-# Connecting GDB for Debugging:
-gdb-multiarch -q firmware/demo.elf -ex "target extended-remote localhost:3333"
-```
-
-Note that instead of usign GDB directly, Eclipse IDE can be configured to debug code in more user friendly way. Follow this guide to configure Eclipse IDE:
-
-https://github.com/SpinalHDL/VexRiscv?tab=readme-ov-file#using-eclipse-to-run-and-debug-the-software
-
-
-## Build gateware and load firmware trough JTAG
-
-```
-# Build/Load gateware bitstream:
-./LimeSDR_XTRX.py --integrated-main-ram-size 0x8000 --build --load --uart-name=jtag_uart --cpu-type=vexriscv_smp --with-rvc  --with-privileged-debug --hardware-breakpoints 4
+```bash
+# Build and load gateware bitstream:
+./LimeSDR_XTRX.py --integrated-main-ram-size 0x8000 --build --load --uart-name=jtag_uart --cpu-type=vexriscv_smp --with-rvc --with-privileged-debug --hardware-breakpoints 4
 
 # Build firmware:
 cd firmware && make clean all && cd ../
@@ -90,10 +62,12 @@ cd firmware && make clean all && cd ../
 # Load CPU firmware:
 litex_term jtag --jtag-config=openocd_xc7_ft2232.cfg --kernel firmware/demo.bin
 ```
+### Load Firmware through PCIe
 
-## Load firmware through PCIe
+First, load the *litepcie* driver:
 
-First *litepcie* driver must be loaded (TBD).
+TBD
+
 ```bash
 litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
 ```
@@ -210,3 +184,7 @@ openocd -f ./digilent_hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled
 # Connecting GDB for Debugging:
 gdb-multiarch -q firmware/demo.elf -ex "target extended-remote localhost:3333"
 ```
+
+Note that instead of usign GDB directly, Eclipse IDE can be configured to debug code in more user friendly way. Follow this guide to configure Eclipse IDE:
+
+https://github.com/SpinalHDL/VexRiscv?tab=readme-ov-file#using-eclipse-to-run-and-debug-the-software
