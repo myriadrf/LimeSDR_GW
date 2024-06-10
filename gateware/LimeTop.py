@@ -89,5 +89,5 @@ class LimeTop(LiteXModule):
             depth        = 512,
             clock_domain = "sys",
             register     = True,
-            csr_csv      = "analyzer.csv"
+            csr_csv      = "lime_top_analyzer.csv"
         )

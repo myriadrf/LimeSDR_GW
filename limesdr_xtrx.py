@@ -228,8 +228,18 @@ class BaseSoC(SoCCore):
         # Lime Top Level Example -------------------------------------------------------------------
 
         from gateware.LimeTop import LimeTop
+
+        # Create LimeTop instance.
         self.lime_top = LimeTop(platform)
+
+        # Connect LimeTop's MMAP interface to SoC.
         self.bus.add_slave(name="lime_top_mmap", slave=self.lime_top.mmap, region=SoCRegion(origin=0x3000_000, size=0x1000))
+
+        # Connect LimeTop's Streaming interfaces to PCIe.
+        self.comb += [
+            self.pcie_dma0.source.connect(self.lime_top.dma_rx, keep={"valid", "ready", "last", "data"}),
+            self.lime_top.dma_tx.connect(self.pcie_dma0.sink,   keep={"valid", "ready", "last", "data"}),
+        ]
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
