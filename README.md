@@ -54,19 +54,60 @@ Additional options include:
   followed by the cable name to change this (see `openFPGALoader --list-cables` for supported
   cables).
 
-## Build Gateware and Load Firmware through JTAG
+## VexRiscv SoftCore CPU with Debug Capabilities
+
+TODO
+
+## PCIe Core with MMAP and DMA Interfaces
+
+TODO
+
+# FPGA Programming to SRAM and SPI Flash
+
+### Load Gateware through JTAG (volatile and non-volatile memory)
+
+[openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load and/or to flash bitstream.
+
+By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this behaviour and to select an alternate cable, one must append the command line with `--cable xxx` where `xxx` is the cable's name (see `openFPGALoader --list-cables` for a complete list of supported cables).
+
+After bitstream loaded/flashed, computer must be rebooted or a PCIe Bus rescan must be performed:
 
 ```bash
-# Build and load gateware bitstream:
-./LimeSDR_XTRX.py --integrated-main-ram-size 0x8000 --build --load --uart-name=jtag_uart --cpu-type=vexriscv_smp --with-rvc --with-privileged-debug --hardware-breakpoints 4
-
-# Build firmware:
-cd firmware && make clean all && cd ../
-
-# Load CPU firmware:
-litex_term jtag --jtag-config=openocd_xc7_ft2232.cfg --kernel firmware/demo.bin
+# Get PCIe location
+lspci | grep -i RF_controller
+# Remove device (replace X with actual value, see previous command)
+echo 1 | sudo tee /sys/bus/pci/devices/0000\:0X\:00.0/remove
+# Rescan PCIe Bus after flashing/loading new bitstream
+echo 1 | sudo tee /sys/bus/pci/rescan
 ```
-### Load Firmware over PCIe
+
+### RAM (volatile memory)
+
+**Note:** In this mode, the gateware will be lost after a power cycle.
+
+```bash
+python3 limesdr_xtrx.py --load [--cable XXX]
+```
+
+### SPI Flash (non-volatile memory)
+
+**Note:** In this mode, the gateware will be automatically loaded after flashing and power cycles.
+
+```bash
+python3 limesdr_xtrx.py --flash [--cable XXX]
+```
+
+### Writing Firmware in SPI Flash (Instead of including it in Gateware)
+
+By default, the CPU's firmware is included in the gateware, but it is also possible to have an external firmware written to the SPI flash. This allows firmware updates without rebuilding the full gateware. To enable this option, use a command similar to:
+
+```bash
+python limesdr_xtrx.py --build --flash-boot --flash [--bios-flash-offset 0xXXXXX]
+```
+
+The default offset for the CPU's firmware is 0x220000. Use `--with-flash-offset` to specify a different offset.
+
+# Firmware Loading from PCIe
 
 First, load the *litepcie* driver:
 
@@ -77,60 +118,48 @@ sudo ./init.sh
 ```
 
 Then load the firmware over PCIe:
+
 ```bash
 litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
 ```
 
-## Load Gateware trough JTAG (volatile and non-volatile memory)
+## Firmware Loading from SPI Flash
 
-[openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load
-and/or to flash bitstream.
+TODO
 
-By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this
-behaviour and to select an alternate cable, one must appends  command line with
-`--cable xxx` where `xxx` is the cable's name (see `openFPGALoader --list-cables`
-for a complete list of supported cbles).
+## Firmware Debug through GDB over JTAG
 
-After bitstream loaded/flashed, computer must be rebooted or a PCIe Bus rescan
-must be performed:
-```bash
-# Get PCIe location
-lspci | grep grep -i RF_controller
-# remove device (replace X with actual value, see previous command)
-echo 1 | sudo tee /sys/bus/pci/devices/0000\:0X\:00.0/remove
-# before rescan flash/load new bitstream
-echo 1 | sudo tee /sys/bus/pci/rescan
-```
-
-## RAM (volatile memory)
-
-**Note:** in this mode gateware will be lost after power cycle.
+To build and load a gateware with a debug interface:
 
 ```bash
-python3 limesdr_xtrx.py --load [--cable XXX]
+./limesdr_xtrx.py --with bscan --build --load --flash
+
+# Load firmware through serial:
+litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
+
+# Run OpenOCD with the specified configurations:
+openocd -f ./digilent_hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
+
+# Connect GDB for debugging:
+gdb-multiarch -q firmware/demo.elf -ex "target extended-remote localhost:3333"
 ```
 
-## SPI Flash (non-volatile memory)
+Note that instead of using GDB directly, Eclipse IDE can be configured to debug code in a more user-friendly way. Follow this guide to configure Eclipse IDE:
 
-**Note:** in this mode gateware will be automatically loaded after flash and after power cycles.
+[Using Eclipse to run and debug the software](https://github.com/SpinalHDL/VexRiscv?tab=readme-ov-file#using-eclipse-to-run-and-debug-the-software)
 
-```bash
-python3 limesdr_xtrx.py --flash [--cable XXX]
-```
 
-## Writing firmware in SPI flash (instead of shipped into gateware)
+## Firmware Interrupt Handling Example
 
-By default the CPU's firmware is included into the gateware but its also possible to have an
-external firmware written to the SPI flash. The benefits is to be able to update firmware without
-having to rebuild a full gateware. To enable this option user must use command similar to:
-```bash
-python limesdr_xtrx.py --build --flash-boot --flash [--bios-flash-offset 0xXXXXX]
-```
+TODO
 
-By default CPU's firmware will be written at 0x220000, with `--with-flash-offset` user is
-free to provides a different offset.
+## CSR Registers Integration Example
 
-## Using GpioTop (connected to led2)
+TODO
+
+## VHDL Integration Example
+
+Using GpioTop (connected to led2)
 
 ### Target update
 
@@ -176,24 +205,6 @@ litex_cli --write gpio_gpio_override_dir 0x00
 litex_cli --write gpio_gpio_override_val 0x05
 ```
 
-## Firmware debug
+## LiteScope Logic Analyzer Example
 
-A gateware with debug interface must be build and loaded:
-
-```bash
-./limesdr_xtrx.py --with bscan --build --load --flash
-
-
-# Load firmware trough serial
-litex_term /dev/ttyLXU0 --kernel firmware/demo.bin
-
-# Run OpenOCD with the specified configurations:
-openocd -f ./digilent_hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
-
-# Connecting GDB for Debugging:
-gdb-multiarch -q firmware/demo.elf -ex "target extended-remote localhost:3333"
-```
-
-Note that instead of usign GDB directly, Eclipse IDE can be configured to debug code in more user friendly way. Follow this guide to configure Eclipse IDE:
-
-https://github.com/SpinalHDL/VexRiscv?tab=readme-ov-file#using-eclipse-to-run-and-debug-the-software
+TODO
