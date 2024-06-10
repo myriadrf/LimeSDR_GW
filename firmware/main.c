@@ -79,7 +79,7 @@ static char *get_token(char **str)
 
 static void prompt(void)
 {
-	printf("\e[92;1mlitex-demo-app\e[0m> ");
+	printf("\e[92;1mlimesdr-xtrx\e[0m> ");
 }
 
 /*-----------------------------------------------------------------------*/
@@ -88,7 +88,7 @@ static void prompt(void)
 
 static void help(void)
 {
-	puts("\nLiteX minimal demo app built "__DATE__" "__TIME__"\n");
+	puts("\nLimeSDR XTRX minimal demo app built "__DATE__" "__TIME__"\n");
 	puts("Available commands:");
 	puts("help               - Show this command");
 	puts("reboot             - Reboot CPU");
@@ -98,7 +98,7 @@ static void help(void)
 #ifdef CSR_LEDS_BASE
 	puts("led                - Led demo");
 #endif
-#ifdef CSR_GPIO_LED_BASE
+#ifdef CSR_LIME_TOP_GPIO_GPIO_OVERRIDE_ADDR
 	puts("gpioled            - GPIO override demo");
 #endif
 }
@@ -144,21 +144,24 @@ static void led_cmd(void)
 }
 #endif
 
-#ifdef CSR_GPIO_LED_BASE
+#ifdef CSR_LIME_TOP_GPIO_GPIO_OVERRIDE_ADDR
 static void gpioled_cmd(void)
 {
-	int i;
+	int i, j;
 	printf("GPIO Led override demo...\n");
-	gpio_led_control_gpio_override_dir_write(0x0);
-	gpio_led_control_gpio_override_write(0x1);
-	for(i=0; i<32; i++) {
-		gpio_led_control_gpio_override_val_write(0x0);
-		busy_wait(100);
-		gpio_led_control_gpio_override_val_write(0x1);
-		busy_wait(100);
+	lime_top_gpio_gpio_override_write(0x7);
+	lime_top_gpio_gpio_override_dir_write(0x0);
+	lime_top_gpio_gpio_override_val_write(0x0);
+	for(i=0; i<3; i++) {
+		for(j=0; j<8; j++) {
+			lime_top_gpio_gpio_override_val_write(0x0);
+			busy_wait(100);
+			lime_top_gpio_gpio_override_val_write(1<<i);
+			busy_wait(100);
+		}
 	}
 
-	gpio_led_control_gpio_override_write(0x0);
+	lime_top_gpio_gpio_override_val_write(0x0);
 	printf("GPIO Led override demo...ended\n");
 }
 #endif
@@ -364,7 +367,7 @@ static void console_service(void)
 	else if(strcmp(token, "led") == 0)
 		led_cmd();
 #endif
-#ifdef CSR_GPIO_LED_BASE
+#ifdef CSR_LIME_TOP_GPIO_GPIO_OVERRIDE_ADDR
 	else if(strcmp(token, "gpioled") == 0)
 		gpioled_cmd();
 #endif
