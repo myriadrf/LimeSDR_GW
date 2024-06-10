@@ -5,7 +5,7 @@ to efficiently develop and maintain LiteX-based gateware for their LimeSDR XTRX 
 
 This repository is based on the [LimeSDR-XTRX LiteX Gateware](https://github.com/myriadrf/LimeSDR-XTRX_LiteX_GW)
 repository with the following added/tested features:
-- VexRiscv SoftCore CPU with debug capabilities over JTAG and interrupts.
+- VexRiscv-SMP SoftCore CPU with debug capabilities over JTAG and interrupts.
 - PCIe core with MMAP and DMA interfaces (AXI-MMAP and AXI-ST).
 - FPGA programming to SRAM and SPI Flash.
 - Firmware loading from PCIe.
@@ -54,9 +54,22 @@ Additional options include:
   followed by the cable name to change this (see `openFPGALoader --list-cables` for supported
   cables).
 
-## VexRiscv SoftCore CPU with Debug Capabilities
+## VexRiscv-SMP SoftCore CPU with Debug Capabilities
 
-TODO
+VexRiscv-SMP SoftCore has been integrated and configured in the `limesdr_xtrx.py` target design. The
+configuration has IRQ enabled (which have been recently added to upstream LiteX) and debug
+capabilities over JTAG, which were the two requirements for the CPU. VexRiscv-SMP IRQs are enabled
+by default. To enable debug capabilities in the target, the additional command lines are added:
+
+```python
+if with_bscan:
+    from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
+    VexRiscvSMP.privileged_debug     = True
+    VexRiscvSMP.hardware_breakpoints = 4
+    VexRiscvSMP.with_rvc             = True
+```
+
+IRQ and Debug capabilities are demonstrated in the following sections.
 
 ## PCIe Core with MMAP and DMA Interfaces
 
