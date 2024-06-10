@@ -21,7 +21,8 @@ repository with the following added/tested features:
 To clone this repository and initialize the submodules, run the following commands:
 
 ```bash
-git clone https://github.com/myriadrf/LimeSDR-XTRX_LiteX_GW.git
+git clone https://github.com/enjoy-digital/LimeSDR-XTRX_LiteX_GW.git
+git checkout litex_infrastructure_setup
 git submodule init 
 git submodule update
 ```
