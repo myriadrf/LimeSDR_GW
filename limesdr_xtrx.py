@@ -230,7 +230,8 @@ class BaseSoC(SoCCore):
         from gateware.LimeTop import LimeTop
 
         # Create LimeTop instance.
-        self.lime_top = LimeTop(platform)
+        self.lime_top = LimeTop(platform, sys_clk_freq)
+        self.irq.add("lime_top")
 
         # Connect LimeTop's MMAP interface to SoC.
         self.bus.add_slave(name="lime_top_mmap", slave=self.lime_top.mmap, region=SoCRegion(origin=0x3000_000, size=0x1000))

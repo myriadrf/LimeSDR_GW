@@ -3,9 +3,11 @@
 from migen import *
 
 from litex.gen import *
+from litex.gen.genlib.misc import WaitTimer
 
-from litex.soc.interconnect.csr import *
-from litex.soc.interconnect import axi
+from litex.soc.interconnect.csr              import *
+from litex.soc.interconnect.csr_eventmanager import EventManager, EventSourceProcess
+from litex.soc.interconnect                  import axi
 
 from litescope import LiteScopeAnalyzer
 
@@ -41,7 +43,7 @@ class LimeTop(LiteXModule):
     analyzer : LiteScopeAnalyzer
         LiteScope logic analyzer instance for signal analysis.
     """
-    def __init__(self, platform):
+    def __init__(self, platform, sys_clk_freq):
         # AXI MMAP Bus (From CPU).
         self.mmap = axi.AXILiteInterface(address_width=32, data_width=32)
 
@@ -67,10 +69,27 @@ class LimeTop(LiteXModule):
             self.dma_tx.ready.eq(self.dma_rx.ready),
         ]
 
-        # CSR Registers.
-        # --------------
+        # CSR Registers Example.
+        # ----------------------
         # Adding a simple CSR storage register for demonstration purposes.
         self.scratch = CSRStorage(32, description="Scratch register for testing purposes.")
+
+        # IRQ Example.
+        # ------------
+        self.ev = EventManager()
+        self.ev.irq0 = EventSourceProcess(edge="rising")
+        self.ev.irq1 = EventSourceProcess(edge="rising")
+        self.ev.finalize()
+
+        # Generate irq0 every 1 seconds.
+        self.irq0_timer = WaitTimer(1.0*sys_clk_freq)
+        self.comb += self.irq0_timer.wait.eq(~self.irq0_timer.done)
+        self.comb += self.ev.irq0.trigger.eq(self.irq0_timer.done)
+
+        # Generate irq1 every 2 seconds.
+        self.irq1_timer = WaitTimer(2.0*sys_clk_freq)
+        self.comb += self.irq1_timer.wait.eq(~self.irq1_timer.done)
+        self.comb += self.ev.irq1.trigger.eq(self.irq1_timer.done)
 
         # VHDL GPIO example.
         # ------------------
