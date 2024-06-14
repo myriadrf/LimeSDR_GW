@@ -19,6 +19,48 @@
 /*-----------------------------------------------------------------------*/
 #define LP8758_I2C_ADDR  0x60
 
+/*-----------------------------------------------------------------------*/
+/* IRQ                                                                   */
+/*-----------------------------------------------------------------------*/
+
+/** IRQ example ISR. */
+static void irq_example_isr(void)
+{
+	uint8_t stat;
+
+	/* Read the pending interrupt status. */
+	stat = lime_top_ev_pending_read();
+
+	/* Check if IRQ0 is pending. */
+	if(stat & (1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET)) {
+		printf("IRQ0!\n");
+		/* Clear the IRQ0 pending status. */
+		lime_top_ev_pending_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET));
+	}
+
+	/* Check if IRQ1 is pending. */
+	if(stat & (1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET)) {
+		printf("IRQ1!\n");
+		/* Clear the IRQ1 pending status. */
+		lime_top_ev_pending_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET));
+	}
+}
+
+/* Initialize the IRQ example. */
+static void irq_example_init(void)
+{
+	/* Clear all pending interrupts. */
+	lime_top_ev_pending_write(lime_top_ev_pending_read());
+
+	/* Enable IRQ0 and IRQ1. */
+	lime_top_ev_enable_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET) | (1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET));
+
+	/* Attach the example ISR to the interrupt. */
+	irq_attach(LIME_TOP_INTERRUPT, irq_example_isr);
+
+	/* Enable the example interrupt. */
+	irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
+}
 
 /*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
@@ -412,6 +454,8 @@ int main(void)
 	irq_setie(1);
 #endif
 	uart_init();
+
+	irq_example_init();
 
 	help();
 	prompt();
