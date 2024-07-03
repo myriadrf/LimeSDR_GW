@@ -234,7 +234,7 @@ class BaseSoC(SoCCore):
         self.irq.add("lime_top")
 
         # Connect LimeTop's MMAP interface to SoC.
-        self.bus.add_slave(name="lime_top_mmap", slave=self.lime_top.mmap, region=SoCRegion(origin=0x3000_000, size=0x1000))
+        self.bus.add_slave(name="lime_top_mmap", slave=self.lime_top.mmap, region=SoCRegion(origin=0x4000_000, size=0x1000))
 
         # Connect LimeTop's Streaming interfaces to PCIe.
         self.comb += [
