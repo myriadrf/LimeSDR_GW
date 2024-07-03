@@ -33,6 +33,8 @@ from litex.soc.cores.spi_flash import S7SPIFlash
 from litex.soc.cores.bitbang   import I2CMaster
 from litex.soc.cores.spi       import SPIMaster
 
+from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
+
 from litepcie.phy.s7pciephy import S7PCIEPHY
 
 from litescope import LiteScopeAnalyzer
@@ -102,11 +104,12 @@ class BaseSoC(SoCCore):
             "limesdr"       : limesdr_xtrx_platform.Platform()
         }[board]
 
+        # Enable Compressed Instructions.
+        VexRiscvSMP.with_rvc = True
+        # Enable JTAG.
         if with_bscan:
-            from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
             VexRiscvSMP.privileged_debug     = True
             VexRiscvSMP.hardware_breakpoints = 4
-            VexRiscvSMP.with_rvc             = True
 
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq,
