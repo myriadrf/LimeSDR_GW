@@ -64,6 +64,14 @@ _io = [
         Subsignal("hold", Pins("F18")),
         IOStandard("LVCMOS33")
     ),
+    ("spiflash", 0,
+        Subsignal("cs_n", Pins("K19")),
+        Subsignal("mosi", Pins("D18")),
+        Subsignal("miso", Pins("D19")),
+        Subsignal("wp",   Pins("G18")),
+        Subsignal("hold", Pins("F18")),
+        IOStandard("LVCMOS33")
+    ),
 
     # I2C buses.
     ("i2c", 0,
