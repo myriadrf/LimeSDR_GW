@@ -301,6 +301,14 @@ class BaseSoC(SoCCore):
             self.lime_top.dma_rx.connect(self.pcie_dma0.sink,   keep={"valid", "ready", "last", "data"}),
         ]
 
+        # LMS SPI
+        self.lms_spi = SPIMaster(
+            pads=platform.request("lms7002m"),
+            data_width=32,
+            sys_clk_freq=sys_clk_freq,
+            spi_clk_freq=1e6
+        )
+
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
     def add_jtag_cpu_debug(self):

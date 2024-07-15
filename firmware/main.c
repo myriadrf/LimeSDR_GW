@@ -13,7 +13,7 @@
 
 #include "i2c0.h"
 #include "i2c1.h"
-// #include "lms7002m.h"
+#include "lms7002m.h"
 #include "LMS64C_protocol.h"
 #include "LimeSDR_XTRX.h"
 #include "regremap.h"
@@ -631,8 +631,7 @@ void lms64c_isr(void){
                 val = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
                 val = (val<<8) | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
                 // Write
-            	// TODO: ADD LMS SPI
-                // lms_spi_write(addr,val);
+                lms_spi_write(addr,val);
 
             }
 
@@ -651,8 +650,7 @@ void lms64c_isr(void){
                 addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
                 addr = (addr<<8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
                 // Read
-            	// TODO: ADD LMS SPI
-                // val = lms_spi_read(addr);
+                val = lms_spi_read(addr);
                 // Return value and address
                 LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
                 LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
