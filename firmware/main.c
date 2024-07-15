@@ -689,10 +689,10 @@ static void lms64c_init(void){
 	printf("CNTRL IRQ initialization \n");
 
 	/* Clear all pending interrupts. */
-	CNTRL_ev_pending_write(CNTRL_ev_pending_read);
+	CNTRL_ev_pending_write(CNTRL_ev_pending_read());
 
 	/* Enable CNTRL irq */
-	CNTRL_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
+	CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
 
 	/* Attach isr to interrupt */
 	irq_attach(CNTRL_INTERRUPT,lms64c_isr );
