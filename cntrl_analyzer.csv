@@ -1,0 +1,4 @@
+config,None,data_width,1
+config,None,depth,512
+config,None,samplerate,1000000000000
+signal,0,main_CNTRL_cntrl_re,1

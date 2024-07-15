@@ -1,4 +1,4 @@
-BUILD_DIR?=../build/fairwaves_xtrx_platform
+BUILD_DIR?=../build/limesdr_xtrx_platform
 
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
@@ -6,7 +6,7 @@ include $(SOC_DIRECTORY)/software/common.mak
 # Add debugging symbol flag
 CFLAGS += -g
 
-OBJECTS   = i2c0.o i2c1.o crt0.o main.o
+OBJECTS   = i2c0.o i2c1.o crt0.o main.o regremap.o
 
 all: firmware.bin
 

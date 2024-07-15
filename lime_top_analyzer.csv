@@ -1,0 +1,15 @@
+config,None,data_width,77
+config,None,depth,512
+config,None,samplerate,1000000000000
+signal,0,main_lime_top_mmap_ar_valid,1
+signal,0,main_lime_top_mmap_ar_ready,1
+signal,0,main_lime_top_mmap_ar_first,1
+signal,0,main_lime_top_mmap_ar_last,1
+signal,0,main_lime_top_mmap_ar_payload_addr,32
+signal,0,main_lime_top_mmap_ar_payload_prot,3
+signal,0,main_lime_top_mmap_r_valid,1
+signal,0,main_lime_top_mmap_r_ready,1
+signal,0,main_lime_top_mmap_r_first,1
+signal,0,main_lime_top_mmap_r_last,1
+signal,0,main_lime_top_mmap_r_payload_resp,2
+signal,0,main_lime_top_mmap_r_payload_data,32

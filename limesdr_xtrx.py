@@ -66,6 +66,42 @@ class CRG(LiteXModule):
         # IDelayCtrl.
         self.idelayctrl = S7IDELAYCTRL(self.cd_idelay)
 
+# LMS Control CSR----------------------------------------------------------------------------------------
+class CNTRL_CSR(LiteXModule):
+    def __init__(self, ndmas):
+        self.cntrl          = CSRStorage(512, 0)
+        self.enable         = CSRStorage()
+        self.test           = CSRStorage(32)
+        self.ndma           = CSRStatus(4, reset=ndmas)
+        self.enable_both    = CSRStorage()
+
+        # Create event manager for interrupt
+        self.ev = EventManager()
+        self.ev.cntrl_isr = EventSourceProcess()
+        self.ev.finalize()
+
+        # Trigger interrupt when cntrl register is written
+        self.comb += self.ev.cntrl_isr.trigger.eq(self.cntrl.re)
+
+# fpgacfg
+class fpgacfg_csr(LiteXModule):
+    def __init__(self):
+        self.board_id       = CSRStatus(16, reset=27)
+        self.major_rev      = CSRStatus(16, reset=0)
+        self.compile_rev    = CSRStatus(16, reset=1)
+        self.reserved_03    = CSRStorage(16, reset=0)
+        self.reserved_04    = CSRStorage(16, reset=0)
+        self.reserved_05    = CSRStorage(16, reset=0)
+        self.reserved_06    = CSRStorage(16, reset=0)
+        self.channel_cntrl  = CSRStorage(fields=[
+            CSRField("ch_en", size=2, offset=0, values=[
+                ("``2b01", "Channel A"),
+                ("``2b10", "Channel B"),
+                ("``2b11", "Channels A and B")
+            ], reset=0)
+        ])
+
+
 # BaseSoC -----------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
@@ -88,6 +124,9 @@ class BaseSoC(SoCCore):
 
         # Analyzer.
         "analyzer"    : 30,
+
+        # CNTRL
+        "CNTRL"       : 26,
     }
 
     def __init__(self, board="limesdr", sys_clk_freq=int(125e6),
@@ -97,6 +136,7 @@ class BaseSoC(SoCCore):
         flash_boot            = False,
         firmware_flash_offset = 0x220000,
     ):
+
         # Platform ---------------------------------------------------------------------------------
         platform = {
             "fairwaves_cs"  : fairwaves_xtrx_platform.Platform(variant="xc7a35t"),
@@ -121,10 +161,25 @@ class BaseSoC(SoCCore):
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
             integrated_main_ram_size = 0x4000 if with_cpu else 0,
             integrated_main_ram_init = [] if cpu_firmware is None or flash_boot else get_mem_data(cpu_firmware, endianness="little"),
-            uart_name                = "crossover",
+            uart_name                = "gpio_serial",#"crossover",
         )
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
+
+        self.fpgacfg = fpgacfg_csr()
+        self.CNTRL = CNTRL_CSR(1)
+        self.irq.add("CNTRL")
+
+
+        analyzer_signals = [
+            self.CNTRL.cntrl.re,
+        ]
+        self.analyzer_CNTRL = LiteScopeAnalyzer(analyzer_signals,
+                                          depth        = 512,
+                                          clock_domain = "sys",
+                                          register     = True,
+                                          csr_csv      = "cntrl.csv"
+                                          )
 
         # Clocking ---------------------------------------------------------------------------------
         self.crg = CRG(platform, sys_clk_freq)
@@ -188,6 +243,7 @@ class BaseSoC(SoCCore):
             "Sub_Class_Interface_Menu" : "RF_controller",
             "Class_Code_Base"          : "0D",
             "Class_Code_Sub"           : "10",
+            "Revision_ID"              : "0001",
             }
         )
         self.add_pcie(phy=self.pcie_phy, address_width=32, ndmas=1,
@@ -234,7 +290,7 @@ class BaseSoC(SoCCore):
 
         # Create LimeTop instance.
         self.lime_top = LimeTop(platform, sys_clk_freq)
-        self.irq.add("lime_top")
+        # self.irq.add("lime_top")
 
         # Connect LimeTop's MMAP interface to SoC.
         self.bus.add_slave(name="lime_top_mmap", slave=self.lime_top.mmap, region=SoCRegion(origin=0x4000_000, size=0x1000))

@@ -81,13 +81,13 @@ class LimeTop(LiteXModule):
         self.ev.irq1 = EventSourceProcess(edge="rising")
         self.ev.finalize()
 
-        # Generate irq0 every 1 seconds.
-        self.irq0_timer = WaitTimer(1.0*sys_clk_freq)
+        # Generate irq0 every 5 seconds.
+        self.irq0_timer = WaitTimer(5.0*sys_clk_freq)
         self.comb += self.irq0_timer.wait.eq(~self.irq0_timer.done)
         self.comb += self.ev.irq0.trigger.eq(self.irq0_timer.done)
 
-        # Generate irq1 every 2 seconds.
-        self.irq1_timer = WaitTimer(2.0*sys_clk_freq)
+        # Generate irq1 every 5 seconds.
+        self.irq1_timer = WaitTimer(5.0*sys_clk_freq)
         self.comb += self.irq1_timer.wait.eq(~self.irq1_timer.done)
         self.comb += self.ev.irq1.trigger.eq(self.irq1_timer.done)
 
