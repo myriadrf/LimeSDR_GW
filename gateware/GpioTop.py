@@ -63,5 +63,5 @@ class GpioTop(LiteXModule):
                 i_T     = self.GPIO_T[n]
             )
 
-        platform.add_source("./gateware/LimeIP_HDL/gpio_top/src/gpio_top.vhd")
+        platform.add_source("./gateware/LimeDFB/gpio_top/src/gpio_top.vhd")
 
