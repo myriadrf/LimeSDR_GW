@@ -541,7 +541,7 @@ void getLMS64Packet(uint8_t *buf, uint8_t k)
 
 
 void lms64c_isr(void){
-	printf("CNTRL IRQ!\n");
+	// printf("CNTRL IRQ!\n");
 	uint32_t *dest = (uint32_t *)glEp0Buffer_Tx;
 	uint32_t read_value;
 
@@ -660,6 +660,22 @@ void lms64c_isr(void){
 
             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
             break;
+
+
+		case CMD_ANALOG_VAL_RD:
+			// TODO: CMD_ANALOG_VAL_RD
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+			break;
+
+		case CMD_ANALOG_VAL_WR:
+			// TODO: CMD_ANALOG_VAL_WR
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		    break;
+
+		case CMD_MEMORY_RD:
+			// TODO: implement CMD_MEMORY_RD
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+			break;
 
 
         default:
