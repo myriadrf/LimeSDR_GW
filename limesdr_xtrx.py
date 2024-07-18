@@ -87,8 +87,8 @@ class CNTRL_CSR(LiteXModule):
 class fpgacfg_csr(LiteXModule):
     def __init__(self):
         self.board_id       = CSRStatus(16, reset=27)
-        self.major_rev      = CSRStatus(16, reset=0)
-        self.compile_rev    = CSRStatus(16, reset=1)
+        self.major_rev      = CSRStatus(16, reset=1)
+        self.compile_rev    = CSRStatus(16, reset=12)
         self.reserved_03    = CSRStorage(16, reset=0)
         self.reserved_04    = CSRStorage(16, reset=0)
         self.reserved_05    = CSRStorage(16, reset=0)
@@ -123,10 +123,10 @@ class BaseSoC(SoCCore):
         "i2c1"        : 21,
 
         # Analyzer.
-        "analyzer"    : 30,
+        #"analyzer"    : 32,
 
         # CNTRL
-        "CNTRL"       : 26,
+        #"CNTRL"       : 26,
     }
 
     def __init__(self, board="limesdr", sys_clk_freq=int(125e6),
@@ -303,11 +303,15 @@ class BaseSoC(SoCCore):
 
         # LMS SPI
         self.lms_spi = SPIMaster(
-            pads=platform.request("lms7002m"),
+            pads=platform.request("lms7002m_spi"),
             data_width=32,
             sys_clk_freq=sys_clk_freq,
             spi_clk_freq=1e6
         )
+
+        vctcxo_pads = platform.request("vctcxo")
+        self.comb += vctcxo_pads.sel.eq(0)
+        self.comb += vctcxo_pads.en.eq(1)
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 

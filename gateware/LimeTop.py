@@ -11,7 +11,11 @@ from litex.soc.interconnect                  import axi
 
 from litescope import LiteScopeAnalyzer
 
+from litex.soc.cores.spi       import SPIMaster
+
 from gateware.GpioTop import GpioTop
+from gateware.lms7002_top import lms7002_top
+from gateware.rx_path_top import rx_path_top
 
 # Lime Top -----------------------------------------------------------------------------------------
 
@@ -96,6 +100,19 @@ class LimeTop(LiteXModule):
         # Integrate a VHDL GPIO module and connect it to user_led2.
         gpio_top_led = platform.request_all("user_led2")
         self.gpio = GpioTop(platform, gpio_top_led)
+
+
+        #LMS7002
+        lms7002_pads = platform.request("lms7002m")
+        self.lms7002 = lms7002_top(platform, lms7002_pads)
+
+        # RX Path
+        self.rx_path = rx_path_top(platform)
+
+        # TODO: TX PATH
+
+        # Connect RX path AXIS slave to lms7002 AXIS master
+        self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls, keep={"valid", "ready", "last", "data"})
 
         # LiteScope example.
         # ------------------

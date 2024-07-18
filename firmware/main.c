@@ -501,15 +501,15 @@ static void console_service(void)
 
 /** Checks if peripheral ID is valid.
  Returns 1 if valid, else 0. */
-unsigned char Check_Periph_ID(unsigned char max_periph_id)
+unsigned char Check_Periph_ID(unsigned char max_periph_id, unsigned char Periph_ID)
 {
-    if (LMS_Ctrl_Packet_Rx->Header.Periph_ID > max_periph_id)
-    {
-        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_INVALID_PERIPH_ID_CMD;
-        return 0;
-    }
-    else
-        return 1;
+	if (LMS_Ctrl_Packet_Rx->Header.Periph_ID > max_periph_id)
+	{
+		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_INVALID_PERIPH_ID_CMD;
+		return 0;
+	}
+	else
+		return 1;
 }
 
 /**	This function checks if all blocks could fit in data field.
@@ -574,6 +574,32 @@ void lms64c_isr(void){
 
 		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 		break;
+		
+	case CMD_LMS_RST:
+		
+		if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
+			break;
+			
+		switch (LMS_Ctrl_Packet_Rx->Data_field[0])
+		{
+		case LMS_RST_DEACTIVATE:
+			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
+			printf("LMS RESET deactivate...\n");
+			break;
+		case LMS_RST_ACTIVATE:
+			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
+			printf("LMS RESET activate...\n");
+			break;
+
+		case LMS_RST_PULSE:
+			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
+			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
+			printf("LMS RST pulse...\n");
+			break;
+		default:
+			cmd_errors++;
+			break;
+		}
 
 	case CMD_BRDSPI16_WR:
 		if (Check_many_blocks(4))
@@ -616,7 +642,7 @@ void lms64c_isr(void){
             // COMMAND LMS WRITE
 
         case CMD_LMS7002_WR:
-            if (!Check_Periph_ID(MAX_ID_LMS7))
+            if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
                 break;
             if (Check_many_blocks(4))
                 break;

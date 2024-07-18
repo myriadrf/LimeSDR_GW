@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+
+from migen import *
+from litex.soc.interconnect.axi import *
+from litex.soc.interconnect.csr import *
+
+
+class rx_path_top(Module):
+    def __init__(self, platform, s_axis_iqsmpls_buffer_words=16, m_axis_iqpacket_buffer_words=512, int_clk_domain="sys", m_clk_domain="sys", s_clk_domain="sys"):
+        # Add CSRs
+        self.control = CSRStorage(fields=[
+            CSRField(name="CH_EN", size=2, offset=0, values=[
+                ("``0b01``", "Channel A enabled"),
+                ("``0b10``", "Channel B enabled"),
+                ("``0b11``", "Channels A and B enabled")
+            ], reset=0b00),
+            CSRField(name="SMPL_WIDTH", size=2, offset=2, values=[
+                ("``0b01``", "Channel A enabled"),
+                ("``0b10``", "Channel B enabled"),
+                ("``0b11``", "Channels A and B enabled")
+            ], reset=0b00),
+            CSRField(name="PKT_SIZE", size=16, offset=4, values=[
+                ("``0b01``", "Channel A enabled"),
+                ("``0b10``", "Channel B enabled"),
+                ("``0b11``", "Channels A and B enabled")
+            ], reset=0b0000000000000000),
+        ])
+
+        # Add sources
+        platform.add_source("./gateware/LimeDFB/rx_path_top/src/rx_path_top.vhd")
+        platform.add_source("./gateware/LimeDFB/rx_path_top/src/pack_56_to_64.vhd")
+        platform.add_source("./gateware/LimeDFB/rx_path_top/src/pack_48_to_64.vhd")
+        platform.add_source("./gateware/LimeDFB/rx_path_top/src/iq_stream_combiner.vhd")
+        platform.add_source("./gateware/LimeDFB/rx_path_top/src/data2packets_fsm.vhd")
+        platform.add_source("./gateware/LimeDFB/rx_path_top/src/bit_pack.vhd")
+        platform.add_source("./gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd")
+
+        platform.add_source("./gateware/LimeDFB/fifo_axis/src/fifo_axis_wrap.vhd")
+        platform.add_source("./gateware/LimeDFB/axis/src/axis_pkg.vhd")
+
+
+        # create misc signals
+        self.RESET_N        = Signal()
+        self.SMPL_NR_EN     = Signal()
+        self.SMPL_NR_CLR    = Signal()
+        self.SMPL_NR_LD     = Signal()
+        self.SMPL_NR_IN     = Signal(64)
+        self.SMPL_NR_OUT    = Signal(64)
+        self.TXFLAGS_PCT_LOSS       = Signal()
+        self.TXFLAGS_PCT_LOSS_CLR   = Signal()
+
+
+        # Create streams
+        s_axis_datawidth = 64
+        s_axis_layout = [("data", max(1, s_axis_datawidth))]
+        s_axis_layout += [("keep", max(1, s_axis_datawidth//8))]
+        # adding reset along with data, assuming resets are not global
+        s_axis_layout += [("areset_n", 1)]
+
+        self.s_axis_iqsmpls = AXIStreamInterface(s_axis_datawidth, layout=s_axis_layout, clock_domain=s_clk_domain)
+
+        m_axis_datawidth = 128
+        m_axis_layout = [("data", max(1, m_axis_datawidth))]
+        m_axis_layout += [("keep", max(1, m_axis_datawidth//8))]
+        # adding reset along with data, assuming resets are not global
+        m_axis_layout += [("areset_n", 1)]
+        self.m_axis_iqpacket = AXIStreamInterface(m_axis_datawidth, layout=m_axis_layout, clock_domain=m_clk_domain)
+
+        # Create params
+        self.params_ios = dict()
+
+        # Assign generics
+        self.params_ios.update(
+            p_G_S_AXIS_IQSMPLS_BUFFER_WORDS=s_axis_iqsmpls_buffer_words,
+            p_G_M_AXIS_IQPACKET_BUFFER_WORDS=m_axis_iqpacket_buffer_words
+        )
+
+        # Assign ports
+        self.params_ios.update(
+            # DIQ1
+            i_CLK       = ClockSignal(int_clk_domain),
+            i_RESET_N   = self.RESET_N,
+            # axis_s
+            i_S_AXIS_IQSMPLS_ARESETN    = self.s_axis_iqsmpls.areset_n,
+            i_S_AXIS_IQSMPLS_ACLK       = ClockSignal(s_clk_domain),
+            i_S_AXIS_IQSMPLS_TVALID     = self.s_axis_iqsmpls.valid,
+            o_S_AXIS_IQSMPLS_TREADY     = self.s_axis_iqsmpls.ready,
+            i_S_AXIS_IQSMPLS_TDATA      = self.s_axis_iqsmpls.data,
+            i_S_AXIS_IQSMPLS_TKEEP      = self.s_axis_iqsmpls.keep,
+            i_S_AXIS_IQSMPLS_TLAST      = self.s_axis_iqsmpls.last,
+            # axis_m
+            i_M_AXIS_IQPACKET_ARESETN   = self.m_axis_iqpacket.areset_n,
+            i_M_AXIS_IQPACKET_ACLK      = ClockSignal(m_clk_domain),
+            o_M_AXIS_IQPACKET_TVALID    = self.m_axis_iqpacket.valid,
+            i_M_AXIS_IQPACKET_TREADY    = self.m_axis_iqpacket.data,
+            o_M_AXIS_IQPACKET_TDATA     = self.m_axis_iqpacket.ready,
+            o_M_AXIS_IQPACKET_TKEEP     = self.m_axis_iqpacket.keep,
+            o_M_AXIS_IQPACKET_TLAST     = self.m_axis_iqpacket.last,
+            # SMPL_NR
+            i_SMPL_NR_EN            = self.SMPL_NR_EN,
+            i_SMPL_NR_CLR           = self.SMPL_NR_CLR,
+            i_SMPL_NR_LD            = self.SMPL_NR_LD,
+            i_SMPL_NR_IN            = self.SMPL_NR_IN,
+            o_SMPL_NR_OUT           = self.SMPL_NR_OUT,
+            # interface cfg
+            i_TXFLAGS_PCT_LOSS      = self.TXFLAGS_PCT_LOSS,
+            i_TXFLAGS_PCT_LOSS_CLR  = self.TXFLAGS_PCT_LOSS_CLR
+        )
+
+        # Create instance and assign params
+        self.specials += Instance("rx_path_top", **self.params_ios)
