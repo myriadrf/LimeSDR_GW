@@ -13,6 +13,7 @@ void lms_spi_write(uint16_t addr, uint16_t val)
 	uint16_t dat;
 	cmd = (1 << 15) | (addr & 0x7fff);
 	dat = val & 0xffff;
+	while ((lms_spi_status_read() & 0x1) == 0);
 	lms_spi_mosi_write(cmd << 16 | dat);
     lms_spi_control_write(32*SPI_LENGTH | SPI_START);
 

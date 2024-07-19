@@ -650,6 +650,7 @@ void lms64c_isr(void){
 
             for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
             {
+            	sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
                 // Parse address
                 addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
                 addr = (addr<<8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
@@ -672,6 +673,7 @@ void lms64c_isr(void){
 
             for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
             {
+            	cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
                 // Parse address
                 addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
                 addr = (addr<<8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
