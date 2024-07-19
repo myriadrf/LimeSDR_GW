@@ -1,60 +1,18 @@
 #!/usr/bin/env python3
 
 from migen import *
+
+from litex.gen import *
+
 from litex.soc.interconnect.axi import *
 from litex.soc.interconnect.csr import *
 
 
-class lms7002_top(Module):
+class lms7002_top(LiteXModule):
     def __init__(self, platform, lms7002_pads, vendor="XILINX", dev_family="Artix 7", iq_width=12,
                  s_axis_tx_fifo_words=16, m_axis_rx_fifo_words=16, m_clk_domain="sys", s_clk_domain="sys"):
         # Add CSRs
         self.control = CSRStorage(fields=[
-            CSRField(name="TX_EN", size=1, offset=0, values=[
-                ("``0b0``", "RX/TX Disabled"),
-                ("``0b1``", "RX/TX Enabled")
-            ], reset=0b0),
-            CSRField(name="TRXIQ_PULSE", size=1, offset=1, values=[
-                ("``0b0``", "TRXIQ_pulse mode disabled"),
-                ("``0b1``", "TRXIQ_pulse mode enabled")
-            ], reset=0b0),
-            CSRField(name="DDR_EN", size=1, offset=2, values=[
-                ("``0b0``", "SDR mode"),
-                ("``0b1``", "DDR mode")
-            ], reset=0b1),
-            CSRField(name="MIMO_INT_EN", size=1, offset=3, values=[
-                ("``0b0``", "MIMO disabled"),
-                ("``0b1``", "MIMO enabled")
-            ], reset=0b1),
-            CSRField(name="CH_EN", size=2, offset=4, values=[
-                ("``0b01``", "Channel A enabled"),
-                ("``0b10``", "Channel B enabled"),
-                ("``0b11``", "Channels A and B enabled")
-            ], reset=0b00),
-            CSRField(name="LMS1_TXEN", size=1, offset=6, values=[
-                ("``0b0``", "LMS_TX disabled"),
-                ("``0b1``", "LMS_TX enabled")
-            ], reset=0b1),
-            CSRField(name="LMS_TXRXEN_MUX_SEL", size=1, offset=7, values=[
-                ("''0b0''", "LMS TX/RXEN signal control by TDD signal disabled"),
-                ("``0b1``", "LMS TX/RXEN signal control by TDD signal enabled")
-            ], reset=0b0),
-            CSRField(name="LMS1_RXEN", size=1, offset=8, values=[
-                ("``0b0``", "LMS_RX disabled"),
-                ("``0b1``", "LMS_TX enabled")
-            ], reset=0b1),
-            CSRField(name="LMS1_RESET", size=1, offset=9, values=[
-                ("``0b0``", "Reset active"),
-                ("``0b1``", "Reset inactive")
-            ], reset=0b1),
-            CSRField(name="LMS_TXRXEN_INV", size=1, offset=10, values=[
-                ("``0b0``", "Do not invert TX/RXEN signals"),
-                ("``0b1``", "Invert TX/RXEN signals")
-            ], reset=0b0),
-            CSRField(name="LMS1_CORE_LDO_EN", size=1, offset=11, values=[
-                ("``0b0``", "LMS LDO Disabled"),
-                ("``0b1``", "LMS LDO Enabled")
-            ], reset=0b1),
             CSRField(name="LMS1_TXNRX1", size=1, offset=12, values=[
                 ("``0b0``", "Port 1 TXIQ"),
                 ("``0b1``", "Port 1 RXIQ")
@@ -64,6 +22,55 @@ class lms7002_top(Module):
                 ("``0b1``", "Port 2 RXIQ")
             ], reset=0b0),
         ])
+
+        self.tx_en = CSRStorage(1,
+            description="TX Enable: 0: Disabled, 1: Enabled."
+        )
+        self.rx_en = CSRStorage(1,
+            description="RX Enable: 0: Disabled, 1: Enabled."
+        )
+        self.trxiq_pulse = CSRStorage(1,
+            description="TRXIQ_PULSE mode Enable: 0: Disabled, 1: Enabled."
+        )
+        self.ddr_en = CSRStorage(1, reset=1,
+            description="DDR mode enable: 0: Disabled, 1: Enabled."
+        )
+        self.mimo_int_en = CSRStorage(1, reset=1,
+            description="MIMO mode: 0: Disabled, 1: Enabled."
+        )
+        self.ch_en = CSRStorage(2, reset=2,
+            description="01 - Channel A enabled, 10 - Channel B enabled, 11 - Channels A and B enabled"
+        )
+
+
+        self.lms1_txen = CSRStorage(1, reset=1,
+            description="LMS1 TX Enable: 0: Disabled, 1: Enabled."
+        )
+        self.lms1_rxen = CSRStorage(1, reset=1,
+            description="LMS1 TX Enable: 0: Disabled, 1: Enabled."
+        )
+        self.lms1_txrxen_mux_sel = CSRStorage(1, reset=0,
+            description="LMS1 TX Enable: 0: Disabled, 1: Enabled."
+        )
+        self.lms1_txrxen_inv = CSRStorage(1, reset=0,
+            description="LMS1 TX Enable: 0: Disabled, 1: Enabled."
+        )
+        self.lms1_resetn = CSRStorage(1, reset=1,
+            description="LMS1 Reset: 0: Reset active, 1: Reset inactive"
+        )
+        self.lms1_core_ldo_en = CSRStorage(1, reset=0,
+            description="LMS1 internal LDO enable: 0: Disabled, 1: Enabled"
+        )
+        self.lms1_txnrx1 = CSRStorage(1, reset=1,
+            description="LMS1 port1 mode: 0: Port 1 TXIQ, 1: Port 1 RXIQ"
+        )
+        self.lms2_txnrx2 = CSRStorage(1, reset=0,
+            description="LMS1 port2 mode: 0: Port 2 TXIQ, 1: Port 2 RXIQ"
+        )
+
+
+
+
 
         # Add sources
         platform.add_source("./gateware/LimeDFB/lms7002/src/lms7002_top.vhd")
@@ -135,20 +142,19 @@ class lms7002_top(Module):
             o_TX_ACTIVE=self.TX_ACTIVE,
             o_RX_ACTIVE=self.RX_ACTIVE,
             # interface cfg
-            i_CFG_TX_EN=self.control.fields.TX_EN,
-            i_CFG_TRXIQ_PULSE=self.control.fields.TRXIQ_PULSE,
-            i_CFG_DDR_EN=self.control.fields.DDR_EN,
-            i_CFG_MIMO_INT_EN=self.control.fields.MIMO_INT_EN,
-            i_CFG_CH_EN=self.control.fields.CH_EN,
-            i_CFG_LMS_TXEN=self.control.fields.LMS1_TXEN,
-            i_CFG_LMS_TXRXEN_MUX_SEL=self.control.fields.LMS_TXRXEN_MUX_SEL,
-            i_CFG_LMS_RXEN=self.control.fields.LMS1_RXEN,
-            i_CFG_LMS_RESET=self.control.fields.LMS1_RESET,
-            i_CFG_LMS_TXRXEN_INV=self.control.fields.LMS_TXRXEN_INV,
-            i_CFG_LMS_CORE_LDO_EN=self.control.fields.LMS1_CORE_LDO_EN,
-            i_CFG_LMS_TXNRX1=self.control.fields.LMS1_TXNRX1,
-            i_CFG_LMS_TXNRX2=self.control.fields.LMS1_TXNRX2
-
+            i_CFG_TX_EN=self.tx_en.storage,
+            i_CFG_TRXIQ_PULSE=self.trxiq_pulse.storage,
+            i_CFG_DDR_EN=self.ddr_en.storage,
+            i_CFG_MIMO_INT_EN=self.mimo_int_en.storage,
+            i_CFG_CH_EN=self.ch_en.storage,
+            i_CFG_LMS_TXEN=self.lms1_txen.storage,
+            i_CFG_LMS_TXRXEN_MUX_SEL=self.lms1_txrxen_mux_sel.storage,
+            i_CFG_LMS_RXEN=self.lms1_rxen.storage,
+            i_CFG_LMS_RESET=self.lms1_resetn.storage,
+            i_CFG_LMS_TXRXEN_INV=self.lms1_txrxen_inv.storage,
+            i_CFG_LMS_CORE_LDO_EN=self.lms1_core_ldo_en.storage,
+            i_CFG_LMS_TXNRX1=self.lms1_txnrx1.storage,
+            i_CFG_LMS_TXNRX2=self.lms2_txnrx2.storage
         )
 
         # Create instance and assign params

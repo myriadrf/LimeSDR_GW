@@ -26,6 +26,12 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
 	case 0x7:
 		value = fpgacfg_channel_cntrl_read();
 		break;
+	case 0xA:
+		value = lime_top_lms7002_tx_en_read();
+		break;
+	case 0x21:
+		value = 0x5;
+		break;
 	default:
 		break;
 	}
@@ -48,6 +54,10 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
 		break;
 	case 0x7:
 		fpgacfg_channel_cntrl_write(value);
+		break;
+	case 0xA:
+		lime_top_lms7002_tx_en_write(value);
+		lime_top_lms7002_rx_en_write(value);
 		break;
 	default:
 		break;

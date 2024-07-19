@@ -123,10 +123,10 @@ class BaseSoC(SoCCore):
         "i2c1"        : 21,
 
         # Analyzer.
-        #"analyzer"    : 32,
+        "analyzer"    : 30,
 
         # CNTRL
-        #"CNTRL"       : 26,
+        "CNTRL"       : 26,
     }
 
     def __init__(self, board="limesdr", sys_clk_freq=int(125e6),

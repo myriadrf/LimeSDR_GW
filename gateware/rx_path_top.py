@@ -5,26 +5,18 @@ from litex.soc.interconnect.axi import *
 from litex.soc.interconnect.csr import *
 
 
-class rx_path_top(Module):
+class rx_path_top(LiteXModule):
     def __init__(self, platform, s_axis_iqsmpls_buffer_words=16, m_axis_iqpacket_buffer_words=512, int_clk_domain="sys", m_clk_domain="sys", s_clk_domain="sys"):
         # Add CSRs
-        self.control = CSRStorage(fields=[
-            CSRField(name="CH_EN", size=2, offset=0, values=[
-                ("``0b01``", "Channel A enabled"),
-                ("``0b10``", "Channel B enabled"),
-                ("``0b11``", "Channels A and B enabled")
-            ], reset=0b00),
-            CSRField(name="SMPL_WIDTH", size=2, offset=2, values=[
-                ("``0b01``", "Channel A enabled"),
-                ("``0b10``", "Channel B enabled"),
-                ("``0b11``", "Channels A and B enabled")
-            ], reset=0b00),
-            CSRField(name="PKT_SIZE", size=16, offset=4, values=[
-                ("``0b01``", "Channel A enabled"),
-                ("``0b10``", "Channel B enabled"),
-                ("``0b11``", "Channels A and B enabled")
-            ], reset=0b0000000000000000),
-        ])
+        self.ch_en = CSRStorage(2, reset=0,
+            description="01 - Channel A enabled, 10 - Channel B enabled, 11 - Channels A and B enabled"
+        )
+        self.smpl_width = CSRStorage(2, reset=2,
+            description="10 - 12bit, 01 - Reserved, 00 - 16bit"
+        )
+        self.pkt_size = CSRStorage(16, reset=0,
+            description="Packet Size in bytes, 10 - Channel B enabled, 11 - Channels A and B enabled"
+        )
 
         # Add sources
         platform.add_source("./gateware/LimeDFB/rx_path_top/src/rx_path_top.vhd")
@@ -96,6 +88,10 @@ class rx_path_top(Module):
             o_M_AXIS_IQPACKET_TDATA     = self.m_axis_iqpacket.ready,
             o_M_AXIS_IQPACKET_TKEEP     = self.m_axis_iqpacket.keep,
             o_M_AXIS_IQPACKET_TLAST     = self.m_axis_iqpacket.last,
+            # CFG
+            i_CFG_CH_EN                 = self.ch_en.storage,
+            i_CFG_SMPL_WIDTH            = self.smpl_width.storage,
+            i_CFG_PKT_SIZE              = self.pkt_size.storage,
             # SMPL_NR
             i_SMPL_NR_EN            = self.SMPL_NR_EN,
             i_SMPL_NR_CLR           = self.SMPL_NR_CLR,
