@@ -173,6 +173,9 @@ static void help(void)
 	puts("gpioled            - GPIO override demo");
 	puts("mmap               - MMAP demo" );
 #endif
+#ifdef CSR_LIME_TOP_BASE
+	puts("lms                - lms7002_top module status");
+#endif
 }
 
 /*-----------------------------------------------------------------------*/
@@ -461,6 +464,20 @@ static void init_pmic(void)
 
 }
 
+
+/*-----------------------------------------------------------------------*/
+/* LMS7002m status                                                       */
+/*-----------------------------------------------------------------------*/
+
+static void lms7002_status(void)
+{
+	printf("TX PLL Lock status = %x \n", lime_top_lms7002_txpll_status_read());
+
+	printf("\n");
+
+	printf("RX PLL Lock status = %x \n", lime_top_lms7002_rxpll_status_read());
+}
+
 /*-----------------------------------------------------------------------*/
 /* Console service / Main                                                */
 /*-----------------------------------------------------------------------*/
@@ -493,6 +510,11 @@ static void console_service(void)
 	else if(strcmp(token, "mmap") == 0)
 		mmap_cmd();
 #endif
+#ifdef CSR_LIME_TOP_BASE
+	else if (strcmp(token, "lms") == 0)
+		lms7002_status();
+#endif
+
 
 
 	prompt();

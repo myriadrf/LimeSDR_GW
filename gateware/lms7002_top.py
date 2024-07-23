@@ -6,6 +6,9 @@ from litex.gen import *
 
 from litex.soc.interconnect.axi import *
 from litex.soc.interconnect.csr import *
+from litex.soc.cores.clock     import *
+
+from litescope import LiteScopeAnalyzer
 
 
 class lms7002_top(LiteXModule):
@@ -38,7 +41,7 @@ class lms7002_top(LiteXModule):
         self.mimo_int_en = CSRStorage(1, reset=1,
             description="MIMO mode: 0: Disabled, 1: Enabled."
         )
-        self.ch_en = CSRStorage(2, reset=2,
+        self.ch_en = CSRStorage(2, reset=3,
             description="01 - Channel A enabled, 10 - Channel B enabled, 11 - Channels A and B enabled"
         )
 
@@ -68,6 +71,22 @@ class lms7002_top(LiteXModule):
             description="LMS1 port2 mode: 0: Port 2 TXIQ, 1: Port 2 RXIQ"
         )
 
+        self.txpll_reset = CSRStorage(1, reset=0,
+            description="TX PLL reset: 0: Reset is not active, 1: Reset is Active"
+        )
+
+        self.rxpll_reset = CSRStorage(1, reset=0,
+            description="TX PLL reset: 0: Reset is not active, 1: Reset is Active"
+        )
+
+        self.txpll_status = CSRStatus(1, reset=0,
+            description="TX PLL lock status: 0: NO Lock, 1: Locked"
+        )
+
+        self.rxpll_status = CSRStatus(1, reset=0,
+            description="RX PLL lock status: 0: NO Lock, 1: Locked"
+        )
+
 
 
 
@@ -90,8 +109,33 @@ class lms7002_top(LiteXModule):
         axis_layout = [("data", max(1, axis_datawidth))]
         # adding reset along with data, assuming resets are not global
         axis_layout += [("areset_n", 1)]
+        axis_layout += [("keep", max(1, axis_datawidth))]
         self.axis_m = AXIStreamInterface(axis_datawidth, layout=axis_layout, clock_domain=m_clk_domain)
         self.axis_s = AXIStreamInterface(axis_datawidth, layout=axis_layout, clock_domain=s_clk_domain)
+
+        # TX PLL.
+        self.cd_txpll_c0 = ClockDomain()
+        self.cd_txpll_c1 = ClockDomain()
+        self.txpll = txpll = S7PLL(speedgrade=-1)
+        self.comb += txpll.reset.eq(self.txpll_reset.storage)
+        txpll.register_clkin(lms7002_pads.mclk1, 30.72e6)
+        txpll.create_clkout(self.cd_txpll_c0,    30.72e6)
+        txpll.create_clkout(self.cd_txpll_c1, 30.72e6, 190)
+
+        self.comb += self.txpll_status.status.eq(txpll.locked)
+
+        # RX PLL.
+        self.cd_rxpll_c0 = ClockDomain()
+        self.cd_rxpll_c1 = ClockDomain()
+        self.rxpll = rxpll = S7PLL(speedgrade=-1)
+        self.comb += rxpll.reset.eq(self.rxpll_reset.storage)
+        rxpll.register_clkin(lms7002_pads.mclk2, 30.72e6)
+        rxpll.create_clkout(self.cd_rxpll_c0,    30.72e6)
+        rxpll.create_clkout(self.cd_rxpll_c1, 30.72e6, 120)
+        self.comb += self.rxpll_status.status.eq(rxpll.locked)
+
+        self.comb += lms7002_pads.fclk2.eq(ClockSignal("rxpll_c0"))
+
 
         # Create params
         self.params_ios = dict()
@@ -108,14 +152,14 @@ class lms7002_top(LiteXModule):
         # Assign ports
         self.params_ios.update(
             # DIQ1
-            i_MCLK1=lms7002_pads.mclk1,
-            o_FCLK1=lms7002_pads.fclk1,
+            i_MCLK1=ClockSignal("txpll_c1"),
+            #o_FCLK1=lms7002_pads.fclk1,
             o_DIQ1=lms7002_pads.diq1,
             o_ENABLE_IQSEL1=lms7002_pads.iqsel1,
             o_TXNRX1=lms7002_pads.txnrx1,
             # DIQ2
-            i_MCLK2=lms7002_pads.mclk2,
-            o_FCLK2=lms7002_pads.fclk2,
+            i_MCLK2=ClockSignal("rxpll_c1"),
+            #o_FCLK2=lms7002_pads.fclk2,
             i_DIQ2=lms7002_pads.diq2,
             i_ENABLE_IQSEL2=lms7002_pads.iqsel2,
             o_TXNRX2=lms7002_pads.txnrx2,
@@ -136,6 +180,7 @@ class lms7002_top(LiteXModule):
             i_m_axis_rx_aclk=ClockSignal(m_clk_domain),
             o_m_axis_rx_tvalid=self.axis_m.valid,
             o_m_axis_rx_tdata=self.axis_m.data,
+            o_m_axis_rx_tkeep=self.axis_m.keep,
             i_m_axis_rx_tready=self.axis_m.ready,
             o_m_axis_rx_tlast=self.axis_m.last,
             # misc
@@ -159,3 +204,23 @@ class lms7002_top(LiteXModule):
 
         # Create instance and assign params
         self.specials += Instance("lms7002_top", **self.params_ios)
+
+
+        # LiteScope example.
+        # ------------------
+        # Setup LiteScope Analyzer to capture some of the AXI-Lite MMAP signals.
+        analyzer_signals = [
+            self.tx_en.storage,
+            self.axis_m.areset_n,
+            self.axis_m.valid,
+            self.axis_m.data,
+            self.axis_m.keep,
+            self.axis_m.ready,
+        ]
+
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 512,
+            clock_domain = m_clk_domain,
+            register     = True,
+            csr_csv      = "lime_top_lms7002_analyzer.csv"
+        )

@@ -9,6 +9,8 @@ from litex.soc.interconnect.csr              import *
 from litex.soc.interconnect.csr_eventmanager import EventManager, EventSourceProcess
 from litex.soc.interconnect                  import axi
 
+from litex.soc.interconnect import stream
+
 from litescope import LiteScopeAnalyzer
 
 from litex.soc.cores.spi       import SPIMaster
@@ -66,12 +68,12 @@ class LimeTop(LiteXModule):
         # -----------
         # Perform a simple TX -> RX loopback.
         # This could be done directly with self.dma_rx.connect(self.dma_tx), but is made explicit here.
-        self.comb += [
-            self.dma_rx.valid.eq(self.dma_tx.valid),
-            self.dma_rx.last.eq(self.dma_tx.last),
-            self.dma_rx.data.eq(self.dma_tx.data),
-            self.dma_tx.ready.eq(self.dma_rx.ready),
-        ]
+        #self.comb += [
+        #    self.dma_rx.valid.eq(self.dma_tx.valid),
+        #    self.dma_rx.last.eq(self.dma_tx.last),
+        #    self.dma_rx.data.eq(self.dma_tx.data),
+        #    self.dma_tx.ready.eq(self.dma_rx.ready),
+        #]
 
         # CSR Registers Example.
         # ----------------------
@@ -102,9 +104,13 @@ class LimeTop(LiteXModule):
         self.gpio = GpioTop(platform, gpio_top_led)
 
 
+
+
         #LMS7002
         lms7002_pads = platform.request("lms7002m")
         self.lms7002 = lms7002_top(platform, lms7002_pads)
+        self.comb += self.lms7002.axis_s.areset_n.eq(1)
+        self.comb += self.lms7002.axis_m.areset_n.eq(1)
 
         # RX Path
         self.rx_path = rx_path_top(platform)
@@ -112,7 +118,20 @@ class LimeTop(LiteXModule):
         # TODO: TX PATH
 
         # Connect RX path AXIS slave to lms7002 AXIS master
-        self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls, keep={"valid", "ready", "last", "data"})
+        #self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls, keep={"valid", "ready", "last", "data"})
+        self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls)
+        self.comb += self.rx_path.s_axis_iqsmpls.areset_n.eq(1)
+
+        self.comb += [
+           self.dma_rx.valid.eq(self.rx_path.m_axis_iqpacket.valid),
+           self.dma_rx.last.eq(self.rx_path.m_axis_iqpacket.last),
+           self.dma_rx.data.eq(self.rx_path.m_axis_iqpacket.data),
+           self.rx_path.m_axis_iqpacket.ready.eq(self.dma_rx.ready),
+        ]
+
+        #self.comb += self.rx_path.m_axis_iqpacket.connect(self.dma_rx, omit={"areset_n"})
+
+
 
         # LiteScope example.
         # ------------------

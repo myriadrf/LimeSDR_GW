@@ -28,6 +28,7 @@ class rx_path_top(LiteXModule):
         platform.add_source("./gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd")
 
         platform.add_source("./gateware/LimeDFB/fifo_axis/src/fifo_axis_wrap.vhd")
+        platform.add_source("./gateware/LimeDFB/axis/src/axis_dwidth_converter_128_to_64/axis_dwidth_converter_128_to_64.xci")
         platform.add_source("./gateware/LimeDFB/axis/src/axis_pkg.vhd")
 
 
