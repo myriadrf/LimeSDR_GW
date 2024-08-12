@@ -24,10 +24,20 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
 		value = fpgacfg_reserved_03_read();
 		break;
 	case 0x7:
-		value = fpgacfg_channel_cntrl_read();
+		value = lime_top_rx_path_ch_en_read();
+		break;
+	case 0x8:
+		value = lime_top_rx_path_smpl_width_read() & 0x3;
+		//TODO: check ddr_en usage
+		//value = value | ((lime_top_lms7002_ddr_en_read() & 0x1) << 6);
+		value = value | ((lime_top_lms7002_trxiq_pulse_read() & 0x1) << 7);
+		value = value | ((lime_top_lms7002_mimo_int_en_read() & 0x1) << 8);
 		break;
 	case 0xA:
 		value = lime_top_lms7002_tx_en_read();
+		break;
+	case 0x19:
+		value = lime_top_rx_path_pkt_size_read();
 		break;
 	case 0x21:
 		value = 0x5;
@@ -53,11 +63,22 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
 		fpgacfg_reserved_03_write(value);
 		break;
 	case 0x7:
-		fpgacfg_channel_cntrl_write(value);
+		lime_top_rx_path_ch_en_write(value);
+		lime_top_lms7002_ch_en_write(value);
+		break;
+	case 0x8:
+		lime_top_rx_path_smpl_width_write(value & 0x3);
+		//TODO: check ddr_en usage
+		//lime_top_lms7002_ddr_en_write((value & 0x40) >> 6);
+		lime_top_lms7002_trxiq_pulse_write((value & 0x80) >> 7);
+		lime_top_lms7002_mimo_int_en_write((value & 0x100) >> 8);
 		break;
 	case 0xA:
 		lime_top_lms7002_tx_en_write(value);
 		lime_top_lms7002_rx_en_write(value);
+		break;
+	case 0x19:
+		lime_top_rx_path_pkt_size_write(value);
 		break;
 	default:
 		break;

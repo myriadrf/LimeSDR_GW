@@ -631,8 +631,8 @@ void lms64c_isr(void){
 		{
 			// write reg addr
 			//sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
-			// Clearing write bit in address field because we are not using SPI registers here
-			cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
+			// Clearing write bit in address field because we are not using SPI registers in LiteX implementation
+			cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
 
 			writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
 		}
