@@ -13,7 +13,8 @@ from litescope import LiteScopeAnalyzer
 
 class lms7002_top(LiteXModule):
     def __init__(self, platform, lms7002_pads, vendor="XILINX", dev_family="Artix 7", iq_width=12,
-                 s_axis_tx_fifo_words=16, m_axis_rx_fifo_words=16, m_clk_domain="sys", s_clk_domain="sys"):
+                 s_axis_tx_fifo_words=16, m_axis_rx_fifo_words=16, m_clk_domain="sys", s_clk_domain="sys",
+                 with_debug=False):
         # Add CSRs
         self.control = CSRStorage(fields=[
             CSRField(name="LMS1_TXNRX1", size=1, offset=12, values=[
@@ -32,7 +33,7 @@ class lms7002_top(LiteXModule):
         self.rx_en = CSRStorage(1,
             description="RX Enable: 0: Disabled, 1: Enabled."
         )
-        self.trxiq_pulse = CSRStorage(1,
+        self.trxiq_pulse = CSRStorage(1, reset=0,
             description="TRXIQ_PULSE mode Enable: 0: Disabled, 1: Enabled."
         )
         self.ddr_en = CSRStorage(1, reset=1,
@@ -209,18 +210,19 @@ class lms7002_top(LiteXModule):
         # LiteScope example.
         # ------------------
         # Setup LiteScope Analyzer to capture some of the AXI-Lite MMAP signals.
-        analyzer_signals = [
-            self.tx_en.storage,
-            self.axis_m.areset_n,
-            self.axis_m.valid,
-            self.axis_m.data,
-            self.axis_m.keep,
-            self.axis_m.ready,
-        ]
+        if with_debug:
+            analyzer_signals = [
+                self.tx_en.storage,
+                self.axis_m.areset_n,
+                self.axis_m.valid,
+                self.axis_m.data,
+                self.axis_m.keep,
+                self.axis_m.ready,
+            ]
 
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 512,
-            clock_domain = m_clk_domain,
-            register     = True,
-            csr_csv      = "lime_top_lms7002_analyzer.csv"
-        )
+            self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+                depth        = 512,
+                clock_domain = m_clk_domain,
+                register     = True,
+                csr_csv      = "lime_top_lms7002_analyzer.csv"
+            )

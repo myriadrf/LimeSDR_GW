@@ -5,17 +5,20 @@ from litex.soc.interconnect.axi import *
 from litex.soc.interconnect.csr import *
 
 
+from litescope import LiteScopeAnalyzer
+
+
 class rx_path_top(LiteXModule):
     def __init__(self, platform, s_axis_iqsmpls_buffer_words=16, m_axis_iqpacket_buffer_words=512, int_clk_domain="sys", m_clk_domain="sys", s_clk_domain="sys"):
         # Add CSRs
-        self.ch_en = CSRStorage(2, reset=0,
+        self.ch_en = CSRStorage(2, reset=3,
             description="01 - Channel A enabled, 10 - Channel B enabled, 11 - Channels A and B enabled"
         )
         self.smpl_width = CSRStorage(2, reset=2,
             description="10 - 12bit, 01 - Reserved, 00 - 16bit"
         )
-        self.pkt_size = CSRStorage(16, reset=0,
-            description="Packet Size in bytes, 10 - Channel B enabled, 11 - Channels A and B enabled"
+        self.pkt_size = CSRStorage(16, reset=253,
+            description="Packet Size in bytes, "
         )
 
         # Add sources
@@ -52,7 +55,7 @@ class rx_path_top(LiteXModule):
 
         self.s_axis_iqsmpls = AXIStreamInterface(s_axis_datawidth, layout=s_axis_layout, clock_domain=s_clk_domain)
 
-        m_axis_datawidth = 128
+        m_axis_datawidth = 64
         m_axis_layout = [("data", max(1, m_axis_datawidth))]
         m_axis_layout += [("keep", max(1, m_axis_datawidth//8))]
         # adding reset along with data, assuming resets are not global
@@ -85,8 +88,8 @@ class rx_path_top(LiteXModule):
             i_M_AXIS_IQPACKET_ARESETN   = self.m_axis_iqpacket.areset_n,
             i_M_AXIS_IQPACKET_ACLK      = ClockSignal(m_clk_domain),
             o_M_AXIS_IQPACKET_TVALID    = self.m_axis_iqpacket.valid,
-            i_M_AXIS_IQPACKET_TREADY    = self.m_axis_iqpacket.data,
-            o_M_AXIS_IQPACKET_TDATA     = self.m_axis_iqpacket.ready,
+            i_M_AXIS_IQPACKET_TREADY    = self.m_axis_iqpacket.ready,
+            o_M_AXIS_IQPACKET_TDATA     = self.m_axis_iqpacket.data,
             o_M_AXIS_IQPACKET_TKEEP     = self.m_axis_iqpacket.keep,
             o_M_AXIS_IQPACKET_TLAST     = self.m_axis_iqpacket.last,
             # CFG
@@ -106,3 +109,29 @@ class rx_path_top(LiteXModule):
 
         # Create instance and assign params
         self.specials += Instance("rx_path_top", **self.params_ios)
+
+        # LiteScope example.
+        # ------------------
+        # Setup LiteScope Analyzer to capture some of the AXI-Lite MMAP signals.
+        analyzer_signals = [
+            self.s_axis_iqsmpls.areset_n,
+            self.s_axis_iqsmpls.valid,
+            self.s_axis_iqsmpls.ready,
+            self.s_axis_iqsmpls.data,
+            self.s_axis_iqsmpls.keep,
+            self.s_axis_iqsmpls.last,
+            self.m_axis_iqpacket.areset_n,
+            self.m_axis_iqpacket.valid,
+            self.m_axis_iqpacket.ready,
+            self.m_axis_iqpacket.data,
+            self.m_axis_iqpacket.keep,
+            self.m_axis_iqpacket.last,
+
+        ]
+
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 512,
+            clock_domain = m_clk_domain,
+            register     = True,
+            csr_csv      = "lime_top_rx_path_analyzer.csv"
+        )

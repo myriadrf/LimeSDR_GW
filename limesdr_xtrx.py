@@ -109,14 +109,14 @@ class BaseSoC(SoCCore):
         # SoC.
         "uart"        : 0,
         "icap"        : 1,
-        "flash"       : 2,
-        "xadc"        : 3,
-        "dna"         : 4,
+        "flash"       : 10, #10
+        "xadc"        : 11, #11
+        "dna"         : 12, #12
 
         # PCIe.
-        "pcie_phy"    : 10,
-        "pcie_msi"    : 11,
-        "pcie_dma0"   : 12,
+        "pcie_phy"    : 2, #10
+        "pcie_msi"    : 3, #11
+        "pcie_dma0"   : 5, #12
 
         # XTRX.
         "i2c0"        : 20,
@@ -235,7 +235,7 @@ class BaseSoC(SoCCore):
         # PCIe -------------------------------------------------------------------------------------
         self.pcie_phy = S7PCIEPHY(platform, platform.request(f"pcie_x2"),
             data_width  = 64,
-            bar0_size   = 0x20000,
+            bar0_size   = 0x40000,
             cd          = "sys",
         )
         self.pcie_phy.update_config({
@@ -248,7 +248,7 @@ class BaseSoC(SoCCore):
         )
         self.add_pcie(phy=self.pcie_phy, address_width=32, ndmas=1,
             with_dma_buffering    = True, dma_buffering_depth=8192,
-            with_dma_loopback     = True,
+            with_dma_loopback     = False,
             with_dma_synchronizer = False,
             with_msi              = True
         )
