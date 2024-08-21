@@ -48,6 +48,7 @@ void readCSR(uint8_t* address, uint8_t* regdata_array)
 		value = csr_read_simple(clk_ctrl_addrs.pllcfg_done);
 		value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
 		value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
+		value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
 		value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
 		break;
 	case 0x23:

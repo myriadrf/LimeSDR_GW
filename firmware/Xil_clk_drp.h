@@ -16,6 +16,7 @@
     add_value(base,_PLLCFG_DONE_ADDR),       \
     add_value(base,_PHCFG_MODE_ADDR),        \
     add_value(base,_PHCFG_DONE_ADDR),        \
+    add_value(base,_PHCFG_ERR_ADDR),         \
     add_value(base,_PLLCFG_BUSY_ADDR),       \
     add_value(base,_PLLCFG_START_ADDR),      \
     add_value(base,_PLLRST_START_ADDR),      \
@@ -38,6 +39,7 @@ typedef struct {
     unsigned long pllcfg_done;
     unsigned long phcfg_mode;
     unsigned long phcfg_done;
+	unsigned long phcfg_err;
     unsigned long pllcfg_busy;
     unsigned long pllcfg_start;
     unsigned long pllrst_start;

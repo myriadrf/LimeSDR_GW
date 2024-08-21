@@ -808,6 +808,7 @@ static void clk_ctrl_isr(void)
 	csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
 	csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
 	csr_write_simple(0, clk_ctrl_addrs.pllcfg_error);
+	csr_write_simple(0, clk_ctrl_addrs.phcfg_err);
 
 	var_phcfg_start = csr_read_simple(clk_ctrl_addrs.phcfg_start);
 	var_pllcfg_start = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
@@ -905,6 +906,7 @@ int main(void)
 				else
 				{
 					csr_write_simple(1, clk_ctrl_addrs.pllcfg_error);
+					csr_write_simple(1, clk_ctrl_addrs.phcfg_err);
 				}
 
 			}

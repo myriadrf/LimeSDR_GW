@@ -20,7 +20,8 @@ class ClkCfgRegs(LiteXModule):
                                      description="Phase configuration mode: 0: Manual, 1: Auto")
         self.PHCFG_DONE = CSRStorage(size=1, reset=0,
                                      description="Phase config done: 0: Not done, 1: Done  ")
-        self.PHCFG_ERR  = CSRStorage(size=1, reset=0)
+        self.PHCFG_ERR  = CSRStorage(size=1, reset=0,
+                                     description="Phase config error: 0: no error, 1: error")
         self.PLLCFG_DONE = CSRStorage(size=1, reset=0,
                                       description="PLL configuration done: 0: Not done, 1: Done")
         self.PLLCFG_BUSY = CSRStorage(size=1, reset=0,
