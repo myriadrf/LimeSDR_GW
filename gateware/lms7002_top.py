@@ -10,6 +10,10 @@ from litex.soc.cores.clock     import *
 
 from litescope import LiteScopeAnalyzer
 
+from gateware.lms7002_clk import ClkCfgRegs
+from gateware.lms7002_clk import XilinxLmsMMCM
+
+
 
 class lms7002_top(LiteXModule):
     def __init__(self, platform, lms7002_pads, vendor="XILINX", dev_family="Artix 7", iq_width=12,
@@ -72,21 +76,20 @@ class lms7002_top(LiteXModule):
             description="LMS1 port2 mode: 0: Port 2 TXIQ, 1: Port 2 RXIQ"
         )
 
-        self.txpll_reset = CSRStorage(1, reset=0,
-            description="TX PLL reset: 0: Reset is not active, 1: Reset is Active"
+        self.cmp_start = CSRStorage(1, reset=0,
+            description="Start sample compare: 0: idle, 1 transition: start configuration"
         )
-
-        self.rxpll_reset = CSRStorage(1, reset=0,
-            description="TX PLL reset: 0: Reset is not active, 1: Reset is Active"
+        self.cmp_length = CSRStorage(16, reset=0xEFFF,
+            description="Sample compare length"
         )
-
-        self.txpll_status = CSRStatus(1, reset=0,
-            description="TX PLL lock status: 0: NO Lock, 1: Locked"
+        self.cmp_done = CSRStatus(1,
+            description="Sample compare done: 0: Not done, 1: Done"
         )
-
-        self.rxpll_status = CSRStatus(1, reset=0,
-            description="RX PLL lock status: 0: NO Lock, 1: Locked"
+        self.cmp_error = CSRStatus(1,
+            description="Sample compare error: 0: No error, 1: Error"
         )
+        self.test_ptrn_en = CSRStorage(1, reset = 0,
+            description="Test pattern enable: 0: Disabled, 1: Enabled")
 
 
 
@@ -98,6 +101,8 @@ class lms7002_top(LiteXModule):
         platform.add_source("./gateware/LimeDFB/lms7002/src/lms7002_rx.vhd")
         platform.add_source("./gateware/LimeDFB/lms7002/src/lms7002_ddout.vhd")
         platform.add_source("./gateware/LimeDFB/lms7002/src/lms7002_ddin.vhd")
+        platform.add_source("./gateware/LimeDFB/lms7002/src/smpl_cmp.vhd")
+        platform.add_source("./gateware/LimeDFB/lms7002/src/txiq_tst_ptrn.vhd")
 
         platform.add_source("./gateware/LimeDFB/fifo_axis/src/fifo_axis_wrap.vhd")
         platform.add_source("./gateware/LimeDFB/lms7002/src/rx_pll/rx_pll.xci")
@@ -114,29 +119,14 @@ class lms7002_top(LiteXModule):
         self.axis_m = AXIStreamInterface(axis_datawidth, layout=axis_layout, clock_domain=m_clk_domain)
         self.axis_s = AXIStreamInterface(axis_datawidth, layout=axis_layout, clock_domain=s_clk_domain)
 
+        # # Clocking control registers
+        self.CLK_CTRL = ClkCfgRegs()
         # TX PLL.
-        self.cd_txpll_c0 = ClockDomain()
-        self.cd_txpll_c1 = ClockDomain()
-        self.txpll = txpll = S7PLL(speedgrade=-1)
-        self.comb += txpll.reset.eq(self.txpll_reset.storage)
-        txpll.register_clkin(lms7002_pads.mclk1, 30.72e6)
-        txpll.create_clkout(self.cd_txpll_c0,    30.72e6)
-        txpll.create_clkout(self.cd_txpll_c1, 30.72e6, 190)
-
-        self.comb += self.txpll_status.status.eq(txpll.locked)
-
+        self.txclk = ClockDomain()
+        self.PLL0_TX = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6, mclk=lms7002_pads.mclk1, fclk=lms7002_pads.fclk1, logic_cd=self.txclk)
         # RX PLL.
-        self.cd_rxpll_c0 = ClockDomain()
-        self.cd_rxpll_c1 = ClockDomain()
-        self.rxpll = rxpll = S7PLL(speedgrade=-1)
-        self.comb += rxpll.reset.eq(self.rxpll_reset.storage)
-        rxpll.register_clkin(lms7002_pads.mclk2, 30.72e6)
-        rxpll.create_clkout(self.cd_rxpll_c0,    30.72e6)
-        rxpll.create_clkout(self.cd_rxpll_c1, 30.72e6, 120)
-        self.comb += self.rxpll_status.status.eq(rxpll.locked)
-
-        self.comb += lms7002_pads.fclk2.eq(ClockSignal("rxpll_c0"))
-
+        self.rxclk = ClockDomain()
+        self.PLL1_RX = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6, mclk=lms7002_pads.mclk2, fclk=lms7002_pads.fclk2, logic_cd=self.rxclk)
 
         # Create params
         self.params_ios = dict()
@@ -153,13 +143,13 @@ class lms7002_top(LiteXModule):
         # Assign ports
         self.params_ios.update(
             # DIQ1
-            i_MCLK1=ClockSignal("txpll_c1"),
+            i_MCLK1=self.txclk.clk,
             #o_FCLK1=lms7002_pads.fclk1,
             o_DIQ1=lms7002_pads.diq1,
             o_ENABLE_IQSEL1=lms7002_pads.iqsel1,
             o_TXNRX1=lms7002_pads.txnrx1,
             # DIQ2
-            i_MCLK2=ClockSignal("rxpll_c1"),
+            i_MCLK2=self.rxclk.clk,
             #o_FCLK2=lms7002_pads.fclk2,
             i_DIQ2=lms7002_pads.diq2,
             i_ENABLE_IQSEL2=lms7002_pads.iqsel2,
@@ -200,7 +190,13 @@ class lms7002_top(LiteXModule):
             i_CFG_LMS_TXRXEN_INV=self.lms1_txrxen_inv.storage,
             i_CFG_LMS_CORE_LDO_EN=self.lms1_core_ldo_en.storage,
             i_CFG_LMS_TXNRX1=self.lms1_txnrx1.storage,
-            i_CFG_LMS_TXNRX2=self.lms2_txnrx2.storage
+            i_CFG_LMS_TXNRX2=self.lms2_txnrx2.storage,
+            # cample_cmp
+            i_cmp_start=self.cmp_start.storage,
+            i_cmp_length=self.cmp_length.storage,
+            o_cmp_done=self.cmp_done.status,
+            o_cmp_error=self.cmp_error.status,
+            i_test_ptrn_en=self.test_ptrn_en.storage
         )
 
         # Create instance and assign params

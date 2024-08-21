@@ -80,29 +80,6 @@ class LimeTop(LiteXModule):
         # Adding a simple CSR storage register for demonstration purposes.
         self.scratch = CSRStorage(32, description="Scratch register for testing purposes.")
 
-        # IRQ Example.
-        # ------------
-        self.ev = EventManager()
-        self.ev.irq0 = EventSourceProcess(edge="rising")
-        self.ev.irq1 = EventSourceProcess(edge="rising")
-        self.ev.finalize()
-
-        # Generate irq0 every 5 seconds.
-        self.irq0_timer = WaitTimer(5.0*sys_clk_freq)
-        self.comb += self.irq0_timer.wait.eq(~self.irq0_timer.done)
-        self.comb += self.ev.irq0.trigger.eq(self.irq0_timer.done)
-
-        # Generate irq1 every 5 seconds.
-        self.irq1_timer = WaitTimer(5.0*sys_clk_freq)
-        self.comb += self.irq1_timer.wait.eq(~self.irq1_timer.done)
-        self.comb += self.ev.irq1.trigger.eq(self.irq1_timer.done)
-
-        # VHDL GPIO example.
-        # ------------------
-        # Integrate a VHDL GPIO module and connect it to user_led2.
-        gpio_top_led = platform.request_all("user_led2")
-        self.gpio = GpioTop(platform, gpio_top_led)
-
 
 
 
@@ -111,6 +88,14 @@ class LimeTop(LiteXModule):
         self.lms7002 = lms7002_top(platform, lms7002_pads)
         self.comb += self.lms7002.axis_s.areset_n.eq(self.lms7002.tx_en.storage)
         self.comb += self.lms7002.axis_m.areset_n.eq(self.lms7002.tx_en.storage)
+
+
+
+        # VHDL GPIO example.
+        # ------------------
+        # Integrate a VHDL GPIO module and connect it to user_led2.
+        gpio_top_led = platform.request_all("user_led2")
+        self.gpio = GpioTop(platform, gpio_top_led)
 
 
         # RX Path
@@ -150,3 +135,27 @@ class LimeTop(LiteXModule):
             register     = True,
             csr_csv      = "lime_top_analyzer.csv"
         )
+
+
+        # IRQ Example.
+        # ------------
+        self.ev = EventManager()
+        self.ev.clk_ctrl_irq = EventSourceProcess()
+        self.ev.finalize()
+
+        self.comb += self.ev.clk_ctrl_irq.trigger.eq((self.lms7002.CLK_CTRL.PHCFG_START.re & self.lms7002.CLK_CTRL.PHCFG_START.storage == 1)
+                                                     | (self.lms7002.CLK_CTRL.PLLCFG_START.re & self.lms7002.CLK_CTRL.PLLCFG_START.storage == 1)
+                                                     | (self.lms7002.CLK_CTRL.PLLRST_START.re & self.lms7002.CLK_CTRL.PLLRST_START.storage == 1) )
+        # self.ev.irq0 = EventSourceProcess(edge="rising")
+        # self.ev.irq1 = EventSourceProcess(edge="rising")
+
+        #
+        # # Generate irq0 every 5 seconds.
+        # self.irq0_timer = WaitTimer(5.0*sys_clk_freq)
+        # self.comb += self.irq0_timer.wait.eq(~self.irq0_timer.done)
+        # self.comb += self.ev.irq0.trigger.eq(self.irq0_timer.done)
+        #
+        # # Generate irq1 every 5 seconds.
+        # self.irq1_timer = WaitTimer(5.0*sys_clk_freq)
+        # self.comb += self.irq1_timer.wait.eq(~self.irq1_timer.done)
+        # self.comb += self.ev.irq1.trigger.eq(self.irq1_timer.done)
