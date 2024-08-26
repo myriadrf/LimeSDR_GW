@@ -86,7 +86,7 @@ class LimeTop(LiteXModule):
 
         #LMS7002
         lms7002_pads = platform.request("lms7002m")
-        self.lms7002 = lms7002_top(platform, lms7002_pads, s_clk_domain="txpll_c1")
+        self.lms7002 = lms7002_top(platform, lms7002_pads, s_clk_domain="txclk")
         self.comb += self.lms7002.axis_s.areset_n.eq(self.lms7002.tx_en.storage)
         self.comb += self.lms7002.axis_m.areset_n.eq(self.lms7002.tx_en.storage)
 
@@ -120,7 +120,7 @@ class LimeTop(LiteXModule):
         #self.comb += self.rx_path.m_axis_iqpacket.connect(self.dma_rx, omit={"areset_n"})
 
         # TX Path
-        self.tx_path = tx_path_top(platform, buff_count=4, rx_clk_domain="rxpll_c1", m_clk_domain="txpll_c1")
+        self.tx_path = tx_path_top(platform, buff_count=4, rx_clk_domain="rxclk", m_clk_domain="txclk")
         #self.comb += self.tx_path.RESET_N.eq(self.lms7002.tx_en.storage)
         self.comb += self.tx_path.RX_SAMPLE_NR.eq(self.rx_path.SMPL_NR_OUT)
             # DMA -> tx_path_top
@@ -172,4 +172,3 @@ class LimeTop(LiteXModule):
         # self.irq1_timer = WaitTimer(5.0*sys_clk_freq)
         # self.comb += self.irq1_timer.wait.eq(~self.irq1_timer.done)
         # self.comb += self.ev.irq1.trigger.eq(self.irq1_timer.done)
->>>>>>> origin/clk_ctrl
