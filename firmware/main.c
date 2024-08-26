@@ -17,6 +17,7 @@
 #include "LMS64C_protocol.h"
 #include "LimeSDR_XTRX.h"
 #include "regremap.h"
+#include "Xil_clk_drp.h"
 
 #define sbi(p, n) ((p) |= (1UL << (n)))
 #define cbi(p, n) ((p) &= ~(1 << (n)))
@@ -28,11 +29,22 @@
 
 /************************** Variable Definitions *****************************/
 uint8_t block, cmd_errors, glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
-tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet *)glEp0Buffer_Tx;
-tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *)glEp0Buffer_Rx;
+tLMS_Ctrl_Packet* LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet*)glEp0Buffer_Tx;
+tLMS_Ctrl_Packet* LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet*)glEp0Buffer_Rx;
 
+// If an error points here, most likely some of the macros are invalid.
+PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_PLL1_RX_MMCM);
+PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_PLL0_TX_MMCM);
+SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIME_TOP_LMS7002);
+// clk_ctrl_addrs is declared in regremap.h
+CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIME_TOP_LMS7002_CLK_CTRL);
 
 uint8_t lms64_packet_pending;
+volatile uint8_t clk_cfg_pending = 0;
+
+volatile uint8_t var_phcfg_start;
+volatile uint8_t var_pllcfg_start;
+volatile uint8_t var_pllrst_start;
 
 //#define FW_VER 1 // Initial version
 //#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
@@ -43,109 +55,113 @@ uint8_t lms64_packet_pending;
 /* IRQ                                                                   */
 /*-----------------------------------------------------------------------*/
 
-/** IRQ example ISR. */
-static void irq_example_isr(void)
-{
-	uint8_t stat;
-
-	/* Read the pending interrupt status. */
-	stat = lime_top_ev_pending_read();
-
-	/* Check if IRQ0 is pending. */
-	if(stat & (1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET)) {
-		// printf("IRQ0!\n");
-		/* Clear the IRQ0 pending status. */
-		lime_top_ev_pending_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET));
-	}
-
-	/* Check if IRQ1 is pending. */
-	if(stat & (1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET)) {
-		// uint32_t dest;
-		// printf(" CNTRL: ");
-		// for (int cnt = 0; cnt < 16 ; cnt++)
-		// {
-		// 	dest = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt*4));
-		// 	printf("%x ", dest);
-		// }
-		// printf(" \n");
-		// busy_wait_us(10000);
-		// printf("IRQ1!\n");
-		/* Clear the IRQ1 pending status. */
-		lime_top_ev_pending_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET));
-	}
-}
-
-/* Initialize the IRQ example. */
-// static void irq_example_init(void)
-// {
-// 	/* Clear all pending interrupts. */
-// 	lime_top_ev_pending_write(lime_top_ev_pending_read());
+///** IRQ example ISR. */
+//static void irq_example_isr(void)
+//{
+//	uint8_t stat;
 //
-// 	/* Enable IRQ0 and IRQ1. */
-// 	lime_top_ev_enable_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET) | (1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET));
+//	/* Read the pending interrupt status. */
+//	stat = lime_top_ev_pending_read();
 //
-// 	/* Attach the example ISR to the interrupt. */
-// 	irq_attach(LIME_TOP_INTERRUPT, irq_example_isr);
+//	/* Check if IRQ0 is pending. */
+//	if(stat & (1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET)) {
+//		// printf("IRQ0!\n");
+//		/* Clear the IRQ0 pending status. */
+//		lime_top_ev_pending_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET));
+//	}
 //
-// 	/* Enable the example interrupt. */
-// 	irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
-// }
+//	/* Check if IRQ1 is pending. */
+//	if(stat & (1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET)) {
+//		// uint32_t dest;
+//		// printf(" CNTRL: ");
+//		// for (int cnt = 0; cnt < 16 ; cnt++)
+//		// {
+//		// 	dest = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt*4));
+//		// 	printf("%x ", dest);
+//		// }
+//		// printf(" \n");
+//		// busy_wait_us(10000);
+//		// printf("IRQ1!\n");
+//		/* Clear the IRQ1 pending status. */
+//		lime_top_ev_pending_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET));
+//	}
+//}
+//
+///* Initialize the IRQ example. */
+//// static void irq_example_init(void)
+//// {
+//// 	/* Clear all pending interrupts. */
+//// 	lime_top_ev_pending_write(lime_top_ev_pending_read());
+////
+//// 	/* Enable IRQ0 and IRQ1. */
+//// 	lime_top_ev_enable_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET) | (1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET));
+////
+//// 	/* Attach the example ISR to the interrupt. */
+//// 	irq_attach(LIME_TOP_INTERRUPT, irq_example_isr);
+////
+//// 	/* Enable the example interrupt. */
+//// 	irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
+//// }
 
 /*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
 
-static char *readstr(void)
+static char* readstr(void)
 {
 	char c[2];
 	static char s[64];
 	static int ptr = 0;
 
-	if(readchar_nonblock()) {
+	if (readchar_nonblock())
+	{
 		c[0] = getchar();
 		c[1] = 0;
-		switch(c[0]) {
-			case 0x7f:
-			case 0x08:
-				if(ptr > 0) {
-					ptr--;
-					fputs("\x08 \x08", stdout);
-				}
+		switch (c[0])
+		{
+		case 0x7f:
+		case 0x08:
+			if (ptr > 0)
+			{
+				ptr--;
+				fputs("\x08 \x08", stdout);
+			}
+			break;
+		case 0x07:
+			break;
+		case '\r':
+		case '\n':
+			s[ptr] = 0x00;
+			fputs("\n", stdout);
+			ptr = 0;
+			return s;
+		default:
+			if (ptr >= (sizeof(s) - 1))
 				break;
-			case 0x07:
-				break;
-			case '\r':
-			case '\n':
-				s[ptr] = 0x00;
-				fputs("\n", stdout);
-				ptr = 0;
-				return s;
-			default:
-				if(ptr >= (sizeof(s) - 1))
-					break;
-				fputs(c, stdout);
-				s[ptr] = c[0];
-				ptr++;
-				break;
+			fputs(c, stdout);
+			s[ptr] = c[0];
+			ptr++;
+			break;
 		}
 	}
 
 	return NULL;
 }
 
-static char *get_token(char **str)
+static char* get_token(char** str)
 {
-	char *c, *d;
+	char* c, * d;
 
-	c = (char *)strchr(*str, ' ');
-	if(c == NULL) {
+	c = (char*)strchr(*str, ' ');
+	if (c == NULL)
+	{
 		d = *str;
-		*str = *str+strlen(*str);
+		*str = *str + strlen(*str);
 		return d;
 	}
 	*c = 0;
 	d = *str;
-	*str = c+1;
+	*str = c + 1;
 	return d;
 }
 
@@ -189,38 +205,45 @@ static void reboot_cmd(void)
 }
 
 #ifdef CSR_LEDS_BASE
+
 static void led_cmd(void)
 {
 	int i;
 	printf("Led demo...\n");
 
 	printf("Counter mode...\n");
-	for(i=0; i<32; i++) {
+	for (i = 0; i < 32; i++)
+	{
 		leds_out_write(i);
 		busy_wait(100);
 	}
 
 	printf("Shift mode...\n");
-	for(i=0; i<4; i++) {
-		leds_out_write(1<<i);
+	for (i = 0; i < 4; i++)
+	{
+		leds_out_write(1 << i);
 		busy_wait(200);
 	}
-	for(i=0; i<4; i++) {
-		leds_out_write(1<<(3-i));
+	for (i = 0; i < 4; i++)
+	{
+		leds_out_write(1 << (3 - i));
 		busy_wait(200);
 	}
 
 	printf("Dance mode...\n");
-	for(i=0; i<4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		leds_out_write(0x55);
 		busy_wait(200);
 		leds_out_write(0xaa);
 		busy_wait(200);
 	}
 }
+
 #endif
 
 #ifdef CSR_LIME_TOP_BASE
+
 static void gpioled_cmd(void)
 {
 	int i, j;
@@ -228,11 +251,13 @@ static void gpioled_cmd(void)
 	lime_top_gpio_gpio_override_write(0x7);
 	lime_top_gpio_gpio_override_dir_write(0x0);
 	lime_top_gpio_gpio_override_val_write(0x0);
-	for(i=0; i<3; i++) {
-		for(j=0; j<8; j++) {
+	for (i = 0; i < 3; i++)
+	{
+		for (j = 0; j < 8; j++)
+		{
 			lime_top_gpio_gpio_override_val_write(0x0);
 			busy_wait(100);
-			lime_top_gpio_gpio_override_val_write(1<<i);
+			lime_top_gpio_gpio_override_val_write(1 << i);
 			busy_wait(100);
 		}
 	}
@@ -245,23 +270,25 @@ static void mmap_cmd(void)
 {
 	int i;
 
-    volatile uint32_t *mmap_ptr = (volatile uint32_t *)LIME_TOP_MMAP_BASE;
+	volatile uint32_t* mmap_ptr = (volatile uint32_t*)LIME_TOP_MMAP_BASE;
 	printf("MMAP demo...\n");
 
-    /* Write counter values to SRAM. */
+	/* Write counter values to SRAM. */
 
-    printf("Writing values to SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
-    for (i = 0; i < 8; i++) {
-        mmap_ptr[i] = i;
-        printf("Wrote %d to address 0x%08X\n", i, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
-    }
+	printf("Writing values to SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
+	for (i = 0; i < 8; i++)
+	{
+		mmap_ptr[i] = i;
+		printf("Wrote %d to address 0x%08X\n", i, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
+	}
 
-    /* Read back values from SRAM. */
-    printf("Reading values from SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
-    for (i = 0; i < 8; i++) {
-        uint32_t value = mmap_ptr[i];
-        printf("Read %ld from address 0x%08X\n", value, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
-    }
+	/* Read back values from SRAM. */
+	printf("Reading values from SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
+	for (i = 0; i < 8; i++)
+	{
+		uint32_t value = mmap_ptr[i];
+		printf("Read %ld from address 0x%08X\n", value, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
+	}
 	// *mmap_ptr = (volatile uint32_t *)CSR_BASE;
 	// printf("Reading values from SRAM at address 0x%08lX...\n", CSR_BASE);
 	// for (i = 0; i < 8; i++) {
@@ -270,20 +297,20 @@ static void mmap_cmd(void)
 	// }
 	uint32_t dest;
 	printf(" CNTRL: ");
-	for (int cnt = 0; cnt < 16 ; cnt++)
+	for (int cnt = 0; cnt < 16; cnt++)
 	{
-		dest = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt*4));
+		dest = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
 		printf("%x ", dest);
 	}
 	printf(" \n");
 
 
 	printf(" CNTRL wr: \n");
-	csr_write_simple(CSR_CNTRL_CNTRL_ADDR,5);
+	csr_write_simple(CSR_CNTRL_CNTRL_ADDR, 5);
 	// for (int cnt = 0; cnt < 16 ; cnt++)
 	// {
-		// dest = csr_read_simple((CSR_CNTRL_KOPUSTAS_ADDR + cnt*4));
-		// printf("%x ", dest);
+	// dest = csr_read_simple((CSR_CNTRL_KOPUSTAS_ADDR + cnt*4));
+	// printf("%x ", dest);
 	// }
 	// printf(" \n");
 }
@@ -305,16 +332,19 @@ static void i2c_test(void)
 	i2c1_scan();
 }
 
-static void dump_pmic(void){
+static void dump_pmic(void)
+{
 	unsigned char adr;
 	unsigned char dat;
 	printf("FPGA_I2C1 PMIC Dump...\n");
-	for (adr=0; adr<32; adr++) {
+	for (adr = 0; adr < 32; adr++)
+	{
 		i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
 		printf("0x%02x: 0x%02x\n", adr, dat);
 	}
 	printf("FPGA_I2C2 PMIC Dump...\n");
-	for (adr=0; adr<32; adr++) {
+	for (adr = 0; adr < 32; adr++)
+	{
 		i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
 		printf("0x%02x: 0x%02x\n", adr, dat);
 	}
@@ -333,9 +363,12 @@ static void init_pmic(void)
 	printf("FPGA_I2C1 PMIC: Check ID ");
 	adr = 0x01;
 	i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
-	if (dat != 0xe0) {
+	if (dat != 0xe0)
+	{
 		printf("KO, exiting.\n");
-	} else {
+	}
+	else
+	{
 		printf("OK.\n");
 
 		printf("PMIC: Enable Buck0.\n");
@@ -390,9 +423,12 @@ static void init_pmic(void)
 	printf("FPGA_I2C2 PMIC: Check ID ");
 	adr = 0x01;
 	i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
-	if (dat != 0xe0) {
+	if (dat != 0xe0)
+	{
 		printf("KO, exiting.\n");
-	} else {
+	}
+	else
+	{
 		printf("OK.\n");
 
 		printf("PMIC: Enable Buck0.\n");
@@ -472,11 +508,9 @@ static void init_pmic(void)
 
 static void lms7002_status(void)
 {
-	printf("TX PLL Lock status = %x \n", lime_top_lms7002_txpll_status_read());
-
+	printf("TX PLL Lock status = %x \n", csr_read_simple(pll0_tx_addrs.locked));
 	printf("\n");
-
-	printf("RX PLL Lock status = %x \n", lime_top_lms7002_rxpll_status_read());
+	printf("RX PLL Lock status = %x \n", csr_read_simple(pll1_rx_addrs.locked));
 }
 
 /*-----------------------------------------------------------------------*/
@@ -485,37 +519,36 @@ static void lms7002_status(void)
 
 static void console_service(void)
 {
-	char *str;
-	char *token;
+	char* str;
+	char* token;
 
 	str = readstr();
-	if(str == NULL) return;
+	if (str == NULL) return;
 	token = get_token(&str);
-	if(strcmp(token, "help") == 0)
+	if (strcmp(token, "help") == 0)
 		help();
-	else if(strcmp(token, "reboot") == 0)
+	else if (strcmp(token, "reboot") == 0)
 		reboot_cmd();
-	else if(strcmp(token, "i2c_test") == 0)
+	else if (strcmp(token, "i2c_test") == 0)
 		i2c_test();
-	else if(strcmp(token, "init_pmic") == 0)
+	else if (strcmp(token, "init_pmic") == 0)
 		init_pmic();
-	else if(strcmp(token, "dump_pmic") == 0)
+	else if (strcmp(token, "dump_pmic") == 0)
 		dump_pmic();
 #ifdef CSR_LEDS_BASE
-	else if(strcmp(token, "led") == 0)
+	else if (strcmp(token, "led") == 0)
 		led_cmd();
 #endif
 #ifdef CSR_LIME_TOP_BASE
-	else if(strcmp(token, "gpioled") == 0)
+	else if (strcmp(token, "gpioled") == 0)
 		gpioled_cmd();
-	else if(strcmp(token, "mmap") == 0)
+	else if (strcmp(token, "mmap") == 0)
 		mmap_cmd();
 #endif
 #ifdef CSR_LIME_TOP_BASE
 	else if (strcmp(token, "lms") == 0)
 		lms7002_status();
 #endif
-
 
 
 	prompt();
@@ -555,11 +588,11 @@ unsigned char Check_many_blocks(unsigned char block_size)
 void getLMS64Packet(uint8_t *buf, uint8_t k)
 {
 	uint8_t cnt = 0;
-	uint32_t *dest = (uint32_t *)buf;
+	uint32_t* dest = (uint32_t*)buf;
 	for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++)
 	{
 		busy_wait_us(1);
-		dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt*4));
+		dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
 	}
 
 }*/
@@ -599,14 +632,15 @@ void getLMS64Packet(uint8_t *buf, uint8_t k)
 }
 
 
-void lms64c_isr(void){
+static void lms64c_isr(void)
+{
 	// printf("CNTRL IRQ!\n");
-	uint32_t *dest = (uint32_t *)glEp0Buffer_Tx;
+	uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
 	uint32_t read_value;
 
 	uint8_t reg_array[4];
-    uint16_t addr;
-    uint16_t val;
+	uint16_t addr;
+	uint16_t val;
 
 	//printf("ISR: LMS64C Entry\n");
 
@@ -633,12 +667,12 @@ void lms64c_isr(void){
 
 		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 		break;
-		
+
 	case CMD_LMS_RST:
-		
+
 		if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
 			break;
-			
+
 		switch (LMS_Ctrl_Packet_Rx->Data_field[0])
 		{
 		case LMS_RST_DEACTIVATE:
@@ -673,7 +707,8 @@ void lms64c_isr(void){
 			// Clearing write bit in address field because we are not using SPI registers in LiteX implementation
 			cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
 
-			writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+			writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
+					&LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
 		}
 		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 		break;
@@ -700,74 +735,74 @@ void lms64c_isr(void){
 		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 		break;
 
-            // COMMAND LMS WRITE
+		// COMMAND LMS WRITE
 
-        case CMD_LMS7002_WR:
-            if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
-                break;
-            if (Check_many_blocks(4))
-                break;
-
-
-            for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-            {
-            	sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
-                // Parse address
-                addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-                addr = (addr<<8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
-                // Parse value
-                val = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
-                val = (val<<8) | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
-                // Write
-                lms_spi_write(addr,val);
-
-            }
-
-            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-            break;
-
-            // COMMAND LMS READ
-
-        case CMD_LMS7002_RD:
-            if (Check_many_blocks(4))
-                break;
-
-            for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-            {
-            	cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
-                // Parse address
-                addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
-                addr = (addr<<8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-                // Read
-                val = lms_spi_read(addr);
-                // Return value and address
-                LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
-                LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-                LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (val>>8) & 0xFF;
-                LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = val & 0xFF;
-            }
-
-            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-            break;
-
-
-		case CMD_ANALOG_VAL_RD:
-			// TODO: CMD_ANALOG_VAL_RD
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+	case CMD_LMS7002_WR:
+		if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
 			break;
-
-		case CMD_ANALOG_VAL_WR:
-			// TODO: CMD_ANALOG_VAL_WR
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-		    break;
-
-		case CMD_MEMORY_RD:
-			// TODO: implement CMD_MEMORY_RD
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		if (Check_many_blocks(4))
 			break;
 
 
-        default:
+		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
+		{
+			sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
+			// Parse address
+			addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
+			addr = (addr << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
+			// Parse value
+			val = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
+			val = (val << 8) | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
+			// Write
+			lms_spi_write(addr, val);
+
+		}
+
+		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		break;
+
+		// COMMAND LMS READ
+
+	case CMD_LMS7002_RD:
+		if (Check_many_blocks(4))
+			break;
+
+		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
+		{
+			cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
+			// Parse address
+			addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
+			addr = (addr << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
+			// Read
+			val = lms_spi_read(addr);
+			// Return value and address
+			LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
+			LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
+			LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (val >> 8) & 0xFF;
+			LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = val & 0xFF;
+		}
+
+		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		break;
+
+
+	case CMD_ANALOG_VAL_RD:
+		// TODO: CMD_ANALOG_VAL_RD
+		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		break;
+
+	case CMD_ANALOG_VAL_WR:
+		// TODO: CMD_ANALOG_VAL_WR
+		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		break;
+
+	case CMD_MEMORY_RD:
+		// TODO: implement CMD_MEMORY_RD
+		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		break;
+
+
+	default:
 		/* This is unknown request. */
 		// isHandled = CyFalse;
 		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_UNKNOWN_CMD;
@@ -778,17 +813,18 @@ void lms64c_isr(void){
 	//for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
 	for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i)
 	{
-		csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i*4));
+		csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
 	}
 
-	CNTRL_ev_pending_write(1);  //Clear interrupt
-	CNTRL_ev_enable_write(1);   // re-enable the event handler
+	CNTRL_ev_pending_write(CNTRL_ev_pending_read()); // Clear interrupt
+	CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);   // re-enable the event handler
 	//printf("ISR: LMS64C exit\n");
 
 }
 
 
-static void lms64c_init(void){
+static void lms64c_init(void)
+{
 	uint32_t irq_mask;
 	printf("CNTRL IRQ initialization \n");
 
@@ -799,35 +835,51 @@ static void lms64c_init(void){
 	CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
 
 	/* Attach isr to interrupt */
-	irq_attach(CNTRL_INTERRUPT,lms64c_isr );
+	irq_attach(CNTRL_INTERRUPT, lms64c_isr);
 
 	/* Enable interrupt */
 
 	irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
-	// // CNTRL_ev_pending_write(CNTRL_ev_pending_read());
-	// // irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
-	// // CNTRL_ev_enable_write(1);
-	// //
-	// // irq_mask = irq_getmask();
-	// // printf("0x%08x:\n", irq_mask);
-	// // irq_attach(CNTRL_INTERRUPT, lms64c_isr);
-	//
-	// uint32_t irq_mask;
-	// printf("CNTRL IRQ initialization \n");
-	//
-	//
-	// irq_mask = irq_getmask();
-	// printf("0x%08x:\n", irq_mask);
-	//
-	// CNTRL_ev_pending_write(CNTRL_ev_pending_read());
-	// irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
-	// CNTRL_ev_enable_write(1);
-	//
-	// irq_mask = irq_getmask();
-	// printf("0x%08x:\n", irq_mask);
-	// irq_attach(CNTRL_INTERRUPT, lms64c_isr);
-
 }
+
+static void clk_ctrl_isr(void)
+{
+	// Reset relevant CSR's
+	csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
+	csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
+	csr_write_simple(0, clk_ctrl_addrs.pllcfg_error);
+	csr_write_simple(0, clk_ctrl_addrs.phcfg_err);
+
+	var_phcfg_start = csr_read_simple(clk_ctrl_addrs.phcfg_start);
+	var_pllcfg_start = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
+	var_pllrst_start = csr_read_simple(clk_ctrl_addrs.pllrst_start);
+
+	if (var_phcfg_start || var_pllcfg_start || var_pllrst_start)
+		clk_cfg_pending = 1;
+
+	lime_top_ev_pending_write(lime_top_ev_pending_read()); //Clear interrupt
+	lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
+}
+
+static void clk_cfg_irq_init(void)
+{
+	uint32_t irq_mask;
+	printf("CLK config irq initialization \n");
+
+	/* Clear all pending interrupts. */
+	lime_top_ev_pending_write(lime_top_ev_pending_read());
+
+	/* Enable CLK CTRL irq */
+	lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET);
+
+	/* Attach isr to interrupt */
+	irq_attach(LIME_TOP_INTERRUPT, clk_ctrl_isr);
+
+	/* Enable interrupt */
+
+	irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
+}
+
 
 int main(void)
 {
@@ -839,17 +891,78 @@ int main(void)
 #endif
 	uart_init();
 	init_pmic();
-	printf("CSR_CNTRL_BASE 0x%lx ",CSR_CNTRL_BASE);
+	printf("CSR_CNTRL_BASE 0x%lx ", CSR_CNTRL_BASE);
 	printf("sveiki visi  :) \n");
 	// irq_example_init();
 	lms64c_init();
-
+	clk_cfg_irq_init();
+	init_pmic();
 	help();
 	prompt();
 
-	while(1) {
+	while (1)
+	{
 		console_service();
-	}
 
-	return 0;
+		// Clock config
+		if (clk_cfg_pending)
+		{
+			clk_cfg_pending = 0;
+			PLL_ADDRS* pll_addrs_pointer;
+			uint8_t rez;
+
+			// PHASE CONFIG
+			if (var_phcfg_start > 0)
+			{
+				var_phcfg_start = 0;
+				uint8_t phcfgmode = csr_read_simple(clk_ctrl_addrs.phcfg_mode);
+				uint8_t pll_ind = csr_read_simple(clk_ctrl_addrs.pll_ind);
+
+				// Set pll_addrs pointer according to pll_ind value
+				if (pll_ind == 0)
+				{
+					pll_addrs_pointer = &pll0_tx_addrs;
+				}
+				else if (pll_ind == 1)
+				{
+					pll_addrs_pointer = &pll1_rx_addrs;
+				}
+				// CHECK PHASE MODE
+				if (phcfgmode == 1)
+				{ // Automatic phase search
+					rez = AutoPH_MMCM_CFG(pll_addrs_pointer, &clk_ctrl_addrs, &smpl_cmp_addrs);
+				}
+				else
+				{ // Manual phase set
+					Update_MMCM_CFG(pll_addrs_pointer, &clk_ctrl_addrs);
+					// There is no fail condition for manual phase yet
+					rez = AUTO_PH_MMCM_CFG_SUCCESS;
+				}
+
+				if (rez == AUTO_PH_MMCM_CFG_SUCCESS)
+				{
+					csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
+					csr_write_simple(1, clk_ctrl_addrs.phcfg_done);
+				}
+				else
+				{
+					csr_write_simple(1, clk_ctrl_addrs.pllcfg_error);
+					csr_write_simple(1, clk_ctrl_addrs.phcfg_err);
+				}
+
+			}
+			// PLL CONFIG
+			if (var_pllcfg_start > 0)
+			{
+				var_pllcfg_start = 0;
+				csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
+			}
+			// PLL RESET
+			if (var_pllrst_start > 0)
+			{
+				var_pllrst_start = 0;
+				csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
+			}
+		}
+	}
 }

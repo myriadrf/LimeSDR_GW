@@ -6,7 +6,7 @@ include $(SOC_DIRECTORY)/software/common.mak
 # Add debugging symbol flag
 CFLAGS += -g
 
-OBJECTS   = i2c0.o i2c1.o crt0.o main.o regremap.o lms7002m.o
+OBJECTS   = i2c0.o i2c1.o crt0.o main.o regremap.o lms7002m.o Xil_clk_drp.o
 
 all: firmware.bin
 

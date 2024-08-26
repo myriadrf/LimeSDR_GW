@@ -4,13 +4,14 @@
 
 #include "regremap.h"
 
-
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs
-void readCSR(uint8_t *address, uint8_t *regdata_array) {
-	uint32_t value=0;
+void readCSR(uint8_t* address, uint8_t* regdata_array)
+{
+	uint32_t value = 0;
 	uint16_t addr = ((uint16_t)address[0] << 8) | address[1];
 
-	switch (addr) {
+	switch (addr)
+	{
 	case 0x0:
 		value = fpgacfg_board_id_read();
 		break;
@@ -36,13 +37,53 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
 		break;
 	case 0xA:
 		value = lime_top_lms7002_tx_en_read();
+		value |= lime_top_lms7002_test_ptrn_en_read() << 9;
 		break;
 	case 0x19:
 		value = lime_top_rx_path_pkt_size_read();
 		break;
-	case 0x21:
-		value = 0x5;
+	case 0x20:
+		value = csr_read_simple(clk_ctrl_addrs.c1_phase);
 		break;
+	case 0x21:
+		value = csr_read_simple(clk_ctrl_addrs.pllcfg_done);
+		value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
+		value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
+		value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
+		value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
+		break;
+	case 0x23:
+		value = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
+		value |= csr_read_simple(clk_ctrl_addrs.phcfg_start) << 1;
+		value |= csr_read_simple(clk_ctrl_addrs.pllrst_start) << 2;
+		value |= csr_read_simple(clk_ctrl_addrs.pll_ind) << 3;
+		value |= csr_read_simple(clk_ctrl_addrs.phcfg_mode) << 14;
+		break;
+	case 0x26:
+		value = csr_read_simple(clk_ctrl_addrs.vco_div_byp);
+		value |= csr_read_simple(clk_ctrl_addrs.vco_mult_byp) << 2;
+		break;
+	case 0x27:
+		value = csr_read_simple(clk_ctrl_addrs.c0_div_byp);
+		value |= csr_read_simple(clk_ctrl_addrs.c1_div_byp) << 2;
+		break;
+	case 0x2A:
+		value = csr_read_simple(clk_ctrl_addrs.vco_div_cnt);
+		break;
+	case 0x2B:
+		value = csr_read_simple(clk_ctrl_addrs.vco_mult_cnt);
+		break;
+	case 0x2E:
+		value = csr_read_simple(clk_ctrl_addrs.c0_div_cnt);
+		break;
+	case 0x2F:
+		value = csr_read_simple(clk_ctrl_addrs.c1_div_cnt);
+		break;
+	case 0x3E:
+		value = csr_read_simple(smpl_cmp_addrs.cmp_length);
+		break;
+
+
 	default:
 		break;
 	}
@@ -51,15 +92,17 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
 	regdata_array[1] = (uint8_t)((value >> 8) & 0xFF);   // Byte 1
 	// Litex CSRs are 4byte words, LMS64C spi regs are 2byte - others unused.
 	//regdata_array[2] = (uint8_t)((value >> 16) & 0xFF);  // Byte 2
-	//regdata_array[3] = (uint8_t)((value >> 24) & 0xFF);  // Byte 3 (MSB)
+	//regdata_array[3] = (uint8_t)((value >> 24) & 0xFF);  // Byte 3 (MSB)`
 }
 
 // To write and re-map old LMS64C protocol style SPI registers to Litex CSRs
-void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
-	uint32_t value = (0x0000FFFF &  ( ((uint32_t)wrdata_array[0] << 8) | ((uint32_t)wrdata_array[1]) ) );
+void writeCSR(uint8_t* address, uint8_t* wrdata_array)
+{
+	uint32_t value = (0x0000FFFF & (((uint32_t)wrdata_array[0] << 8) | ((uint32_t)wrdata_array[1])));
 	uint16_t addr = ((uint16_t)address[0] << 8) | address[1];
 
-	switch (addr) {
+	switch (addr)
+	{
 	case 0x3:
 		fpgacfg_reserved_03_write(value);
 		break;
@@ -80,6 +123,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
 	case 0xA:
 		lime_top_lms7002_tx_en_write(value);
 		lime_top_lms7002_rx_en_write(value);
+		lime_top_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
 		break;
 	case 0x13:
 		printf("13\n");
@@ -90,6 +134,43 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
 	case 0x19:
 		lime_top_rx_path_pkt_size_write(value);
 		break;
+	case 0x20:
+		csr_write_simple(value & 0x1FF, clk_ctrl_addrs.c1_phase);
+		break;
+	case 0x23:
+//            var_pllcfg_start = (value & 1);
+		csr_write_simple((value & 1), clk_ctrl_addrs.pllcfg_start);
+//            var_phcfg_start = (value & 2) >> 1;
+		csr_write_simple((value & 2) >> 1, clk_ctrl_addrs.phcfg_start);
+//            var_pllrst_start = (value & 4) >> 2;
+		csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.pllrst_start);
+		csr_write_simple((value & 8) >> 3, clk_ctrl_addrs.pll_ind);
+		csr_write_simple((value & 0x4000) >> 14, clk_ctrl_addrs.phcfg_mode);
+		break;
+	case 0x26:
+		csr_write_simple((value & 1), clk_ctrl_addrs.vco_div_byp);
+		csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.vco_mult_byp);
+		break;
+	case 0x27:
+		csr_write_simple((value & 1), clk_ctrl_addrs.c0_div_byp);
+		csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.c1_div_byp);
+		break;
+	case 0x2A:
+		csr_write_simple((value & 0x3F), clk_ctrl_addrs.vco_div_cnt);
+		break;
+	case 0x2B:
+		csr_write_simple((value & 0x3F), clk_ctrl_addrs.vco_mult_cnt);
+		break;
+	case 0x2E:
+		csr_write_simple((value & 0x3F), clk_ctrl_addrs.c0_div_cnt);
+		break;
+	case 0x2F:
+		csr_write_simple((value & 0x3F), clk_ctrl_addrs.c1_div_cnt);
+		break;
+	case 0x3E:
+		csr_write_simple(value, smpl_cmp_addrs.cmp_length);
+		break;
+
 	default:
 		break;
 	}
