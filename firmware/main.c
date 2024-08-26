@@ -36,7 +36,8 @@ uint8_t lms64_packet_pending;
 
 //#define FW_VER 1 // Initial version
 //#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
-#define FW_VER 3 // Added serial number into GET_INFO cmd
+//#define FW_VER 3 // Added serial number into GET_INFO cmd
+#define FW_VER 5 // Firmware for Litex project
 
 /*-----------------------------------------------------------------------*/
 /* IRQ                                                                   */
@@ -550,15 +551,51 @@ unsigned char Check_many_blocks(unsigned char block_size)
 /**
  * Gets 64 bytes packet
  */
+/*
 void getLMS64Packet(uint8_t *buf, uint8_t k)
 {
 	uint8_t cnt = 0;
 	uint32_t *dest = (uint32_t *)buf;
 	for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++)
 	{
+		busy_wait_us(1);
 		dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt*4));
 	}
 
+}*/
+
+void getLMS64Packet(uint8_t *buf, uint8_t k)
+{
+    uint8_t cnt = 0;
+    uint32_t *dest = (uint32_t *)buf;
+    uint32_t temp_buffer[k / sizeof(uint32_t)];
+    uint8_t is_stable = 0;
+
+    while (!is_stable)
+    {
+        // Read the first buffer into temp_buffer
+        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++)
+        {
+            temp_buffer[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
+        }
+
+        // Read again into dest buffer
+        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++)
+        {
+            dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
+        }
+
+        // Compare the two buffers
+        is_stable = 1;
+        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++)
+        {
+            if (temp_buffer[cnt] != dest[cnt])
+            {
+                is_stable = 0;
+                break;
+            }
+        }
+    }
 }
 
 
@@ -606,17 +643,19 @@ void lms64c_isr(void){
 		{
 		case LMS_RST_DEACTIVATE:
 			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
-			printf("LMS RESET deactivate...\n");
+			//printf("LMS RESET deactivate...\n");
 			break;
 		case LMS_RST_ACTIVATE:
 			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
-			printf("LMS RESET activate...\n");
+			//printf("LMS RESET activate...\n");
 			break;
 
 		case LMS_RST_PULSE:
 			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
 			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
-			printf("LMS RST pulse...\n");
+			lime_top_lms7002_lms1_resetn_write(0x0);
+			lime_top_lms7002_lms1_resetn_write(0x1);
+			//printf("LMS RST pulse...\n");
 			break;
 		default:
 			cmd_errors++;
@@ -736,7 +775,8 @@ void lms64c_isr(void){
 	}
 
 	// Send response to the command
-	for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
+	//for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
+	for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i)
 	{
 		csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i*4));
 	}
@@ -798,6 +838,7 @@ int main(void)
 	irq_setie(1);
 #endif
 	uart_init();
+	init_pmic();
 	printf("CSR_CNTRL_BASE 0x%lx ",CSR_CNTRL_BASE);
 	printf("sveiki visi  :) \n");
 	// irq_example_init();

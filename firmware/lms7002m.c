@@ -29,7 +29,7 @@ uint16_t lms_spi_read(uint16_t addr)
 
     lms_spi_mosi_write(cmd << 16);
     lms_spi_control_write(32*SPI_LENGTH | SPI_START);
-    while (lms_spi_status_read() == 0);
+    while ((lms_spi_status_read() & 0x1) == 0);
     recv_val = lms_spi_miso_read() & 0xffff;
     return recv_val;
 }
