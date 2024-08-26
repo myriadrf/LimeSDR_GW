@@ -88,7 +88,7 @@ class fpgacfg_csr(LiteXModule):
     def __init__(self):
         self.board_id       = CSRStatus(16, reset=27)
         self.major_rev      = CSRStatus(16, reset=1)
-        self.compile_rev    = CSRStatus(16, reset=12)
+        self.compile_rev    = CSRStatus(16, reset=18)
         self.reserved_03    = CSRStorage(16, reset=0)
         self.reserved_04    = CSRStorage(16, reset=0)
         self.reserved_05    = CSRStorage(16, reset=0)
@@ -173,6 +173,7 @@ class BaseSoC(SoCCore):
 
         analyzer_signals = [
             self.CNTRL.cntrl.re,
+
         ]
         self.analyzer_CNTRL = LiteScopeAnalyzer(analyzer_signals,
                                           depth        = 512,
@@ -296,9 +297,20 @@ class BaseSoC(SoCCore):
 
         # Connect LimeTop's Streaming interfaces to PCIe.
         self.comb += [
-            self.pcie_dma0.source.connect(self.lime_top.dma_tx, keep={"valid", "ready", "last", "data"}),
+            #self.pcie_dma0.source.connect(self.lime_top.dma_tx, keep={"valid", "ready", "last", "data"}),
             self.lime_top.dma_rx.connect(self.pcie_dma0.sink,   keep={"valid", "ready", "last", "data"}),
         ]
+
+
+
+        self.comb += [
+            self.lime_top.dma_tx.valid.eq(self.pcie_dma0.source.valid),
+            self.lime_top.dma_tx.last.eq(self.pcie_dma0.source.last),
+            self.lime_top.dma_tx.data.eq(self.pcie_dma0.source.data),
+            self.pcie_dma0.source.ready.eq((self.lime_top.dma_tx.ready & self.lime_top.lms7002.tx_en.storage) | ~self.pcie_dma0.reader.enable),
+        ]
+
+        self.comb += self.lime_top.tx_path.RESET_N.eq(self.pcie_dma0.reader.enable)
 
         # LMS SPI
         self.lms_spi = SPIMaster(
@@ -311,6 +323,9 @@ class BaseSoC(SoCCore):
         vctcxo_pads = platform.request("vctcxo")
         self.comb += vctcxo_pads.sel.eq(0)
         self.comb += vctcxo_pads.en.eq(1)
+
+        rfsw_pads = platform.request("rf_switches")
+        self.comb += rfsw_pads.tx.eq(1)
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 

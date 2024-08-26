@@ -18,6 +18,7 @@ from litex.soc.cores.spi       import SPIMaster
 from gateware.GpioTop import GpioTop
 from gateware.lms7002_top import lms7002_top
 from gateware.rx_path_top import rx_path_top
+from gateware.tx_path_top import tx_path_top
 
 # Lime Top -----------------------------------------------------------------------------------------
 
@@ -49,7 +50,7 @@ class LimeTop(LiteXModule):
     analyzer : LiteScopeAnalyzer
         LiteScope logic analyzer instance for signal analysis.
     """
-    def __init__(self, platform, sys_clk_freq):
+    def __init__(self, platform, sys_clk_freq, with_debug=False):
         # AXI MMAP Bus (From CPU).
         self.mmap = axi.AXILiteInterface(address_width=32, data_width=32)
 
@@ -108,7 +109,7 @@ class LimeTop(LiteXModule):
 
         #LMS7002
         lms7002_pads = platform.request("lms7002m")
-        self.lms7002 = lms7002_top(platform, lms7002_pads)
+        self.lms7002 = lms7002_top(platform, lms7002_pads, s_clk_domain="txpll_c1")
         self.comb += self.lms7002.axis_s.areset_n.eq(self.lms7002.tx_en.storage)
         self.comb += self.lms7002.axis_m.areset_n.eq(self.lms7002.tx_en.storage)
 
@@ -116,8 +117,6 @@ class LimeTop(LiteXModule):
         # RX Path
         self.rx_path = rx_path_top(platform)
         self.comb += self.rx_path.RESET_N.eq(self.lms7002.tx_en.storage)
-
-        # TODO: TX PATH
 
         # Connect RX path AXIS slave to lms7002 AXIS master
         #self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls, keep={"valid", "ready", "last", "data"})
@@ -135,18 +134,32 @@ class LimeTop(LiteXModule):
 
         #self.comb += self.rx_path.m_axis_iqpacket.connect(self.dma_rx, omit={"areset_n"})
 
+        # TX Path
+        self.tx_path = tx_path_top(platform, buff_count=4, rx_clk_domain="rxpll_c1", m_clk_domain="txpll_c1")
+        #self.comb += self.tx_path.RESET_N.eq(self.lms7002.tx_en.storage)
+        self.comb += self.tx_path.RX_SAMPLE_NR.eq(self.rx_path.SMPL_NR_OUT)
+            # DMA -> tx_path_top
+        self.comb += self.dma_tx.connect(self.tx_path.s_axis_iqpacket, keep={"valid", "ready", "last", "data"},
+                                         omit={"areset_n, keep"})
+        self.comb += self.tx_path.s_axis_iqpacket.areset_n.eq(self.lms7002.tx_en.storage)
+            # tx_path_top -> lms7002_top
+        self.comb += self.tx_path.m_axis_iqsample.connect(self.lms7002.axis_s, keep={"valid", "ready", "last", "data"},
+                                         omit={"areset_n, keep"})
+        self.comb += self.tx_path.m_axis_iqsample.areset_n.eq(self.lms7002.tx_en.storage)
+
 
 
         # LiteScope example.
         # ------------------
         # Setup LiteScope Analyzer to capture some of the AXI-Lite MMAP signals.
-        analyzer_signals = [
-            self.mmap.ar,
-            self.mmap.r,
-        ]
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 512,
-            clock_domain = "sys",
-            register     = True,
-            csr_csv      = "lime_top_analyzer.csv"
-        )
+        if with_debug:
+            analyzer_signals = [
+                self.mmap.ar,
+                self.mmap.r,
+            ]
+            self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+                depth        = 512,
+                clock_domain = "sys",
+                register     = True,
+                csr_csv      = "lime_top_analyzer.csv"
+            )

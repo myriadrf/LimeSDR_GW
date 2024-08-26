@@ -125,6 +125,8 @@ class lms7002_top(LiteXModule):
 
         self.comb += self.txpll_status.status.eq(txpll.locked)
 
+        self.comb += lms7002_pads.fclk1.eq(ClockSignal("txpll_c0"))
+
         # RX PLL.
         self.cd_rxpll_c0 = ClockDomain()
         self.cd_rxpll_c1 = ClockDomain()
