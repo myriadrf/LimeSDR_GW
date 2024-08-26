@@ -75,13 +75,13 @@ _io = [
 
     # I2C buses.
     ("i2c", 0,
-        Subsignal("scl", Pins("U14"), Misc("PULLUP=True")),
-        Subsignal("sda", Pins("U15"), Misc("PULLUP=True")),
+        Subsignal("scl", Pins("M1"), Misc("PULLUP=True")),
+        Subsignal("sda", Pins("N1"), Misc("PULLUP=True")),
         IOStandard("LVCMOS33"),
     ),
     ("i2c", 1,
-        Subsignal("scl", Pins("M1"), Misc("PULLUP=True")),
-        Subsignal("sda", Pins("N1"), Misc("PULLUP=True")),
+        Subsignal("scl", Pins("U14"), Misc("PULLUP=True")),
+        Subsignal("sda", Pins("U15"), Misc("PULLUP=True")),
         IOStandard("LVCMOS33"),
     ),
 
