@@ -220,7 +220,7 @@ int AutoPH_MMCM_CFG(PLL_ADDRS* pll_addresses, CLK_CTRL_ADDRS* ctrl_addresses, SM
 		{
 			busy_wait(1);
 			timeout++;
-			if (timeout > 1000)
+			if (timeout > 5000)
 			{
 				return AUTO_PH_MMCM_CFG_TIMEOUT;
 			}
@@ -291,9 +291,9 @@ int AutoPH_MMCM_CFG(PLL_ADDRS* pll_addresses, CLK_CTRL_ADDRS* ctrl_addresses, SM
 			{
 				busy_wait(1);
 				timeout++;
-				if (timeout > 1000)
+				if (timeout > 5000)
 				{
-					return AUTO_PH_MMCM_CFG_SUCCESS;//AUTO_PH_MMCM_CFG_TIMEOUT;
+					return AUTO_PH_MMCM_CFG_TIMEOUT;
 				}
 			}
 

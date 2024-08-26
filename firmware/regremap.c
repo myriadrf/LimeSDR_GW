@@ -49,8 +49,8 @@ void readCSR(uint8_t* address, uint8_t* regdata_array)
 		value = csr_read_simple(clk_ctrl_addrs.pllcfg_done);
 		value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
 		value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
-		value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
-		value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
+//		value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
+//		value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
 		break;
 	case 0x23:
 		value = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
@@ -138,11 +138,8 @@ void writeCSR(uint8_t* address, uint8_t* wrdata_array)
 		csr_write_simple(value & 0x1FF, clk_ctrl_addrs.c1_phase);
 		break;
 	case 0x23:
-//            var_pllcfg_start = (value & 1);
 		csr_write_simple((value & 1), clk_ctrl_addrs.pllcfg_start);
-//            var_phcfg_start = (value & 2) >> 1;
 		csr_write_simple((value & 2) >> 1, clk_ctrl_addrs.phcfg_start);
-//            var_pllrst_start = (value & 4) >> 2;
 		csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.pllrst_start);
 		csr_write_simple((value & 8) >> 3, clk_ctrl_addrs.pll_ind);
 		csr_write_simple((value & 0x4000) >> 14, clk_ctrl_addrs.phcfg_mode);

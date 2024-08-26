@@ -46,6 +46,10 @@ volatile uint8_t var_phcfg_start;
 volatile uint8_t var_pllcfg_start;
 volatile uint8_t var_pllrst_start;
 
+unsigned int irq_mask;
+
+
+
 //#define FW_VER 1 // Initial version
 //#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
 //#define FW_VER 3 // Added serial number into GET_INFO cmd
@@ -863,7 +867,6 @@ static void clk_ctrl_isr(void)
 
 static void clk_cfg_irq_init(void)
 {
-	uint32_t irq_mask;
 	printf("CLK config irq initialization \n");
 
 	/* Clear all pending interrupts. */
@@ -907,6 +910,9 @@ int main(void)
 		// Clock config
 		if (clk_cfg_pending)
 		{
+			irq_mask = irq_getmask(); // save irq mask
+			irq_setmask(0); // disable all interrupts until clock cfg is completed
+
 			clk_cfg_pending = 0;
 			PLL_ADDRS* pll_addrs_pointer;
 			uint8_t rez;
@@ -963,6 +969,8 @@ int main(void)
 				var_pllrst_start = 0;
 				csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
 			}
+			// Reenable all previously enabled interrupts
+			irq_setmask(irq_mask);
 		}
 	}
 }
