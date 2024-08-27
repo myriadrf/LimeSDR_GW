@@ -189,7 +189,8 @@ int AutoPH_MMCM_CFG(PLL_ADDRS* pll_addresses, CLK_CTRL_ADDRS* ctrl_addresses, SM
 	uint8_t PhaseMiddle;
 
 	uint8_t cmp_error;
-	uint16_t timeout = 0;
+	uint32_t timeout = 0;
+	uint32_t timeout_limit = 2000000; // Function will timeout after 2 seconds
 	uint16_t max_phase = csr_read_simple(ctrl_addresses->c1_div_cnt) * 8;
 
 	typedef enum state
@@ -215,12 +216,11 @@ int AutoPH_MMCM_CFG(PLL_ADDRS* pll_addresses, CLK_CTRL_ADDRS* ctrl_addresses, SM
 		csr_write_simple(0, pll_addresses->reset);
 
 //         Wait for lock before continuing
-		timeout = 0;
 		while (csr_read_simple(pll_addresses->locked) == 0)
 		{
-			busy_wait(1);
+			busy_wait_us(1);
 			timeout++;
-			if (timeout > 5000)
+			if (timeout > timeout_limit)
 			{
 				return AUTO_PH_MMCM_CFG_TIMEOUT;
 			}
@@ -230,12 +230,11 @@ int AutoPH_MMCM_CFG(PLL_ADDRS* pll_addresses, CLK_CTRL_ADDRS* ctrl_addresses, SM
 		csr_write_simple(0, smpl_cmp_addrs->cmp_start);
 
 		// Wait for done to reset before continuing
-		timeout = 0;
 		while (csr_read_simple(smpl_cmp_addrs->cmp_done) != 0)
 		{
 			busy_wait_us(1);
 			timeout++;
-			if (timeout > 2000)
+			if (timeout > timeout_limit)
 			{
 				return AUTO_PH_MMCM_CFG_TIMEOUT;
 			}
@@ -245,12 +244,11 @@ int AutoPH_MMCM_CFG(PLL_ADDRS* pll_addresses, CLK_CTRL_ADDRS* ctrl_addresses, SM
 		csr_write_simple(1, smpl_cmp_addrs->cmp_start);
 
 //         Wait for sample compare to be done
-		timeout = 0;
 		while (csr_read_simple(smpl_cmp_addrs->cmp_done) == 0)
 		{
 			busy_wait_us(1);
 			timeout++;
-			if (timeout > 2000)
+			if (timeout > timeout_limit)
 			{
 				return AUTO_PH_MMCM_CFG_TIMEOUT;
 			}
@@ -286,12 +284,11 @@ int AutoPH_MMCM_CFG(PLL_ADDRS* pll_addresses, CLK_CTRL_ADDRS* ctrl_addresses, SM
 			csr_write_simple(0, pll_addresses->reset);
 
 //			 Wait for lock before continuing
-			timeout = 0;
 			while (csr_read_simple(pll_addresses->locked) == 0)
 			{
-				busy_wait(1);
+				busy_wait_us(1);
 				timeout++;
-				if (timeout > 5000)
+				if (timeout > timeout_limit)
 				{
 					return AUTO_PH_MMCM_CFG_TIMEOUT;
 				}

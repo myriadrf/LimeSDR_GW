@@ -128,6 +128,16 @@ class lms7002_top(LiteXModule):
         self.rxclk = ClockDomain()
         self.PLL1_RX = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6, mclk=lms7002_pads.mclk2, fclk=lms7002_pads.fclk2, logic_cd=self.rxclk)
 
+        # Create diq1
+        self.diq1 = Signal(12)
+        if hasattr(lms7002_pads, "diq1"):
+            self.comb += lms7002_pads.diq1.eq(self.diq1)
+        else:
+            for i in range(12):  # assuming self.diq1 is 12 bits wide
+                target_signal = getattr(lms7002_pads, f'diq1_{i}')
+                source_signal = self.diq1[i]
+                self.comb += target_signal.eq(source_signal)
+
         # Create params
         self.params_ios = dict()
 
@@ -145,7 +155,7 @@ class lms7002_top(LiteXModule):
             # DIQ1
             i_MCLK1=self.txclk.clk,
             #o_FCLK1=lms7002_pads.fclk1,
-            o_DIQ1=lms7002_pads.diq1,
+            o_DIQ1=self.diq1,
             o_ENABLE_IQSEL1=lms7002_pads.iqsel1,
             o_TXNRX1=lms7002_pads.txnrx1,
             # DIQ2
