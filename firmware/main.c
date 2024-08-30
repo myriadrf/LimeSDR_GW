@@ -25,6 +25,8 @@
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
+#define I2C_DAC_ADDR     0x4C
+#define I2C_TERMO_ADDR   0x4B
 #define LP8758_I2C_ADDR  0x60
 
 /************************** Variable Definitions *****************************/
@@ -47,6 +49,8 @@ volatile uint8_t var_pllcfg_start;
 volatile uint8_t var_pllrst_start;
 
 unsigned int irq_mask;
+
+uint16_t dac_val = DAC_DEFF_VAL;
 
 
 
@@ -197,6 +201,7 @@ static void help(void)
 #ifdef CSR_LIME_TOP_BASE
 	puts("lms                - lms7002_top module status");
 #endif
+	puts("dac_test           - Test DAC");
 }
 
 /*-----------------------------------------------------------------------*/
@@ -334,6 +339,31 @@ static void i2c_test(void)
 
 	printf("I2C1 Scan...\n");
 	i2c1_scan();
+}
+
+static void dac_test(void)
+{
+	unsigned char adr;
+	unsigned char dat[2];
+
+	adr=0;
+
+	i2c0_read(I2C_DAC_ADDR, adr, &dat, 2, true);
+	printf("Read DAC val...\n");
+	printf("0x%02x: 0x%02x\n", dat[0], dat[1]);
+	//i2c0_scan();
+
+	printf("\n");
+
+	printf("Write DAC val...\n");
+	adr=0x30;
+	dat[0] = 0xaa;
+	dat[1] = 0x55;
+	i2c0_write(I2C_DAC_ADDR, adr, &dat, 2);
+	//i2c1_scan();
+	i2c0_read(I2C_DAC_ADDR, adr, &dat, 2, true);
+	printf("Read DAC val...\n");
+	printf("0x%02x: 0x%02x\n", dat[0], dat[1]);
 }
 
 static void dump_pmic(void)
@@ -505,6 +535,21 @@ static void init_pmic(void)
 
 }
 
+static void init_vctcxo_dac(void)
+{
+	// Write initial VCTCXO DAC value on firmware boot
+	uint8_t i2c_buf[3];
+	uint16_t dac_val = DAC_DEFF_VAL;
+
+	//TODO: implement value read from non volatile Mem
+	i2c_buf[0] = 0x30; // cmd
+	i2c_buf[1] = (dac_val >> 8) & 0xFF;
+	i2c_buf[2] = dac_val & 0xFF;
+	i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
+
+
+}
+
 
 /*-----------------------------------------------------------------------*/
 /* LMS7002m status                                                       */
@@ -553,7 +598,8 @@ static void console_service(void)
 	else if (strcmp(token, "lms") == 0)
 		lms7002_status();
 #endif
-
+	else if (strcmp(token, "dac_test") == 0)
+		dac_test();
 
 	prompt();
 }
@@ -645,6 +691,7 @@ static void lms64c_isr(void)
 	uint8_t reg_array[4];
 	uint16_t addr;
 	uint16_t val;
+	uint8_t i2c_buf[3];
 
 	//printf("ISR: LMS64C Entry\n");
 
@@ -792,12 +839,96 @@ static void lms64c_isr(void)
 
 	case CMD_ANALOG_VAL_RD:
 		// TODO: CMD_ANALOG_VAL_RD
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
+		{
+			switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block)]) // ch
+			{
+			case 0:				   // dac val
+				//XIic_Recv(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 2, XIIC_STOP);
+				//i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+				i2c0_read(I2C_DAC_ADDR, 0x0, &i2c_buf, 2, true);
+				LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block]; // ch
+				LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x00;									 // RAW //unit, power
+				LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = i2c_buf[0];							 // unsigned val, MSB byte
+				LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = i2c_buf[1];							 // unsigned val, LSB byte
+				// Storing volatile DAC value
+				dac_val = ((uint16_t)i2c_buf[0])<<8 | ((uint16_t)i2c_buf[1]);
+
+				break;
+
+			case 1: // temperature
+//						i2c_buf[0] = 1;
+//						i2c_buf[1] = 0x60;
+//						i2c_buf[2] = 0xA0;
+				// TMP1075 sensor performs periodical temperature readings by default
+				// we only need to read the most recent value
+				i2c_buf[0]=0;
+				//XIic_Send(XPAR_I2C_CORES_I2C1_BASEADDR,I2C_TERMO_ADDR,i2c_buf,1,XIIC_REPEATED_START);
+				//XIic_Recv(XPAR_I2C_CORES_I2C1_BASEADDR,I2C_TERMO_ADDR,i2c_buf,2,XIIC_STOP);
+				i2c0_read(I2C_TERMO_ADDR, i2c_buf[0], &i2c_buf[0], 2, false);
+
+
+				LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block]; //ch
+				LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x50; //0.1C //unit, power
+
+				int16_t converted_value = i2c_buf[1] | (i2c_buf[0] << 8);
+
+				converted_value = converted_value >> 4;
+				converted_value = converted_value * 10;
+				converted_value = converted_value >> 4;
+
+				LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (uint8_t)((converted_value >> 8) & 0xFF);//signed val, MSB byte
+				LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (uint8_t)(converted_value & 0xFF);//signed val, LSB byte
+
+				break;
+			default:
+				cmd_errors++;
+				break;
+			}
+		}
+
+		if (cmd_errors)
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+		else
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		break;
+
+		// COMMAND ANALOG VALUE WRITE
 		break;
 
 	case CMD_ANALOG_VAL_WR:
-		// TODO: CMD_ANALOG_VAL_WR
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		if (Check_many_blocks(4))
+			break;
+
+		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
+		{
+			switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)]) // do something according to channel
+			{
+			case 0:														  // TCXO DAC
+				if (LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)] == 0) // RAW units?
+				{
+					i2c_buf[0] = 0x30;											  // addr
+					i2c_buf[1] = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]; // MSB
+					i2c_buf[2] = LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]; // LSB
+					// Storing volatile DAC value
+					dac_val = ((uint16_t)i2c_buf[1])<<8 | ((uint16_t)i2c_buf[2]);
+					// Writing to DAC
+					//XIic_Send(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 3, XIIC_STOP);
+					i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
+				}
+				else
+					cmd_errors++;
+				break;
+			default:
+				cmd_errors++;
+				break;
+			}
+		}
+		if (cmd_errors)
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+		else
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		break;
 		break;
 
 	case CMD_MEMORY_RD:
@@ -900,6 +1031,7 @@ int main(void)
 	lms64c_init();
 	clk_cfg_irq_init();
 	init_pmic();
+	init_vctcxo_dac();
 	help();
 	prompt();
 
