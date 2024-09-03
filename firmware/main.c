@@ -14,6 +14,7 @@
 #include "i2c0.h"
 #include "i2c1.h"
 #include "lms7002m.h"
+#include "fpga_flash_qspi.h"
 #include "LMS64C_protocol.h"
 #include "LimeSDR_XTRX.h"
 #include "regremap.h"
@@ -48,9 +49,15 @@ volatile uint8_t var_phcfg_start;
 volatile uint8_t var_pllcfg_start;
 volatile uint8_t var_pllrst_start;
 
+int data_cnt = 0;
+
 unsigned int irq_mask;
 
 uint16_t dac_val = DAC_DEFF_VAL;
+
+// Since there is no eeprom on the XTRX board and the flash is too large for the gw
+// we use the top of the flash instead of eeprom, thus the offset to last sector
+#define mem_write_offset 0x01FF0000
 
 
 
@@ -202,6 +209,7 @@ static void help(void)
 	puts("lms                - lms7002_top module status");
 #endif
 	puts("dac_test           - Test DAC");
+	puts("flash_test         - Test FPGA FLASH");
 }
 
 /*-----------------------------------------------------------------------*/
@@ -364,6 +372,32 @@ static void dac_test(void)
 	i2c0_read(I2C_DAC_ADDR, adr, &dat, 2, true);
 	printf("Read DAC val...\n");
 	printf("0x%02x: 0x%02x\n", dat[0], dat[1]);
+}
+
+static void flash_test(void)
+{	uint8_t regvals2[2];
+    uint8_t data_bytes[2];
+    int retval = 0;
+	printf("FPGA FLASH test...\n");
+	FlashQspi_CMD_ReadRDSR(&regvals2[0]);
+	FlashQspi_CMD_ReadRDCR(&regvals2[1]);
+	printf("FPGA FLASH test end...\n");
+	FlashQspi_CMD_WREN();
+	FlashQspi_CMD_WRDI();
+	FlashQspi_CMD_ReadDataByte(0x4fff5, data_bytes);
+
+	// Erase sector
+	FlashQspi_CMD_WREN();
+	retval = FlashQspi_CMD_SectorErase(0x4fff5);
+
+	uint8_t myByte = 0x55;
+	uint32_t myAddress = 0x4fff5;
+	// Write Byte
+	FlashQspi_CMD_WREN();
+	int result = FlashQspi_CMD_PageProgramByte(myAddress, &myByte);
+
+	FlashQspi_CMD_ReadDataByte(0x4fff5, data_bytes);
+
 }
 
 static void dump_pmic(void)
@@ -539,12 +573,31 @@ static void init_vctcxo_dac(void)
 {
 	// Write initial VCTCXO DAC value on firmware boot
 	uint8_t i2c_buf[3];
-	uint16_t dac_val = DAC_DEFF_VAL;
+	uint8_t page_buffer[5] = {0};
+
+	FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
+	FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &page_buffer[1]);
+	printf("0x%02x: 0x%02x\n", page_buffer[0], page_buffer[1]);
+
+	// Write DAC value stored in flash storage only if it isn't empty (0xFFFF)
+	if ((page_buffer[1] == 0xFF) && (page_buffer[0] == 0xFF)) {
+		// Write Default value
+		dac_val = DAC_DEFF_VAL;
+		i2c_buf[0] = 0x30; // cmd
+		i2c_buf[1] = (dac_val >> 8) & 0xFF;
+		i2c_buf[2] = dac_val & 0xFF;
+	} else {
+		// Write DAC value from FLASH
+		dac_val = ((uint16_t)page_buffer[1])<<8 | ((uint16_t)page_buffer[0]);
+		i2c_buf[0] = 0x30; // cmd
+		i2c_buf[1] = page_buffer[1];
+		i2c_buf[2] = page_buffer[0];
+	}
 
 	//TODO: implement value read from non volatile Mem
-	i2c_buf[0] = 0x30; // cmd
-	i2c_buf[1] = (dac_val >> 8) & 0xFF;
-	i2c_buf[2] = dac_val & 0xFF;
+	//i2c_buf[0] = 0x30; // cmd
+	//i2c_buf[1] = (dac_val >> 8) & 0xFF;
+    //i2c_buf[2] = dac_val & 0xFF;
 	i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
 
 
@@ -600,6 +653,8 @@ static void console_service(void)
 #endif
 	else if (strcmp(token, "dac_test") == 0)
 		dac_test();
+	else if (strcmp(token, "flash_test") == 0)
+		flash_test();
 
 	prompt();
 }
@@ -692,6 +747,10 @@ static void lms64c_isr(void)
 	uint16_t addr;
 	uint16_t val;
 	uint8_t i2c_buf[3];
+
+	uint8_t page_buffer[5]; // page buffer
+
+	int spirez;
 
 	//printf("ISR: LMS64C Entry\n");
 
@@ -931,9 +990,107 @@ static void lms64c_isr(void)
 		break;
 		break;
 
+	case CMD_MEMORY_WR:
+		// Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
+		// a workaround is implemented that uses a sufficiently high address in the configuration flash
+		// to store the DAC value
+		// Since to write data to a flash, a whole sector needs to be erased, additional checks are included
+		// to make sure this function is used ONLY to store VCTCXO DAC value
+		// Reset spirez
+		spirez = 0;
+		data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+		if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) // TARGET = 3 (EEPROM)
+		{
+			// Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
+			// a workaround is implemented that uses a sufficiently high address in the configuration flash
+			// to store the DAC value
+			// Since to write data to a flash, a whole sector needs to be erased, additional checks are included
+			// to make sure this function is used ONLY to store VCTCXO DAC value
+
+			// Check if the user is trying to store VCTCXO DAC value, return error otherwise
+			if (data_cnt == 2 && LMS_Ctrl_Packet_Rx->Data_field[8] == 0 && LMS_Ctrl_Packet_Rx->Data_field[9] == 16)
+			{
+				if (LMS_Ctrl_Packet_Rx->Data_field[0] == 0) // write data to EEPROM #1
+				{
+					LMS_Ctrl_Packet_Rx->Data_field[22] = LMS_Ctrl_Packet_Rx->Data_field[8];
+					LMS_Ctrl_Packet_Rx->Data_field[23] = LMS_Ctrl_Packet_Rx->Data_field[9];
+					FlashQspi_CMD_WREN();
+					spirez = spirez || FlashQspi_CMD_SectorErase(mem_write_offset);
+					page_buffer[0] = LMS_Ctrl_Packet_Rx->Data_field[24];
+					page_buffer[1] = LMS_Ctrl_Packet_Rx->Data_field[25];
+					//spirez = spirez || FlashQspi_ProgramPage(&CFG_QSPI, mem_write_offset, page_buffer);
+					//cmd_errors = cmd_errors + spirez;
+					FlashQspi_CMD_WREN();
+					spirez = FlashQspi_CMD_PageProgramByte(mem_write_offset, &page_buffer[0]);
+					FlashQspi_CMD_WREN();
+					spirez = FlashQspi_CMD_PageProgramByte(mem_write_offset+1, &page_buffer[1]);
+
+					cmd_errors = 0;
+					if (cmd_errors)
+						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+					else
+						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+				}
+				else
+					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+			}
+			else
+				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+
+		}
+		else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 2)) // TARGET = 2 (FPGA FLASH)
+		{
+			printf("F \n");
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+		}
+		else {
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+			printf("N \n");
+		}
+
+		break;
+
 	case CMD_MEMORY_RD:
-		// TODO: implement CMD_MEMORY_RD
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+		// Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
+		// a workaround is implemented that uses a sufficiently high address in the configuration flash
+		// to store the DAC value
+		// Since to write data to a flash, a whole sector needs to be erased, additional checks are included
+		// to make sure this function is used ONLY to store VCTCXO DAC value
+		// Reset spirez
+		spirez = 0;
+		data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+		if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) /// TARGET = 3 (EEPROM)
+		{
+			if (data_cnt == 2 || LMS_Ctrl_Packet_Rx->Data_field[8] == 0 || LMS_Ctrl_Packet_Rx->Data_field[9] == 16)
+			{
+				if (LMS_Ctrl_Packet_Rx->Data_field[0] == 0) // read data from EEPROM #1
+				{
+					//spirez = spirez || FlashQspi_ReadPage(&CFG_QSPI, mem_write_offset, page_buffer);
+					FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
+					FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &page_buffer[1]);
+					glEp0Buffer_Tx[32] = page_buffer[0];
+					glEp0Buffer_Tx[33] = page_buffer[1];
+
+					if (spirez)
+						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+					else
+						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+				}
+				else
+					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+			}
+			else
+				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+		}
+		else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 2)) // TARGET = 1 (FPGA FLASH)
+		{
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+		}
+		else
+			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+
 		break;
 
 

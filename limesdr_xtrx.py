@@ -223,8 +223,8 @@ class BaseSoC(SoCCore):
         else:
             # Automatically jump to pre-initialized firmware.
             self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
-            self.flash_cs_n = GPIOOut(platform.request("flash_cs_n"))
-            self.flash      = S7SPIFlash(platform.request("flash"), sys_clk_freq, 25e6)
+            #self.flash_cs_n = GPIOOut(platform.request("flash_cs_n"))
+            self.flash      = S7SPIFlash(platform.request("spiflash"), sys_clk_freq, 4e6)
 
         # XADC -------------------------------------------------------------------------------------
         self.xadc = XADC()
