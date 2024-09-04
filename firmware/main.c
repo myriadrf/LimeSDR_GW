@@ -575,9 +575,11 @@ static void init_vctcxo_dac(void)
 	uint8_t i2c_buf[3];
 	uint8_t page_buffer[5] = {0};
 
+	//TODO: FIX this, first FLASH read returns 0xFF. Workaround to read two times...
+	FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
 	FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
 	FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &page_buffer[1]);
-	printf("0x%02x: 0x%02x\n", page_buffer[0], page_buffer[1]);
+	printf("FLASH value: 0x%02x: 0x%02x\n", page_buffer[0], page_buffer[1]);
 
 	// Write DAC value stored in flash storage only if it isn't empty (0xFFFF)
 	if ((page_buffer[1] == 0xFF) && (page_buffer[0] == 0xFF)) {
@@ -586,12 +588,14 @@ static void init_vctcxo_dac(void)
 		i2c_buf[0] = 0x30; // cmd
 		i2c_buf[1] = (dac_val >> 8) & 0xFF;
 		i2c_buf[2] = dac_val & 0xFF;
+		printf("Default value\n");
 	} else {
 		// Write DAC value from FLASH
 		dac_val = ((uint16_t)page_buffer[1])<<8 | ((uint16_t)page_buffer[0]);
 		i2c_buf[0] = 0x30; // cmd
 		i2c_buf[1] = page_buffer[1];
 		i2c_buf[2] = page_buffer[0];
+		printf("Value from FLASH\n");
 	}
 
 	//TODO: implement value read from non volatile Mem

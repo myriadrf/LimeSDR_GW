@@ -37,7 +37,13 @@ void readCSR(uint8_t* address, uint8_t* regdata_array)
 		break;
 	case 0xA:
 		value = lime_top_lms7002_tx_en_read();
+		value |= rfsw_control_rfsw_rx_read() << 2;
+		value |= rfsw_control_rfsw_tx_read() << 4;
+		value |= rfsw_control_tdd_manual_val_read() << 5;
+		value |= rfsw_control_tdd_auto_en_read() << 6;
+		value |= rfsw_control_tdd_invert_read() << 7;
 		value |= lime_top_lms7002_test_ptrn_en_read() << 9;
+		value |= rfsw_control_rfsw_auto_en_read() << 11;
 		break;
 	case 0x19:
 		value = lime_top_rx_path_pkt_size_read();
@@ -123,7 +129,13 @@ void writeCSR(uint8_t* address, uint8_t* wrdata_array)
 	case 0xA:
 		lime_top_lms7002_tx_en_write(value);
 		lime_top_lms7002_rx_en_write(value);
+		rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
+		rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
+		rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
+		rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
+		rfsw_control_tdd_invert_write((value & 0x80) >> 7);
 		lime_top_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
+		rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
 		break;
 	case 0x13:
 		printf("13\n");

@@ -116,10 +116,6 @@ int FlashQspi_CMD_ReadRDSR(uint8_t* Data)
     //Flash memory repeats status register two times
     *Data = recvbuf[1];
 
-#ifdef DEBUG
-	printf("FlashQspi_CMD_ReadRDSR: 0x%02x\n", recvbuf[1]);
-#endif
-
     return retval;
 }
 
