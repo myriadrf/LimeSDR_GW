@@ -40,6 +40,7 @@ from litepcie.phy.s7pciephy import S7PCIEPHY
 from litescope import LiteScopeAnalyzer
 
 from gateware.aux import AUX
+from gateware.xtrx_rfsw import xtrx_rfsw
 
 from software import generate_litepcie_software
 
@@ -325,7 +326,9 @@ class BaseSoC(SoCCore):
         self.comb += vctcxo_pads.en.eq(1)
 
         rfsw_pads = platform.request("rf_switches")
-        self.comb += rfsw_pads.tx.eq(1)
+
+        self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
+        #self.comb += rfsw_pads.tx.eq(1)
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
