@@ -171,18 +171,6 @@ class BaseSoC(SoCCore):
         self.CNTRL = CNTRL_CSR(1)
         self.irq.add("CNTRL")
 
-
-        analyzer_signals = [
-            self.CNTRL.cntrl.re,
-
-        ]
-        self.analyzer_CNTRL = LiteScopeAnalyzer(analyzer_signals,
-                                          depth        = 512,
-                                          clock_domain = "sys",
-                                          register     = True,
-                                          csr_csv      = "cntrl.csv"
-                                          )
-
         # Clocking ---------------------------------------------------------------------------------
         self.crg = CRG(platform, sys_clk_freq)
 
