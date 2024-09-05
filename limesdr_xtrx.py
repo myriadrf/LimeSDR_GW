@@ -160,7 +160,7 @@ class BaseSoC(SoCCore):
             cpu_variant              = "standard",
             integrated_rom_size      = 0x8000 if with_cpu else 0,
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
-            integrated_main_ram_size = 0x4000 if with_cpu else 0,
+            integrated_main_ram_size = 0x4100 if with_cpu else 0,
             integrated_main_ram_init = [] if cpu_firmware is None or flash_boot else get_mem_data(cpu_firmware, endianness="little"),
             uart_name                = "gpio_serial",#"crossover",
         )
