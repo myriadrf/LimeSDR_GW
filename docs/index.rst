@@ -3,7 +3,11 @@
    :hidden:
 
    Introduction <self>
+   documentation/project_structure
    documentation/gw_description
+   documentation/build_project
+   documentation/modify_project
+   
 
 Introduction
 ========================

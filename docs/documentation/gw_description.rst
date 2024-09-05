@@ -5,6 +5,6 @@ This section provides information about FPGA gateware used in LimeSDR family boa
 
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
-   main_block_diagram
+   limesdr_xtrx

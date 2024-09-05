@@ -38,7 +38,8 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx-mathjax-offline',
-    'sphinx_rtd_theme'
+    'sphinx_rtd_theme',
+    'myst_parser'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -93,6 +94,7 @@ html_theme_options = {
     'sticky_navigation': True,
     'navigation_depth': 4
 }
+
 
 #html_logo = 'images/LimeADPD_logo_200w.png'
 #html_favicon = 'images/LimeADPD_favicon_34x34.png'
