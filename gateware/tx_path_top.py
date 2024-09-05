@@ -27,6 +27,7 @@ class tx_path_top(LiteXModule):
         platform.add_source("./gateware/LimeDFB/tx_path_top/src/tx_top_pkg.vhd")
         platform.add_source("./gateware/LimeDFB/tx_path_top/src/pct2data_buf_wr.vhd")
         platform.add_source("./gateware/LimeDFB/tx_path_top/src/tx_path_top.vhd")
+        platform.add_source("./gateware/LimeDFB/tx_path_top/src/sample_padder.vhd")
 
         platform.add_ip("./gateware/LimeDFB/axis/src/axis_dwidth_converter_64_to_128/axis_dwidth_converter_64_to_128.xci")
         platform.add_source("./gateware/LimeDFB/axis/src/axis_pkg.vhd")
