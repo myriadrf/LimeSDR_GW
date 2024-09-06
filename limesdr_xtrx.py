@@ -343,7 +343,7 @@ class BaseSoC(SoCCore):
 
 def main():
     parser = argparse.ArgumentParser(description="LiteX SoC on Fairwaves/LimeSDR XTRX.")
-    parser.add_argument("--board",   default="fairwaves_pro", help="Select XTRX board.", choices=["fairwaves_cs", "fairwaves_pro", "limesdr"])
+    parser.add_argument("--board",   default="limesdr", help="Select XTRX board.", choices=["fairwaves_cs", "fairwaves_pro", "limesdr"])
     parser.add_argument("--with-bscan",            action="store_true",     help="Enable CPU debug over JTAG."),
     parser.add_argument("--build",                 action="store_true",     help="Build bitstream.")
     parser.add_argument("--load",                  action="store_true",     help="Load bitstream.")
