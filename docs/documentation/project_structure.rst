@@ -4,7 +4,9 @@ Project Structure
 
 Overview
 ========
-This section provides an overview of the folders and files contained in the project repository. The structure is organized to facilitate FPGA gateware development.
+This FPGA gateware project leverages the **LiteX** framework to create and manage the top-level design for various FPGA boards. The project integrates both custom application-specific logic, written in VHDL/Verilog, and pre-designed LiteX components such as **LitePCIe**, **VexriscV** softcore CPUs, and communication interfaces (**I2C**, **SPI**). Each FPGA board has its own unique platform and top-level files, allowing for flexibility and scalability across different hardware platforms.
+
+An overview of the folders and files contained in the project repository can be found in this section. The structure is organized to facilitate FPGA gateware development.
 
 Root Directory
 ==============
