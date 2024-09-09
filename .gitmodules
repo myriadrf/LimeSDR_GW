@@ -1,3 +1,3 @@
-[submodule "gateware/LimeIP_HDL"]
-	path = gateware/LimeIP_HDL
-	url = ../LimeIP_HDL.git
+[submodule "LimeDFB"]
+	path = gateware/LimeDFB
+	url = ../../myriadrf/LimeDFB.git

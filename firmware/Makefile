@@ -1,4 +1,4 @@
-BUILD_DIR?=../build/LimeSDR_XTRX_platform
+BUILD_DIR?=../build/limesdr_xtrx_platform
 
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
@@ -6,15 +6,9 @@ include $(SOC_DIRECTORY)/software/common.mak
 # Add debugging symbol flag
 CFLAGS += -g
 
-OBJECTS   = i2c0.o i2c1.o donut.o helloc.o crt0.o main.o
-ifdef WITH_CXX
-	OBJECTS += hellocpp.o
-	CFLAGS += -DWITH_CXX
-endif
+OBJECTS   = i2c0.o i2c1.o crt0.o main.o regremap.o lms7002m.o Xil_clk_drp.o fpga_flash_qspi.o
 
-
-all: demo.bin
-
+all: firmware.bin
 
 %.bin: %.elf
 	$(OBJCOPY) -O binary $< $@
@@ -24,7 +18,7 @@ endif
 
 vpath %.a $(PACKAGES:%=../%)
 
-demo.elf: $(OBJECTS)
+firmware.elf: $(OBJECTS)
 	$(CC) $(LDFLAGS) -T linker.ld -N -o $@ \
 		$(OBJECTS) \
 		$(PACKAGES:%=-L$(BUILD_DIR)/software/%) \
@@ -40,13 +34,7 @@ endif
 # pull in dependency info for *existing* .o files
 -include $(OBJECTS:.o=.d)
 
-donut.o: CFLAGS   += -w
-
 VPATH = $(BIOS_DIRECTORY):$(BIOS_DIRECTORY)/cmds:$(CPU_DIRECTORY)
-
-
-%.o: %.cpp
-	$(compilexx)
 
 %.o: %.c
 	$(compile)
@@ -55,6 +43,6 @@ VPATH = $(BIOS_DIRECTORY):$(BIOS_DIRECTORY)/cmds:$(CPU_DIRECTORY)
 	$(assemble)
 
 clean:
-	$(RM) $(OBJECTS) demo.elf demo.bin .*~ *~
+	$(RM) $(OBJECTS) firmware.elf firmware.bin .*~ *~
 
 .PHONY: all clean
