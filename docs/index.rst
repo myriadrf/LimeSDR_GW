@@ -3,10 +3,10 @@
    :hidden:
 
    Introduction <self>
-   documentation/project_structure
-   documentation/gw_description
-   documentation/build_project
-   documentation/modify_project
+   docs/project_structure
+   docs/gw_description
+   docs/build_project
+   docs/modify_project
    
 
 Introduction
@@ -28,10 +28,10 @@ Currently supported LimeSDR Family boards are listed in the Table 1.
 
 .. table:: Table 1. Board components
 
-  +----------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
-  | **Board**                                    | **Version**           | **Description**                                                                |
-  +----------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
-  | LimeSDR-XTRX                                 | Starting from v1.2    | Small form factor mini PCIe expansion SDR board.                               |
-  +----------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
+  +-------------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
+  | **Board**                                                   | **Version**           | **Description**                                                                |
+  +-------------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
+  | :ref:`LimeSDR-XTRX <docs/limesdr_xtrx:LimeSDR-XTRX>`        | Starting from v1.2    | Small form factor mini PCIe expansion SDR board.                               |
+  +-------------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
 
 
