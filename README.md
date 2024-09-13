@@ -1,5 +1,7 @@
 # LimeSDR Gateware
 
+This project focuses on the development and customization of FPGA gateware for LimeSDR boards using the LiteX framework. 
+
 ## Available branches
 
   - **master** - most recent stable and tested work 
@@ -15,7 +17,13 @@ git submodule init
 git submodule update
 ```
 
-## Building the Gateware
+## Requirements
+
+In order to build broject these tools/software are required:
+  - **Litex** - follow offcial install instructions in [repository](https://github.com/enjoy-digital/litex) 
+  - **Vivado 2022.1** - free version can be downloaded from [www.xilinx.com](https://www.xilinx.com/support/download.html)
+  
+## Building and loading the Gateware
 
 To build the gateware, use the following command with the appropriate board option:
 
@@ -25,8 +33,6 @@ To build the gateware, use the following command with the appropriate board opti
 
 **Available boards for `--board` option are:**
 - limesdr
-
-The `--load` and `--flash` options update the FPGA and/or Flash as described below.
 
 **Additional options include:**
 
@@ -41,27 +47,6 @@ The `--load` and `--flash` options update the FPGA and/or Flash as described bel
   followed by the cable name to change this (see `openFPGALoader --list-cables` for supported
   cables).
 
-## Gateware loading/flashing to SRAM and SPI Flash.
-
-[openFPGALoader](https://github.com/trabucayre/openFPGALoader) is used to load and/or flash
-bitstreams and CPU firmware.
-
-By default, a **digilent_hs2** *USB-JTAG* cable will be used. To change this behavior and select an
-alternate cable, append the command line with `--cable xxx`, where `xxx` is the cable's name
-(see `openFPGALoader --list-cables` for a complete list of supported cables).
-
-### Loading Gateware to SRAM (Volatile Memory)
-
-In this mode, the gateware will be lost after a power cycle.
-
-```bash python3 limesdr_xtrx.py --load [--cable XXX] ```
-
-### Flashing Gateware to SPI Flash (Non-Volatile Memory)
-
-In this mode, the gateware will be automatically loaded after flashing and power cycles.
-
-```bash python3 limesdr_xtrx.py --flash [--cable XXX] ```
-
 ## Building/loading VexRiscv firmware trough UART
 
 By default firmware should be built when building gateware and compiled into SRAM. Separately firmware can by compiled and loaded trough UART:
@@ -74,65 +59,7 @@ cd firmware && make clean all && cd ../
 litex_term  /dev/ttyUSB0 --kernel firmware/firmware.bin --csr-csv csr.csv
 ```
 
-## VexRiscv-SMP SoftCore CPU with Debug Capabilities
+## Documentation
 
-VexRiscv-SMP SoftCore has been integrated and configured in the `limesdr_xtrx.py` target design. The
-configuration has IRQ enabled (which have been recently added to upstream LiteX) and debug
-capabilities over JTAG, which were the two requirements for the CPU. VexRiscv-SMP IRQs are enabled
-by default. To enable debug capabilities in the target, the additional command lines are added:
-
-```python
-if with_bscan:
-    from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
-    VexRiscvSMP.privileged_debug     = True
-    VexRiscvSMP.hardware_breakpoints = 4
-    VexRiscvSMP.with_rvc             = True
-```
-
-
-## Firmware Debug through GDB over JTAG
-
-To build and load a gateware with a debug interface:
-
-```bash
-./limesdr_xtrx.py --with bscan --build --load --flash
-
-# Load firmware through serial:
-litex_term /dev/ttyLXU0 --kernel firmware/firmware.bin
-
-# Run OpenOCD with the specified configurations:
-openocd -f ./digilent_hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
-
-# Connect GDB for debugging:
-gdb-multiarch -q firmware/firmware.elf -ex "target extended-remote localhost:3333"
-```
-
-Note that instead of using GDB directly, Eclipse IDE can be configured to debug code in a more
-user-friendly way. Follow this guide to configure Eclipse IDE:
-[Using Eclipse to run and debug the software](https://github.com/SpinalHDL/VexRiscv?tab=readme-ov-file#using-eclipse-to-run-and-debug-the-software)
-
-### JTAGBone Test
-
-First step is to start a server configured for JTAG access:
-```bash
-litex_server --jtag --jtag-config openocd_xc7_ft232.cfg
-```
-
-`--jtag-config` must be adapted according to the JTAG interface
-
-Now it's possible to read/write `gpioTop` registers:
-
-Value read:
-```bash
-litex_cli --read lime_top_gpio_gpio_val
-```
-
-HOST access (direction/level)
-```bash
-# control overriden for all pins
-litex_cli --write lime_top_gpio_gpio_override 0x07
-# set all pins as output
-litex_cli --write lime_top_gpio_gpio_override_dir 0x00
-# pins 0 & 2 low, pin 1 high
-litex_cli --write lime_top_gpio_gpio_override_val 0x05
-```
+More details can be found in:
+* https://limesdrgw.myriadrf.org/
