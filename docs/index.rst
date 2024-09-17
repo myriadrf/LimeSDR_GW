@@ -12,7 +12,7 @@
 Introduction
 ========================
 
-LimeSDR_GW project
+LimeSDR GW project
 -------------------------------
 
 The LimeSDR family of boards, known for their flexibility and high performance in Software Defined Radio (SDR) applications, rely on sophisticated FPGA gateware to manage the seamless integration of various hardware components. This project focuses on the development and customization of FPGA gateware for LimeSDR boards using the LiteX framework, a versatile toolchain designed to facilitate the creation and integration of reusable RTL (Register-Transfer Level) blocks. More information about LiteX Framework can be found `here <https://github.com/enjoy-digital/litex>`_ .
@@ -29,9 +29,9 @@ Currently supported LimeSDR Family boards are listed in the Table 1.
 .. table:: Table 1. Board components
 
   +-------------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
-  | **Board**                                                   | **Version**           | **Description**                                                                |
+  | **Board**                                                   | **Hardware Version**  | **Description**                                                                |
   +-------------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
-  | :ref:`LimeSDR-XTRX <docs/limesdr_xtrx:LimeSDR-XTRX>`        | Starting from v1.2    | Small form factor mini PCIe expansion SDR board.                               |
+  | :ref:`LimeSDR XTRX <docs/limesdr_xtrx:LimeSDR XTRX>`        | Starting from v1.2    | Small form factor mini PCIe expansion SDR board.                               |
   +-------------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
 
 

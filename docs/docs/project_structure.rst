@@ -37,7 +37,7 @@ This directory contains project documentation files. These include design descri
 
 firmware/
 ---
-This directory contains firmware code for softcore CPU in LimeSDR_GW project. 
+This directory contains firmware code for softcore CPU in LimeSDR GW project. 
 
 gateware/
 ---------
@@ -63,7 +63,7 @@ A Python script that defines platform-specific configurations for the Fairwaves 
 limesdr_xtrx.cfg
 ----------------
 
-A configuration file for the LimeSDR-XTRX board and FT2232H based programmer.
+A configuration file for the LimeSDR XTRX board and FT2232H based programmer.
 
 limesdr_xtrx.py
 ---------------
@@ -73,7 +73,7 @@ Python file for LiteX project building and configuration.
 limesdr_xtrx_platform.py
 ------------------------
 
-A Python script that defines platform-specific configurations for the LimeSDR-XTRX board. 
+A Python script that defines platform-specific configurations for the LimeSDR XTRX board. 
 
 riscv_jtag_tunneled.tcl
 -----------------------

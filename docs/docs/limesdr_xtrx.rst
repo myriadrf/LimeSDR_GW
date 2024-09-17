@@ -1,30 +1,63 @@
-LimeSDR-XTRX
+LimeSDR XTRX
 ====================
 
-This section provides information about LimeSDR-XTRX gateware
+This section provides information about LimeSDR XTRX gateware
 
 
 Main block diagram
 ------------------
 
 Top level file contains these main blocks:
+
     - **Soft core CPU** - VexRiscv CPU instance
-    - **lime_top** - blocks specific to lms7002m transceiver control and data transfer
-    - **pcie_phy** - PCIe block with physical interface and DMA
-    - **I2C0, I2C1, lms_spi** - communication interfaces to control onboard periphery
-    - **flash** - FPGA configuration FLASH memory access
+    - **Lime_top** - blocks specific to lms7002m transceiver control and data transfer
+    - **Pcie_phy** - PCIe block with physical interface and DMA
+    - **I2C0, I2C1, Lms_spi** - communication interfaces to control onboard periphery
+    - **Flash** - FPGA configuration FLASH memory access
 
 .. figure:: limesdr-xtrx/images/main_block_diagram.svg
   :width: 1000
 
-lime_top
+
+Soft core CPU module
 --------
 
+CPU module is a ``vexriscv_smp`` core provided by LiteX. It is implemented as a ``cpu_type`` parameter for the ``SoCCore`` class, which is 
+the parent class for the top level of the gateware design.
 
-Block **lime_top** is wrapper file for specific lms7002m transceiver control and data transfer blocks. Main blocks are following:
+The source code for the cpu can be found using `this link <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/cpu/vexriscv_smp/core.py>`__.
+
+
+Lime_top module
+--------
+
+Block **lime_top** is a wrapper file for specific lms7002m transceiver control and data transfer blocks. Main blocks are following:
+
     - :external+limedfb:ref:`lms7002_top <docs/lms7002_top/readme:lms7002_top>` - lms7002 IC phy for sending/receiving digital IQ samples.
     - :external+limedfb:ref:`rx_path_top <docs/rx_path_top/readme:rx_path_top>` - receive path (LMS7002M -> FPGA -> HOST), responsible for packing IQ samples into packets and timestamp generation.
     - :external+limedfb:ref:`tx_path_top <docs/tx_path_top/readme:tx_path_top>` - transmit path (HOST -> FPGA -> LMS7002M), responsible for unpacking received packets into IQ samples and stream synchronization with timestamp.
 
 .. figure:: limesdr-xtrx/images/limetop_block_diagram.svg
   :width: 1000
+
+Pcie_phy module
+--------
+
+**Pcie_phy** is an instance of ``S7PCIEPHY`` class, which is part of LitePCIe. Source code for LitePCIe can be found using `this link <https://github.com/enjoy-digital/litepcie>`__.
+
+I2C0, I2C1 modules
+--------
+
+**I2C0** and **I2C1** modules are instances of ``I2CMaster`` class provided by LiteX. Source code for the class can be found using `this link <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/bitbang.py>`__.
+
+Lms_spi module
+--------
+
+**Lms_spi** module is an instance of ``SPIMaster`` class provided by LiteX.  Source code for the class can be found using `this link <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi/spi_master.py>`__.
+
+Flash module
+--------
+
+**Flash** module is an instance of ``S7SPIFlash`` class provided by LiteX.  Source code for the class can be found using `this link <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi_flash.py>`__.
+
+
