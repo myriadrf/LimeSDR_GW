@@ -9,11 +9,11 @@ Main block diagram
 
 Top level file contains these main blocks:
 
-    - **Soft core CPU** - VexRiscv CPU instance
-    - **Lime_top** - blocks specific to lms7002m transceiver control and data transfer
-    - **Pcie_phy** - PCIe block with physical interface and DMA
-    - **I2C0, I2C1, Lms_spi** - communication interfaces to control onboard periphery
-    - **Flash** - FPGA configuration FLASH memory access
+    - :ref:`Soft core CPU<docs/limesdr_xtrx:soft core cpu module>` - VexRiscv CPU instance 
+    - :ref:`Lime_top<docs/limesdr_xtrx:lime_top module>` - blocks specific to lms7002m transceiver control and data transfer
+    - :ref:`Pcie_phy<docs/limesdr_xtrx:pcie_phy module>` - PCIe block with physical interface and DMA
+    - :ref:`I2C0, I2C1<docs/limesdr_xtrx:i2c0, i2c1 modules>`, :ref:`Lms_spi<docs/limesdr_xtrx:lms_spi module>` - communication interfaces to control onboard periphery
+    - :ref:`Flash<docs/limesdr_xtrx:flash module>` - FPGA configuration FLASH memory access
 
 .. figure:: limesdr-xtrx/images/main_block_diagram.svg
   :width: 1000
