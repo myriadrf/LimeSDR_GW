@@ -3,7 +3,7 @@
 __pycache__
 csr.csv
 analyzer.csv
-prog/
+/prog
 build/
 
 firmware/firmware.bin
