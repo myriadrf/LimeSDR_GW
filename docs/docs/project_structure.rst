@@ -17,17 +17,17 @@ The main directories and files are organized as follows:
    / (root)
    ├── boards/
       ├── targets/
+         ├── limesdr_xtrx.py
       ├── platforms/
+         ├── fairwaves_xtrx_platform.py
+         ├── limesdr_xtrx_platform.py
       ├── prog/
+         ├── digilent_hs2.cfg
+         ├── limesdr_xtrx.cfg
    ├── docs/
    ├── firmware/
    ├── gateware/
    ├── software/
-   ├── digilent_hs2.cfg
-   ├── fairwaves_xtrx_platform.py
-   ├── limesdr_xtrx.cfg
-   ├── limesdr_xtrx.py
-   ├── limesdr_xtrx_platform.py
    ├── riscv_jtag_tunneled.tcl
    ├── README.rst
    └── .gitignore
