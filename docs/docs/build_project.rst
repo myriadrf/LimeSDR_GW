@@ -34,7 +34,7 @@ board option:
 
 .. code:: bash
 
-   ./limesdr_xtrx.py --build --board=limesdr [--cable ft2232] [--load] [--flash]
+   python3 -m boards.targets.limesdr_xtrx --build --board=limesdr [--cable ft2232] [--load] [--flash]
 
 **Available options:**
 
