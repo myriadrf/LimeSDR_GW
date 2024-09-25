@@ -77,19 +77,19 @@ To build the project run
 
 .. code:: bash
 
-   ./limesdr_xtrx.py --build --board=limesdr
+   python3 -m boards.targets.limesdr_xtrx --build --board=limesdr
 
 After building the project you can program the design to the device's RAM by running
 
 .. code:: bash
 
-   ./limesdr_xtrx.py --load --board=limesdr --cable ft2232
+   python3 -m boards.targets.limesdr_xtrx --load --board=limesdr --cable ft2232
 
 Or to the device's FLASH by running 
 
 .. code:: bash
 
-   ./limesdr_xtrx.py --flash --board=limesdr --cable ft2232
+   python3 -m boards.targets.limesdr_xtrx --flash --board=limesdr --cable ft2232
 
 Make sure to check the command output in the console to check if processes were completed successfully.
 
