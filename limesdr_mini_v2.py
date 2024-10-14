@@ -69,6 +69,8 @@ class BaseSoC(SoCCore):
         # TOP --------------------------------------------------------------------------------------
         self.lms7_trx_top = LMS7TRXTopWrapper(self.platform)
 
+        #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
