@@ -61,9 +61,6 @@ class BaseSoC(SoCCore):
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
 
         # SoCCore ----------------------------------------------------------------------------------
-        if kwargs["uart_name"] != "jtag_uart":
-            kwargs["uart_name"]     = "crossover"
-            kwargs["with_jtagbone"] = True
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on LimeSDR-Mini-V2", **kwargs)
 
         # CRG --------------------------------------------------------------------------------------
@@ -79,8 +76,8 @@ def main():
     parser = LiteXArgumentParser(platform=limesdr_mini_v2.Platform, description="LiteX SoC on LimeSDR-Mini-V2.")
     parser.add_target_argument("--sys-clk-freq", default=40e6, type=float, help="System clock frequency.")
     args = parser.parse_args()
-    args.no_serial = True
-    args.cpu_type  = None
+    args.no_uart   = True
+    args.cpu_type  = "None"
     args.toolchain = "diamond"
 
     soc = BaseSoC(
