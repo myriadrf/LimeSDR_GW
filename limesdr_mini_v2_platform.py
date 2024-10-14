@@ -73,7 +73,7 @@ _io = [
             "G16 D13 G18 F16 C17 F17 K15 K17")),
         Subsignal("BE",      Pins("L15 J17 K16 H17")),
         Subsignal("RXFn",    Pins("H16")),
-        Subsignal("TXFn",    Pins("M16")),
+        Subsignal("TXEn",    Pins("M16")),
         Subsignal("WRn",     Pins("J16")),
         Subsignal("WAKEUPn", Pins("G15")),
         #Subsignal("rd_n",    Pins("H15")),
@@ -84,7 +84,7 @@ _io = [
     # RF-IC / LMS7002M.
     ("LMS", 0,
         # Control.
-        Subsignal("RESET",            Pins("A7")
+        Subsignal("RESET",            Pins("A7")),
         Subsignal("CORE_LDO_EN",      Pins("C6")),
         Subsignal("RXEN",             Pins("D6")),
         Subsignal("TXEN",             Pins("B7")),
@@ -129,7 +129,7 @@ class Platform(LatticeECP5Platform):
     default_clk_name   = "LMK_CLK"
     default_clk_period = 1e9/40e6
 
-    def __init__(self, device="LFE5U", toolchain="trellis", **kwargs):
+    def __init__(self, device="LFE5U", toolchain="diamond", **kwargs):
         assert device in ["LFE5U"]
         LatticeECP5Platform.__init__(self, device + "-45F-8MG285C", _io, toolchain=toolchain, **kwargs)
 
