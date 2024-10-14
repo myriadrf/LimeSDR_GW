@@ -46,6 +46,7 @@ lms7_trx_files = [
     "LimeSDR-Mini_lms7_trx/src/self_test/clk_with_ref_test.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/clk_no_ref_test.vhd",
     "LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc/platform1_vhd.vhd",
+    "LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc/platform1_top.v",
     "LimeSDR-Mini_lms7_trx/src/rxtx_top/synth/rxtx_top.vhd",
     "LimeSDR-Mini_lms7_trx/src/tx_path_top/tx_path/synth/sync_fifo_rw.vhd",
     "LimeSDR-Mini_lms7_trx/src/tx_path_top/tx_path/synth/tx_path_top.vhd",
