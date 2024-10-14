@@ -15,7 +15,7 @@ from litex.build import tools
 
 from litex.gen import *
 
-from gateware.lms7_trx_files_list import lms7_trx_files
+from gateware.lms7_trx_files_list import lms7_trx_files, lms7_trx_ips
 
 class LMS7TRXTopWrapper(LiteXModule):
     def __init__(self, platform):
@@ -155,8 +155,24 @@ class LMS7TRXTopWrapper(LiteXModule):
     def add_sources(self):
         for file in lms7_trx_files:
             self.platform.add_source(file)
+        for file in lms7_trx_ips:
+            self.platform.add_ip(file)
 
     def do_finalize(self):
         self.specials += Instance("lms7_trx_top", **self.ip_params)
+
+        self.platform.toolchain.additional_ldf_commands += [
+            "prj_strgy set_value -strategy Strategy1 syn_fix_gated_and_generated_clks=False",
+            "prj_strgy set_value -strategy Strategy1 syn_default_enum_encode=Onehot",
+            "prj_strgy set_value -strategy Strategy1 syn_export_setting=Yes",
+            "prj_strgy set_value -strategy Strategy1 syn_frequency=100",
+            "prj_strgy set_value -strategy Strategy1 syn_critical_path_num=3",
+            "prj_strgy set_value -strategy Strategy1 syn_pipelining_retiming=None",
+            "prj_strgy set_value -strategy Strategy1 syn_push_tristates=False",
+            "prj_strgy set_value -strategy Strategy1 syn_res_sharing=False",
+            "prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True",
+        ]
+
+        self.platform.add_strategy("LimeSDR-Mini_lms7_trx/proj/user_timing.sty", "user_timing")
 
         self.add_sources()
