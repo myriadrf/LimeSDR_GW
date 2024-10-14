@@ -161,6 +161,8 @@ class LMS7TRXTopWrapper(LiteXModule):
     def do_finalize(self):
         self.specials += Instance("lms7_trx_top", **self.ip_params)
 
+        self.platform.verilog_include_paths.append("LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc")
+
         self.platform.toolchain.additional_ldf_commands += [
             "prj_strgy set_value -strategy Strategy1 syn_fix_gated_and_generated_clks=False",
             "prj_strgy set_value -strategy Strategy1 syn_default_enum_encode=Onehot",
