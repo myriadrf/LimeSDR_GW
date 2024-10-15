@@ -1,7 +1,4 @@
 lms7_trx_files = [
-    # TOP.
-    "LimeSDR-Mini_lms7_trx/src/top/synth/lms7_trx_top.vhd",
-
     # SPI.
     "LimeSDR-Mini_lms7_trx/src/spi/cfg_top.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/fpgacfg.vhd",
@@ -25,11 +22,6 @@ lms7_trx_files = [
     "LimeSDR-Mini_lms7_trx/src/spi/pllcfg.vhd",
 
     "LimeSDR-Mini_lms7_trx/src/general/sync_reg.vhd",
-
-    # FT601.
-    "LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601_top.vhd",
-    "LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601_arb.vhd",
-    "LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601.vhd",
 
     "LimeSDR-Mini_lms7_trx/src/self_test/tst_top.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/clock_test.vhd",

@@ -15,25 +15,55 @@ from litex.build import tools
 
 from litex.gen import *
 
+from litex.soc.interconnect import stream
+
 from gateware.lms7_trx_files_list import lms7_trx_files, lms7_trx_ips
 
 class LMS7TRXTopWrapper(LiteXModule):
-    def __init__(self, platform):
-
-        # # #
+    def __init__(self, platform,
+        FTDI_DQ_WIDTH        = 32,    # FTDI Data bus size
+        CTRL0_FPGA_RX_SIZE   = 1024,  # Control PC->FPGA, FIFO size in bytes.
+        CTRL0_FPGA_RX_RWIDTH = 32,    # Control PC->FPGA, FIFO rd width.
+        CTRL0_FPGA_TX_SIZE   = 1024,  # Control FPGA->PC, FIFO size in bytes
+        CTRL0_FPGA_TX_WWIDTH = 32,    # Control FPGA->PC, FIFO wr width
+        STRM0_FPGA_RX_SIZE   = 4096,  # Stream PC->FPGA, FIFO size in bytes
+        STRM0_FPGA_RX_RWIDTH = 128,   # Stream PC->FPGA, rd width
+        STRM0_FPGA_TX_SIZE   = 16384, # Stream FPGA->PC, FIFO size in bytes
+        STRM0_FPGA_TX_WWIDTH = 64,    # Stream FPGA->PC, wr width
+        C_EP02_RDUSEDW_WIDTH = 0,
+        C_EP82_WRUSEDW_WIDTH = 0,
+        C_EP03_RDUSEDW_WIDTH = 0,
+        C_EP83_WRUSEDW_WIDTH = 0,
+        ):
 
         self.platform = platform
+
+        # FT601 FIFO enpoint/ctrl PC<-> FPGA
+        self.ctrl_fifo_pc_fpga           = stream.Endpoint([("data", CTRL0_FPGA_RX_RWIDTH), ("empty", 1)])
+        self.ctrl_fifo_fpga_pc           = stream.Endpoint([("data", CTRL0_FPGA_TX_WWIDTH), ("full", 1)])
+        self.stream_fifo_pc_fpga         = stream.Endpoint([("data", STRM0_FPGA_RX_RWIDTH), ("active", 1), ("empty", 1), ("usedw", C_EP03_RDUSEDW_WIDTH)])
+        self.stream_fifo_fpga_pc         = stream.Endpoint([("data", STRM0_FPGA_TX_WWIDTH), ("active", 1), ("full", 1),  ("usedw", C_EP83_WRUSEDW_WIDTH)])
+
+        self.ctrl_fifo_fpga_pc_reset_n   = Signal()
+        self.stream_fifo_fpga_pc_reset_n = Signal()
+        self.stream_fifo_pc_fpga_reset_n = Signal()
+        self.ft_clk                      = Signal()
+
+        # # #
 
         # Signals
         # -------
         lms_pads          = platform.request("LMS")
-        ftdi_pads         = platform.request("FT")
         fpga_spi_pads     = platform.request("FPGA_SPI")
         fpga_cfg_spi_pads = platform.request("FPGA_CFG_SPI")
         fpga_i2c_pads     = platform.request("FPGA_I2C")
         rfsw_pads         = platform.request("RFSW")
         revision_pads     = platform.request("revision")
         tx_lb_pads        = platform.request("TX_LB")
+
+        self.cd_osc       = ClockDomain()
+        self.cd_lms_tx    = ClockDomain()
+        self.cd_lms_rx    = ClockDomain()
 
         # LMS6 TRX TOP.
         # -------------------------
@@ -45,15 +75,19 @@ class LMS7TRXTopWrapper(LiteXModule):
             # LMS7002 related
             p_LMS_DIQ_WIDTH        = 12,
             # FTDI (USB3) related
-            p_FTDI_DQ_WIDTH        = 32,     # FTDI Data bus size
-            p_CTRL0_FPGA_RX_SIZE   = 1024,   # Control PC->FPGA, FIFO size in bytes.
-            p_CTRL0_FPGA_RX_RWIDTH = 32,     # Control PC->FPGA, FIFO rd width.
-            p_CTRL0_FPGA_TX_SIZE   = 1024,   # Control FPGA->PC, FIFO size in bytes
-            p_CTRL0_FPGA_TX_WWIDTH = 32,     # Control FPGA->PC, FIFO wr width
-            p_STRM0_FPGA_RX_SIZE   = 4096,   # Stream PC->FPGA, FIFO size in bytes
-            p_STRM0_FPGA_RX_RWIDTH = 128,    # Stream PC->FPGA, rd width
-            p_STRM0_FPGA_TX_SIZE   = 16384,  # Stream FPGA->PC, FIFO size in bytes
-            p_STRM0_FPGA_TX_WWIDTH = 64,     # Stream FPGA->PC, wr width
+            p_FTDI_DQ_WIDTH        = FTDI_DQ_WIDTH,        # FTDI Data bus size
+            p_CTRL0_FPGA_RX_SIZE   = CTRL0_FPGA_RX_SIZE,   # Control PC->FPGA, FIFO size in bytes.
+            p_CTRL0_FPGA_RX_RWIDTH = CTRL0_FPGA_RX_RWIDTH, # Control PC->FPGA, FIFO rd width.
+            p_CTRL0_FPGA_TX_SIZE   = CTRL0_FPGA_TX_SIZE,   # Control FPGA->PC, FIFO size in bytes
+            p_CTRL0_FPGA_TX_WWIDTH = CTRL0_FPGA_TX_WWIDTH, # Control FPGA->PC, FIFO wr width
+            p_STRM0_FPGA_RX_SIZE   = STRM0_FPGA_RX_SIZE,   # Stream PC->FPGA, FIFO size in bytes
+            p_STRM0_FPGA_RX_RWIDTH = STRM0_FPGA_RX_RWIDTH, # Stream PC->FPGA, rd width
+            p_STRM0_FPGA_TX_SIZE   = STRM0_FPGA_TX_SIZE,   # Stream FPGA->PC, FIFO size in bytes
+            p_STRM0_FPGA_TX_WWIDTH = STRM0_FPGA_TX_WWIDTH, # Stream FPGA->PC, wr width
+            p_C_EP02_RDUSEDW_WIDTH = C_EP02_RDUSEDW_WIDTH,
+            p_C_EP82_WRUSEDW_WIDTH = C_EP82_WRUSEDW_WIDTH,
+            p_C_EP03_RDUSEDW_WIDTH = C_EP03_RDUSEDW_WIDTH,
+            p_C_EP83_WRUSEDW_WIDTH = C_EP83_WRUSEDW_WIDTH,
             #
             p_TX_N_BUFF            = 4,      # N 4KB buffers in TX interface (2 OR 4)
             p_TX_PCT_SIZE          = 4096,   # TX packet size in bytes
@@ -72,6 +106,9 @@ class LMS7TRXTopWrapper(LiteXModule):
             # Clock sources
             #    Reference clock, coming from LMK clock buffer.
             i_LMK_CLK               = ClockSignal("sys"),
+            o_osc_clk_o             = self.cd_osc.clk,
+            o_lms_tx_clk_o          = self.cd_lms_tx.clk,
+            o_lms_rx_clk_o          = self.cd_lms_rx.clk,
 
             # ----------------------------------------------------------------------------
             # LMS7002 Digital
@@ -96,16 +133,30 @@ class LMS7TRXTopWrapper(LiteXModule):
             # ----------------------------------------------------------------------------
             #   FTDI (USB3)
             #     Clock source
-            i_FT_CLK                = platform.request("FT_CLK"),
-               #  DATA
-            io_FT_BE                = ftdi_pads.BE,
-            io_FT_D                 = ftdi_pads.D,
-               #  Control, flags
-            i_FT_RXFn               = ftdi_pads.RXFn,
-            i_FT_TXEn               = ftdi_pads.TXEn,
-            o_FT_WRn                = ftdi_pads.WRn,
-            o_FT_RESETn             = ftdi_pads.RESETn,
-            o_FT_WAKEUPn            = ftdi_pads.WAKEUPn,
+            i_FT_CLK                 = self.ft_clk,
+            # controll endpoint fifo PC->FPGA
+            o_EP02_rd        = self.ctrl_fifo_pc_fpga.valid,
+            i_EP02_rdata     = self.ctrl_fifo_pc_fpga.data,
+            i_EP02_rempty    = self.ctrl_fifo_pc_fpga.empty,
+            # controll endpoint fifo FPGA->PC
+            o_EP82_aclrn     = self.ctrl_fifo_fpga_pc_reset_n,
+            o_EP82_wr        = self.ctrl_fifo_fpga_pc.valid,
+            o_EP82_wdata     = self.ctrl_fifo_fpga_pc.data,
+            i_EP82_wfull     = self.ctrl_fifo_fpga_pc.full,
+            # stream endpoint fifo PC->FPGA
+            i_EP03_active    = self.stream_fifo_pc_fpga.active,
+            o_EP03_aclrn     = self.stream_fifo_pc_fpga_reset_n,
+            o_EP03_rd        = self.stream_fifo_pc_fpga.valid,
+            i_EP03_rdata     = self.stream_fifo_pc_fpga.data,
+            i_EP03_rempty    = self.stream_fifo_pc_fpga.empty,
+            i_EP03_rusedw    = self.stream_fifo_pc_fpga.usedw,
+            # stream endpoint fifo FPGA->PC
+            i_EP83_active    = self.stream_fifo_fpga_pc.active,
+            o_EP83_aclrn     = self.stream_fifo_fpga_pc_reset_n,
+            o_EP83_wr        = self.stream_fifo_fpga_pc.valid,
+            o_EP83_wdata     = self.stream_fifo_fpga_pc.data,
+            i_EP83_wfull     = self.stream_fifo_fpga_pc.full,
+            i_EP83_wrusedw   = self.stream_fifo_fpga_pc.usedw,
 
             # ----------------------------------------------------------------------------
             #  External communication interfaces
@@ -167,6 +218,7 @@ class LMS7TRXTopWrapper(LiteXModule):
     def add_sources(self):
         for file in lms7_trx_files:
             self.platform.add_source(file)
+        self.platform.add_source("gateware/lms7_trx_top.vhd")
         for file in lms7_trx_ips:
             self.platform.add_ip(file)
         self.platform.add_strategy("LimeSDR-Mini_lms7_trx/proj/user_timing.sty", "user_timing")
