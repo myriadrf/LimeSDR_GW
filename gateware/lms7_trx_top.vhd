@@ -69,6 +69,9 @@ entity lms7_trx_top is
       lms_tx_clk_o      : out    std_logic;
       lms_rx_clk_o      : out    std_logic;
 
+      -- Global reset
+      reset_n_o         : out    std_logic;
+
       -- ----------------------------------------------------------------------------
       -- LMS7002 Digital
          -- PORT1
@@ -377,6 +380,7 @@ osc_clk_o <= osc_clk;
    end process;
       
    reset_n <= '1' when por_rst_vect = "1111" else '0';
+   reset_n_o <= reset_n;
   
    -- Reset for all logic. 
    --reset_n <= por_rst_n;  

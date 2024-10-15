@@ -38,8 +38,8 @@ class FT601(LiteXModule):
         assert pads is not None
         assert clk_pads is not None
 
-        self.ctrl_fifo_pc_fpga           = stream.Endpoint([("data", EP02_rwidth), ("empty", 1)])
-        self.ctrl_fifo_fpga_pc           = stream.Endpoint([("data", EP82_wwidth), ("full", 1)])
+        self.ctrl_fifo_pc_fpga           = stream.Endpoint([("data", EP02_rwidth), ("empty", 1, DIR_M_TO_S)])
+        self.ctrl_fifo_fpga_pc           = stream.Endpoint([("data", EP82_wwidth)])
         self.stream_fifo_pc_fpga         = stream.Endpoint([("data", EP03_rwidth), ("active", 1), ("empty", 1), ("usedw", EP03_rdusedw_width)])
         self.stream_fifo_fpga_pc         = stream.Endpoint([("data", EP83_wwidth), ("active", 1), ("full", 1),  ("usedw", EP83_wrusedw_width)])
 
@@ -88,7 +88,7 @@ class FT601(LiteXModule):
 
             # control endpoint fifo PC->FPGA
             i_EP02_rdclk         = ClockSignal("osc"),
-            i_EP02_rd            = self.ctrl_fifo_pc_fpga.valid,
+            i_EP02_rd            = self.ctrl_fifo_pc_fpga.ready,
             o_EP02_rdata         = self.ctrl_fifo_pc_fpga.data,
             o_EP02_rempty        = self.ctrl_fifo_pc_fpga.empty,
 
@@ -97,13 +97,13 @@ class FT601(LiteXModule):
             i_EP82_aclrn         = self.ctrl_fifo_fpga_pc_reset_n,
             i_EP82_wr            = self.ctrl_fifo_fpga_pc.valid,
             i_EP82_wdata         = self.ctrl_fifo_fpga_pc.data,
-            o_EP82_wfull         = self.ctrl_fifo_fpga_pc.full,
+            o_EP82_wfull         = self.ctrl_fifo_fpga_pc.ready,
 
             # stream endpoint fifo PC->FPGA
             o_EP03_active        = self.stream_fifo_pc_fpga.active,
             i_EP03_aclrn         = self.stream_fifo_pc_fpga_reset_n,
             i_EP03_rdclk         = ClockSignal("lms_tx"),
-            i_EP03_rd            = self.stream_fifo_pc_fpga.valid,
+            i_EP03_rd            = self.stream_fifo_pc_fpga.ready,
             o_EP03_rdata         = self.stream_fifo_pc_fpga.data,
             o_EP03_rempty        = self.stream_fifo_pc_fpga.empty,
             o_EP03_rusedw        = self.stream_fifo_pc_fpga.usedw,

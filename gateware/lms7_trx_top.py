@@ -38,9 +38,11 @@ class LMS7TRXTopWrapper(LiteXModule):
 
         self.platform = platform
 
+        self.reset_n  = Signal()
+
         # FT601 FIFO enpoint/ctrl PC<-> FPGA
-        self.ctrl_fifo_pc_fpga           = stream.Endpoint([("data", CTRL0_FPGA_RX_RWIDTH), ("empty", 1)])
-        self.ctrl_fifo_fpga_pc           = stream.Endpoint([("data", CTRL0_FPGA_TX_WWIDTH), ("full", 1)])
+        self.ctrl_fifo_pc_fpga           = stream.Endpoint([("data", CTRL0_FPGA_RX_RWIDTH), ("empty", 1, DIR_M_TO_S)])
+        self.ctrl_fifo_fpga_pc           = stream.Endpoint([("data", CTRL0_FPGA_TX_WWIDTH)])
         self.stream_fifo_pc_fpga         = stream.Endpoint([("data", STRM0_FPGA_RX_RWIDTH), ("active", 1), ("empty", 1), ("usedw", C_EP03_RDUSEDW_WIDTH)])
         self.stream_fifo_fpga_pc         = stream.Endpoint([("data", STRM0_FPGA_TX_WWIDTH), ("active", 1), ("full", 1),  ("usedw", C_EP83_WRUSEDW_WIDTH)])
 
@@ -110,6 +112,9 @@ class LMS7TRXTopWrapper(LiteXModule):
             o_lms_tx_clk_o          = self.cd_lms_tx.clk,
             o_lms_rx_clk_o          = self.cd_lms_rx.clk,
 
+            # Global reset
+            o_reset_n_o             = self.reset_n,
+
             # ----------------------------------------------------------------------------
             # LMS7002 Digital
             #    PORT1
@@ -135,18 +140,18 @@ class LMS7TRXTopWrapper(LiteXModule):
             #     Clock source
             i_FT_CLK                 = self.ft_clk,
             # controll endpoint fifo PC->FPGA
-            o_EP02_rd        = self.ctrl_fifo_pc_fpga.valid,
+            o_EP02_rd        = self.ctrl_fifo_pc_fpga.ready,
             i_EP02_rdata     = self.ctrl_fifo_pc_fpga.data,
             i_EP02_rempty    = self.ctrl_fifo_pc_fpga.empty,
             # controll endpoint fifo FPGA->PC
             o_EP82_aclrn     = self.ctrl_fifo_fpga_pc_reset_n,
             o_EP82_wr        = self.ctrl_fifo_fpga_pc.valid,
             o_EP82_wdata     = self.ctrl_fifo_fpga_pc.data,
-            i_EP82_wfull     = self.ctrl_fifo_fpga_pc.full,
+            i_EP82_wfull     = self.ctrl_fifo_fpga_pc.ready,
             # stream endpoint fifo PC->FPGA
             i_EP03_active    = self.stream_fifo_pc_fpga.active,
             o_EP03_aclrn     = self.stream_fifo_pc_fpga_reset_n,
-            o_EP03_rd        = self.stream_fifo_pc_fpga.valid,
+            o_EP03_rd        = self.stream_fifo_pc_fpga.ready,
             i_EP03_rdata     = self.stream_fifo_pc_fpga.data,
             i_EP03_rempty    = self.stream_fifo_pc_fpga.empty,
             i_EP03_rusedw    = self.stream_fifo_pc_fpga.usedw,
