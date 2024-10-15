@@ -16,6 +16,8 @@
 # litex_bare_metal_demo --build-path build/limesdr_mini_v2
 # litex_term jtag --jtag-config=openocd_limesdr_mini_v2.cfg --kernel demo.bin
 
+import math
+
 from migen import *
 
 from litex.gen import *
@@ -35,6 +37,24 @@ from litex.soc.cores.usb_fifo import FT245PHYSynchronous
 from litescope import LiteScopeAnalyzer
 
 from gateware.lms7_trx_top import LMS7TRXTopWrapper
+from gateware.ft601 import FT601
+
+# Constants ----------------------------------------------------------------------------------------
+
+FTDI_DQ_WIDTH        = 32    # FTDI Data bus size
+CTRL0_FPGA_RX_SIZE   = 1024  # Control PC->FPGA, FIFO size in bytes.
+CTRL0_FPGA_RX_RWIDTH = 32    # Control PC->FPGA, FIFO rd width.
+CTRL0_FPGA_TX_SIZE   = 1024  # Control FPGA->PC, FIFO size in bytes
+CTRL0_FPGA_TX_WWIDTH = 32    # Control FPGA->PC, FIFO wr width
+STRM0_FPGA_RX_SIZE   = 4096  # Stream PC->FPGA, FIFO size in bytes
+STRM0_FPGA_RX_RWIDTH = 128   # Stream PC->FPGA, rd width
+STRM0_FPGA_TX_SIZE   = 16384 # Stream FPGA->PC, FIFO size in bytes
+STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
+
+C_EP02_RDUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_RX_SIZE / (CTRL0_FPGA_RX_RWIDTH / 8)))) + 1
+C_EP82_WRUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_TX_SIZE / (CTRL0_FPGA_TX_WWIDTH / 8)))) + 1
+C_EP03_RDUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_RX_SIZE / (STRM0_FPGA_RX_RWIDTH / 8)))) + 1
+C_EP83_WRUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_TX_SIZE / (STRM0_FPGA_TX_WWIDTH / 8)))) + 1
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -60,6 +80,8 @@ class BaseSoC(SoCCore):
         **kwargs):
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
 
+        ft_clk   = platform.request("FT_CLK")
+
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on LimeSDR-Mini-V2", **kwargs)
 
@@ -67,7 +89,50 @@ class BaseSoC(SoCCore):
         self.crg = _CRG(platform, sys_clk_freq)
 
         # TOP --------------------------------------------------------------------------------------
-        self.lms7_trx_top = LMS7TRXTopWrapper(self.platform)
+        self.lms7_trx_top = LMS7TRXTopWrapper(self.platform,
+            FTDI_DQ_WIDTH        = FTDI_DQ_WIDTH,
+            CTRL0_FPGA_RX_SIZE   = CTRL0_FPGA_RX_SIZE,
+            CTRL0_FPGA_RX_RWIDTH = CTRL0_FPGA_RX_RWIDTH,
+            CTRL0_FPGA_TX_SIZE   = CTRL0_FPGA_TX_SIZE,
+            CTRL0_FPGA_TX_WWIDTH = CTRL0_FPGA_TX_WWIDTH,
+            STRM0_FPGA_RX_SIZE   = STRM0_FPGA_RX_SIZE,
+            STRM0_FPGA_RX_RWIDTH = STRM0_FPGA_RX_RWIDTH,
+            STRM0_FPGA_TX_SIZE   = STRM0_FPGA_TX_SIZE,
+            STRM0_FPGA_TX_WWIDTH = STRM0_FPGA_TX_WWIDTH,
+            C_EP02_RDUSEDW_WIDTH = C_EP02_RDUSEDW_WIDTH,
+            C_EP82_WRUSEDW_WIDTH = C_EP82_WRUSEDW_WIDTH,
+            C_EP03_RDUSEDW_WIDTH = C_EP03_RDUSEDW_WIDTH,
+            C_EP83_WRUSEDW_WIDTH = C_EP83_WRUSEDW_WIDTH,
+
+        )
+        self.comb += self.lms7_trx_top.ft_clk.eq(ft_clk)
+
+        # FT601 ------------------------------------------------------------------------------------
+        self.ft601 = FT601(self.platform, platform.request("FT"), ft_clk,
+            FT_data_width      = FTDI_DQ_WIDTH,
+            FT_be_width        = FTDI_DQ_WIDTH // 8,
+            EP02_rdusedw_width = C_EP02_RDUSEDW_WIDTH,
+            EP02_rwidth        = CTRL0_FPGA_RX_RWIDTH,
+            EP82_wrusedw_width = C_EP82_WRUSEDW_WIDTH,
+            EP82_wwidth        = CTRL0_FPGA_TX_WWIDTH,
+            EP82_wsize         = 64,
+            EP03_rdusedw_width = C_EP03_RDUSEDW_WIDTH,
+            EP03_rwidth        = STRM0_FPGA_RX_RWIDTH,
+            EP83_wrusedw_width = C_EP83_WRUSEDW_WIDTH,
+            EP83_wwidth        = STRM0_FPGA_TX_WWIDTH,
+            EP83_wsize         = 2048,
+
+        )
+
+        self.comb += [
+            self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(self.lms7_trx_top.ctrl_fifo_fpga_pc_reset_n),
+            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.lms7_trx_top.stream_fifo_fpga_pc_reset_n),
+            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.lms7_trx_top.stream_fifo_pc_fpga_reset_n),
+            self.ft601.ctrl_fifo_fpga_pc.connect(self.lms7_trx_top.ctrl_fifo_fpga_pc),
+            self.ft601.ctrl_fifo_pc_fpga.connect(self.lms7_trx_top.ctrl_fifo_pc_fpga),
+            self.ft601.stream_fifo_pc_fpga.connect(self.lms7_trx_top.stream_fifo_pc_fpga),
+            self.ft601.stream_fifo_fpga_pc.connect(self.lms7_trx_top.stream_fifo_fpga_pc),
+        ]
 
         #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}
 
