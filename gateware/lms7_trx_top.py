@@ -38,9 +38,7 @@ class LMS7TRXTopWrapper(LiteXModule):
         # LMS6 TRX TOP.
         # -------------------------
 
-        self.ip_params = dict()
-
-        self.ip_params.update(
+        self.specials += Instance("lms7_trx_top",
             # General parameters
             p_BOARD                = "LimeSDR-Mini",
             p_DEV_FAMILY           = "MAX 10",
@@ -148,18 +146,7 @@ class LMS7TRXTopWrapper(LiteXModule):
             #  Bill Of material and hardware version
             i_BOM_VER               = revision_pads.BOM_VER,
             i_HW_VER                = revision_pads.HW_VER,
-
-
         )
-
-    def add_sources(self):
-        for file in lms7_trx_files:
-            self.platform.add_source(file)
-        for file in lms7_trx_ips:
-            self.platform.add_ip(file)
-
-    def do_finalize(self):
-        self.specials += Instance("lms7_trx_top", **self.ip_params)
 
         self.platform.verilog_include_paths.append("LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc")
 
@@ -175,6 +162,12 @@ class LMS7TRXTopWrapper(LiteXModule):
             "prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True",
         ]
 
+        self.add_sources()
+
+    def add_sources(self):
+        for file in lms7_trx_files:
+            self.platform.add_source(file)
+        for file in lms7_trx_ips:
+            self.platform.add_ip(file)
         self.platform.add_strategy("LimeSDR-Mini_lms7_trx/proj/user_timing.sty", "user_timing")
 
-        self.add_sources()
