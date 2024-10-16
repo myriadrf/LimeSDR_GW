@@ -51,10 +51,10 @@ STRM0_FPGA_RX_RWIDTH = 128   # Stream PC->FPGA, rd width
 STRM0_FPGA_TX_SIZE   = 16384 # Stream FPGA->PC, FIFO size in bytes
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 
-C_EP02_RDUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_RX_SIZE / (CTRL0_FPGA_RX_RWIDTH / 8)))) + 1
-C_EP82_WRUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_TX_SIZE / (CTRL0_FPGA_TX_WWIDTH / 8)))) + 1
-C_EP03_RDUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_RX_SIZE / (STRM0_FPGA_RX_RWIDTH / 8)))) + 1
-C_EP83_WRUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_TX_SIZE / (STRM0_FPGA_TX_WWIDTH / 8)))) + 1
+C_EP02_RDUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_RX_SIZE / (CTRL0_FPGA_RX_RWIDTH // 8)))) + 1
+C_EP82_WRUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_TX_SIZE / (CTRL0_FPGA_TX_WWIDTH // 8)))) + 1
+C_EP03_RDUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_RX_SIZE / (STRM0_FPGA_RX_RWIDTH // 8)))) + 1
+C_EP83_WRUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_TX_SIZE / (STRM0_FPGA_TX_WWIDTH // 8)))) + 1
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -107,7 +107,6 @@ class BaseSoC(SoCCore):
         )
         self.comb += [
             self.lms7_trx_top.ft_clk.eq(ft_clk),
-            self.crg.cd_sys.rst.eq(~self.lms7_trx_top.reset_n),
         ]
 
         # FT601 ------------------------------------------------------------------------------------
@@ -128,22 +127,14 @@ class BaseSoC(SoCCore):
         )
 
         self.comb += [
+            self.ft601.reset_n.eq(self.lms7_trx_top.reset_n),
             self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(self.lms7_trx_top.ctrl_fifo_fpga_pc_reset_n),
             self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.lms7_trx_top.stream_fifo_fpga_pc_reset_n),
             self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.lms7_trx_top.stream_fifo_pc_fpga_reset_n),
 
-            self.ft601.ctrl_fifo_pc_fpga.connect(self.lms7_trx_top.ctrl_fifo_pc_fpga),
-            self.lms7_trx_top.ctrl_fifo_fpga_pc.connect(self.ft601.ctrl_fifo_fpga_pc),
 
-            self.ft601.stream_fifo_pc_fpga.connect(self.lms7_trx_top.stream_fifo_pc_fpga, omit=["active", "empty", "usedw"]),
-            self.lms7_trx_top.stream_fifo_pc_fpga.active.eq(self.ft601.stream_fifo_pc_fpga.active),
-            self.lms7_trx_top.stream_fifo_pc_fpga.empty.eq(self.ft601.stream_fifo_pc_fpga.empty),
-            self.lms7_trx_top.stream_fifo_pc_fpga.usedw.eq(self.ft601.stream_fifo_pc_fpga.usedw),
-
-            self.lms7_trx_top.stream_fifo_fpga_pc.connect(self.ft601.stream_fifo_fpga_pc, omit=["active", "full", "usedw"]),
-            self.lms7_trx_top.stream_fifo_fpga_pc.active.eq(self.ft601.stream_fifo_fpga_pc.active),
-            self.lms7_trx_top.stream_fifo_fpga_pc.full.eq(self.ft601.stream_fifo_fpga_pc.full),
-            self.lms7_trx_top.stream_fifo_fpga_pc.usedw.eq(self.ft601.stream_fifo_fpga_pc.usedw),
+            self.lms7_trx_top.ctrl_fifo.connect(self.ft601.ctrl_fifo),
+            self.lms7_trx_top.stream_fifo.connect(self.ft601.stream_fifo),
         ]
 
         #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}

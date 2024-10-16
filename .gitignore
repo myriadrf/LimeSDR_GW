@@ -102,3 +102,5 @@ LimeSDR-Mini_lms7_trx/proj/impl1
 LimeSDR-Mini_lms7_trx/proj/sim
 
 
+__pycache__
+build

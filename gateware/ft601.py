@@ -17,6 +17,8 @@ from litex.gen import *
 
 from litex.soc.interconnect import stream
 
+from gateware.common import FIFOInterface
+
 # FT601 --------------------------------------------------------------------------------------------
 
 class FT601(LiteXModule):
@@ -38,10 +40,10 @@ class FT601(LiteXModule):
         assert pads is not None
         assert clk_pads is not None
 
-        self.ctrl_fifo_pc_fpga           = stream.Endpoint([("data", EP02_rwidth), ("empty", 1, DIR_M_TO_S)])
-        self.ctrl_fifo_fpga_pc           = stream.Endpoint([("data", EP82_wwidth)])
-        self.stream_fifo_pc_fpga         = stream.Endpoint([("data", EP03_rwidth), ("active", 1), ("empty", 1), ("usedw", EP03_rdusedw_width)])
-        self.stream_fifo_fpga_pc         = stream.Endpoint([("data", EP83_wwidth), ("active", 1), ("full", 1),  ("usedw", EP83_wrusedw_width)])
+        self.reset_n     = Signal()
+
+        self.ctrl_fifo   = FIFOInterface(EP02_rwidth, FT_data_width)
+        self.stream_fifo = FIFOInterface(EP03_rwidth, 64, EP03_rdusedw_width, EP83_wrusedw_width)
 
         self.ctrl_fifo_fpga_pc_reset_n   = Signal()
         self.stream_fifo_fpga_pc_reset_n = Signal()
@@ -76,7 +78,7 @@ class FT601(LiteXModule):
 
             # Clk/Reset
             i_clk                = clk_pads,
-            i_reset_n            = ~ResetSignal("sys"),
+            i_reset_n            = self.reset_n,
 
             # FTDI external ports
             o_FT_wr_n            = pads.WRn,
@@ -88,34 +90,34 @@ class FT601(LiteXModule):
 
             # control endpoint fifo PC->FPGA
             i_EP02_rdclk         = ClockSignal("osc"),
-            i_EP02_rd            = self.ctrl_fifo_pc_fpga.ready,
-            o_EP02_rdata         = self.ctrl_fifo_pc_fpga.data,
-            o_EP02_rempty        = self.ctrl_fifo_pc_fpga.empty,
+            i_EP02_rd            = self.ctrl_fifo.rd,
+            o_EP02_rdata         = self.ctrl_fifo.rdata,
+            o_EP02_rempty        = self.ctrl_fifo.empty,
 
             # control endpoint fifo FPGA->PC
             i_EP82_wclk          = ClockSignal("osc"),
             i_EP82_aclrn         = self.ctrl_fifo_fpga_pc_reset_n,
-            i_EP82_wr            = self.ctrl_fifo_fpga_pc.valid,
-            i_EP82_wdata         = self.ctrl_fifo_fpga_pc.data,
-            o_EP82_wfull         = self.ctrl_fifo_fpga_pc.ready,
+            i_EP82_wr            = self.ctrl_fifo.wr,
+            i_EP82_wdata         = self.ctrl_fifo.wdata,
+            o_EP82_wfull         = self.ctrl_fifo.full,
 
             # stream endpoint fifo PC->FPGA
-            o_EP03_active        = self.stream_fifo_pc_fpga.active,
+            o_EP03_active        = self.stream_fifo.rd_active,
             i_EP03_aclrn         = self.stream_fifo_pc_fpga_reset_n,
             i_EP03_rdclk         = ClockSignal("lms_tx"),
-            i_EP03_rd            = self.stream_fifo_pc_fpga.ready,
-            o_EP03_rdata         = self.stream_fifo_pc_fpga.data,
-            o_EP03_rempty        = self.stream_fifo_pc_fpga.empty,
-            o_EP03_rusedw        = self.stream_fifo_pc_fpga.usedw,
+            i_EP03_rd            = self.stream_fifo.rd,
+            o_EP03_rdata         = self.stream_fifo.rdata,
+            o_EP03_rempty        = self.stream_fifo.empty,
+            o_EP03_rusedw        = self.stream_fifo.rdusedw,
 
             # stream endpoint fifo FPGA->PC
-            o_EP83_active        = self.stream_fifo_fpga_pc.active,
+            o_EP83_active        = self.stream_fifo.wr_active,
             i_EP83_wclk          = ClockSignal("lms_rx"),
             i_EP83_aclrn         = self.stream_fifo_fpga_pc_reset_n,
-            i_EP83_wr            = self.stream_fifo_fpga_pc.valid,
-            i_EP83_wdata         = self.stream_fifo_fpga_pc.data,
-            o_EP83_wfull         = self.stream_fifo_fpga_pc.full,
-            o_EP83_wrusedw       = self.stream_fifo_fpga_pc.usedw,
+            i_EP83_wr            = self.stream_fifo.wr,
+            i_EP83_wdata         = self.stream_fifo.wdata,
+            o_EP83_wfull         = self.stream_fifo.full,
+            o_EP83_wrusedw       = self.stream_fifo.wrusedw,
         )
 
         self.add_sources()

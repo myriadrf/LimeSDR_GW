@@ -17,6 +17,7 @@ from litex.gen import *
 
 from litex.soc.interconnect import stream
 
+from gateware.common import FIFOInterface
 from gateware.lms7_trx_files_list import lms7_trx_files, lms7_trx_ips
 
 class LMS7TRXTopWrapper(LiteXModule):
@@ -41,10 +42,8 @@ class LMS7TRXTopWrapper(LiteXModule):
         self.reset_n  = Signal()
 
         # FT601 FIFO enpoint/ctrl PC<-> FPGA
-        self.ctrl_fifo_pc_fpga           = stream.Endpoint([("data", CTRL0_FPGA_RX_RWIDTH), ("empty", 1, DIR_M_TO_S)])
-        self.ctrl_fifo_fpga_pc           = stream.Endpoint([("data", CTRL0_FPGA_TX_WWIDTH)])
-        self.stream_fifo_pc_fpga         = stream.Endpoint([("data", STRM0_FPGA_RX_RWIDTH), ("active", 1), ("empty", 1), ("usedw", C_EP03_RDUSEDW_WIDTH)])
-        self.stream_fifo_fpga_pc         = stream.Endpoint([("data", STRM0_FPGA_TX_WWIDTH), ("active", 1), ("full", 1),  ("usedw", C_EP83_WRUSEDW_WIDTH)])
+        self.ctrl_fifo   = FIFOInterface(CTRL0_FPGA_RX_RWIDTH, FTDI_DQ_WIDTH)
+        self.stream_fifo = FIFOInterface(STRM0_FPGA_RX_RWIDTH, STRM0_FPGA_TX_WWIDTH, C_EP03_RDUSEDW_WIDTH, C_EP83_WRUSEDW_WIDTH)
 
         self.ctrl_fifo_fpga_pc_reset_n   = Signal()
         self.stream_fifo_fpga_pc_reset_n = Signal()
@@ -138,30 +137,33 @@ class LMS7TRXTopWrapper(LiteXModule):
             # ----------------------------------------------------------------------------
             #   FTDI (USB3)
             #     Clock source
-            i_FT_CLK                 = self.ft_clk,
+            i_FT_CLK         = self.ft_clk,
             # controll endpoint fifo PC->FPGA
-            o_EP02_rd        = self.ctrl_fifo_pc_fpga.ready,
-            i_EP02_rdata     = self.ctrl_fifo_pc_fpga.data,
-            i_EP02_rempty    = self.ctrl_fifo_pc_fpga.empty,
+            o_EP02_rd        = self.ctrl_fifo.rd,
+            i_EP02_rdata     = self.ctrl_fifo.rdata,
+            i_EP02_rempty    = self.ctrl_fifo.empty,
+
             # controll endpoint fifo FPGA->PC
             o_EP82_aclrn     = self.ctrl_fifo_fpga_pc_reset_n,
-            o_EP82_wr        = self.ctrl_fifo_fpga_pc.valid,
-            o_EP82_wdata     = self.ctrl_fifo_fpga_pc.data,
-            i_EP82_wfull     = self.ctrl_fifo_fpga_pc.ready,
+            o_EP82_wr        = self.ctrl_fifo.wr,
+            o_EP82_wdata     = self.ctrl_fifo.wdata,
+            i_EP82_wfull     = self.ctrl_fifo.full,
+
             # stream endpoint fifo PC->FPGA
-            i_EP03_active    = self.stream_fifo_pc_fpga.active,
+            i_EP03_active    = self.stream_fifo.rd_active,
             o_EP03_aclrn     = self.stream_fifo_pc_fpga_reset_n,
-            o_EP03_rd        = self.stream_fifo_pc_fpga.ready,
-            i_EP03_rdata     = self.stream_fifo_pc_fpga.data,
-            i_EP03_rempty    = self.stream_fifo_pc_fpga.empty,
-            i_EP03_rusedw    = self.stream_fifo_pc_fpga.usedw,
+            o_EP03_rd        = self.stream_fifo.rd,
+            i_EP03_rdata     = self.stream_fifo.rdata,
+            i_EP03_rempty    = self.stream_fifo.empty,
+            i_EP03_rusedw    = self.stream_fifo.rdusedw,
+
             # stream endpoint fifo FPGA->PC
-            i_EP83_active    = self.stream_fifo_fpga_pc.active,
+            i_EP83_active    = self.stream_fifo.wr_active,
             o_EP83_aclrn     = self.stream_fifo_fpga_pc_reset_n,
-            o_EP83_wr        = self.stream_fifo_fpga_pc.valid,
-            o_EP83_wdata     = self.stream_fifo_fpga_pc.data,
-            i_EP83_wfull     = self.stream_fifo_fpga_pc.full,
-            i_EP83_wrusedw   = self.stream_fifo_fpga_pc.usedw,
+            o_EP83_wr        = self.stream_fifo.wr,
+            o_EP83_wdata     = self.stream_fifo.wdata,
+            i_EP83_wfull     = self.stream_fifo.full,
+            i_EP83_wrusedw   = self.stream_fifo.wrusedw,
 
             # ----------------------------------------------------------------------------
             #  External communication interfaces
