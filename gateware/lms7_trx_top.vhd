@@ -138,6 +138,34 @@ entity lms7_trx_top is
       EP83_wrusedw_src  : in  std_logic_vector(C1_EP83_WRUSEDW_WIDTH-1 downto 0);
 
       -- ----------------------------------------------------------------------------
+      -- Tst Top / Clock Test
+        --input ports
+       test_en          : out std_logic_vector(3 downto 0);
+       test_frc_err     : out std_logic_vector(3 downto 0);
+       test_cmplt       : in  std_logic_vector(3 downto 0);
+       test_rez         : in  std_logic_vector(3 downto 0);
+
+       Si5351C_clk_0    : out std_logic;
+       Si5351C_clk_1    : out std_logic;
+       Si5351C_clk_2    : out std_logic;
+       Si5351C_clk_3    : out std_logic;
+       Si5351C_clk_5    : out std_logic;
+       Si5351C_clk_6    : out std_logic;
+       Si5351C_clk_7    : out std_logic;
+       ADF_MUXOUT       : out std_logic;
+
+       FX3_clk_cnt      : in  std_logic_vector(15 downto 0);
+       Si5351C_clk_0_cnt: in  std_logic_vector(15 downto 0);
+       Si5351C_clk_1_cnt: in  std_logic_vector(15 downto 0);
+       Si5351C_clk_2_cnt: in  std_logic_vector(15 downto 0);
+       Si5351C_clk_3_cnt: in  std_logic_vector(15 downto 0);
+       Si5351C_clk_5_cnt: in  std_logic_vector(15 downto 0);
+       Si5351C_clk_6_cnt: in  std_logic_vector(15 downto 0);
+       Si5351C_clk_7_cnt: in  std_logic_vector(15 downto 0);
+       LMK_CLK_cnt      : in  std_logic_vector(23 downto 0);
+       ADF_MUXOUT_cnt   : in  std_logic_vector(15 downto 0);
+
+      -- ----------------------------------------------------------------------------
       -- External communication interfaces
          -- FPGA_SPI
       FPGA_SPI_SCLK     : out    std_logic;
@@ -507,25 +535,29 @@ osc_clk_o <= osc_clk;
 -- tst_top instance.
 -- Clock test logic
 -- ----------------------------------------------------------------------------
-   inst3_tst_top : entity work.tst_top
-   port map(
-      --input ports 
-      FX3_clk           => FT_CLK,
-      reset_n           => reset_n,    
-      Si5351C_clk_0     => '0',
-      Si5351C_clk_1     => '0',
-      Si5351C_clk_2     => '0',
-      Si5351C_clk_3     => '0',
-      Si5351C_clk_5     => '0',
-      Si5351C_clk_6     => '0',
-      Si5351C_clk_7     => '0',
-      LMK_CLK           => LMK_CLK,
-      ADF_MUXOUT        => '0',    
-   
-      -- To configuration memory
-      to_tstcfg         => inst0_to_tstcfg,
-      from_tstcfg       => inst0_from_tstcfg
-   );
+   test_en       <= inst0_from_tstcfg.TEST_EN(3 downto 0);
+   test_frc_err  <= inst0_from_tstcfg.TEST_FRC_ERR(3 downto 0);
+   inst0_to_tstcfg.TEST_CMPLT(3 downto 0) <= test_cmplt;
+   inst0_to_tstcfg.TEST_REZ(3 downto 0)   <= test_rez;
+   Si5351C_clk_0 <= '0';
+   Si5351C_clk_1 <= '0';
+   Si5351C_clk_2 <= '0';
+   Si5351C_clk_3 <= '0';
+   Si5351C_clk_5 <= '0';
+   Si5351C_clk_6 <= '0';
+   Si5351C_clk_7 <= '0';
+   ADF_MUXOUT    <= '0';
+
+   inst0_to_tstcfg.FX3_CLK_CNT      <= FX3_clk_cnt;
+   inst0_to_tstcfg.Si5351C_CLK0_CNT <= Si5351C_clk_0_cnt;
+   inst0_to_tstcfg.Si5351C_CLK1_CNT <= Si5351C_clk_1_cnt;
+   inst0_to_tstcfg.Si5351C_CLK2_CNT <= Si5351C_clk_2_cnt;
+   inst0_to_tstcfg.Si5351C_CLK3_CNT <= Si5351C_clk_3_cnt;
+   inst0_to_tstcfg.Si5351C_CLK5_CNT <= Si5351C_clk_5_cnt;
+   inst0_to_tstcfg.Si5351C_CLK6_CNT <= Si5351C_clk_6_cnt;
+   inst0_to_tstcfg.Si5351C_CLK7_CNT <= Si5351C_clk_7_cnt;
+   inst0_to_tstcfg.LMK_CLK_CNT      <= LMK_CLK_cnt;
+   inst0_to_tstcfg.ADF_CNT          <= ADF_MUXOUT_cnt;
    
 -- ----------------------------------------------------------------------------
 -- general_periph_top instance.
