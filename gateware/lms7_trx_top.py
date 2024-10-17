@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 import os
+import math
 from shutil import which, copyfile
 import subprocess
 
@@ -15,9 +16,8 @@ from litex.build import tools
 
 from litex.gen import *
 
-from litex.soc.interconnect import stream
-
 from gateware.common import FIFOInterface
+
 from gateware.lms7_trx_files_list import lms7_trx_files, lms7_trx_ips
 
 class LMS7TRXTopWrapper(LiteXModule):
@@ -38,22 +38,24 @@ class LMS7TRXTopWrapper(LiteXModule):
         ):
 
         self.platform = platform
-
+        self.ft_clk   = Signal()
         self.reset_n  = Signal()
 
-        # FT601 FIFO enpoint/ctrl PC<-> FPGA
+        # FT601 FIFO enpoint/ctrl PC<-> FPGA.
+        # -----------------------------------
         self.ctrl_fifo   = FIFOInterface(CTRL0_FPGA_RX_RWIDTH, FTDI_DQ_WIDTH)
         self.stream_fifo = FIFOInterface(STRM0_FPGA_RX_RWIDTH, STRM0_FPGA_TX_WWIDTH, C_EP03_RDUSEDW_WIDTH, C_EP83_WRUSEDW_WIDTH)
 
+        # FT601 FIFO enpoint/ctrl Reset.
+        # ------------------------------
         self.ctrl_fifo_fpga_pc_reset_n   = Signal()
         self.stream_fifo_fpga_pc_reset_n = Signal()
         self.stream_fifo_pc_fpga_reset_n = Signal()
-        self.ft_clk                      = Signal()
 
         # # #
 
-        # Signals
-        # -------
+        # Signals.
+        # --------
         lms_pads          = platform.request("LMS")
         fpga_spi_pads     = platform.request("FPGA_SPI")
         fpga_cfg_spi_pads = platform.request("FPGA_CFG_SPI")
@@ -62,13 +64,14 @@ class LMS7TRXTopWrapper(LiteXModule):
         revision_pads     = platform.request("revision")
         tx_lb_pads        = platform.request("TX_LB")
 
-        self.cd_osc       = ClockDomain()
-        self.cd_lms_tx    = ClockDomain()
-        self.cd_lms_rx    = ClockDomain()
+        # Clocks.
+        # -------
+        self.cd_osc    = ClockDomain()
+        self.cd_lms_rx = ClockDomain()
+        self.cd_lms_tx = ClockDomain()
 
         # LMS6 TRX TOP.
         # -------------------------
-
         self.specials += Instance("lms7_trx_top",
             # General parameters
             p_BOARD                = "LimeSDR-Mini",
@@ -85,10 +88,8 @@ class LMS7TRXTopWrapper(LiteXModule):
             p_STRM0_FPGA_RX_RWIDTH = STRM0_FPGA_RX_RWIDTH, # Stream PC->FPGA, rd width
             p_STRM0_FPGA_TX_SIZE   = STRM0_FPGA_TX_SIZE,   # Stream FPGA->PC, FIFO size in bytes
             p_STRM0_FPGA_TX_WWIDTH = STRM0_FPGA_TX_WWIDTH, # Stream FPGA->PC, wr width
-            p_C_EP02_RDUSEDW_WIDTH = C_EP02_RDUSEDW_WIDTH,
-            p_C_EP82_WRUSEDW_WIDTH = C_EP82_WRUSEDW_WIDTH,
-            p_C_EP03_RDUSEDW_WIDTH = C_EP03_RDUSEDW_WIDTH,
-            p_C_EP83_WRUSEDW_WIDTH = C_EP83_WRUSEDW_WIDTH,
+            p_C1_EP03_RDUSEDW_WIDTH = C_EP03_RDUSEDW_WIDTH,
+            p_C1_EP83_WRUSEDW_WIDTH = C_EP83_WRUSEDW_WIDTH,
             #
             p_TX_N_BUFF            = 4,      # N 4KB buffers in TX interface (2 OR 4)
             p_TX_PCT_SIZE          = 4096,   # TX packet size in bytes
@@ -102,6 +103,8 @@ class LMS7TRXTopWrapper(LiteXModule):
             # ----------------------------------------------------------------------------
             # External GND pin for reset
             # EXT_GND           : in     std_logic;
+            # Global reset
+            o_reset_n_o             = self.reset_n,
 
             # ----------------------------------------------------------------------------
             # Clock sources
@@ -110,9 +113,6 @@ class LMS7TRXTopWrapper(LiteXModule):
             o_osc_clk_o             = self.cd_osc.clk,
             o_lms_tx_clk_o          = self.cd_lms_tx.clk,
             o_lms_rx_clk_o          = self.cd_lms_rx.clk,
-
-            # Global reset
-            o_reset_n_o             = self.reset_n,
 
             # ----------------------------------------------------------------------------
             # LMS7002 Digital
@@ -138,32 +138,35 @@ class LMS7TRXTopWrapper(LiteXModule):
             #   FTDI (USB3)
             #     Clock source
             i_FT_CLK         = self.ft_clk,
+
+            # FIFOs Reset
+            o_EP82_aclrn_o   = self.ctrl_fifo_fpga_pc_reset_n,
+            o_EP03_aclrn_o   = self.stream_fifo_pc_fpga_reset_n,
+            o_EP83_aclrn_o   = self.stream_fifo_fpga_pc_reset_n,
+
             # controll endpoint fifo PC->FPGA
-            o_EP02_rd        = self.ctrl_fifo.rd,
-            i_EP02_rdata     = self.ctrl_fifo.rdata,
-            i_EP02_rempty    = self.ctrl_fifo.empty,
+            o_EP02_rd_src    = self.ctrl_fifo.rd,
+            i_EP02_rdata_src = self.ctrl_fifo.rdata,
+            i_EP02_rempty_src = self.ctrl_fifo.empty,
 
             # controll endpoint fifo FPGA->PC
-            o_EP82_aclrn     = self.ctrl_fifo_fpga_pc_reset_n,
-            o_EP82_wr        = self.ctrl_fifo.wr,
-            o_EP82_wdata     = self.ctrl_fifo.wdata,
-            i_EP82_wfull     = self.ctrl_fifo.full,
+            o_EP82_wr_src    = self.ctrl_fifo.wr,
+            o_EP82_wdata_src = self.ctrl_fifo.wdata,
+            i_EP82_wfull_src = self.ctrl_fifo.full,
 
             # stream endpoint fifo PC->FPGA
-            i_EP03_active    = self.stream_fifo.rd_active,
-            o_EP03_aclrn     = self.stream_fifo_pc_fpga_reset_n,
-            o_EP03_rd        = self.stream_fifo.rd,
-            i_EP03_rdata     = self.stream_fifo.rdata,
-            i_EP03_rempty    = self.stream_fifo.empty,
-            i_EP03_rusedw    = self.stream_fifo.rdusedw,
+            i_EP03_active_src = self.stream_fifo.rd_active,
+            o_EP03_rd_src     = self.stream_fifo.rd,
+            i_EP03_rdata_src  = self.stream_fifo.rdata,
+            i_EP03_rempty_src = self.stream_fifo.empty,
+            i_EP03_rusedw_src = self.stream_fifo.rdusedw,
 
             # stream endpoint fifo FPGA->PC
-            i_EP83_active    = self.stream_fifo.wr_active,
-            o_EP83_aclrn     = self.stream_fifo_fpga_pc_reset_n,
-            o_EP83_wr        = self.stream_fifo.wr,
-            o_EP83_wdata     = self.stream_fifo.wdata,
-            i_EP83_wfull     = self.stream_fifo.full,
-            i_EP83_wrusedw   = self.stream_fifo.wrusedw,
+            i_EP83_active_src = self.stream_fifo.wr_active,
+            o_EP83_wr_src     = self.stream_fifo.wr,
+            o_EP83_wdata_src  = self.stream_fifo.wdata,
+            i_EP83_wfull_src  = self.stream_fifo.full,
+            i_EP83_wrusedw_src = self.stream_fifo.wrusedw,
 
             # ----------------------------------------------------------------------------
             #  External communication interfaces
@@ -206,6 +209,9 @@ class LMS7TRXTopWrapper(LiteXModule):
             i_HW_VER                = revision_pads.HW_VER,
         )
 
+        platform.add_period_constraint(lms_pads.MCLK1, 1e9/125e6)
+        platform.add_period_constraint(lms_pads.MCLK2, 1e9/125e6)
+
         self.platform.verilog_include_paths.append("LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc")
 
         self.platform.toolchain.additional_ldf_commands += [
@@ -218,6 +224,21 @@ class LMS7TRXTopWrapper(LiteXModule):
             "prj_strgy set_value -strategy Strategy1 syn_push_tristates=False",
             "prj_strgy set_value -strategy Strategy1 syn_res_sharing=False",
             "prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True",
+            "prj_strgy set_value -strategy Strategy1 lse_vhdl2008=True",
+            "prj_strgy set_value -strategy Strategy1 lse_frequency=100",
+            "prj_strgy set_value -strategy Strategy1 lse_force_gsr=No",
+            "prj_strgy set_value -strategy Strategy1 lse_fix_gated_clocks=False",
+            "prj_strgy set_value -strategy Strategy1 lse_res_sharing=False",
+            "prj_strgy set_value -strategy Strategy1 par_routeing_pass=10",
+            "prj_strgy set_value -strategy Strategy1 tmchk_enable_check=False",
+        ]
+
+        mico2_sw = os.path.abspath("LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem")
+        eco_cmd = "eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {" + mico2_sw + "} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32} "
+        self.platform.toolchain.post_export_commands += [
+            eco_cmd,
+            "prj_project save",
+            "prj_run Export -impl impl -task Bitgen -forceOne",
         ]
 
         self.add_sources()

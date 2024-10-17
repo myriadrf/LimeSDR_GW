@@ -42,11 +42,8 @@ entity lms7_trx_top is
       STRM0_FPGA_RX_RWIDTH    : integer := 128;    -- Stream PC->FPGA, rd width
       STRM0_FPGA_TX_SIZE      : integer := 16384;  -- Stream FPGA->PC, FIFO size in bytes
       STRM0_FPGA_TX_WWIDTH    : integer := 64;     -- Stream FPGA->PC, wr width
-      C_EP02_RDUSEDW_WIDTH    : integer := 0;
-      C_EP82_WRUSEDW_WIDTH    : integer := 0;
-      C_EP03_RDUSEDW_WIDTH    : integer := 0;
-      C_EP83_WRUSEDW_WIDTH    : integer := 0;
-
+      C1_EP03_RDUSEDW_WIDTH   : integer := 0;
+      C1_EP83_WRUSEDW_WIDTH   : integer := 0;
       -- 
       TX_N_BUFF               : integer := 4;      -- N 4KB buffers in TX interface (2 OR 4)
       TX_PCT_SIZE             : integer := 4096;   -- TX packet size in bytes
@@ -65,12 +62,10 @@ entity lms7_trx_top is
       -- Clock sources
          -- Reference clock, coming from LMK clock buffer.
       LMK_CLK           : in     std_logic;
-      osc_clk_o         : out    std_logic;
+      reset_n_o         : out    std_logic;
       lms_tx_clk_o      : out    std_logic;
       lms_rx_clk_o      : out    std_logic;
-
-      -- Global reset
-      reset_n_o         : out    std_logic;
+      osc_clk_o         : out    std_logic;
 
       -- ----------------------------------------------------------------------------
       -- LMS7002 Digital
@@ -95,29 +90,41 @@ entity lms7_trx_top is
       -- FTDI (USB3)
          -- Clock source
       FT_CLK            : in     std_logic;
-      --controll endpoint fifo PC->FPGA
-      EP02_rd        : out std_logic;
-      EP02_rdata     : in  std_logic_vector(CTRL0_FPGA_RX_RWIDTH-1 downto 0);
-      EP02_rempty    : in  std_logic;
-      --controll endpoint fifo FPGA->PC
-      EP82_aclrn     : out std_logic;
-      EP82_wr        : out std_logic;
-      EP82_wdata     : out std_logic_vector(CTRL0_FPGA_TX_WWIDTH-1 downto 0);
-      EP82_wfull     : in  std_logic;
-      --stream endpoint fifo PC->FPGA
-      EP03_active    : in  std_logic;
-      EP03_aclrn     : out std_logic;
-      EP03_rd        : out std_logic;
-      EP03_rdata     : in  std_logic_vector(STRM0_FPGA_RX_RWIDTH-1 downto 0);
-      EP03_rempty    : in  std_logic;
-      EP03_rusedw    : in  std_logic_vector(C_EP03_RDUSEDW_WIDTH-1 downto 0);
-      --stream endpoint fifo FPGA->PC
-      EP83_active    : in  std_logic;
-      EP83_aclrn     : out std_logic;
-      EP83_wr        : out std_logic;
-      EP83_wdata     : out std_logic_vector(STRM0_FPGA_TX_WWIDTH-1 downto 0);
-      EP83_wfull     : in  std_logic;
-      EP83_wrusedw   : in  std_logic_vector(C_EP83_WRUSEDW_WIDTH-1 downto 0);
+      -- FT601 FIFOs Clk/Reset
+      EP82_aclrn_o      : out    std_logic;
+      EP03_aclrn_o      : out    std_logic;
+      EP83_aclrn_o      : out    std_logic;
+      EP82_aclrn_i      : in     std_logic;
+      EP03_aclrn_i      : in     std_logic;
+      EP83_aclrn_i      : in     std_logic;
+
+      -- ctrl
+      -- between inst/cpu and external
+      EP02_rd_src       : out    std_logic;
+      EP02_rdata_src    : in     std_logic_vector(CTRL0_FPGA_RX_RWIDTH-1 downto 0);
+      EP02_rempty_src   : in     std_logic;
+
+      -- ctrl
+      -- between inst/cpu and external
+      EP82_wr_src       : out    std_logic;
+      EP82_wdata_src    : out    std_logic_vector(CTRL0_FPGA_TX_WWIDTH-1 downto 0);
+      EP82_wfull_src    : in     std_logic;
+
+      -- stream
+      -- between inst/cpu and external
+      EP03_active_src   : in     std_logic;
+      EP03_rd_src       : out    std_logic;
+      EP03_rdata_src    : in     std_logic_vector(STRM0_FPGA_RX_RWIDTH-1 downto 0);
+      EP03_rempty_src   : in     std_logic;
+      EP03_rusedw_src   : in     std_logic_vector(C1_EP03_RDUSEDW_WIDTH-1 downto 0);
+
+      -- stream
+      -- between inst/cpu and external
+      EP83_active_src   : in  std_logic;
+      EP83_wr_src       : out std_logic;
+      EP83_wdata_src    : out std_logic_vector(63 downto 0);
+      EP83_wfull_src    : in  std_logic;
+      EP83_wrusedw_src  : in  std_logic_vector(C1_EP83_WRUSEDW_WIDTH-1 downto 0);
 
       -- ----------------------------------------------------------------------------
       -- External communication interfaces
@@ -216,6 +223,10 @@ signal inst1_pll_smpl_cmp_en     : std_logic;
 signal inst1_pll_smpl_cmp_cnt    : std_logic_vector(15 downto 0);
 
 --inst2
+constant C_EP02_RDUSEDW_WIDTH    : integer := FIFO_WORDS_TO_Nbits(CTRL0_FPGA_RX_SIZE/(CTRL0_FPGA_RX_RWIDTH/8),true);
+constant C_EP82_WRUSEDW_WIDTH    : integer := FIFO_WORDS_TO_Nbits(CTRL0_FPGA_TX_SIZE/(CTRL0_FPGA_TX_WWIDTH/8),true);
+constant C_EP03_RDUSEDW_WIDTH    : integer := FIFO_WORDS_TO_Nbits(STRM0_FPGA_RX_SIZE/(STRM0_FPGA_RX_RWIDTH/8),true);
+constant C_EP83_WRUSEDW_WIDTH    : integer := FIFO_WORDS_TO_Nbits(STRM0_FPGA_TX_SIZE/(STRM0_FPGA_TX_WWIDTH/8),true);
 signal inst2_ext_buff_data       : std_logic_vector(FTDI_DQ_WIDTH-1 downto 0);
 signal inst2_ext_buff_wr         : std_logic;
 signal inst2_EP82_wfull          : std_logic;
@@ -555,32 +566,33 @@ osc_clk_o <= osc_clk;
 -- FT601_top instance.
 -- USB3 interface 
 -- ----------------------------------------------------------------------------
-     --controll endpoint fifo PC->FPGA 
-     EP02_rd            <= inst0_exfifo_if_rd;
-     inst2_EP02_rdata   <= EP02_rdata;
-     inst2_EP02_rempty  <= EP02_rempty;
 
-     --controll endpoint fifo FPGA->PC
-     EP82_aclrn         <= not inst0_exfifo_of_rst;
-     EP82_wr            <= inst0_exfifo_of_wr;
-     EP82_wdata         <= inst0_exfifo_of_d;
-     inst2_EP82_wfull   <= EP82_wfull;
+   -- cpu to external
+   -- PC->FPGA
+   EP02_rd_src       <= inst0_exfifo_if_rd;
+   inst2_EP02_rdata  <= EP02_rdata_src;
+   inst2_EP02_rempty <= EP02_rempty_src;
+   -- FPGA->PC
+   EP82_wr_src       <= inst0_exfifo_of_wr;
+   EP82_wdata_src    <= inst0_exfifo_of_d;
+   inst2_EP82_wfull  <= EP82_wfull_src;
 
-     --stream endpoint fifo PC->FPGA
-     inst2_EP03_active  <= EP03_active;
-     EP03_aclrn         <= inst0_from_fpgacfg.rx_en;
-     EP03_rd            <= inst6_tx_in_pct_rdreq;
-     inst2_EP03_rdata   <= EP03_rdata;
-     inst2_EP03_rempty  <= EP03_rempty;
-     inst2_EP03_rdusedw <= EP03_rusedw;
+   -- stream PC -> FPGA
+   inst2_EP03_active <= EP03_active_src;
+   EP03_rd_src       <= inst6_tx_in_pct_rdreq;
+   inst2_EP03_rdata  <= EP03_rdata_src;
+   inst2_EP03_rempty <= EP03_rempty_src;
+   inst2_EP03_rdusedw<= EP03_rusedw_src;
+   -- stream FPGA -> PC
+   inst2_EP83_active  <= EP83_active_src;
+   EP83_wr_src        <= inst6_rx_pct_fifo_wrreq;
+   EP83_wdata_src     <= inst6_rx_pct_fifo_wdata;
+   inst2_EP83_wfull   <= EP83_wfull_src;
+   inst2_EP83_wrusedw <= EP83_wrusedw_src;
 
-     --stream endpoint fifo FPGA->PC
-     inst2_EP83_active  <= EP83_active;
-     EP83_aclrn         <= inst6_rx_pct_fifo_aclrn_req;
-     EP83_wr            <= inst6_rx_pct_fifo_wrreq;
-     EP83_wdata         <= inst6_rx_pct_fifo_wdata;
-     inst2_EP83_wfull   <= EP83_wfull;
-     inst2_EP83_wrusedw <= EP83_wrusedw;
+   EP82_aclrn_o       <= not inst0_exfifo_of_rst;
+   EP03_aclrn_o       <= inst0_from_fpgacfg.rx_en;
+   EP83_aclrn_o       <= inst6_rx_pct_fifo_aclrn_req;
 
 -- ----------------------------------------------------------------------------
 -- tst_top instance.

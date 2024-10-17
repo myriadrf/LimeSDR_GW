@@ -42,8 +42,8 @@ class FT601(LiteXModule):
 
         self.reset_n     = Signal()
 
-        self.ctrl_fifo   = FIFOInterface(EP02_rwidth, FT_data_width)
-        self.stream_fifo = FIFOInterface(EP03_rwidth, 64, EP03_rdusedw_width, EP83_wrusedw_width)
+        self.ctrl_fifo   = FIFOInterface(EP02_rwidth, EP82_wwidth)
+        self.stream_fifo = FIFOInterface(EP03_rwidth, EP83_wwidth, EP03_rdusedw_width, EP83_wrusedw_width)
 
         self.ctrl_fifo_fpga_pc_reset_n   = Signal()
         self.stream_fifo_fpga_pc_reset_n = Signal()
