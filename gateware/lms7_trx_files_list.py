@@ -23,8 +23,6 @@ lms7_trx_files = [
 
     "LimeSDR-Mini_lms7_trx/src/general/sync_reg.vhd",
 
-    "LimeSDR-Mini_lms7_trx/src/self_test/tst_top.vhd",
-    "LimeSDR-Mini_lms7_trx/src/self_test/clock_test.vhd",
     "LimeSDR-Mini_lms7_trx/src/general_periph/synth/general_periph_top.vhd",
     "LimeSDR-Mini_lms7_trx/src/general/alive.vhd",
     "LimeSDR-Mini_lms7_trx/src/general/FX3_LED_ctrl.vhd",
