@@ -37,8 +37,9 @@ from litex.soc.cores.usb_fifo import FT245PHYSynchronous
 from litescope import LiteScopeAnalyzer
 
 from gateware.lms7_trx_top import LMS7TRXTopWrapper
-from gateware.ft601 import FT601
+from gateware.ft601       import FT601
 from gateware.lms7002_top import LMS7002Top
+from gateware.tst_top     import TstTop
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -153,6 +154,37 @@ class BaseSoC(SoCCore):
 
             self.lms7_trx_top.delay_control.connect(self.lms7002_top.delay_control),
             self.lms7002_top.smpl_cmp.connect(self.lms7_trx_top.smpl_cmp),
+        ]
+
+        # Tst Top / Clock Test ---------------------------------------------------------------------
+        self.tst_top = TstTop(platform, ft_clk, ClockSignal("sys"))
+        self.comb += [
+            self.tst_top.reset_n.eq(self.lms7_trx_top.reset_n),
+            self.tst_top.test_en.eq(self.lms7_trx_top.test_en),
+            self.tst_top.test_frc_err.eq(self.lms7_trx_top.test_frc_err),
+
+            self.lms7_trx_top.test_cmplt.eq(self.tst_top.test_cmplt),
+            self.lms7_trx_top.test_rez.eq(self.tst_top.test_rez),
+
+            self.tst_top.Si5351C_clk_0.eq(self.lms7_trx_top.Si5351C_clk_0),
+            self.tst_top.Si5351C_clk_1.eq(self.lms7_trx_top.Si5351C_clk_1),
+            self.tst_top.Si5351C_clk_2.eq(self.lms7_trx_top.Si5351C_clk_2),
+            self.tst_top.Si5351C_clk_3.eq(self.lms7_trx_top.Si5351C_clk_3),
+            self.tst_top.Si5351C_clk_5.eq(self.lms7_trx_top.Si5351C_clk_5),
+            self.tst_top.Si5351C_clk_6.eq(self.lms7_trx_top.Si5351C_clk_6),
+            self.tst_top.Si5351C_clk_7.eq(self.lms7_trx_top.Si5351C_clk_7),
+            self.tst_top.adf_muxout.eq(self.lms7_trx_top.adf_muxout),
+
+            self.lms7_trx_top.fx3_clk_cnt.eq(self.tst_top.fx3_clk_cnt),
+            self.lms7_trx_top.Si5351C_clk_0_cnt.eq(self.tst_top.Si5351C_clk_0_cnt),
+            self.lms7_trx_top.Si5351C_clk_1_cnt.eq(self.tst_top.Si5351C_clk_1_cnt),
+            self.lms7_trx_top.Si5351C_clk_2_cnt.eq(self.tst_top.Si5351C_clk_2_cnt),
+            self.lms7_trx_top.Si5351C_clk_3_cnt.eq(self.tst_top.Si5351C_clk_3_cnt),
+            self.lms7_trx_top.Si5351C_clk_5_cnt.eq(self.tst_top.Si5351C_clk_5_cnt),
+            self.lms7_trx_top.Si5351C_clk_6_cnt.eq(self.tst_top.Si5351C_clk_6_cnt),
+            self.lms7_trx_top.Si5351C_clk_7_cnt.eq(self.tst_top.Si5351C_clk_7_cnt),
+            self.lms7_trx_top.lmk_clk_cnt.eq(self.tst_top.lmk_clk_cnt),
+            self.lms7_trx_top.adf_muxout_cnt.eq(self.tst_top.adf_muxout_cnt),
         ]
 
         #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}
