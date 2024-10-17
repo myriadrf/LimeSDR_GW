@@ -38,6 +38,7 @@ from litescope import LiteScopeAnalyzer
 
 from gateware.lms7_trx_top import LMS7TRXTopWrapper
 from gateware.ft601 import FT601
+from gateware.lms7002_top import LMS7002Top
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -81,6 +82,7 @@ class BaseSoC(SoCCore):
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
 
         ft_clk   = platform.request("FT_CLK")
+        lms_pads = platform.request("LMS")
 
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on LimeSDR-Mini-V2", **kwargs)
@@ -89,7 +91,7 @@ class BaseSoC(SoCCore):
         self.crg = _CRG(platform, sys_clk_freq)
 
         # TOP --------------------------------------------------------------------------------------
-        self.lms7_trx_top = LMS7TRXTopWrapper(self.platform,
+        self.lms7_trx_top = LMS7TRXTopWrapper(self.platform, lms_pads,
             FTDI_DQ_WIDTH        = FTDI_DQ_WIDTH,
             CTRL0_FPGA_RX_SIZE   = CTRL0_FPGA_RX_SIZE,
             CTRL0_FPGA_RX_RWIDTH = CTRL0_FPGA_RX_RWIDTH,
@@ -135,6 +137,22 @@ class BaseSoC(SoCCore):
 
             self.lms7_trx_top.ctrl_fifo.connect(self.ft601.ctrl_fifo),
             self.lms7_trx_top.stream_fifo.connect(self.ft601.stream_fifo),
+        ]
+
+        # LMS7002 Top ------------------------------------------------------------------------------
+        self.lms7002_top = LMS7002Top(platform, lms_pads)
+
+        self.comb += [
+            self.lms7002_top.reset_n.eq(self.lms7_trx_top.reset_n),
+
+            self.lms7002_top.tx_diq1_h.eq(self.lms7_trx_top.tx_diq1_h),
+            self.lms7002_top.tx_diq1_l.eq(self.lms7_trx_top.tx_diq1_l),
+
+            self.lms7_trx_top.rx_diq2_h.eq(self.lms7002_top.rx_diq2_h),
+            self.lms7_trx_top.rx_diq2_l.eq(self.lms7002_top.rx_diq2_l),
+
+            self.lms7_trx_top.delay_control.connect(self.lms7002_top.delay_control),
+            self.lms7002_top.smpl_cmp.connect(self.lms7_trx_top.smpl_cmp),
         ]
 
         #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}
