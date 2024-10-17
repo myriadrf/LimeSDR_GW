@@ -20,8 +20,10 @@ from gateware.common import FIFOInterface
 
 from gateware.lms7_trx_files_list import lms7_trx_files, lms7_trx_ips
 
+from gateware.lms7002_top import DelayControl, SampleCompare
+
 class LMS7TRXTopWrapper(LiteXModule):
-    def __init__(self, platform,
+    def __init__(self, platform, lms_pads=None,
         FTDI_DQ_WIDTH        = 32,    # FTDI Data bus size
         CTRL0_FPGA_RX_SIZE   = 1024,  # Control PC->FPGA, FIFO size in bytes.
         CTRL0_FPGA_RX_RWIDTH = 32,    # Control PC->FPGA, FIFO rd width.
@@ -37,7 +39,8 @@ class LMS7TRXTopWrapper(LiteXModule):
         C_EP83_WRUSEDW_WIDTH = 0,
         ):
 
-        self.platform = platform
+        assert lms_pads is not None
+
         self.ft_clk   = Signal()
         self.reset_n  = Signal()
 
@@ -52,11 +55,21 @@ class LMS7TRXTopWrapper(LiteXModule):
         self.stream_fifo_fpga_pc_reset_n = Signal()
         self.stream_fifo_pc_fpga_reset_n = Signal()
 
+        # LMS7002 Top Module connections.
+        # -------------------------------
+        self.tx_diq1_h     = Signal(13)
+        self.tx_diq1_l     = Signal(13)
+
+        self.rx_diq2_h     = Signal(13)
+        self.rx_diq2_l     = Signal(13)
+
+        self.delay_control = DelayControl()
+        self.smpl_cmp      = SampleCompare()
+
         # # #
 
         # Signals.
         # --------
-        lms_pads          = platform.request("LMS")
         fpga_spi_pads     = platform.request("FPGA_SPI")
         fpga_cfg_spi_pads = platform.request("FPGA_CFG_SPI")
         fpga_i2c_pads     = platform.request("FPGA_I2C")
@@ -66,9 +79,7 @@ class LMS7TRXTopWrapper(LiteXModule):
 
         # Clocks.
         # -------
-        self.cd_osc    = ClockDomain()
-        self.cd_lms_rx = ClockDomain()
-        self.cd_lms_tx = ClockDomain()
+        self.cd_osc = ClockDomain()
 
         # LMS6 TRX TOP.
         # -------------------------
@@ -111,28 +122,46 @@ class LMS7TRXTopWrapper(LiteXModule):
             #    Reference clock, coming from LMK clock buffer.
             i_LMK_CLK               = ClockSignal("sys"),
             o_osc_clk_o             = self.cd_osc.clk,
-            o_lms_tx_clk_o          = self.cd_lms_tx.clk,
-            o_lms_rx_clk_o          = self.cd_lms_rx.clk,
+            i_lms_tx_clk            = ClockSignal("lms_tx"),
+            i_lms_rx_clk            = ClockSignal("lms_rx"),
 
             # ----------------------------------------------------------------------------
             # LMS7002 Digital
             #    PORT1
-            i_LMS_MCLK1             = lms_pads.MCLK1,
-            o_LMS_FCLK1             = lms_pads.FCLK1,
+            #i_LMS_MCLK1             = lms_pads.MCLK1,
+            #o_LMS_FCLK1             = lms_pads.FCLK1,
             o_LMS_TXNRX1            = lms_pads.TXNRX1,
-            o_LMS_ENABLE_IQSEL1     = lms_pads.ENABLE_IQSEL1,
-            o_LMS_DIQ1_D            = lms_pads.DIQ1_D,
+            #o_LMS_ENABLE_IQSEL1     = lms_pads.ENABLE_IQSEL1,
+            #o_LMS_DIQ1_D            = lms_pads.DIQ1_D,
             #   PORT2
-            i_LMS_MCLK2             = lms_pads.MCLK2,
-            o_LMS_FCLK2             = lms_pads.FCLK2,
+            #i_LMS_MCLK2             = lms_pads.MCLK2,
+            #o_LMS_FCLK2             = lms_pads.FCLK2,
             o_LMS_TXNRX2_or_CLK_SEL = lms_pads.TXNRX2_or_CLK_SEL, #In v2.3 board version this pin is changed to CLK_SEL
-            i_LMS_ENABLE_IQSEL2     = lms_pads.ENABLE_IQSEL2,
-            i_LMS_DIQ2_D            = lms_pads.DIQ2_D,
+            #i_LMS_ENABLE_IQSEL2     = lms_pads.ENABLE_IQSEL2,
+            #i_LMS_DIQ2_D            = lms_pads.DIQ2_D,
             #   MISC
             o_LMS_RESET             = lms_pads.RESET,
             o_LMS_TXEN              = lms_pads.TXEN,
             o_LMS_RXEN              = lms_pads.RXEN,
             o_LMS_CORE_LDO_EN       = lms_pads.CORE_LDO_EN,
+
+            o_lms_tx_diq1_h         = self.tx_diq1_h,
+            o_lms_tx_diq1_l         = self.tx_diq1_l,
+
+            i_lms_rx_diq2_h         = self.rx_diq2_h,
+            i_lms_rx_diq2_l         = self.rx_diq2_l,
+
+            o_lms_delay_en          = self.delay_control.en,
+            o_lms_delay_sel         = self.delay_control.sel,
+            o_lms_delay_dir         = self.delay_control.dir,
+            o_lms_delay_mode        = self.delay_control.mode,
+            i_lms_delay_done        = self.delay_control.done,
+            i_lms_delay_error       = self.delay_control.error,
+
+            i_lms_smpl_cmp_en       = self.smpl_cmp.en,
+            o_lms_smpl_cmp_done     = self.smpl_cmp.done,
+            o_lms_smpl_cmp_error    = self.smpl_cmp.error,
+            i_lms_smpl_cmp_cnt      = self.smpl_cmp.cnt,
 
             # ----------------------------------------------------------------------------
             #   FTDI (USB3)
@@ -212,9 +241,9 @@ class LMS7TRXTopWrapper(LiteXModule):
         platform.add_period_constraint(lms_pads.MCLK1, 1e9/125e6)
         platform.add_period_constraint(lms_pads.MCLK2, 1e9/125e6)
 
-        self.platform.verilog_include_paths.append("LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc")
+        platform.verilog_include_paths.append("LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc")
 
-        self.platform.toolchain.additional_ldf_commands += [
+        platform.toolchain.additional_ldf_commands += [
             "prj_strgy set_value -strategy Strategy1 syn_fix_gated_and_generated_clks=False",
             "prj_strgy set_value -strategy Strategy1 syn_default_enum_encode=Onehot",
             "prj_strgy set_value -strategy Strategy1 syn_export_setting=Yes",
@@ -235,19 +264,19 @@ class LMS7TRXTopWrapper(LiteXModule):
 
         mico2_sw = os.path.abspath("LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem")
         eco_cmd = "eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {" + mico2_sw + "} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32} "
-        self.platform.toolchain.post_export_commands += [
+        platform.toolchain.post_export_commands += [
             eco_cmd,
             "prj_project save",
             "prj_run Export -impl impl -task Bitgen -forceOne",
         ]
 
-        self.add_sources()
+        self.add_sources(platform)
 
-    def add_sources(self):
+    def add_sources(self, platform):
         for file in lms7_trx_files:
-            self.platform.add_source(file)
-        self.platform.add_source("gateware/lms7_trx_top.vhd")
+            platform.add_source(file)
+        platform.add_source("gateware/lms7_trx_top.vhd")
         for file in lms7_trx_ips:
-            self.platform.add_ip(file)
-        self.platform.add_strategy("LimeSDR-Mini_lms7_trx/proj/user_timing.sty", "user_timing")
+            platform.add_ip(file)
+        platform.add_strategy("LimeSDR-Mini_lms7_trx/proj/user_timing.sty", "user_timing")
 

@@ -63,29 +63,40 @@ entity lms7_trx_top is
          -- Reference clock, coming from LMK clock buffer.
       LMK_CLK           : in     std_logic;
       reset_n_o         : out    std_logic;
-      lms_tx_clk_o      : out    std_logic;
-      lms_rx_clk_o      : out    std_logic;
+      lms_tx_clk        : in     std_logic;
+      lms_rx_clk        : in     std_logic;
       osc_clk_o         : out    std_logic;
 
       -- ----------------------------------------------------------------------------
       -- LMS7002 Digital
          -- PORT1
-      LMS_MCLK1         : in     std_logic;
-      LMS_FCLK1         : out    std_logic;
       LMS_TXNRX1        : out    std_logic;
-      LMS_ENABLE_IQSEL1 : out    std_logic;
-      LMS_DIQ1_D        : out    std_logic_vector(LMS_DIQ_WIDTH-1 downto 0);
          -- PORT2
-      LMS_MCLK2         : in     std_logic;
-      LMS_FCLK2         : out    std_logic;
       LMS_TXNRX2_or_CLK_SEL : out    std_logic; --In v2.3 board version this pin is changed to CLK_SEL
-      LMS_ENABLE_IQSEL2 : in     std_logic;
-      LMS_DIQ2_D        : in     std_logic_vector(LMS_DIQ_WIDTH-1 downto 0);
          --MISC
       LMS_RESET         : out    std_logic := '1';
       LMS_TXEN          : out    std_logic;
       LMS_RXEN          : out    std_logic;
       LMS_CORE_LDO_EN   : out    std_logic;
+
+      lms_tx_diq1_h     : out std_logic_vector(12 downto 0);
+      lms_tx_diq1_l     : out std_logic_vector(12 downto 0);
+
+      lms_rx_diq2_h     : in  std_logic_vector(12 downto 0);
+      lms_rx_diq2_l     : in  std_logic_vector(12 downto 0);
+
+      lms_delay_en      : out std_logic;
+      lms_delay_sel     : out std_logic_vector(1 downto 0);
+      lms_delay_dir     : out std_logic;
+      lms_delay_mode    : out std_logic;
+      lms_delay_done    : in  std_logic;
+      lms_delay_error   : in  std_logic;
+
+      lms_smpl_cmp_en   : in  std_logic;
+      lms_smpl_cmp_done : out std_logic;
+      lms_smpl_cmp_error: out std_logic;
+      lms_smpl_cmp_cnt  : in  std_logic_vector(15 downto 0);
+
       -- ----------------------------------------------------------------------------
       -- FTDI (USB3)
          -- Clock source
@@ -268,26 +279,6 @@ signal inst6_wfm_in_pct_reset_n_req : std_logic;
 signal inst6_wfm_in_pct_rdreq       : std_logic;
 signal inst6_wfm_phy_clk            : std_logic;
 
-
---lms inst
-signal lms_tx_clk                   : std_logic;
-signal lms_rx_clk                   : std_logic;
-signal lms_rx_diq2_h                : std_logic_vector(12 downto 0);
-signal lms_rx_diq2_l                : std_logic_vector(12 downto 0);
-
-signal lms_tx_diq1_h                : std_logic_vector(12 downto 0);
-signal lms_tx_diq1_l                : std_logic_vector(12 downto 0);               
-
-signal lms_delay_en        : std_logic; 
-signal lms_delay_sel       : std_logic_vector(1 downto 0);  
-signal lms_delay_dir       : std_logic;
-signal lms_delay_mode      : std_logic;
-signal lms_delay_done      : std_logic;
-signal lms_delay_error     : std_logic;
-signal lms_smpl_cmp_en     : std_logic;
-signal lms_smpl_cmp_done   : std_logic;
-signal lms_smpl_cmp_error  : std_logic;
-
 signal mico32_busy         : std_logic;
 
 signal osc_clk             : std_logic;
@@ -306,46 +297,6 @@ END COMPONENT;
 
 attribute syn_noprune: boolean ;
 attribute syn_noprune of USRMCLK: component is true;
-
-component lms7002_top
-   port (
-      -- Free running clock and reset 
-      clk               : in  std_logic;
-      reset_n           : in  std_logic;
-      -- TX DIQ   
-      MCLK1             : in  std_logic;
-      FLCK1             : out std_logic;
-      ENABLE_IQSEL1     : out std_logic;
-      DIQ1_D            : out std_logic_vector(11 downto 0);
-      -- RX DIQ   
-      MCLK2             : in  std_logic;
-      FLCK2             : out std_logic;
-      ENABLE_IQSEL2     : in  std_logic;
-      DIQ2_D            : in  std_logic_vector(11 downto 0);
-      -- Internal logic
-      -- tx 
-      tx_clk            : out std_logic;
-      tx_diq1_h         : in  std_logic_vector(12 downto 0);
-      tx_diq1_l         : in  std_logic_vector(12 downto 0);
-      -- rx 
-      rx_clk            : out std_logic;
-      rx_diq2_h         : out std_logic_vector(12 downto 0);
-      rx_diq2_l         : out std_logic_vector(12 downto 0);
-      -- delay control
-      delay_en          : in  std_logic;
-      delay_sel         : in  std_logic_vector(1 downto 0); --0 FCLK1, 1 - TX_DIQ(not supported), 2 - FLCK2(not supported), 3 - RX_DIQ
-      delay_dir         : in  std_logic;
-      delay_mode        : in  std_logic;  -- 0 - manual, 1 - auto
-      delay_done        : out std_logic;
-      delay_error       : out std_logic;
-      --signals from sample compare module (required for automatic phase searching)
-      smpl_cmp_en       : out std_logic;
-      smpl_cmp_done     : in std_logic;
-      smpl_cmp_error    : in std_logic;
-      smpl_cmp_cnt      : out std_logic_vector(15 downto 0)     
-   );
-end component;
-
 
 COMPONENT OSCG
 --synthesis translate_off
@@ -508,44 +459,6 @@ osc_clk_o <= osc_clk;
    inst0_to_pllcfg.pllcfg_done    <= '1';
    inst0_to_pllcfg.pll_lock       <= (others=>'0');
    
-   lms_inst : lms7002_top
-   port map (
-      -- Free running clock and reset 
-      clk            => lms_rx_clk,
-      reset_n        => reset_n,
-      -- TX DIQ
-      MCLK1          => LMS_MCLK1, 
-      FLCK1          => LMS_FCLK1, 
-      ENABLE_IQSEL1  => LMS_ENABLE_IQSEL1, 
-      DIQ1_D         => LMS_DIQ1_D, 
-      -- RX DIQ
-      MCLK2          => LMS_MCLK2, 
-      FLCK2          => LMS_FCLK2, 
-      ENABLE_IQSEL2  => LMS_ENABLE_IQSEL2,
-      DIQ2_D         => LMS_DIQ2_D, 
-      -- Internal logic
-      -- tx 
-      tx_clk         => lms_tx_clk, 
-      tx_diq1_h      => lms_tx_diq1_h,
-      tx_diq1_l      => lms_tx_diq1_l,
-      -- rx
-      rx_clk         => lms_rx_clk,
-      rx_diq2_h      => lms_rx_diq2_h,
-      rx_diq2_l      => lms_rx_diq2_l,
-            -- delay control
-      delay_en       => lms_delay_en, 
-      delay_sel      => lms_delay_sel, --0 FCLK1, 1 - TX_DIQ(not supported), 2 - FLCK2(not supported), 3 - RX_DIQ
-      delay_dir      => lms_delay_dir, 
-      delay_mode     => lms_delay_mode,  -- 0 - manual, 1 - auto
-      delay_done     => lms_delay_done,
-      delay_error    => lms_delay_error,
-      --signals from sample compare module (required for automatic phase searching)
-      smpl_cmp_en    => lms_smpl_cmp_en,
-      smpl_cmp_done  => lms_smpl_cmp_done,
-      smpl_cmp_error => lms_smpl_cmp_error,
-      smpl_cmp_cnt   => open -- inst1_pll_smpl_cmp_cnt
-   );
-   
    lms_delay_en         <= inst0_from_pllcfg.phcfg_start;
    lms_delay_sel        <= "00" when inst0_from_pllcfg.cnt_ind= "00011" else 
                            "11";
@@ -557,10 +470,6 @@ osc_clk_o <= osc_clk;
    
    inst0_to_pllcfg.phcfg_done    <= lms_delay_done;
    inst0_to_pllcfg.phcfg_error   <= lms_delay_error; 
-   
-   lms_tx_clk_o <= lms_tx_clk;
-   lms_rx_clk_o <= lms_rx_clk;
-   
    
 -- ----------------------------------------------------------------------------
 -- FT601_top instance.
