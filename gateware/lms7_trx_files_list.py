@@ -23,14 +23,6 @@ lms7_trx_files = [
 
     "LimeSDR-Mini_lms7_trx/src/general/sync_reg.vhd",
 
-    "LimeSDR-Mini_lms7_trx/src/general_periph/synth/general_periph_top.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/alive.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/FX3_LED_ctrl.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/FPGA_LED2_ctrl.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/FPGA_LED_cntrl.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/gpio_ctrl_top.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/gpio_ctrl.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/general_pkg.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/transition_count.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/singl_clk_with_ref_test.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/clk_with_ref_test.vhd",
