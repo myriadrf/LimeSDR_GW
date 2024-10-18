@@ -41,6 +41,7 @@ from gateware.ft601          import FT601
 from gateware.lms7002_top    import LMS7002Top
 from gateware.tst_top        import TstTop
 from gateware.general_periph import GeneralPeriphTop
+from gateware.rxtx_top       import RXTXTop
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -53,6 +54,11 @@ STRM0_FPGA_RX_SIZE   = 4096  # Stream PC->FPGA, FIFO size in bytes
 STRM0_FPGA_RX_RWIDTH = 128   # Stream PC->FPGA, rd width
 STRM0_FPGA_TX_SIZE   = 16384 # Stream FPGA->PC, FIFO size in bytes
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
+
+LMS_DIQ_WIDTH        = 12
+TX_IN_PCT_HDR_SIZE   = 16
+TX_PCT_SIZE          = 4096  # TX packet size in bytes
+TX_N_BUFF            = 4     # N 4KB buffers in TX interface (2 OR 4)
 
 C_EP02_RDUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_RX_SIZE / (CTRL0_FPGA_RX_RWIDTH // 8)))) + 1
 C_EP82_WRUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_TX_SIZE / (CTRL0_FPGA_TX_WWIDTH // 8)))) + 1
@@ -136,12 +142,9 @@ class BaseSoC(SoCCore):
         self.comb += [
             self.ft601.reset_n.eq(self.lms7_trx_top.reset_n),
             self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(self.lms7_trx_top.ctrl_fifo_fpga_pc_reset_n),
-            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.lms7_trx_top.stream_fifo_fpga_pc_reset_n),
             self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.lms7_trx_top.stream_fifo_pc_fpga_reset_n),
 
-
             self.lms7_trx_top.ctrl_fifo.connect(self.ft601.ctrl_fifo),
-            self.lms7_trx_top.stream_fifo.connect(self.ft601.stream_fifo),
         ]
 
         # LMS7002 Top ------------------------------------------------------------------------------
@@ -149,15 +152,7 @@ class BaseSoC(SoCCore):
 
         self.comb += [
             self.lms7002_top.reset_n.eq(self.lms7_trx_top.reset_n),
-
-            self.lms7002_top.tx_diq1_h.eq(self.lms7_trx_top.tx_diq1_h),
-            self.lms7002_top.tx_diq1_l.eq(self.lms7_trx_top.tx_diq1_l),
-
-            self.lms7_trx_top.rx_diq2_h.eq(self.lms7002_top.rx_diq2_h),
-            self.lms7_trx_top.rx_diq2_l.eq(self.lms7002_top.rx_diq2_l),
-
             self.lms7_trx_top.delay_control.connect(self.lms7002_top.delay_control),
-            self.lms7002_top.smpl_cmp.connect(self.lms7_trx_top.smpl_cmp),
         ]
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
@@ -194,6 +189,7 @@ class BaseSoC(SoCCore):
         # General Periph ---------------------------------------------------------------------------
 
         self.general_periph = GeneralPeriphTop(platform, "MAX 10")
+
         self.comb += [
             self.general_periph.reset_n.eq(self.lms7_trx_top.reset_n),
             self.general_periph.HW_VER.eq(revision_pads.HW_VER),
@@ -208,6 +204,49 @@ class BaseSoC(SoCCore):
             self.general_periph.ep03_active.eq(self.ft601.stream_fifo.rd_active),
             self.general_periph.ep83_active.eq(self.ft601.stream_fifo.wr_active),
         ]
+
+        # RXTX Top ---------------------------------------------------------------------------------
+        self.rxtx_top = RXTXTop(platform, lms_pads,
+            # TX parameters
+            TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
+            TX_N_BUFF              = TX_N_BUFF,
+            TX_IN_PCT_SIZE         = TX_PCT_SIZE,
+            TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
+            TX_IN_PCT_DATA_W       = STRM0_FPGA_RX_RWIDTH,
+            TX_IN_PCT_RDUSEDW_W    = C_EP03_RDUSEDW_WIDTH,
+
+            # RX parameters
+            RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
+            RX_INVERT_INPUT_CLOCKS = "ON",
+            RX_PCT_BUFF_WRUSEDW_W  = C_EP83_WRUSEDW_WIDTH,
+        )
+
+        self.comb += [
+            # CPU <-> RXTX Top.
+            self.rxtx_top.tx_clk_reset_n.eq(self.lms7_trx_top.reset_n),
+            self.rxtx_top.rx_clk_reset_n.eq(self.lms7_trx_top.reset_n),
+
+            self.rxtx_top.from_fpgacfg.eq(self.lms7_trx_top.from_fpgacfg),
+            self.lms7_trx_top.to_tstcfg_from_rxtx.eq(self.rxtx_top.to_tstcfg_from_rxtx),
+            self.rxtx_top.from_tstcfg.eq(self.lms7_trx_top.from_tstcfg),
+
+            self.rxtx_top.rxtx_smpl_cmp_length.eq(self.lms7_trx_top.rxtx_smpl_cmp_length),
+
+            # LMS7002 <-> RXTX Top.
+            self.lms7002_top.tx_diq1_h.eq(self.rxtx_top.tx_diq1_h),
+            self.lms7002_top.tx_diq1_l.eq(self.rxtx_top.tx_diq1_l),
+            self.rxtx_top.rx_diq2_h.eq(self.lms7002_top.rx_diq2_h),
+            self.rxtx_top.rx_diq2_l.eq(self.lms7002_top.rx_diq2_l),
+            self.rxtx_top.rx_smpl_cmp.connect(self.lms7002_top.smpl_cmp),
+
+            # FT601 <-> RXTX Top.
+            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
+            self.rxtx_top.stream_fifo.connect(self.ft601.stream_fifo),
+
+            # General Periph <-> RXTX Top.
+            self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_txant_en),
+        ]
+
 
         #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}
 
