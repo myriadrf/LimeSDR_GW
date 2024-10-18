@@ -28,26 +28,14 @@ use ECP5U.components.all;
 entity lms7_trx_top is
    generic(
       -- General parameters
-      BOARD                   : string := "LimeSDR-Mini";
-      DEV_FAMILY              : string := "MAX 10";
       -- LMS7002 related 
-      LMS_DIQ_WIDTH           : integer := 12;
       -- FTDI (USB3) related
       FTDI_DQ_WIDTH           : integer := 32;     -- FTDI Data bus size      
       CTRL0_FPGA_RX_SIZE      : integer := 1024;   -- Control PC->FPGA, FIFO size in bytes.
       CTRL0_FPGA_RX_RWIDTH    : integer := 32;     -- Control PC->FPGA, FIFO rd width.
       CTRL0_FPGA_TX_SIZE      : integer := 1024;   -- Control FPGA->PC, FIFO size in bytes
       CTRL0_FPGA_TX_WWIDTH    : integer := 32;     -- Control FPGA->PC, FIFO wr width
-      STRM0_FPGA_RX_SIZE      : integer := 4096;   -- Stream PC->FPGA, FIFO size in bytes
-      STRM0_FPGA_RX_RWIDTH    : integer := 128;    -- Stream PC->FPGA, rd width
-      STRM0_FPGA_TX_SIZE      : integer := 16384;  -- Stream FPGA->PC, FIFO size in bytes
-      STRM0_FPGA_TX_WWIDTH    : integer := 64;     -- Stream FPGA->PC, wr width
-      C1_EP03_RDUSEDW_WIDTH   : integer := 0;
-      C1_EP83_WRUSEDW_WIDTH   : integer := 0;
       -- 
-      TX_N_BUFF               : integer := 4;      -- N 4KB buffers in TX interface (2 OR 4)
-      TX_PCT_SIZE             : integer := 4096;   -- TX packet size in bytes
-      TX_IN_PCT_HDR_SIZE      : integer := 16;
       -- Internal configuration memory 
       FPGACFG_START_ADDR      : integer := 0;
       PLLCFG_START_ADDR       : integer := 32;
@@ -61,29 +49,15 @@ entity lms7_trx_top is
       -- ----------------------------------------------------------------------------
       -- Clock sources
          -- Reference clock, coming from LMK clock buffer.
-      LMK_CLK           : in     std_logic;
       reset_n_o         : out    std_logic;
-      lms_tx_clk        : in     std_logic;
-      lms_rx_clk        : in     std_logic;
       osc_clk_o         : out    std_logic;
 
       -- ----------------------------------------------------------------------------
       -- LMS7002 Digital
-         -- PORT1
-      LMS_TXNRX1        : out    std_logic;
          -- PORT2
       LMS_TXNRX2_or_CLK_SEL : out    std_logic; --In v2.3 board version this pin is changed to CLK_SEL
          --MISC
       LMS_RESET         : out    std_logic := '1';
-      LMS_TXEN          : out    std_logic;
-      LMS_RXEN          : out    std_logic;
-      LMS_CORE_LDO_EN   : out    std_logic;
-
-      lms_tx_diq1_h     : out std_logic_vector(12 downto 0);
-      lms_tx_diq1_l     : out std_logic_vector(12 downto 0);
-
-      lms_rx_diq2_h     : in  std_logic_vector(12 downto 0);
-      lms_rx_diq2_l     : in  std_logic_vector(12 downto 0);
 
       lms_delay_en      : out std_logic;
       lms_delay_sel     : out std_logic_vector(1 downto 0);
@@ -92,22 +66,13 @@ entity lms7_trx_top is
       lms_delay_done    : in  std_logic;
       lms_delay_error   : in  std_logic;
 
-      lms_smpl_cmp_en   : in  std_logic;
-      lms_smpl_cmp_done : out std_logic;
-      lms_smpl_cmp_error: out std_logic;
-      lms_smpl_cmp_cnt  : in  std_logic_vector(15 downto 0);
-
       -- ----------------------------------------------------------------------------
       -- FTDI (USB3)
          -- Clock source
-      FT_CLK            : in     std_logic;
+      --FT_CLK            : in     std_logic;
       -- FT601 FIFOs Clk/Reset
       EP82_aclrn_o      : out    std_logic;
       EP03_aclrn_o      : out    std_logic;
-      EP83_aclrn_o      : out    std_logic;
-      EP82_aclrn_i      : in     std_logic;
-      EP03_aclrn_i      : in     std_logic;
-      EP83_aclrn_i      : in     std_logic;
 
       -- ctrl
       -- between inst/cpu and external
@@ -121,29 +86,13 @@ entity lms7_trx_top is
       EP82_wdata_src    : out    std_logic_vector(CTRL0_FPGA_TX_WWIDTH-1 downto 0);
       EP82_wfull_src    : in     std_logic;
 
-      -- stream
-      -- between inst/cpu and external
-      EP03_active_src   : in     std_logic;
-      EP03_rd_src       : out    std_logic;
-      EP03_rdata_src    : in     std_logic_vector(STRM0_FPGA_RX_RWIDTH-1 downto 0);
-      EP03_rempty_src   : in     std_logic;
-      EP03_rusedw_src   : in     std_logic_vector(C1_EP03_RDUSEDW_WIDTH-1 downto 0);
-
-      -- stream
-      -- between inst/cpu and external
-      EP83_active_src   : in  std_logic;
-      EP83_wr_src       : out std_logic;
-      EP83_wdata_src    : out std_logic_vector(63 downto 0);
-      EP83_wfull_src    : in  std_logic;
-      EP83_wrusedw_src  : in  std_logic_vector(C1_EP83_WRUSEDW_WIDTH-1 downto 0);
-
       -- ----------------------------------------------------------------------------
       -- Tst Top / Clock Test
         --input ports
-       test_en          : out std_logic_vector(3 downto 0);
-       test_frc_err     : out std_logic_vector(3 downto 0);
-       test_cmplt       : in  std_logic_vector(3 downto 0);
-       test_rez         : in  std_logic_vector(3 downto 0);
+       tst_test_en      : out std_logic_vector(3 downto 0);
+       tst_test_frc_err : out std_logic_vector(3 downto 0);
+       tst_test_cmplt   : in  std_logic_vector(3 downto 0);
+       tst_test_rez     : in  std_logic_vector(3 downto 0);
 
        Si5351C_clk_0    : out std_logic;
        Si5351C_clk_1    : out std_logic;
@@ -188,7 +137,6 @@ entity lms7_trx_top is
       led1_ctrl           : out std_logic_vector(2 downto 0);
       led2_ctrl           : out std_logic_vector(2 downto 0);
       led3_ctrl           : out std_logic_vector(2 downto 0);
-      tx_txant_en         : out std_logic;
       -- to_periphcfg
       BOARD_GPIO_RD        : in  std_logic_vector(15 downto 0);
       PERIPH_INPUT_RD_0    : in  std_logic_vector(15 downto 0);
@@ -201,6 +149,60 @@ entity lms7_trx_top is
       PERIPH_OUTPUT_VAL_0  : out std_logic_vector(15 downto 0);
       PERIPH_OUTPUT_OVRD_1 : out std_logic_vector(15 downto 0);
       PERIPH_OUTPUT_VAL_1  : out std_logic_vector(15 downto 0);
+
+      -- ----------------------------------------------------------------------------
+      -- RXTX
+      rxtx_smpl_cmp_length : out std_logic_vector(15 downto 0);
+      -- from_fpgacfg
+      phase_reg_sel        : out  std_logic_vector(15 downto 0);
+      clk_ind              : out  std_logic_vector(4 downto 0);
+      cnt_ind              : out  std_logic_vector(4 downto 0);
+      load_phase_reg       : out  std_logic;
+      drct_clk_en          : out  std_logic_vector(15 downto 0);
+      ch_en                : out  std_logic_vector(15 downto 0);
+      smpl_width           : out  std_logic_vector(1 downto 0);
+      mode                 : out  std_logic;
+      ddr_en               : out  std_logic;
+      trxiq_pulse          : out  std_logic;
+      mimo_int_en          : out  std_logic;
+      synch_dis            : out  std_logic;
+      synch_mode           : out  std_logic;
+      smpl_nr_clr          : out  std_logic;
+      txpct_loss_clr       : out  std_logic;
+      rx_en                : out  std_logic;
+      tx_en                : out  std_logic;
+      rx_ptrn_en           : out  std_logic;
+      tx_ptrn_en           : out  std_logic;
+      tx_cnt_en            : out  std_logic;
+      wfm_ch_en            : out  std_logic_vector(15 downto 0);
+      wfm_play             : out  std_logic;
+      wfm_load             : out  std_logic;
+      wfm_smpl_width       : out  std_logic_vector(1 downto 0);
+      SPI_SS               : out  std_logic_vector(15 downto 0);
+      LMS1_SS              : out  std_logic;
+      LMS1_RESET           : out  std_logic;
+      LMS1_CORE_LDO_EN     : out  std_logic;
+      LMS1_TXNRX1          : out  std_logic;
+      LMS1_TXNRX2          : out  std_logic;
+      LMS1_TXEN            : out  std_logic;
+      LMS1_RXEN            : out  std_logic;
+      GPIO                 : out  std_logic_vector(15 downto 0);
+      FPGA_LED1_CTRL       : out  std_logic_vector(2 downto 0);
+      FPGA_LED2_CTRL       : out  std_logic_vector(2 downto 0);
+      FX3_LED_CTRL         : out  std_logic_vector(2 downto 0);
+      CLK_ENA              : out  std_logic_vector(3 downto 0);
+      sync_pulse_period    : out  std_logic_vector(31 downto 0);
+      sync_size            : out  std_logic_vector(15 downto 0);
+      txant_pre            : out  std_logic_vector(15 downto 0);
+      txant_post           : out  std_logic_vector(15 downto 0);
+      -- to_tst_cfg_from_rxtx
+      DDR2_1_STATUS        : in   std_logic_vector(2 downto 0);
+      DDR2_1_pnf_per_bit   : in   std_logic_vector(31 downto 0);
+      --from_tstcfg
+      TEST_EN              : out  std_logic_vector(5 downto 0);
+      TEST_FRC_ERR         : out  std_logic_vector(5 downto 0);
+      TX_TST_I             : out  std_logic_vector(15 downto 0);
+      TX_TST_Q             : out  std_logic_vector(15 downto 0);
 
          -- RF loop back control 
       RFSW_RX_V1        : out    std_logic;
@@ -259,57 +261,16 @@ signal inst0_fpga_cfg_spi_SS_n   : std_logic;
 
 signal u1_USRMCLKI               : std_logic;
 
-
-
-
---inst1 (pll_top instance)
-signal inst1_pll_c0              : std_logic;
-signal inst1_pll_c1              : std_logic;
-signal inst1_pll_c3              : std_logic;
-signal inst1_pll_locked          : std_logic;
-signal inst1_pll_smpl_cmp_en     : std_logic;
-signal inst1_pll_smpl_cmp_cnt    : std_logic_vector(15 downto 0);
-
 --inst2
 constant C_EP02_RDUSEDW_WIDTH    : integer := FIFO_WORDS_TO_Nbits(CTRL0_FPGA_RX_SIZE/(CTRL0_FPGA_RX_RWIDTH/8),true);
 constant C_EP82_WRUSEDW_WIDTH    : integer := FIFO_WORDS_TO_Nbits(CTRL0_FPGA_TX_SIZE/(CTRL0_FPGA_TX_WWIDTH/8),true);
-constant C_EP03_RDUSEDW_WIDTH    : integer := FIFO_WORDS_TO_Nbits(STRM0_FPGA_RX_SIZE/(STRM0_FPGA_RX_RWIDTH/8),true);
-constant C_EP83_WRUSEDW_WIDTH    : integer := FIFO_WORDS_TO_Nbits(STRM0_FPGA_TX_SIZE/(STRM0_FPGA_TX_WWIDTH/8),true);
-signal inst2_ext_buff_data       : std_logic_vector(FTDI_DQ_WIDTH-1 downto 0);
-signal inst2_ext_buff_wr         : std_logic;
 signal inst2_EP82_wfull          : std_logic;
-signal inst2_EP82_wrusedw        : std_logic_vector(C_EP82_WRUSEDW_WIDTH-1 downto 0);
-signal inst2_EP03_active         : std_logic;
-signal inst2_EP03_rdata          : std_logic_vector(STRM0_FPGA_RX_RWIDTH-1 downto 0);
-signal inst2_EP03_rempty         : std_logic;
-signal inst2_EP03_rdusedw        : std_logic_vector(C_EP03_RDUSEDW_WIDTH-1 downto 0);
-signal inst2_EP83_active         : std_logic;
-signal inst2_EP83_wfull          : std_logic;
-signal inst2_EP83_wrusedw        : std_logic_vector(C_EP83_WRUSEDW_WIDTH-1 downto 0);
-signal inst2_GPIF_busy           : std_logic;
-signal inst2_faddr               : std_logic_vector(4 downto 0);
 signal inst2_EP02_rdata          : std_logic_vector(CTRL0_FPGA_RX_RWIDTH-1 downto 0);
 signal inst2_EP02_rempty         : std_logic;
 signal inst2_EP02_rdusedw        : std_logic_vector(C_EP02_RDUSEDW_WIDTH-1 downto 0);
 
---inst5
-signal inst5_busy : std_logic;
-
 --inst6
-signal inst6_tx_pct_loss_flg        : std_logic;
-signal inst6_tx_txant_en            : std_logic;
-signal inst6_tx_in_pct_full         : std_logic;
-signal inst6_rx_pct_fifo_wrreq      : std_logic;
-signal inst6_rx_pct_fifo_wdata      : std_logic_vector(63 downto 0);
-signal inst6_rx_smpl_cmp_done       : std_logic;
-signal inst6_rx_smpl_cmp_err        : std_logic;
 signal inst6_to_tstcfg_from_rxtx    : t_TO_TSTCFG_FROM_RXTX;
-signal inst6_rx_pct_fifo_aclrn_req  : std_logic;
-signal inst6_tx_in_pct_rdreq        : std_logic;
-signal inst6_tx_in_pct_reset_n_req  : std_logic;
-signal inst6_wfm_in_pct_reset_n_req : std_logic;
-signal inst6_wfm_in_pct_rdreq       : std_logic;
-signal inst6_wfm_phy_clk            : std_logic;
 
 signal osc_clk             : std_logic;
 
@@ -481,9 +442,6 @@ osc_clk_o <= osc_clk;
 -- Clock source for LMS7002 RX and TX logic
 -- ----------------------------------------------------------------------------   
    
-   inst1_pll_locked        <= reset_n;
-   inst1_pll_smpl_cmp_cnt  <= (others=>'1');
-   
    --TODO: remove pll config bypass logic
    inst0_to_pllcfg.pllcfg_busy    <= '0';
    inst0_to_pllcfg.pllcfg_done    <= '1';
@@ -494,9 +452,6 @@ osc_clk_o <= osc_clk;
                            "11";
    lms_delay_dir        <= inst0_from_pllcfg.phcfg_updn;
    lms_delay_mode       <= inst0_from_pllcfg.phcfg_mode;
-   lms_smpl_cmp_done    <= inst6_rx_smpl_cmp_done;
-   lms_smpl_cmp_error   <= inst6_rx_smpl_cmp_err;
-   
    
    inst0_to_pllcfg.phcfg_done    <= lms_delay_done;
    inst0_to_pllcfg.phcfg_error   <= lms_delay_error; 
@@ -516,31 +471,17 @@ osc_clk_o <= osc_clk;
    EP82_wdata_src    <= inst0_exfifo_of_d;
    inst2_EP82_wfull  <= EP82_wfull_src;
 
-   -- stream PC -> FPGA
-   inst2_EP03_active <= EP03_active_src;
-   EP03_rd_src       <= inst6_tx_in_pct_rdreq;
-   inst2_EP03_rdata  <= EP03_rdata_src;
-   inst2_EP03_rempty <= EP03_rempty_src;
-   inst2_EP03_rdusedw<= EP03_rusedw_src;
-   -- stream FPGA -> PC
-   inst2_EP83_active  <= EP83_active_src;
-   EP83_wr_src        <= inst6_rx_pct_fifo_wrreq;
-   EP83_wdata_src     <= inst6_rx_pct_fifo_wdata;
-   inst2_EP83_wfull   <= EP83_wfull_src;
-   inst2_EP83_wrusedw <= EP83_wrusedw_src;
-
    EP82_aclrn_o       <= not inst0_exfifo_of_rst;
    EP03_aclrn_o       <= inst0_from_fpgacfg.rx_en;
-   EP83_aclrn_o       <= inst6_rx_pct_fifo_aclrn_req;
 
 -- ----------------------------------------------------------------------------
 -- tst_top instance.
 -- Clock test logic
 -- ----------------------------------------------------------------------------
-   test_en       <= inst0_from_tstcfg.TEST_EN(3 downto 0);
-   test_frc_err  <= inst0_from_tstcfg.TEST_FRC_ERR(3 downto 0);
-   inst0_to_tstcfg.TEST_CMPLT(3 downto 0) <= test_cmplt;
-   inst0_to_tstcfg.TEST_REZ(3 downto 0)   <= test_rez;
+   tst_test_en      <= inst0_from_tstcfg.TEST_EN(3 downto 0);
+   tst_test_frc_err <= inst0_from_tstcfg.TEST_FRC_ERR(3 downto 0);
+   inst0_to_tstcfg.TEST_CMPLT(3 downto 0) <= tst_test_cmplt;
+   inst0_to_tstcfg.TEST_REZ(3 downto 0)   <= tst_test_rez;
    Si5351C_clk_0 <= '0';
    Si5351C_clk_1 <= '0';
    Si5351C_clk_2 <= '0';
@@ -568,7 +509,6 @@ osc_clk_o <= osc_clk;
    led1_ctrl   <= inst0_from_fpgacfg.FPGA_LED1_CTRL;
    led2_ctrl   <= inst0_from_fpgacfg.FPGA_LED2_CTRL;
    led3_ctrl   <= inst0_from_fpgacfg.FX3_LED_CTRL;
-   tx_txant_en <= inst6_tx_txant_en;
 
    -- to_periphcfg
    inst0_to_periphcfg.BOARD_GPIO_RD     <= BOARD_GPIO_RD;
@@ -587,61 +527,57 @@ osc_clk_o <= osc_clk;
  -- rxtx_top instance.
  -- Receive and transmit interface for LMS7002
  ----------------------------------------------------------------------------
-  inst6_rxtx_top : entity work.rxtx_top
-  generic map(
-     DEV_FAMILY              => DEV_FAMILY,
-     -- TX parameters
-     TX_IQ_WIDTH             => LMS_DIQ_WIDTH,
-     TX_N_BUFF               => TX_N_BUFF,              -- 2,4 valid values
-     TX_IN_PCT_SIZE          => TX_PCT_SIZE,
-     TX_IN_PCT_HDR_SIZE      => TX_IN_PCT_HDR_SIZE,
-     TX_IN_PCT_DATA_W        => STRM0_FPGA_RX_RWIDTH,      -- 
-     TX_IN_PCT_RDUSEDW_W     => C_EP03_RDUSEDW_WIDTH,
-     
-     -- RX parameters
-     RX_IQ_WIDTH             => LMS_DIQ_WIDTH,
-     RX_INVERT_INPUT_CLOCKS  => "ON",
-     RX_PCT_BUFF_WRUSEDW_W   => C_EP83_WRUSEDW_WIDTH --bus width in bits 
-     
-  )
-  port map(                                            
-     from_fpgacfg            => inst0_from_fpgacfg,
-     to_tstcfg_from_rxtx     => inst6_to_tstcfg_from_rxtx,
-     from_tstcfg             => inst0_from_tstcfg,
-     
-     -- TX module signals
-     tx_clk                  => lms_tx_clk, --inst1_pll_c1,
-     tx_clkout               => open, --LMS_FCLK1,
-     tx_clk_reset_n          => inst1_pll_locked,     
-     tx_pct_loss_flg         => inst6_tx_pct_loss_flg,
-     tx_txant_en             => inst6_tx_txant_en,  
-     --Tx interface data 
-     tx_diq1_h               => lms_tx_diq1_h, --LMS_DIQ1_D,
-     tx_diq1_l               => lms_tx_diq1_l, --LMS_ENABLE_IQSEL1,
-     --fifo ports
-     tx_in_pct_rdreq         => inst6_tx_in_pct_rdreq,
-     tx_in_pct_data          => inst2_EP03_rdata,
-     tx_in_pct_rdempty       => inst2_EP03_rempty,
-     tx_in_pct_rdusedw       => inst2_EP03_rdusedw,
-     
-     -- RX path
-     rx_clk                  => lms_rx_clk, --inst1_pll_c3,
-     rx_clk_reset_n          => inst1_pll_locked,
-     --Rx interface data 
-     rx_diq2_h               => lms_rx_diq2_h,
-     rx_diq2_l               => lms_rx_diq2_l,
-     --Packet fifo ports
-     rx_pct_fifo_aclrn_req   => inst6_rx_pct_fifo_aclrn_req,
-     rx_pct_fifo_wusedw      => inst2_EP83_wrusedw,
-     rx_pct_fifo_wrreq       => inst6_rx_pct_fifo_wrreq,
-     rx_pct_fifo_wdata       => inst6_rx_pct_fifo_wdata,
-     --sample compare
-     rx_smpl_cmp_start       => lms_smpl_cmp_en,
-     rx_smpl_cmp_length      => inst0_from_pllcfg.auto_phcfg_smpls, --inst1_pll_smpl_cmp_cnt,
-     rx_smpl_cmp_done        => inst6_rx_smpl_cmp_done,
-     rx_smpl_cmp_err         => inst6_rx_smpl_cmp_err     
-  );
-   
+   rxtx_smpl_cmp_length <= inst0_from_pllcfg.auto_phcfg_smpls;
+   phase_reg_sel     <= inst0_from_fpgacfg.phase_reg_sel;
+   clk_ind           <= inst0_from_fpgacfg.clk_ind;
+   cnt_ind           <= inst0_from_fpgacfg.cnt_ind;
+   load_phase_reg    <= inst0_from_fpgacfg.load_phase_reg;
+   drct_clk_en       <= inst0_from_fpgacfg.drct_clk_en;
+   ch_en             <= inst0_from_fpgacfg.ch_en;
+   smpl_width        <= inst0_from_fpgacfg.smpl_width;
+   mode              <= inst0_from_fpgacfg.mode;
+   ddr_en            <= inst0_from_fpgacfg.ddr_en;
+   trxiq_pulse       <= inst0_from_fpgacfg.trxiq_pulse;
+   mimo_int_en       <= inst0_from_fpgacfg.mimo_int_en;
+   synch_dis         <= inst0_from_fpgacfg.synch_dis;
+   synch_mode        <= inst0_from_fpgacfg.synch_mode;
+   smpl_nr_clr       <= inst0_from_fpgacfg.smpl_nr_clr;
+   txpct_loss_clr    <= inst0_from_fpgacfg.txpct_loss_clr;
+   rx_en             <= inst0_from_fpgacfg.rx_en;
+   tx_en             <= inst0_from_fpgacfg.tx_en;
+   rx_ptrn_en        <= inst0_from_fpgacfg.rx_ptrn_en;
+   tx_ptrn_en        <= inst0_from_fpgacfg.tx_ptrn_en;
+   tx_cnt_en         <= inst0_from_fpgacfg.tx_cnt_en;
+   wfm_ch_en         <= inst0_from_fpgacfg.wfm_ch_en;
+   wfm_play          <= inst0_from_fpgacfg.wfm_play;
+   wfm_load          <= inst0_from_fpgacfg.wfm_load;
+   wfm_smpl_width    <= inst0_from_fpgacfg.wfm_smpl_width;
+   SPI_SS            <= inst0_from_fpgacfg.SPI_SS;
+   LMS1_SS           <= inst0_from_fpgacfg.LMS1_SS;
+   LMS1_RESET        <= inst0_from_fpgacfg.LMS1_RESET;
+   LMS1_CORE_LDO_EN  <= inst0_from_fpgacfg.LMS1_CORE_LDO_EN;
+   LMS1_TXNRX1       <= inst0_from_fpgacfg.LMS1_TXNRX1;
+   LMS1_TXNRX2       <= inst0_from_fpgacfg.LMS1_TXNRX2;
+   LMS1_TXEN         <= inst0_from_fpgacfg.LMS1_TXEN;
+   LMS1_RXEN         <= inst0_from_fpgacfg.LMS1_RXEN;
+   GPIO              <= inst0_from_fpgacfg.GPIO;
+   FPGA_LED1_CTRL    <= inst0_from_fpgacfg.FPGA_LED1_CTRL;
+   FPGA_LED2_CTRL    <= inst0_from_fpgacfg.FPGA_LED2_CTRL;
+   FX3_LED_CTRL      <= inst0_from_fpgacfg.FX3_LED_CTRL;
+   CLK_ENA           <= inst0_from_fpgacfg.CLK_ENA;
+   sync_pulse_period <= inst0_from_fpgacfg.sync_pulse_period;
+   sync_size         <= inst0_from_fpgacfg.sync_size;
+   txant_pre         <= inst0_from_fpgacfg.txant_pre;
+   txant_post        <= inst0_from_fpgacfg.txant_post;
+
+   inst6_to_tstcfg_from_rxtx.DDR2_1_STATUS      <= DDR2_1_STATUS;
+   inst6_to_tstcfg_from_rxtx.DDR2_1_pnf_per_bit <= DDR2_1_pnf_per_bit;
+
+   TEST_EN          <= inst0_from_tstcfg.TEST_EN;
+   TEST_FRC_ERR     <= inst0_from_tstcfg.TEST_FRC_ERR;
+   TX_TST_I         <= inst0_from_tstcfg.TX_TST_I;
+   TX_TST_Q         <= inst0_from_tstcfg.TX_TST_Q;
+
 -- ----------------------------------------------------------------------------
 -- Output ports
 -- ----------------------------------------------------------------------------
@@ -655,10 +591,6 @@ osc_clk_o <= osc_clk;
    FPGA_CFG_SPI_SS_N <= inst0_fpga_cfg_spi_SS_n;
    
    LMS_RESET         <= inst0_from_fpgacfg.LMS1_RESET AND inst0_lms_ctr_gpio(0);
-   LMS_TXEN          <= inst0_from_fpgacfg.LMS1_TXEN;
-   LMS_RXEN          <= inst0_from_fpgacfg.LMS1_RXEN;
-   LMS_CORE_LDO_EN   <= inst0_from_fpgacfg.LMS1_CORE_LDO_EN;
-   LMS_TXNRX1        <= inst0_from_fpgacfg.LMS1_TXNRX1;
    
    --In HW versions before v2.3 this pin is LMS_TXNRX2. After v2.3 - Clock select for LMK clock buffer (CLK_SEL) 
    LMS_TXNRX2_or_CLK_SEL <=   inst0_from_periphcfg.PERIPH_OUTPUT_VAL_1(0) when unsigned(HW_VER) > 5 else 

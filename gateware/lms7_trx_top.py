@@ -16,7 +16,7 @@ from litex.build import tools
 
 from litex.gen import *
 
-from gateware.common import FIFOInterface
+from gateware.common import *
 
 from gateware.lms7_trx_files_list import lms7_trx_files, lms7_trx_ips
 from gateware.lms7002_top         import DelayControl, SampleCompare
@@ -50,24 +50,15 @@ class LMS7TRXTopWrapper(LiteXModule):
         # FT601 FIFO enpoint/ctrl PC<-> FPGA.
         # -----------------------------------
         self.ctrl_fifo   = FIFOInterface(CTRL0_FPGA_RX_RWIDTH, FTDI_DQ_WIDTH)
-        self.stream_fifo = FIFOInterface(STRM0_FPGA_RX_RWIDTH, STRM0_FPGA_TX_WWIDTH, C_EP03_RDUSEDW_WIDTH, C_EP83_WRUSEDW_WIDTH)
 
         # FT601 FIFO enpoint/ctrl Reset.
         # ------------------------------
         self.ctrl_fifo_fpga_pc_reset_n   = Signal()
-        self.stream_fifo_fpga_pc_reset_n = Signal()
         self.stream_fifo_pc_fpga_reset_n = Signal()
 
         # LMS7002 Top Module connections.
         # -------------------------------
-        self.tx_diq1_h     = Signal(13)
-        self.tx_diq1_l     = Signal(13)
-
-        self.rx_diq2_h     = Signal(13)
-        self.rx_diq2_l     = Signal(13)
-
         self.delay_control = DelayControl()
-        self.smpl_cmp      = SampleCompare()
 
         # Tst Top / Clock Test.
         # ---------------------
@@ -102,9 +93,15 @@ class LMS7TRXTopWrapper(LiteXModule):
         self.led1_ctrl         = Signal(3)
         self.led2_ctrl         = Signal(3)
         self.led3_ctrl         = Signal(3)
-        self.tx_txant_en       = Signal()
         self.to_periphcfg      = ToPeriphCfg()
         self.from_periphcfg    = FromPeriphCfg()
+
+        # RXTX.
+        # -----
+        self.rxtx_smpl_cmp_length = Signal(16)
+        self.from_fpgacfg         = FromFPGACfg()
+        self.to_tstcfg_from_rxtx  = ToTstCfgFromRXTX()
+        self.from_tstcfg          = FromTstCfg()
 
         # # #
 
@@ -124,26 +121,16 @@ class LMS7TRXTopWrapper(LiteXModule):
         # -------------------------
         self.specials += Instance("lms7_trx_top",
             # General parameters
-            p_BOARD                = "LimeSDR-Mini",
-            p_DEV_FAMILY           = "MAX 10",
+            #p_BOARD                = "LimeSDR-Mini",
+            #p_DEV_FAMILY           = "MAX 10",
             # LMS7002 related
-            p_LMS_DIQ_WIDTH        = 12,
+            #p_LMS_DIQ_WIDTH        = 12,
             # FTDI (USB3) related
             p_FTDI_DQ_WIDTH        = FTDI_DQ_WIDTH,        # FTDI Data bus size
             p_CTRL0_FPGA_RX_SIZE   = CTRL0_FPGA_RX_SIZE,   # Control PC->FPGA, FIFO size in bytes.
             p_CTRL0_FPGA_RX_RWIDTH = CTRL0_FPGA_RX_RWIDTH, # Control PC->FPGA, FIFO rd width.
             p_CTRL0_FPGA_TX_SIZE   = CTRL0_FPGA_TX_SIZE,   # Control FPGA->PC, FIFO size in bytes
             p_CTRL0_FPGA_TX_WWIDTH = CTRL0_FPGA_TX_WWIDTH, # Control FPGA->PC, FIFO wr width
-            p_STRM0_FPGA_RX_SIZE   = STRM0_FPGA_RX_SIZE,   # Stream PC->FPGA, FIFO size in bytes
-            p_STRM0_FPGA_RX_RWIDTH = STRM0_FPGA_RX_RWIDTH, # Stream PC->FPGA, rd width
-            p_STRM0_FPGA_TX_SIZE   = STRM0_FPGA_TX_SIZE,   # Stream FPGA->PC, FIFO size in bytes
-            p_STRM0_FPGA_TX_WWIDTH = STRM0_FPGA_TX_WWIDTH, # Stream FPGA->PC, wr width
-            p_C1_EP03_RDUSEDW_WIDTH = C_EP03_RDUSEDW_WIDTH,
-            p_C1_EP83_WRUSEDW_WIDTH = C_EP83_WRUSEDW_WIDTH,
-            #
-            p_TX_N_BUFF            = 4,      # N 4KB buffers in TX interface (2 OR 4)
-            p_TX_PCT_SIZE          = 4096,   # TX packet size in bytes
-            p_TX_IN_PCT_HDR_SIZE   = 16,
             # Internal configuration memory
             p_FPGACFG_START_ADDR   = 0,
             p_PLLCFG_START_ADDR    = 32,
@@ -159,28 +146,14 @@ class LMS7TRXTopWrapper(LiteXModule):
             # ----------------------------------------------------------------------------
             # Clock sources
             #    Reference clock, coming from LMK clock buffer.
-            i_LMK_CLK               = ClockSignal("sys"),
             o_osc_clk_o             = self.cd_osc.clk,
-            i_lms_tx_clk            = ClockSignal("lms_tx"),
-            i_lms_rx_clk            = ClockSignal("lms_rx"),
 
             # ----------------------------------------------------------------------------
             # LMS7002 Digital
-            #    PORT1
-            o_LMS_TXNRX1            = lms_pads.TXNRX1,
             #   PORT2
             o_LMS_TXNRX2_or_CLK_SEL = lms_pads.TXNRX2_or_CLK_SEL, #In v2.3 board version this pin is changed to CLK_SEL
             #   MISC
             o_LMS_RESET             = lms_pads.RESET,
-            o_LMS_TXEN              = lms_pads.TXEN,
-            o_LMS_RXEN              = lms_pads.RXEN,
-            o_LMS_CORE_LDO_EN       = lms_pads.CORE_LDO_EN,
-
-            o_lms_tx_diq1_h         = self.tx_diq1_h,
-            o_lms_tx_diq1_l         = self.tx_diq1_l,
-
-            i_lms_rx_diq2_h         = self.rx_diq2_h,
-            i_lms_rx_diq2_l         = self.rx_diq2_l,
 
             o_lms_delay_en          = self.delay_control.en,
             o_lms_delay_sel         = self.delay_control.sel,
@@ -189,20 +162,13 @@ class LMS7TRXTopWrapper(LiteXModule):
             i_lms_delay_done        = self.delay_control.done,
             i_lms_delay_error       = self.delay_control.error,
 
-            i_lms_smpl_cmp_en       = self.smpl_cmp.en,
-            o_lms_smpl_cmp_done     = self.smpl_cmp.done,
-            o_lms_smpl_cmp_error    = self.smpl_cmp.error,
-            i_lms_smpl_cmp_cnt      = self.smpl_cmp.cnt,
-
             # ----------------------------------------------------------------------------
             #   FTDI (USB3)
             #     Clock source
-            i_FT_CLK         = self.ft_clk,
 
             # FIFOs Reset
             o_EP82_aclrn_o   = self.ctrl_fifo_fpga_pc_reset_n,
             o_EP03_aclrn_o   = self.stream_fifo_pc_fpga_reset_n,
-            o_EP83_aclrn_o   = self.stream_fifo_fpga_pc_reset_n,
 
             # controll endpoint fifo PC->FPGA
             o_EP02_rd_src    = self.ctrl_fifo.rd,
@@ -214,26 +180,12 @@ class LMS7TRXTopWrapper(LiteXModule):
             o_EP82_wdata_src = self.ctrl_fifo.wdata,
             i_EP82_wfull_src = self.ctrl_fifo.full,
 
-            # stream endpoint fifo PC->FPGA
-            i_EP03_active_src = self.stream_fifo.rd_active,
-            o_EP03_rd_src     = self.stream_fifo.rd,
-            i_EP03_rdata_src  = self.stream_fifo.rdata,
-            i_EP03_rempty_src = self.stream_fifo.empty,
-            i_EP03_rusedw_src = self.stream_fifo.rdusedw,
-
-            # stream endpoint fifo FPGA->PC
-            i_EP83_active_src = self.stream_fifo.wr_active,
-            o_EP83_wr_src     = self.stream_fifo.wr,
-            o_EP83_wdata_src  = self.stream_fifo.wdata,
-            i_EP83_wfull_src  = self.stream_fifo.full,
-            i_EP83_wrusedw_src = self.stream_fifo.wrusedw,
-
             # ----------------------------------------------------------------------------
             # Tst Top / Clock Test
-            o_test_en           = self.test_en,
-            o_test_frc_err      = self.test_frc_err,
-            i_test_cmplt        = self.test_cmplt,
-            i_test_rez          = self.test_rez,
+            o_tst_test_en       = self.test_en,
+            o_tst_test_frc_err  = self.test_frc_err,
+            i_tst_test_cmplt    = self.test_cmplt,
+            i_tst_test_rez      = self.test_rez,
 
             o_Si5351C_clk_0     = self.Si5351C_clk_0,
             o_Si5351C_clk_1     = self.Si5351C_clk_1,
@@ -279,8 +231,6 @@ class LMS7TRXTopWrapper(LiteXModule):
             o_led1_ctrl              = self.led1_ctrl,
             o_led2_ctrl              = self.led2_ctrl,
             o_led3_ctrl              = self.led3_ctrl,
-            #  Misc
-            o_tx_txant_en            = self.tx_txant_en,
             # to_periphcfg
             i_BOARD_GPIO_RD          = self.to_periphcfg.BOARD_GPIO_RD,
             i_PERIPH_INPUT_RD_0      = self.to_periphcfg.PERIPH_INPUT_RD_0,
@@ -293,6 +243,59 @@ class LMS7TRXTopWrapper(LiteXModule):
             o_PERIPH_OUTPUT_VAL_0    = self.from_periphcfg.PERIPH_OUTPUT_VAL_0,
             o_PERIPH_OUTPUT_OVRD_1   = self.from_periphcfg.PERIPH_OUTPUT_OVRD_1,
             o_PERIPH_OUTPUT_VAL_1    = self.from_periphcfg.PERIPH_OUTPUT_VAL_1,
+
+            # RXTX Top
+            o_rxtx_smpl_cmp_length  = self.rxtx_smpl_cmp_length,
+            # from_fpgacfg
+            o_phase_reg_sel          = self.from_fpgacfg.phase_reg_sel,
+            o_clk_ind                = self.from_fpgacfg.clk_ind,
+            o_cnt_ind                = self.from_fpgacfg.cnt_ind,
+            o_load_phase_reg         = self.from_fpgacfg.load_phase_reg,
+            o_drct_clk_en            = self.from_fpgacfg.drct_clk_en,
+            o_ch_en                  = self.from_fpgacfg.ch_en,
+            o_smpl_width             = self.from_fpgacfg.smpl_width,
+            o_mode                   = self.from_fpgacfg.mode,
+            o_ddr_en                 = self.from_fpgacfg.ddr_en,
+            o_trxiq_pulse            = self.from_fpgacfg.trxiq_pulse,
+            o_mimo_int_en            = self.from_fpgacfg.mimo_int_en,
+            o_synch_dis              = self.from_fpgacfg.synch_dis,
+            o_synch_mode             = self.from_fpgacfg.synch_mode,
+            o_smpl_nr_clr            = self.from_fpgacfg.smpl_nr_clr,
+            o_txpct_loss_clr         = self.from_fpgacfg.txpct_loss_clr,
+            o_rx_en                  = self.from_fpgacfg.rx_en,
+            o_tx_en                  = self.from_fpgacfg.tx_en,
+            o_rx_ptrn_en             = self.from_fpgacfg.rx_ptrn_en,
+            o_tx_ptrn_en             = self.from_fpgacfg.tx_ptrn_en,
+            o_tx_cnt_en              = self.from_fpgacfg.tx_cnt_en,
+            o_wfm_ch_en              = self.from_fpgacfg.wfm_ch_en,
+            o_wfm_play               = self.from_fpgacfg.wfm_play,
+            o_wfm_load               = self.from_fpgacfg.wfm_load,
+            o_wfm_smpl_width         = self.from_fpgacfg.wfm_smpl_width,
+            o_SPI_SS                 = self.from_fpgacfg.SPI_SS,
+            o_LMS1_SS                = self.from_fpgacfg.LMS1_SS,
+            o_LMS1_RESET             = self.from_fpgacfg.LMS1_RESET,
+            o_LMS1_CORE_LDO_EN       = self.from_fpgacfg.LMS1_CORE_LDO_EN,
+            o_LMS1_TXNRX1            = self.from_fpgacfg.LMS1_TXNRX1,
+            o_LMS1_TXNRX2            = self.from_fpgacfg.LMS1_TXNRX2,
+            o_LMS1_TXEN              = self.from_fpgacfg.LMS1_TXEN,
+            o_LMS1_RXEN              = self.from_fpgacfg.LMS1_RXEN,
+            o_GPIO                   = self.from_fpgacfg.GPIO,
+            o_FPGA_LED1_CTRL         = self.from_fpgacfg.FPGA_LED1_CTRL,
+            o_FPGA_LED2_CTRL         = self.from_fpgacfg.FPGA_LED2_CTRL,
+            o_FX3_LED_CTRL           = self.from_fpgacfg.FX3_LED_CTRL,
+            o_CLK_ENA                = self.from_fpgacfg.CLK_ENA,
+            o_sync_pulse_period      = self.from_fpgacfg.sync_pulse_period,
+            o_sync_size              = self.from_fpgacfg.sync_size,
+            o_txant_pre              = self.from_fpgacfg.txant_pre,
+            o_txant_post             = self.from_fpgacfg.txant_post,
+            # to_tst_cfg_from_rxtx
+            i_DDR2_1_STATUS          = self.to_tstcfg_from_rxtx.DDR2_1_STATUS,
+            i_DDR2_1_pnf_per_bit     = self.to_tstcfg_from_rxtx.DDR2_1_pnf_per_bit,
+            # from_tstcfg
+            o_TEST_EN                = self.from_tstcfg.TEST_EN,
+            o_TEST_FRC_ERR           = self.from_tstcfg.TEST_FRC_ERR,
+            o_TX_TST_I               = self.from_tstcfg.TX_TST_I,
+            o_TX_TST_Q               = self.from_tstcfg.TX_TST_Q,
 
             #  RF loop back control
             o_RFSW_RX_V1            = rfsw_pads.RX_V1,
