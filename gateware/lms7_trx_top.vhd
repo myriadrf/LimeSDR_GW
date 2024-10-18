@@ -184,15 +184,24 @@ entity lms7_trx_top is
       -- ----------------------------------------------------------------------------
       -- General periphery
          -- LEDs          
-      FPGA_LED1_R        : out    std_logic;
-      FPGA_LED1_G        : out    std_logic;
-         -- GPIO 
-      FPGA_GPIO         : inout  std_logic_vector(7 downto 0);
-      FPGA_EGPIO        : inout  std_logic_vector(1 downto 0);
-         -- Temperature sensor
-      LM75_OS           : in     std_logic;
-         -- Fan control 
-      FAN_CTRL          : out    std_logic;
+      mico32_busy         : out std_logic;
+      led1_ctrl           : out std_logic_vector(2 downto 0);
+      led2_ctrl           : out std_logic_vector(2 downto 0);
+      led3_ctrl           : out std_logic_vector(2 downto 0);
+      tx_txant_en         : out std_logic;
+      -- to_periphcfg
+      BOARD_GPIO_RD        : in  std_logic_vector(15 downto 0);
+      PERIPH_INPUT_RD_0    : in  std_logic_vector(15 downto 0);
+      PERIPH_INPUT_RD_1    : in  std_logic_vector(15 downto 0);
+      -- from_periphcfg
+      BOARD_GPIO_OVRD      : out std_logic_vector(15 downto 0);
+      BOARD_GPIO_DIR       : out std_logic_vector(15 downto 0);
+      BOARD_GPIO_VAL       : out std_logic_vector(15 downto 0);
+      PERIPH_OUTPUT_OVRD_0 : out std_logic_vector(15 downto 0);
+      PERIPH_OUTPUT_VAL_0  : out std_logic_vector(15 downto 0);
+      PERIPH_OUTPUT_OVRD_1 : out std_logic_vector(15 downto 0);
+      PERIPH_OUTPUT_VAL_1  : out std_logic_vector(15 downto 0);
+
          -- RF loop back control 
       RFSW_RX_V1        : out    std_logic;
       RFSW_RX_V2        : out    std_logic;
@@ -283,11 +292,6 @@ signal inst2_EP02_rdata          : std_logic_vector(CTRL0_FPGA_RX_RWIDTH-1 downt
 signal inst2_EP02_rempty         : std_logic;
 signal inst2_EP02_rdusedw        : std_logic_vector(C_EP02_RDUSEDW_WIDTH-1 downto 0);
 
---inst4
-constant C_INST4_GPIO_N          : integer := FPGA_GPIO'length + FPGA_EGPIO'length;
-signal inst4_gpio                : std_logic_vector(C_INST4_GPIO_N-1 downto 0);
-
-
 --inst5
 signal inst5_busy : std_logic;
 
@@ -306,8 +310,6 @@ signal inst6_tx_in_pct_reset_n_req  : std_logic;
 signal inst6_wfm_in_pct_reset_n_req : std_logic;
 signal inst6_wfm_in_pct_rdreq       : std_logic;
 signal inst6_wfm_phy_clk            : std_logic;
-
-signal mico32_busy         : std_logic;
 
 signal osc_clk             : std_logic;
 
@@ -563,55 +565,23 @@ osc_clk_o <= osc_clk;
 -- general_periph_top instance.
 -- Control module for external periphery
 -- ----------------------------------------------------------------------------
-   inst4_general_periph_top : entity work.general_periph_top
-   generic map(
-      DEV_FAMILY  => DEV_FAMILY,
-      N_GPIO      => C_INST4_GPIO_N
-   )
-   port map(
-      -- General ports
-      clk                  => osc_clk,
-      reset_n              => reset_n,
-      -- configuration memory
-      to_periphcfg         => inst0_to_periphcfg,
-      from_periphcfg       => inst0_from_periphcfg,     
-      -- Dual colour LEDs
-      -- LED1 (Clock and PLL lock status)
-      led1_mico32_busy     => mico32_busy,
-      led1_ctrl            => inst0_from_fpgacfg.FPGA_LED1_CTRL,
-      led1_g               => FPGA_LED1_G,
-      led1_r               => FPGA_LED1_R,      
-      --LED2 (TCXO control status)
-      led2_clk             => '0',
-      led2_adf_muxout      => '0',
-      led2_dac_ss          => '0',
-      led2_adf_ss          => '0',
-      led2_ctrl            => inst0_from_fpgacfg.FPGA_LED2_CTRL,
-      led2_g               => open,
-      led2_r               => open,     
-      --LED3 (FX3 and NIOS CPU busy)
-      led3_g_in            => '0',
-      led3_r_in            => '0',
-      led3_ctrl            => inst0_from_fpgacfg.FX3_LED_CTRL,
-      led3_hw_ver          => HW_VER,
-      led3_g               => open,
-      led3_r               => open,     
-      --GPIO
-      gpio_dir             => (others=>'1'),
-      gpio_out_val(9 downto 8)   => "00",
-      gpio_out_val(7)            => NOT inst2_EP03_active,  -- Shared with FPGA_LED3_R
-      gpio_out_val(6)            => '1',                    -- Shared with FPGA_LED3_G
-      gpio_out_val(5)            => '1',                    -- Shared with FPGA_LED2_R
-      gpio_out_val(4)            => NOT inst2_EP83_active,  -- Shared with FPGA_LED2_G
-      gpio_out_val(3 downto 1)   => "000",
-      gpio_out_val(0)            => inst6_tx_txant_en,
-      gpio_rd_val          => open,
-      gpio(7 downto 0)     => FPGA_GPIO,
-      gpio(9 downto 8)     => FPGA_EGPIO,
-      --Fan control
-      fan_sens_in          => LM75_OS,
-      fan_ctrl_out         => FAN_CTRL
-   );
+   led1_ctrl   <= inst0_from_fpgacfg.FPGA_LED1_CTRL;
+   led2_ctrl   <= inst0_from_fpgacfg.FPGA_LED2_CTRL;
+   led3_ctrl   <= inst0_from_fpgacfg.FX3_LED_CTRL;
+   tx_txant_en <= inst6_tx_txant_en;
+
+   -- to_periphcfg
+   inst0_to_periphcfg.BOARD_GPIO_RD     <= BOARD_GPIO_RD;
+   inst0_to_periphcfg.PERIPH_INPUT_RD_0 <= PERIPH_INPUT_RD_0;
+   inst0_to_periphcfg.PERIPH_INPUT_RD_1 <= PERIPH_INPUT_RD_1;
+   -- from_periphcfg
+   BOARD_GPIO_OVRD      <= inst0_from_periphcfg.BOARD_GPIO_OVRD;
+   BOARD_GPIO_DIR       <= inst0_from_periphcfg.BOARD_GPIO_DIR;
+   BOARD_GPIO_VAL       <= inst0_from_periphcfg.BOARD_GPIO_VAL;
+   PERIPH_OUTPUT_OVRD_0 <= inst0_from_periphcfg.PERIPH_OUTPUT_OVRD_0;
+   PERIPH_OUTPUT_VAL_0  <= inst0_from_periphcfg.PERIPH_OUTPUT_VAL_0;
+   PERIPH_OUTPUT_OVRD_1 <= inst0_from_periphcfg.PERIPH_OUTPUT_OVRD_1;
+   PERIPH_OUTPUT_VAL_1  <= inst0_from_periphcfg.PERIPH_OUTPUT_VAL_1;
    
  ----------------------------------------------------------------------------
  -- rxtx_top instance.

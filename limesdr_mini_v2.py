@@ -36,10 +36,11 @@ from litex.soc.cores.usb_fifo import FT245PHYSynchronous
 
 from litescope import LiteScopeAnalyzer
 
-from gateware.lms7_trx_top import LMS7TRXTopWrapper
-from gateware.ft601       import FT601
-from gateware.lms7002_top import LMS7002Top
-from gateware.tst_top     import TstTop
+from gateware.lms7_trx_top   import LMS7TRXTopWrapper
+from gateware.ft601          import FT601
+from gateware.lms7002_top    import LMS7002Top
+from gateware.tst_top        import TstTop
+from gateware.general_periph import GeneralPeriphTop
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -82,8 +83,9 @@ class BaseSoC(SoCCore):
         **kwargs):
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
 
-        ft_clk   = platform.request("FT_CLK")
-        lms_pads = platform.request("LMS")
+        ft_clk        = platform.request("FT_CLK")
+        lms_pads      = platform.request("LMS")
+        revision_pads = platform.request("revision")
 
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on LimeSDR-Mini-V2", **kwargs)
@@ -110,6 +112,8 @@ class BaseSoC(SoCCore):
         )
         self.comb += [
             self.lms7_trx_top.ft_clk.eq(ft_clk),
+            self.lms7_trx_top.HW_VER.eq(revision_pads.HW_VER),
+            self.lms7_trx_top.BOM_VER.eq(revision_pads.BOM_VER),
         ]
 
         # FT601 ------------------------------------------------------------------------------------
@@ -185,6 +189,24 @@ class BaseSoC(SoCCore):
             self.lms7_trx_top.Si5351C_clk_7_cnt.eq(self.tst_top.Si5351C_clk_7_cnt),
             self.lms7_trx_top.lmk_clk_cnt.eq(self.tst_top.lmk_clk_cnt),
             self.lms7_trx_top.adf_muxout_cnt.eq(self.tst_top.adf_muxout_cnt),
+        ]
+
+        # General Periph ---------------------------------------------------------------------------
+
+        self.general_periph = GeneralPeriphTop(platform, "MAX 10")
+        self.comb += [
+            self.general_periph.reset_n.eq(self.lms7_trx_top.reset_n),
+            self.general_periph.HW_VER.eq(revision_pads.HW_VER),
+
+            self.lms7_trx_top.to_periphcfg.eq(self.general_periph.to_periphcfg),
+            self.general_periph.from_periphcfg.eq(self.lms7_trx_top.from_periphcfg),
+
+            self.general_periph.led1_mico32_busy.eq(self.lms7_trx_top.led1_mico32_busy),
+            self.general_periph.led1_ctrl.eq(self.lms7_trx_top.led1_ctrl),
+            self.general_periph.led2_ctrl.eq(self.lms7_trx_top.led2_ctrl),
+            self.general_periph.fx3_led_ctrl.eq(self.lms7_trx_top.led3_ctrl),
+            self.general_periph.ep03_active.eq(self.ft601.stream_fifo.rd_active),
+            self.general_periph.ep83_active.eq(self.ft601.stream_fifo.wr_active),
         ]
 
         #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}

@@ -19,8 +19,8 @@ from litex.gen import *
 from gateware.common import FIFOInterface
 
 from gateware.lms7_trx_files_list import lms7_trx_files, lms7_trx_ips
-
-from gateware.lms7002_top import DelayControl, SampleCompare
+from gateware.lms7002_top         import DelayControl, SampleCompare
+from gateware.general_periph      import ToPeriphCfg, FromPeriphCfg
 
 class LMS7TRXTopWrapper(LiteXModule):
     def __init__(self, platform, lms_pads=None,
@@ -43,6 +43,9 @@ class LMS7TRXTopWrapper(LiteXModule):
 
         self.ft_clk   = Signal()
         self.reset_n  = Signal()
+
+        self.HW_VER   = Signal(4)
+        self.BOM_VER  = Signal(3)
 
         # FT601 FIFO enpoint/ctrl PC<-> FPGA.
         # -----------------------------------
@@ -93,6 +96,16 @@ class LMS7TRXTopWrapper(LiteXModule):
         self.lmk_clk_cnt       = Signal(24)
         self.adf_muxout_cnt    = Signal(16)
 
+        # General Periph.
+        # ---------------
+        self.led1_mico32_busy  = Signal()
+        self.led1_ctrl         = Signal(3)
+        self.led2_ctrl         = Signal(3)
+        self.led3_ctrl         = Signal(3)
+        self.tx_txant_en       = Signal()
+        self.to_periphcfg      = ToPeriphCfg()
+        self.from_periphcfg    = FromPeriphCfg()
+
         # # #
 
         # Signals.
@@ -101,7 +114,6 @@ class LMS7TRXTopWrapper(LiteXModule):
         fpga_cfg_spi_pads = platform.request("FPGA_CFG_SPI")
         fpga_i2c_pads     = platform.request("FPGA_I2C")
         rfsw_pads         = platform.request("RFSW")
-        revision_pads     = platform.request("revision")
         tx_lb_pads        = platform.request("TX_LB")
 
         # Clocks.
@@ -155,17 +167,9 @@ class LMS7TRXTopWrapper(LiteXModule):
             # ----------------------------------------------------------------------------
             # LMS7002 Digital
             #    PORT1
-            #i_LMS_MCLK1             = lms_pads.MCLK1,
-            #o_LMS_FCLK1             = lms_pads.FCLK1,
             o_LMS_TXNRX1            = lms_pads.TXNRX1,
-            #o_LMS_ENABLE_IQSEL1     = lms_pads.ENABLE_IQSEL1,
-            #o_LMS_DIQ1_D            = lms_pads.DIQ1_D,
             #   PORT2
-            #i_LMS_MCLK2             = lms_pads.MCLK2,
-            #o_LMS_FCLK2             = lms_pads.FCLK2,
             o_LMS_TXNRX2_or_CLK_SEL = lms_pads.TXNRX2_or_CLK_SEL, #In v2.3 board version this pin is changed to CLK_SEL
-            #i_LMS_ENABLE_IQSEL2     = lms_pads.ENABLE_IQSEL2,
-            #i_LMS_DIQ2_D            = lms_pads.DIQ2_D,
             #   MISC
             o_LMS_RESET             = lms_pads.RESET,
             o_LMS_TXEN              = lms_pads.TXEN,
@@ -271,15 +275,25 @@ class LMS7TRXTopWrapper(LiteXModule):
             # ----------------------------------------------------------------------------
             # General periphery
             #  LEDs
-            o_FPGA_LED1_R           = platform.request("FPGA_LED1_R"),
-            o_FPGA_LED1_G           = platform.request("FPGA_LED1_G"),
-            #  GPIO
-            io_FPGA_GPIO            = platform.request("FPGA_GPIO"),
-            io_FPGA_EGPIO           = platform.request("FPGA_EGPIO"),
-            #  Temperature sensor
-            i_LM75_OS               = platform.request("LM75_OS"),
-            #  Fan control
-            o_FAN_CTRL              = platform.request("FAN_CTRL"),
+            o_mico32_busy            = self.led1_mico32_busy,
+            o_led1_ctrl              = self.led1_ctrl,
+            o_led2_ctrl              = self.led2_ctrl,
+            o_led3_ctrl              = self.led3_ctrl,
+            #  Misc
+            o_tx_txant_en            = self.tx_txant_en,
+            # to_periphcfg
+            i_BOARD_GPIO_RD          = self.to_periphcfg.BOARD_GPIO_RD,
+            i_PERIPH_INPUT_RD_0      = self.to_periphcfg.PERIPH_INPUT_RD_0,
+            i_PERIPH_INPUT_RD_1      = self.to_periphcfg.PERIPH_INPUT_RD_1,
+            # from_periphcfg
+            o_BOARD_GPIO_OVRD        = self.from_periphcfg.BOARD_GPIO_OVRD,
+            o_BOARD_GPIO_DIR         = self.from_periphcfg.BOARD_GPIO_DIR,
+            o_BOARD_GPIO_VAL         = self.from_periphcfg.BOARD_GPIO_VAL,
+            o_PERIPH_OUTPUT_OVRD_0   = self.from_periphcfg.PERIPH_OUTPUT_OVRD_0,
+            o_PERIPH_OUTPUT_VAL_0    = self.from_periphcfg.PERIPH_OUTPUT_VAL_0,
+            o_PERIPH_OUTPUT_OVRD_1   = self.from_periphcfg.PERIPH_OUTPUT_OVRD_1,
+            o_PERIPH_OUTPUT_VAL_1    = self.from_periphcfg.PERIPH_OUTPUT_VAL_1,
+
             #  RF loop back control
             o_RFSW_RX_V1            = rfsw_pads.RX_V1,
             o_RFSW_RX_V2            = rfsw_pads.RX_V2,
@@ -288,9 +302,10 @@ class LMS7TRXTopWrapper(LiteXModule):
             o_TX_LB_AT              = tx_lb_pads.AT,
             o_TX_LB_SH              = tx_lb_pads.SH,
             #  Bill Of material and hardware version
-            i_BOM_VER               = revision_pads.BOM_VER,
-            i_HW_VER                = revision_pads.HW_VER,
+            i_BOM_VER               = self.BOM_VER,
+            i_HW_VER                = self.HW_VER,
         )
+
 
         platform.add_period_constraint(lms_pads.MCLK1, 1e9/125e6)
         platform.add_period_constraint(lms_pads.MCLK2, 1e9/125e6)
