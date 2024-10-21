@@ -237,7 +237,7 @@ class BaseSoC(SoCCore):
             self.lms7002_top.tx_diq1_l.eq(self.rxtx_top.tx_diq1_l),
             self.rxtx_top.rx_diq2_h.eq(self.lms7002_top.rx_diq2_h),
             self.rxtx_top.rx_diq2_l.eq(self.lms7002_top.rx_diq2_l),
-            self.rxtx_top.rx_smpl_cmp.connect(self.lms7002_top.smpl_cmp),
+            self.lms7002_top.smpl_cmp.connect(self.rxtx_top.rx_smpl_cmp),
 
             # FT601 <-> RXTX Top.
             self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
