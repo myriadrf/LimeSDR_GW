@@ -96,13 +96,31 @@ unsigned char dac_data[2];
 
 signed short int converted_val = 300;
 
-#if 0
-unsigned int lat_wishbone_spi_command(MicoSPICtx_t *pMaster, int slave_address, unsigned int write_data, uint8_t *rd_data)
+unsigned int lat_wishbone_spi_command(int slave_address, unsigned int write_data, uint8_t *rd_data)
 {
 	//SPI
 	unsigned int read_data = 0x0;
-	unsigned int slave_address_int;
 	uint32_t* dest = (uint32_t*)rd_data;
+#if 1
+	/* set cs */
+	spimaster_cs_write(slave_address);
+
+	/* Write SPI MOSI Data */
+    spimaster_mosi_write(write_data);
+
+	/* Start SPI Xfer */
+	spimaster_control_write(
+		(1  << CSR_SPIMASTER_CONTROL_START_OFFSET) |
+		(32 << CSR_SPIMASTER_CONTROL_LENGTH_OFFSET)
+	);
+
+	/* Wait SPI Xfer */
+	while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
+
+	/* Read and return SPI MISO Data */
+	read_data = spimaster_miso_read();
+#else
+	unsigned int slave_address_int;
 	/* Enable slave by writing to master */
 	MicoSPISetSlaveEnable(pMaster, slave_address);
 	/* Check slave enable status. */
@@ -143,11 +161,10 @@ unsigned int lat_wishbone_spi_command(MicoSPICtx_t *pMaster, int slave_address, 
 		}while(1);
 		break;
 	}
+#endif
 	*dest = read_data;
 	return read_data;
-
 }
-#endif
 
 int FIFO_loopback_test(int base_addr)
 {
@@ -451,19 +468,20 @@ int main(void)
     volatile int spirez;
     //int i2crez;
     //int k;
-    //uint16_t * ptr_spi_wrdata;
-    //uint32_t * p_spi_wrdata32;
+    uint16_t * ptr_spi_wrdata;
+    uint32_t * p_spi_wrdata32;
     char cnt = 0;
 
 #if 0
     unsigned char test_val;
     unsigned char value;
+#endif
 
     char wdata[256];
     char rdata[256];
-
     char i2c_wdata[64];
-    char i2c_rdata[64];
+    unsigned char i2c_rdata[64];
+#if 0
     uint16_t eeprom_dac_val;
     uint16_t flash_dac_val;
 
@@ -482,12 +500,12 @@ int main(void)
 	unsigned int gpo_val = 0x0;
 	unsigned int gpio_rd_val = 0x0;
 	unsigned int gpio_rd_val2 = 0x0;
+#endif
 	static unsigned int spi_read_val = 0x0;
 	unsigned int spi_read_val_p = 0x0;
 	unsigned char iShiftLeft = 1;
-#endif
 	uint32_t dest_byte_reordered = 0;
-	//unsigned int dac_spi_wrdata = 0;
+	unsigned int dac_spi_wrdata = 0;
 
 #if 0
 	/*
@@ -653,9 +671,9 @@ int main(void)
 			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BUSY_CMD;
 
 			switch (LMS_Ctrl_Packet_Rx->Header.Command) {
-#if 0
 
  			case CMD_GPIO_DIR_WR:
+#if 0
  				//if(Check_many_blocks (2)) break;
 
 				//write reg addr
@@ -666,10 +684,10 @@ int main(void)
 				//spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 4, sc_brdg_data, 0, NULL, 0);
 				p_spi_wrdata32 = (uint32_t*) &sc_brdg_data;
 				spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
+#endif
 
  				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
  			break;
-#endif
 
  			case CMD_GPIO_DIR_RD:
  				//if(Check_many_blocks (2)) break;
@@ -723,8 +741,8 @@ int main(void)
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
-#if 0
 			case CMD_LMS_RST:
+#if 0
 
 				switch (LMS_Ctrl_Packet_Rx->Data_field[0])
 				{
@@ -747,10 +765,10 @@ int main(void)
 					cmd_errors++;
 					break;
 				}
+#endif
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
-
 			case CMD_LMS7002_WR:
 				if (Check_many_blocks(4))
 					break;
@@ -760,7 +778,7 @@ int main(void)
 					sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); //set write bit
 					//spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_LMS7002M, 4, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 0, NULL, 0);
 					p_spi_wrdata32 = (uint32_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-					spi_read_val = lat_wishbone_spi_command(pMaster, SPI_LMS7002_SELECT, *p_spi_wrdata32, 0);
+					spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, *p_spi_wrdata32, 0);
 				}
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
@@ -776,13 +794,13 @@ int main(void)
 					cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); //clear write bit
 					//spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_LMS7002M, 2, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 2, &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)], 0);
 					ptr_spi_wrdata = (uint16_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
-					spi_read_val = lat_wishbone_spi_command(pMaster, SPI_LMS7002_SELECT, ((uint32_t) *ptr_spi_wrdata) << 16, &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)]);
+					spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, ((uint32_t) *ptr_spi_wrdata) << 16, &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)]);
 				}
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
-
 			case CMD_BRDSPI16_WR:
+#if 0
 				if(Check_many_blocks (4)) break;
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
@@ -792,11 +810,13 @@ int main(void)
 					p_spi_wrdata32 = (uint32_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
 					spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
 				}
+#endif
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
 
 			case CMD_BRDSPI16_RD:
+#if 0
 				if(Check_many_blocks (4)) break;
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
@@ -806,10 +826,10 @@ int main(void)
 					ptr_spi_wrdata = (uint16_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
 					spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, ((uint32_t) *ptr_spi_wrdata) << 16, &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)]);
 				}
-
+#endif
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
-
+#if 0
 			case CMD_MEMORY_WR:
 				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
 				data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
@@ -936,7 +956,7 @@ int main(void)
 
 			break;
 
-
+#endif
 			case CMD_ANALOG_VAL_RD:
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
@@ -958,11 +978,8 @@ int main(void)
 					case 1: //temperature
 
 						i2c_wdata[0]=0x00; // Pointer = temperature register
-						spirez = OpenCoresI2CMasterWrite(i2c_master, LM75_I2C_ADDR, 1, i2c_wdata);
-
 						// Read temperature and recalculate
-						spirez = OpenCoresI2CMasterRead(i2c_master, LM75_I2C_ADDR, 2, i2c_rdata);
-						OpenCoresI2CMasterStop(i2c_master);
+						spirez = i2c0_read(LM75_I2C_ADDR, i2c_wdata[0], i2c_rdata, 2, true);
 
 						converted_val = (signed short int)i2c_rdata[0];
 						converted_val = converted_val << 8;
@@ -987,7 +1004,6 @@ int main(void)
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 
 				break;
-
 			case CMD_ANALOG_VAL_WR:
 				if(Check_many_blocks (4)) break;
 
@@ -1004,9 +1020,17 @@ int main(void)
 							dac_data[1] = (unsigned char) ((dac_val & 0x000F) << 4); //LSB data
 
 							dac_spi_wrdata = ((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
-							spirez= MicoSPISetSlaveEnable(dac_spi, 0x01);
-							spirez= MicoSPITxData(dac_spi, dac_spi_wrdata, 0);
-
+							/* set cs */
+							spimaster_cs_write(1 << 1);
+							/* Write SPI MOSI Data */
+							spimaster_mosi_write(dac_spi_wrdata);
+							/* Start SPI Xfer */
+							spimaster_control_write(
+								(1  << CSR_SPIMASTER_CONTROL_START_OFFSET) |
+								(16 << CSR_SPIMASTER_CONTROL_LENGTH_OFFSET)
+							);
+							/* Wait SPI Xfer */
+							while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
 						}
 						else cmd_errors++;
 
@@ -1024,6 +1048,7 @@ int main(void)
 
 				break;
 
+#if 0
 			case CMD_ALTERA_FPGA_GW_WR: //FPGA passive serial
 
 				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
