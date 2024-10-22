@@ -128,7 +128,7 @@ class BaseSoC(SoCCore):
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
-            cpu_type                 = "vexriscv",
+            cpu_type                 = "picorv32",
             integrated_rom_size      = 0x8000,
             integrated_sram_ram_size = 0x1000,
             integrated_main_ram_size = 0x4000,
