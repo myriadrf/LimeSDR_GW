@@ -148,8 +148,11 @@ class BaseSoC(SoCCore):
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
 
-        # I2C Bus0 ---------------------------------------------------------------------------------
+        # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
         self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C", 0))
+
+        # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
+        self.add_spi_master(pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
 
         # TOP --------------------------------------------------------------------------------------
         self.lms7_trx_top = LMS7TRXTopWrapper(self.platform, lms_pads,

@@ -48,11 +48,12 @@ _io = [
     # SPI.
     ("FPGA_SPI", 0,
         # SPI.
-        Subsignal("SCLK",   Pins("M3")),
-        Subsignal("LMS_SS", Pins("N3")),
-        Subsignal("DAC_SS", Pins("L4")),
-        Subsignal("MOSI",   Pins("L3")),
-        Subsignal("MISO",   Pins("K3")),
+        Subsignal("clk",    Pins("M3")),
+        #Subsignal("LMS_SS", Pins("N3")),
+        #Subsignal("DAC_SS", Pins("L4")),
+        Subsignal("cs_n",   Pins("N3 L4")),
+        Subsignal("mosi",   Pins("L3")),
+        Subsignal("miso",   Pins("K3")),
         IOStandard("LVCMOS25"),
     ),
 
