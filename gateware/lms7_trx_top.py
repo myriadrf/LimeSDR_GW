@@ -107,7 +107,7 @@ class LMS7TRXTopWrapper(LiteXModule):
 
         # Signals.
         # --------
-        fpga_spi_pads     = platform.request("FPGA_SPI")
+        #fpga_spi_pads     = platform.request("FPGA_SPI")
         fpga_cfg_spi_pads = platform.request("FPGA_CFG_SPI")
         #fpga_i2c_pads     = platform.request("FPGA_I2C")
         rfsw_pads         = platform.request("RFSW")
@@ -206,11 +206,11 @@ class LMS7TRXTopWrapper(LiteXModule):
             # ----------------------------------------------------------------------------
             #  External communication interfaces
             #   FPGA_SPI
-            o_FPGA_SPI_SCLK         = fpga_spi_pads.SCLK,
-            o_FPGA_SPI_MOSI         = fpga_spi_pads.MOSI,
-            i_FPGA_SPI_MISO         = fpga_spi_pads.MISO,
-            o_FPGA_SPI_LMS_SS       = fpga_spi_pads.LMS_SS,
-            o_FPGA_SPI_DAC_SS       = fpga_spi_pads.DAC_SS,
+            o_FPGA_SPI_SCLK         = Open(),      #fpga_spi_pads.SCLK,
+            o_FPGA_SPI_MOSI         = Open(),      #fpga_spi_pads.MOSI,
+            i_FPGA_SPI_MISO         = Constant(0), #fpga_spi_pads.MISO,
+            o_FPGA_SPI_LMS_SS       = Open(),      #fpga_spi_pads.LMS_SS,
+            o_FPGA_SPI_DAC_SS       = Open(),      #fpga_spi_pads.DAC_SS,
             #  FPGA_CFG
             i_FPGA_CFG_SPI_MISO     = fpga_cfg_spi_pads.MISO,
             o_FPGA_CFG_SPI_MOSI     = fpga_cfg_spi_pads.MOSI,
