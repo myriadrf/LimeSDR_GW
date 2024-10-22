@@ -1,10 +1,12 @@
-BUILD_DIR?=../build/fairwaves_xtrx_platform
+BUILD_DIR?=../build/limesdr_mini_v2_platform
 
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
 
 # Add debugging symbol flag
 CFLAGS += -g
+
+CFLAGS := $(filter-out -Wmissing-prototypes -Wstrict-prototypes, $(CFLAGS))
 
 OBJECTS   = i2c0.o crt0.o main.o
 
@@ -43,6 +45,6 @@ VPATH = $(BIOS_DIRECTORY):$(BIOS_DIRECTORY)/cmds:$(CPU_DIRECTORY)
 	$(assemble)
 
 clean:
-	$(RM) $(OBJECTS) firmware.elf firmware.bin .*~ *~
+	$(RM) $(OBJECTS) firmware.elf firmware.bin .*~ *~ *.map *.d
 
 .PHONY: all clean

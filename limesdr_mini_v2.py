@@ -36,6 +36,8 @@ from litex.soc.cores.led import LedChaser
 from litex.soc.cores.bitbang import I2CMaster
 from litex.soc.cores.usb_fifo import FT245PHYSynchronous
 
+from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
+
 from litescope import LiteScopeAnalyzer
 
 from gateware.lms7_trx_top   import LMS7TRXTopWrapper
@@ -124,10 +126,15 @@ class BaseSoC(SoCCore):
         kwargs["integrated_main_ram_size"] = 0x4000
         kwargs["integrated_main_ram_init"] = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
 
+        # Enable Compressed Instructions.
+        VexRiscvSMP.with_rvc = True
+
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
+            #cpu_type                 = "vexriscv_smp",
+            #cpu_variant              = "standard",
             cpu_type                 = "picorv32",
             integrated_rom_size      = 0x8000,
             integrated_sram_ram_size = 0x1000,
@@ -140,6 +147,9 @@ class BaseSoC(SoCCore):
 
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
+
+        # I2C Bus0 ---------------------------------------------------------------------------------
+        self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C", 0))
 
         # TOP --------------------------------------------------------------------------------------
         self.lms7_trx_top = LMS7TRXTopWrapper(self.platform, lms_pads,

@@ -109,7 +109,7 @@ class LMS7TRXTopWrapper(LiteXModule):
         # --------
         fpga_spi_pads     = platform.request("FPGA_SPI")
         fpga_cfg_spi_pads = platform.request("FPGA_CFG_SPI")
-        fpga_i2c_pads     = platform.request("FPGA_I2C")
+        #fpga_i2c_pads     = platform.request("FPGA_I2C")
         rfsw_pads         = platform.request("RFSW")
         tx_lb_pads        = platform.request("TX_LB")
 
@@ -217,8 +217,8 @@ class LMS7TRXTopWrapper(LiteXModule):
             #FPGA_CFG_SPI_SCLK : out    std_logic; -- SCLK pin can be accessed only trough USRMCLK component
             o_FPGA_CFG_SPI_SS_N     = fpga_cfg_spi_pads.SS_N,
             #  FPGA I2C
-            io_FPGA_I2C_SCL         = fpga_i2c_pads.SCL,
-            io_FPGA_I2C_SDA         = fpga_i2c_pads.SDA,
+            io_FPGA_I2C_SCL         = Open(),#fpga_i2c_pads.SCL,
+            io_FPGA_I2C_SDA         = Open(),#fpga_i2c_pads.SDA,
 
             # ----------------------------------------------------------------------------
             # General periphery

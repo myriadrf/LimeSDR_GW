@@ -14,6 +14,7 @@
 //#include "LookupServices.h"
 #include "stdint.h"
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 //#include "MicoUtils.h"
 #include "system_conf.h"
@@ -21,6 +22,7 @@
 //#include "MicoSPIService.h"
 //#include "MicoSPIFlash.h"
 //#include "OpenCoresI2CMaster.h"
+#include "i2c0.h"
 
 //#include "LMS64C_protocol.h"
 #include "LimeSDR_MINI_brd_v1r0.h"
@@ -226,7 +228,6 @@ void getFifoData(uint8_t *buf, uint8_t k)
 	};
 }
 
-#if 0
 /**	This function checks if all blocks could fit in data field.
 *	If blocks will not fit, function returns TRUE. */
 unsigned char Check_many_blocks (unsigned char block_size)
@@ -240,6 +241,7 @@ unsigned char Check_many_blocks (unsigned char block_size)
 	return 1;
 }
 
+#if 0
 void spiflash_wr_command(MicoSPIFlashCtx_t *ctx, unsigned int MSW, unsigned int LSW, unsigned int LENGTH)
 {
 	MICO_SPI_CUSTOM_MSW_BYTEWISE(ctx->control_base, MSW); 		//Most significant word
@@ -296,70 +298,67 @@ void spiflash_erase_primary(MicoSPIFlashCtx_t *ctx)
 /**
  * Configures LM75
  */
-#if 0
-void Configure_LM75(OpenCoresI2CMasterCtx_t *ctx)
+void Configure_LM75(void);
+void Configure_LM75(void)
 {
-	int spirez;
+	bool spirez;
+	unsigned char addr;
 	unsigned char wdata[4];
 	unsigned char rdata[4];
+	(void)spirez;
 
 	// OS polarity configuration
-	wdata[0]=0x01; // Pointer = configuration register
-	wdata[1]=0x04; //Configuration value: OS polarity = 1, Comparator/int = 0, Shutdown = 0
-	spirez = OpenCoresI2CMasterWrite(ctx, LM75_I2C_ADDR, 2, wdata);
-	OpenCoresI2CMasterStop(ctx);
-
+	addr = 0x01; // Pointer = configuration register
+	wdata[0] = 0x04; //Configuration value: OS polarity = 1, Comparator/int = 0, Shutdown = 0
+	spirez = i2c0_write(LM75_I2C_ADDR, addr, wdata, 1);
+	//spirez = i2c0_write(0x60, addr, wdata, 1);
+	if (!spirez)
+		return;
 
 	// Read  back OS polarity configuration
-	wdata[0]=0x01; // Pointer = Configuration register
-	spirez = OpenCoresI2CMasterWrite(ctx, LM75_I2C_ADDR, 1, wdata);
+	addr = 0x01; // Pointer = Configuration register
 
-	spirez = OpenCoresI2CMasterRead(ctx, LM75_I2C_ADDR, 1, rdata);
-	OpenCoresI2CMasterStop(ctx);
-	MicoSleepMilliSecs(100);
-
+	spirez = i2c0_read(LM75_I2C_ADDR, addr, rdata, 1, true);
+	busy_wait(100);
 
 
 	// THYST configuration
-	wdata[0]=0x02;	// Pointer = THYST register
-	wdata[1]=0x2D;	// Set THYST H (45)
-	wdata[2]=0;		// Set THYST L
-	spirez = OpenCoresI2CMasterWrite(ctx, LM75_I2C_ADDR, 3, wdata);
-	OpenCoresI2CMasterStop(ctx);
+	addr = 0x02;	// Pointer = THYST register
+	wdata[0]=0x2D;	// Set THYST H (45)
+	wdata[1]=0;		// Set THYST L
+	spirez = i2c0_write(LM75_I2C_ADDR, addr, wdata, 2);
 
 
 	// Read  back THYST configuration
-	wdata[0]=0x02; // Pointer = THYST
-	spirez = OpenCoresI2CMasterWrite(ctx, LM75_I2C_ADDR, 1, wdata);
+	addr = 0x02; // Pointer = THYST
+	spirez = i2c0_read(LM75_I2C_ADDR, addr, rdata, 2, true);
+	busy_wait(100);
 
-	spirez = OpenCoresI2CMasterRead(ctx, LM75_I2C_ADDR, 2, rdata);
-	OpenCoresI2CMasterStop(ctx);
-	MicoSleepMilliSecs(100);
 
 	// TOS configuration
-	wdata[0]=0x03;	// Pointer = TOS register
-	wdata[1]=0x37;	// Set TOS H (55)
-	wdata[2]=0;		// Set TOS L
-	spirez = OpenCoresI2CMasterWrite(ctx, LM75_I2C_ADDR, 3, wdata);
-	OpenCoresI2CMasterStop(ctx);
+	addr = 0x03;	// Pointer = TOS register
+	wdata[0]=0x37;	// Set TOS H (55)
+	wdata[1]=0;		// Set TOS L
+	spirez = i2c0_write(LM75_I2C_ADDR, addr, wdata, 2);
 
 
 	// Read back TOS configuration
-	wdata[0]=0x03; // Pointer = TOS
-	spirez = OpenCoresI2CMasterWrite(ctx, LM75_I2C_ADDR, 1, wdata);
-
-	spirez = OpenCoresI2CMasterRead(ctx, LM75_I2C_ADDR, 2, rdata);
-	OpenCoresI2CMasterStop(ctx);
-	MicoSleepMilliSecs(100);
+	addr = 0x03; // Pointer = TOS
+	spirez = i2c0_read(LM75_I2C_ADDR, addr, rdata, 2, true);
+	busy_wait(100);
 }
 
 //
-void testEEPROM(OpenCoresI2CMasterCtx_t *ctx)
+
+void testEEPROM(void)
 {
 	int spirez;
 	uint8_t converted_val;
+	unsigned char addr;
 	unsigned char wdata[4];
 	unsigned char rdata[4]= {0xFF, 0xFF, 0xFF, 0xFF};
+	(void) converted_val;
+	(void) spirez;
 
 	/*
 	//EEPROM Test, RD from 0x0000
@@ -369,16 +368,15 @@ void testEEPROM(OpenCoresI2CMasterCtx_t *ctx)
 	*/
 
 	//EEPROM Test, RD from 0x0000
+	addr = 0x00;
 	wdata[0]=0x00;
-	wdata[1]=0x00;
-	spirez = OpenCoresI2CMasterWrite(ctx, EEPROM_I2C_ADDR, 2, wdata);
+	spirez = i2c0_write(EEPROM_I2C_ADDR, addr, wdata, 1);
 
 	/*
 	spirez = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 1);
 	converted_val = I2C_read(I2C_OPENCORES_0_BASE, 1);
 	*/
-	spirez = OpenCoresI2CMasterRead(ctx, EEPROM_I2C_ADDR, 1, rdata);
-	OpenCoresI2CMasterStop(ctx);
+	spirez = i2c0_read(EEPROM_I2C_ADDR, addr, rdata, 1, true);
 
 	/*
 	//WR
@@ -389,11 +387,10 @@ void testEEPROM(OpenCoresI2CMasterCtx_t *ctx)
 	*/
 
 	//WR
-	wdata[0]=0x00;
-	wdata[1]=0x01;
-	wdata[2]=0x5A;
-	spirez = OpenCoresI2CMasterWrite(ctx, EEPROM_I2C_ADDR, 3, wdata);
-	OpenCoresI2CMasterStop(ctx);
+	addr = 0x00;
+	wdata[0]=0x01;
+	wdata[1]=0x5A;
+	spirez = i2c0_write(EEPROM_I2C_ADDR, addr, wdata, 2);
 
 	/*
 	//EEPROM Test, RD from 0x0001
@@ -406,19 +403,16 @@ void testEEPROM(OpenCoresI2CMasterCtx_t *ctx)
 	*/
 
 	//EEPROM Test, RD from 0x0001
-	wdata[0]=0x00;
-	wdata[1]=0x01;
-	spirez = OpenCoresI2CMasterWrite(ctx, EEPROM_I2C_ADDR, 2, wdata);
+	addr = 0x00;
+	wdata[0]=0x01;
+	spirez = i2c0_write(EEPROM_I2C_ADDR, addr, wdata, 1);
 
-	spirez = OpenCoresI2CMasterRead(ctx, EEPROM_I2C_ADDR, 1, rdata);
-	OpenCoresI2CMasterStop(ctx);
+	spirez = i2c0_read(EEPROM_I2C_ADDR, addr, rdata, 1, true);
 	converted_val = rdata[0];
 
 }
 
-
-
-uint16_t rd_dac_val(OpenCoresI2CMasterCtx_t *ctx, uint16_t addr)
+uint16_t rd_dac_val(uint16_t addr)
 {
 	//uint8_t i2c_error;
 	int i2c_error;
@@ -429,6 +423,7 @@ uint16_t rd_dac_val(OpenCoresI2CMasterCtx_t *ctx, uint16_t addr)
 	uint16_t rez;
 	unsigned char wdata[4];
 	unsigned char rdata[4]={0xFF, 0xFF, 0xFF, 0xFF};
+	(void) i2c_error;
 
 	/*
 	i2c_error = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 0);
@@ -441,16 +436,14 @@ uint16_t rd_dac_val(OpenCoresI2CMasterCtx_t *ctx, uint16_t addr)
 
 	wdata[0]=addr_msb;
 	wdata[1]=addr_lsb;
-	i2c_error = OpenCoresI2CMasterWrite(ctx, EEPROM_I2C_ADDR, 2, wdata);
-	i2c_error = OpenCoresI2CMasterRead(ctx, EEPROM_I2C_ADDR, 2, rdata);
-	OpenCoresI2CMasterStop(ctx);
+	i2c_error = i2c0_write(EEPROM_I2C_ADDR, wdata[0], &wdata[1], 1);
+	i2c_error = i2c0_read(EEPROM_I2C_ADDR, wdata[0], rdata, 2, true);
 	eeprom_rd_val_0 = rdata[0];
 	eeprom_rd_val_1 = rdata[1];
 
 	rez = ((uint16_t)eeprom_rd_val_1 << 8) | eeprom_rd_val_0;
 	return rez;
 }
-#endif
 
 int main(void)
 {
@@ -582,11 +575,12 @@ int main(void)
     	//printf("Cannot use SPI Master as ctx is unidentified\n");
     return(0);
     }
-
+#endif
     // RESET FIFO once on power-up
-	IOWR(FIFO_BASE_ADDRESS, 3, 0x1);
-	IOWR(FIFO_BASE_ADDRESS, 3, 0x0);
+	fifo_ctrl_fifo_control_write(1);
+	fifo_ctrl_fifo_control_write(0);
 
+#if 0
     //Reset LMS7
 	MICO_GPIO_WRITE_DATA(lms_ctr_gpio,0x0);
 	MICO_GPIO_WRITE_DATA(lms_ctr_gpio,0xFFFFFFFF);
@@ -634,8 +628,8 @@ int main(void)
 	gpo_val = 0x00000000;
 	*gpo_reg = gpo_val;
 
-	Configure_LM75(i2c_master);
 #endif
+	Configure_LM75();
 
 	while(1) {
 
@@ -675,7 +669,7 @@ int main(void)
 
  				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
  			break;
-
+#endif
 
  			case CMD_GPIO_DIR_RD:
  				//if(Check_many_blocks (2)) break;
@@ -690,7 +684,6 @@ int main(void)
 
  				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
  				break;
-
 
 
  			case CMD_GPIO_WR:
@@ -719,7 +712,7 @@ int main(void)
 
  				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
  				break;
-#endif
+
 			case CMD_GET_INFO:
 
 				LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;

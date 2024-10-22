@@ -40,8 +40,8 @@ _io = [
 
     # I2C.
     ("FPGA_I2C", 0,
-        Subsignal("SCL", Pins("C10"), Misc("OPENDRAIN=ON")),
-        Subsignal("SDA", Pins("B9"),  Misc("OPENDRAIN=ON")),
+        Subsignal("scl", Pins("C10"), Misc("OPENDRAIN=ON")),
+        Subsignal("sda", Pins("B9"),  Misc("OPENDRAIN=ON")),
         IOStandard("LVCMOS33"),
     ),
 
