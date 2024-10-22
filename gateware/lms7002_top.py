@@ -52,7 +52,6 @@ class LMS7002Top(LiteXModule):
 
         assert pads is not None
 
-        self.reset_n = Signal()
         self.tx_diq1_h = Signal(13)
         self.tx_diq1_l = Signal(13)
 
@@ -75,7 +74,7 @@ class LMS7002Top(LiteXModule):
         self.specials += Instance("lms7002_top",
             # Free running clock and reset
             i_clk            = self.cd_lms_rx.clk,
-            i_reset_n        = self.reset_n,
+            i_reset_n        = ~ResetSignal("sys"),
 
             # TX DIQ
             i_MCLK1          = pads.MCLK1,

@@ -13,8 +13,6 @@ from litex.gen import *
 
 class TstTop(LiteXModule):
     def __init__(self, platform, fx3_clk, lmk_clk):
-        self.reset_n           = Signal()
-
         self.test_en           = Signal(4)
         self.test_frc_err      = Signal(4)
         self.test_cmplt        = Signal(4)
@@ -48,7 +46,7 @@ class TstTop(LiteXModule):
         self.specials += Instance("clock_test",
             # input ports
             i_FX3_clk            = fx3_clk,
-            i_reset_n            = self.reset_n,
+            i_reset_n            = ~ResetSignal("sys"),
             i_test_en            = self.test_en,
             i_test_frc_err       = self.test_frc_err,
             o_test_cmplt         = self.test_cmplt,

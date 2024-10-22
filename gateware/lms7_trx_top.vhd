@@ -49,8 +49,8 @@ entity lms7_trx_top is
       -- ----------------------------------------------------------------------------
       -- Clock sources
          -- Reference clock, coming from LMK clock buffer.
-      reset_n_o         : out    std_logic;
-      osc_clk_o         : out    std_logic;
+      reset_n           : in     std_logic;
+      osc_clk           : in     std_logic;
 
       -- ----------------------------------------------------------------------------
       -- LMS7002 Digital
@@ -69,7 +69,6 @@ entity lms7_trx_top is
       -- ----------------------------------------------------------------------------
       -- FTDI (USB3)
          -- Clock source
-      --FT_CLK            : in     std_logic;
       -- FT601 FIFOs Clk/Reset
       EP82_aclrn_o      : out    std_logic;
       EP03_aclrn_o      : out    std_logic;
@@ -223,11 +222,6 @@ end lms7_trx_top;
 -- ----------------------------------------------------------------------------
 architecture arch of lms7_trx_top is
 --declare signals,  components here
-signal ext_rst                   : std_logic;
-signal por_rst_vect              : std_logic_vector(3 downto 0);
-signal por_rst_n                 : std_logic;
-
-signal reset_n                   : std_logic; 
 
 --inst0 (NIOS CPU instance)
 signal inst0_exfifo_if_rd        : std_logic;
@@ -272,12 +266,6 @@ signal inst2_EP02_rdusedw        : std_logic_vector(C_EP02_RDUSEDW_WIDTH-1 downt
 --inst6
 signal inst6_to_tstcfg_from_rxtx    : t_TO_TSTCFG_FROM_RXTX;
 
-signal osc_clk             : std_logic;
-
-attribute keep: boolean;
-attribute keep of por_rst_vect: signal is true;
-
-
 -- Component for FPGA configuration flash access
 COMPONENT USRMCLK
 PORT(
@@ -289,112 +277,65 @@ END COMPONENT;
 attribute syn_noprune: boolean ;
 attribute syn_noprune of USRMCLK: component is true;
 
-COMPONENT OSCG
---synthesis translate_off
-   GENERIC (
-      DIV: integer := 128
-   );
---synthesis translate_on
-   PORT (
-      OSC : OUT std_logic
-   );
-END COMPONENT;
-
-attribute DIV : integer;
-attribute DIV of OSCinst0 : label is 4;
-
-
 begin
-
--- ----------------------------------------------------------------------------
--- Internal Oscilator
--- ----------------------------------------------------------------------------
--- DIV values: 2(~155MHz) - 128(~2.4MHz)
-OSCInst0: OSCG
---synthesis translate_off
-   GENERIC MAP (DIV => 4)
---synthesis translate_on
-   PORT MAP (OSC => osc_clk);
-osc_clk_o <= osc_clk;
-
--- ----------------------------------------------------------------------------
--- Reset logic
--- ----------------------------------------------------------------------------
-   -- HW_VER(3) is connected to GND
-   ext_rst  <= HW_VER(3);
-   
-   process(ext_rst, osc_clk)
-   begin 
-      if ext_rst = '1' then 
-         por_rst_vect <= (others=>'0');
-      elsif rising_edge(osc_clk) then 
-         por_rst_vect <= por_rst_vect(2 downto 0) & '1';
-      end if;
-   end process;
-      
-   reset_n <= '1' when por_rst_vect = "1111" else '0';
-   reset_n_o <= reset_n;
-  
-   -- Reset for all logic. 
-   --reset_n <= por_rst_n;  
 
 -- ----------------------------------------------------------------------------
 -- CPU (Mico32) instance.
 -- CPU is responsible for communication interfaces and control logic
 -- ----------------------------------------------------------------------------   
-   inst0_cpu : entity work.cpu
-   generic map (
-      FPGACFG_START_ADDR   => FPGACFG_START_ADDR,
-      PLLCFG_START_ADDR    => PLLCFG_START_ADDR,
-      TSTCFG_START_ADDR    => TSTCFG_START_ADDR,
-      PERIPHCFG_START_ADDR => PERIPHCFG_START_ADDR
-   )
-   port map(
-      clk                        => osc_clk,
-      reset_n                    => reset_n,
-      -- Control data FIFO
-      exfifo_if_d                => inst2_EP02_rdata,
-      exfifo_if_rd               => inst0_exfifo_if_rd, 
-      exfifo_if_rdempty          => inst2_EP02_rempty,
-      exfifo_of_d                => inst0_exfifo_of_d, 
-      exfifo_of_wr               => inst0_exfifo_of_wr, 
-      exfifo_of_wrfull           => inst2_EP82_wfull,
-      exfifo_of_rst              => inst0_exfifo_of_rst, 
-      -- SPI 0 
-      spi_0_MISO                 => FPGA_SPI_MISO,
-      spi_0_MOSI                 => inst0_spi_0_MOSI,
-      spi_0_SCLK                 => inst0_spi_0_SCLK,
-      spi_0_SS_n                 => inst0_spi_0_SS_n,
-      -- SPI 1
-      spi_1_MISO                 => '0',--FPGA_QSPI_IO1,
-      spi_1_MOSI                 => inst0_spi_1_MOSI,
-      spi_1_SCLK                 => inst0_spi_1_SCLK,
-      spi_1_SS_n                 => inst0_spi_1_SS_n,
-         -- FPGA_CFG_SPI
-      fpga_cfg_spi_MISO          => FPGA_CFG_SPI_MISO, 
-      fpga_cfg_spi_MOSI          => inst0_fpga_cfg_spi_MOSI,
-      fpga_cfg_spi_SCLK          => inst0_fpga_cfg_spi_SCLK,
-      fpga_cfg_spi_SS_n          => inst0_fpga_cfg_spi_SS_n,
-      fpga_cfg_usrmclkts         => inst0_fpga_cfg_usrmclkts,
-      -- I2C
-      i2c_scl                    => FPGA_I2C_SCL,
-      i2c_sda                    => FPGA_I2C_SDA,
-      -- Genral purpose I/O
-      gpi                        => (others=>'0'),
-      gpo                        => inst0_gpo, 
-      -- LMS7002 control 
-      lms_ctr_gpio               => inst0_lms_ctr_gpio,
-      -- Configuration registers
-      from_fpgacfg               => inst0_from_fpgacfg,
-      to_fpgacfg                 => inst0_to_fpgacfg,
-      from_pllcfg                => inst0_from_pllcfg,
-      to_pllcfg                  => inst0_to_pllcfg,
-      from_tstcfg                => inst0_from_tstcfg,
-      to_tstcfg                  => inst0_to_tstcfg,
-      to_tstcfg_from_rxtx        => inst6_to_tstcfg_from_rxtx,
-      from_periphcfg             => inst0_from_periphcfg,
-      to_periphcfg               => inst0_to_periphcfg
-   );
+   --inst0_cpu : entity work.cpu
+   --generic map (
+   --   FPGACFG_START_ADDR   => FPGACFG_START_ADDR,
+   --   PLLCFG_START_ADDR    => PLLCFG_START_ADDR,
+   --   TSTCFG_START_ADDR    => TSTCFG_START_ADDR,
+   --   PERIPHCFG_START_ADDR => PERIPHCFG_START_ADDR
+   --)
+   --port map(
+   --   clk                        => osc_clk,
+   --   reset_n                    => reset_n,
+   --   -- Control data FIFO
+   --   exfifo_if_d                => inst2_EP02_rdata,
+   --   exfifo_if_rd               => inst0_exfifo_if_rd, 
+   --   exfifo_if_rdempty          => inst2_EP02_rempty,
+   --   exfifo_of_d                => inst0_exfifo_of_d, 
+   --   exfifo_of_wr               => inst0_exfifo_of_wr, 
+   --   exfifo_of_wrfull           => inst2_EP82_wfull,
+   --   exfifo_of_rst              => inst0_exfifo_of_rst, 
+   --   -- SPI 0 
+   --   spi_0_MISO                 => FPGA_SPI_MISO,
+   --   spi_0_MOSI                 => inst0_spi_0_MOSI,
+   --   spi_0_SCLK                 => inst0_spi_0_SCLK,
+   --   spi_0_SS_n                 => inst0_spi_0_SS_n,
+   --   -- SPI 1
+   --   spi_1_MISO                 => '0',--FPGA_QSPI_IO1,
+   --   spi_1_MOSI                 => inst0_spi_1_MOSI,
+   --   spi_1_SCLK                 => inst0_spi_1_SCLK,
+   --   spi_1_SS_n                 => inst0_spi_1_SS_n,
+   --      -- FPGA_CFG_SPI
+   --   fpga_cfg_spi_MISO          => FPGA_CFG_SPI_MISO, 
+   --   fpga_cfg_spi_MOSI          => inst0_fpga_cfg_spi_MOSI,
+   --   fpga_cfg_spi_SCLK          => inst0_fpga_cfg_spi_SCLK,
+   --   fpga_cfg_spi_SS_n          => inst0_fpga_cfg_spi_SS_n,
+   --   fpga_cfg_usrmclkts         => inst0_fpga_cfg_usrmclkts,
+   --   -- I2C
+   --   i2c_scl                    => FPGA_I2C_SCL,
+   --   i2c_sda                    => FPGA_I2C_SDA,
+   --   -- Genral purpose I/O
+   --   gpi                        => (others=>'0'),
+   --   gpo                        => inst0_gpo, 
+   --   -- LMS7002 control 
+   --   lms_ctr_gpio               => inst0_lms_ctr_gpio,
+   --   -- Configuration registers
+   --   from_fpgacfg               => inst0_from_fpgacfg,
+   --   to_fpgacfg                 => inst0_to_fpgacfg,
+   --   from_pllcfg                => inst0_from_pllcfg,
+   --   to_pllcfg                  => inst0_to_pllcfg,
+   --   from_tstcfg                => inst0_from_tstcfg,
+   --   to_tstcfg                  => inst0_to_tstcfg,
+   --   to_tstcfg_from_rxtx        => inst6_to_tstcfg_from_rxtx,
+   --   from_periphcfg             => inst0_from_periphcfg,
+   --   to_periphcfg               => inst0_to_periphcfg
+   --);
    
    -- Module to access FPGA_CFG_SPI_SCLK pin
    u1: USRMCLK port map (

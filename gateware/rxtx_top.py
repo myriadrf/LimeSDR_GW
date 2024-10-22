@@ -34,12 +34,10 @@ class RXTXTop(LiteXModule):
 
         assert lms_pads is not None
 
-        self.tx_clk_reset_n        = Signal()
         self.tx_txant_en           = Signal()
         self.tx_diq1_h             = Signal(TX_IQ_WIDTH + 1)
         self.tx_diq1_l             = Signal(TX_IQ_WIDTH + 1)
 
-        self.rx_clk_reset_n        = Signal()
         self.rx_diq2_h             = Signal(RX_IQ_WIDTH + 1)
         self.rx_diq2_l             = Signal(RX_IQ_WIDTH + 1)
         self.rx_pct_fifo_aclrn_req = Signal()
@@ -138,7 +136,7 @@ class RXTXTop(LiteXModule):
             ## TX path
             i_tx_clk                 = ClockSignal("lms_tx"),
             o_tx_clkout              = Open(),
-            i_tx_clk_reset_n         = self.tx_clk_reset_n,
+            i_tx_clk_reset_n         = ~ResetSignal("sys"),
             o_tx_pct_loss_flg        = Open(),
             o_tx_txant_en            = self.tx_txant_en,
             #  Tx interface data
@@ -152,7 +150,7 @@ class RXTXTop(LiteXModule):
 
             ## RX path
             i_rx_clk                 = ClockSignal("lms_rx"),
-            i_rx_clk_reset_n         = self.rx_clk_reset_n,
+            i_rx_clk_reset_n         = ~ResetSignal("sys"),
             ##  Rx interface data
             i_rx_diq2_h              = self.rx_diq2_h,
             i_rx_diq2_l              = self.rx_diq2_l,

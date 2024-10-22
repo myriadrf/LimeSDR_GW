@@ -24,6 +24,8 @@ from litex.gen import *
 
 import limesdr_mini_v2_platform as limesdr_mini_v2
 
+from litex.build.generic_platform import Subsignal, IOStandard, Pins
+
 from litex.soc.cores.clock import *
 from litex.soc.interconnect.csr import *
 from litex.soc.integration.soc_core import *
@@ -72,13 +74,27 @@ class _CRG(LiteXModule):
         self.rst    = Signal()
         self.cd_sys = ClockDomain()
         self.cd_usb = ClockDomain()
+        self.cd_por = ClockDomain()
 
         # # #
 
         # Clk.
-        lmk_clk = platform.request("LMK_CLK")
 
-        self.comb += self.cd_sys.clk.eq(lmk_clk)
+        # Power on reset
+        por_count = Signal(16, reset=2**16-1)
+        por_done  = Signal()
+        self.comb += self.cd_por.clk.eq(self.cd_sys.clk)
+        self.comb += por_done.eq(por_count == 0)
+        self.sync.por += If(~por_done, por_count.eq(por_count - 1))
+
+        # Internal Oscilator
+        # DIV values: 2(~155MHz) - 128(~2.4MHz)
+        self.specials += Instance("OSCG",
+            p_DIV = 4,
+            o_OSC = self.cd_sys.clk,
+        )
+
+        self.comb += self.cd_sys.rst.eq(~por_done)
 
 # BaseSoC ------------------------------------------------------------------------------------------
 
@@ -86,15 +102,41 @@ class BaseSoC(SoCCore):
     def __init__(self, sys_clk_freq=80e6, toolchain="diamond",
         with_usb_fifo   = True, with_usb_fifo_loopback=False,
         with_led_chaser = True,
+        cpu_firmware    = None,
         **kwargs):
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
 
         ft_clk        = platform.request("FT_CLK")
         lms_pads      = platform.request("LMS")
         revision_pads = platform.request("revision")
+        gpio_pads     = platform.request("FPGA_GPIO")
+        #egpio_pads    = platform.request("FPGA_EGPIO")
+        platform.add_extension([
+            ("serial", 0,
+                Subsignal("tx", Pins("A10")),
+                Subsignal("rx", Pins("A8")),
+                IOStandard("LVCMOS33")
+            )
+        ])
+
+        kwargs["integrated_rom_size"]      = 0x8000
+        kwargs["integrated_sram_ram_size"] = 0x1000
+        kwargs["integrated_main_ram_size"] = 0x4000
+        kwargs["integrated_main_ram_init"] = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
 
         # SoCCore ----------------------------------------------------------------------------------
-        SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on LimeSDR-Mini-V2", **kwargs)
+        SoCCore.__init__(self, platform, sys_clk_freq,
+            ident                    = "LiteX SoC on LimeSDR-Mini-V2",
+            ident_version            = True,
+            cpu_type                 = "vexriscv",
+            integrated_rom_size      = 0x8000,
+            integrated_sram_ram_size = 0x1000,
+            integrated_main_ram_size = 0x4000,
+            integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
+        )
+
+        # Automatically jump to pre-initialized firmware.
+        self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
 
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
@@ -122,6 +164,9 @@ class BaseSoC(SoCCore):
             self.lms7_trx_top.BOM_VER.eq(revision_pads.BOM_VER),
         ]
 
+        from gateware.fifo_ctrl_to_csr import FIFOCtrlToCSR
+        self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, 64)
+
         # FT601 ------------------------------------------------------------------------------------
         self.ft601 = FT601(self.platform, platform.request("FT"), ft_clk,
             FT_data_width      = FTDI_DQ_WIDTH,
@@ -140,25 +185,20 @@ class BaseSoC(SoCCore):
         )
 
         self.comb += [
-            self.ft601.reset_n.eq(self.lms7_trx_top.reset_n),
             self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(self.lms7_trx_top.ctrl_fifo_fpga_pc_reset_n),
             self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.lms7_trx_top.stream_fifo_pc_fpga_reset_n),
 
-            self.lms7_trx_top.ctrl_fifo.connect(self.ft601.ctrl_fifo),
+            self.fifo_ctrl.ctrl_fifo.connect(self.ft601.ctrl_fifo),
         ]
 
         # LMS7002 Top ------------------------------------------------------------------------------
         self.lms7002_top = LMS7002Top(platform, lms_pads)
 
-        self.comb += [
-            self.lms7002_top.reset_n.eq(self.lms7_trx_top.reset_n),
-            self.lms7_trx_top.delay_control.connect(self.lms7002_top.delay_control),
-        ]
+        self.comb += self.lms7_trx_top.delay_control.connect(self.lms7002_top.delay_control),
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
-        self.tst_top = TstTop(platform, ft_clk, ClockSignal("sys"))
+        self.tst_top = TstTop(platform, ft_clk, platform.request("LMK_CLK"))
         self.comb += [
-            self.tst_top.reset_n.eq(self.lms7_trx_top.reset_n),
             self.tst_top.test_en.eq(self.lms7_trx_top.test_en),
             self.tst_top.test_frc_err.eq(self.lms7_trx_top.test_frc_err),
 
@@ -188,10 +228,14 @@ class BaseSoC(SoCCore):
 
         # General Periph ---------------------------------------------------------------------------
 
-        self.general_periph = GeneralPeriphTop(platform, "MAX 10")
+        self.general_periph = GeneralPeriphTop(platform, "MAX 10",
+            gpio_pads  = gpio_pads,
+            gpio_len   = len(gpio_pads),
+            egpio_pads = None,
+            egpio_len  = 2,
+        )
 
         self.comb += [
-            self.general_periph.reset_n.eq(self.lms7_trx_top.reset_n),
             self.general_periph.HW_VER.eq(revision_pads.HW_VER),
 
             self.lms7_trx_top.to_periphcfg.eq(self.general_periph.to_periphcfg),
@@ -222,10 +266,6 @@ class BaseSoC(SoCCore):
         )
 
         self.comb += [
-            # CPU <-> RXTX Top.
-            self.rxtx_top.tx_clk_reset_n.eq(self.lms7_trx_top.reset_n),
-            self.rxtx_top.rx_clk_reset_n.eq(self.lms7_trx_top.reset_n),
-
             self.rxtx_top.from_fpgacfg.eq(self.lms7_trx_top.from_fpgacfg),
             self.lms7_trx_top.to_tstcfg_from_rxtx.eq(self.rxtx_top.to_tstcfg_from_rxtx),
             self.rxtx_top.from_tstcfg.eq(self.lms7_trx_top.from_tstcfg),
@@ -255,20 +295,24 @@ class BaseSoC(SoCCore):
 def main():
     from litex.build.parser import LiteXArgumentParser
     parser = LiteXArgumentParser(platform=limesdr_mini_v2.Platform, description="LiteX SoC on LimeSDR-Mini-V2.")
-    parser.add_target_argument("--sys-clk-freq", default=40e6, type=float, help="System clock frequency.")
+    parser.add_target_argument("--sys-clk-freq", default=77.5e6, type=float, help="System clock frequency.")
     args = parser.parse_args()
-    args.no_uart   = True
-    args.cpu_type  = "None"
     args.toolchain = "diamond"
 
-    soc = BaseSoC(
-        sys_clk_freq = args.sys_clk_freq,
-        toolchain    = args.toolchain,
-        **parser.soc_argdict
-    )
-    builder = Builder(soc, **parser.builder_argdict)
-    if args.build:
-        builder.build(**parser.toolchain_argdict)
+    # Build SoC.
+    for run in range(2):
+        prepare = (run == 0)
+        build   = ((run == 1) & args.build)
+        soc = BaseSoC(
+            sys_clk_freq = args.sys_clk_freq,
+            toolchain    = args.toolchain,
+            cpu_firmware = None if prepare else "firmware/firmware.bin",
+            **parser.soc_argdict
+        )
+        builder = Builder(soc, csr_csv="csr.csv")
+        builder.build(run=build)
+        if prepare:
+            os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
 
     if args.load:
         prog = soc.platform.create_programmer()

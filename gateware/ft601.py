@@ -40,8 +40,6 @@ class FT601(LiteXModule):
         assert pads is not None
         assert clk_pads is not None
 
-        self.reset_n     = Signal()
-
         self.ctrl_fifo   = FIFOInterface(EP02_rwidth, EP82_wwidth)
         self.stream_fifo = FIFOInterface(EP03_rwidth, EP83_wwidth, EP03_rdusedw_width, EP83_wrusedw_width)
 
@@ -78,7 +76,7 @@ class FT601(LiteXModule):
 
             # Clk/Reset
             i_clk                = clk_pads,
-            i_reset_n            = self.reset_n,
+            i_reset_n            = ~ResetSignal("sys"),
 
             # FTDI external ports
             o_FT_wr_n            = pads.WRn,
@@ -89,13 +87,13 @@ class FT601(LiteXModule):
             o_FT_RESETn          = pads.RESETn,
 
             # control endpoint fifo PC->FPGA
-            i_EP02_rdclk         = ClockSignal("osc"),
+            i_EP02_rdclk         = ClockSignal("sys"),
             i_EP02_rd            = self.ctrl_fifo.rd,
             o_EP02_rdata         = self.ctrl_fifo.rdata,
             o_EP02_rempty        = self.ctrl_fifo.empty,
 
             # control endpoint fifo FPGA->PC
-            i_EP82_wclk          = ClockSignal("osc"),
+            i_EP82_wclk          = ClockSignal("sys"),
             i_EP82_aclrn         = self.ctrl_fifo_fpga_pc_reset_n,
             i_EP82_wr            = self.ctrl_fifo.wr,
             i_EP82_wdata         = self.ctrl_fifo.wdata,

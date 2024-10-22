@@ -38,9 +38,10 @@ def ToPeriphCfg():
 class GeneralPeriphTop(LiteXModule):
     def __init__(self, platform,
         dev_family = "CYCLONE IV E",
+        gpio_pads  = None, gpio_len=8,
+        egpio_pads = None, egpio_len=2,
         ):
 
-        self.reset_n          = Signal()
         self.HW_VER           = Signal(4)
 
         self.to_periphcfg     = ToPeriphCfg()
@@ -56,10 +57,8 @@ class GeneralPeriphTop(LiteXModule):
         self.ep83_active      = Signal()
 
         # # #
-        gpio  = platform.request("FPGA_GPIO")
-        egpio = platform.request("FPGA_EGPIO")
 
-        N_GPIO = len(gpio) + len(egpio)
+        N_GPIO = gpio_len + egpio_len
 
         # Signals.
         # --------
@@ -83,8 +82,8 @@ class GeneralPeriphTop(LiteXModule):
             p_N_GPIO               = N_GPIO,
 
             # General ports
-            i_clk                  = ClockSignal("osc"), # Free running clock
-            i_reset_n              = self.reset_n,
+            i_clk                  = ClockSignal("sys"), # Free running clock
+            i_reset_n              = ~ResetSignal("sys"),
 
             # to_periphcfg
             o_BOARD_GPIO_RD        = self.to_periphcfg.BOARD_GPIO_RD,
@@ -127,8 +126,8 @@ class GeneralPeriphTop(LiteXModule):
             i_gpio_dir             = Replicate(1, N_GPIO),
             i_gpio_out_val         = gpio_out_val,
             o_gpio_rd_val          = Open(N_GPIO),
-            io_gpio                = gpio,
-            io_egpio               = egpio,
+            io_gpio                = gpio_pads,
+            io_egpio               = egpio_pads if egpio_pads is not None else Open(egpio_len),
 
             # Fan control
             i_fan_sens_in          = platform.request("LM75_OS"),
