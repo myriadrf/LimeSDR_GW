@@ -17,14 +17,14 @@ from gateware.common import FIFOInterface
 
 class FIFOCtrlToCSR(LiteXModule):
     def __init__(self, EP02_rwidth=8, EP82_wwidth=8):
-        self.ctrl_fifo     = FIFOInterface(EP02_rwidth, EP82_wwidth)
-        self.fifo_reset_n  = Signal()
+        self.ctrl_fifo   = FIFOInterface(EP02_rwidth, EP82_wwidth)
+        self.fifo_reset  = Signal()
 
         # Write FIFO.
-        self._fifo_wdata   = CSRStorage(EP82_wwidth, description="FIFO Write Register.")
+        self._fifo_wdata = CSRStorage(EP82_wwidth, description="FIFO Write Register.")
 
         # Read FIFO.
-        self._fifo_rdata   = CSRStatus(EP02_rwidth, description="FIFO Read Register.")
+        self._fifo_rdata = CSRStatus(EP02_rwidth, description="FIFO Read Register.")
 
         # Read/Write FIFO Status.
         self._fifo_status  = CSRStatus(description="FIFO Status Register.", fields=[
@@ -34,7 +34,7 @@ class FIFOCtrlToCSR(LiteXModule):
 
         # FIFO Control.
         self._fifo_control = CSRStorage(description="FIFO Control Register.", fields=[
-            CSRField("reset_n", size=1, offset=0, description="Reset Control (Active High).", values=[
+            CSRField("reset", size=1, offset=0, description="Reset Control (Active High).", values=[
                 ("``0b0``", "Normal Mode."),
                 ("``0b1``", "Reset Mode."),
             ]),
@@ -52,5 +52,5 @@ class FIFOCtrlToCSR(LiteXModule):
             self.ctrl_fifo.wr.eq(self._fifo_wdata.re),
             self._fifo_status.fields.is_wrfull.eq(self.ctrl_fifo.full),
             # Control.
-            self.fifo_reset_n.eq(self._fifo_control.fields.reset_n),
+            self.fifo_reset.eq(self._fifo_control.fields.reset),
         ]
