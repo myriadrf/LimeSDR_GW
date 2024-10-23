@@ -48,6 +48,8 @@ class RXTXTop(LiteXModule):
         self.to_tstcfg_from_rxtx   = ToTstCfgFromRXTX()
         self.from_tstcfg           = FromTstCfg()
 
+        self.lms_ctr_gpio0         = Signal()
+
         self.stream_fifo           = FIFOInterface(TX_IN_PCT_DATA_W, 64, TX_IN_PCT_RDUSEDW_W, RX_PCT_BUFF_WRUSEDW_W)
 
         # # #
@@ -57,6 +59,7 @@ class RXTXTop(LiteXModule):
             lms_pads.RXEN.eq(self.from_fpgacfg.LMS1_RXEN),
             lms_pads.CORE_LDO_EN.eq(self.from_fpgacfg.LMS1_CORE_LDO_EN),
             lms_pads.TXNRX1.eq(self.from_fpgacfg.LMS1_TXNRX1),
+            lms_pads.RESET.eq(self.from_fpgacfg.LMS1_RESET & self.lms_ctr_gpio0)
         ]
 
         # Signals.
