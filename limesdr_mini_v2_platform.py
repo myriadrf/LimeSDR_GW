@@ -117,8 +117,8 @@ _io = [
         IOStandard("LVCMOS33"),
     ),
     ("TX_LB", 0,
-        Subsignal("AT", Pins("C11")),
-        Subsignal("SH", Pins("B11")),
+        Subsignal("AT", Pins("C8")),
+        Subsignal("SH", Pins("B8")),
         IOStandard("LVCMOS33"),
     ),
 
