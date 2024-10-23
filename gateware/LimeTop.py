@@ -16,9 +16,9 @@ from litescope import LiteScopeAnalyzer
 from litex.soc.cores.spi       import SPIMaster
 
 from gateware.GpioTop import GpioTop
-from gateware.lms7002_top import lms7002_top
-from gateware.rx_path_top import rx_path_top
-from gateware.tx_path_top import tx_path_top
+from gateware.LimeDFB.lms7002.src.lms7002_top import lms7002_top
+from gateware.LimeDFB.rx_path_top.src.rx_path_top import rx_path_top
+from gateware.LimeDFB.tx_path_top.src.tx_path_top import tx_path_top
 
 # Lime Top -----------------------------------------------------------------------------------------
 
