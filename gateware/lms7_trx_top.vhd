@@ -53,12 +53,17 @@ entity lms7_trx_top is
       osc_clk           : in     std_logic;
 
       -- ----------------------------------------------------------------------------
+      -- Cfg Top
+      CFG_TOP_MOSI      : in     std_logic;
+      CFG_TOP_SCLK      : in     std_logic;
+      CFG_TOP_SS_n      : in     std_logic;
+      CFG_TOP_MISO      : out    std_logic;
+
+      -- ----------------------------------------------------------------------------
       -- LMS7002 Digital
          -- PORT2
       LMS_TXNRX2_or_CLK_SEL : out    std_logic; --In v2.3 board version this pin is changed to CLK_SEL
          --MISC
-      LMS_RESET         : out    std_logic := '1';
-
       lms_delay_en      : out std_logic;
       lms_delay_sel     : out std_logic_vector(1 downto 0);
       lms_delay_dir     : out std_logic;
@@ -336,7 +341,38 @@ begin
    --   from_periphcfg             => inst0_from_periphcfg,
    --   to_periphcfg               => inst0_to_periphcfg
    --);
-   
+
+-- ----------------------------------------------------------------------------
+-- fpgacfg instance
+-- ----------------------------------------------------------------------------
+   cfg_top_inst1 : entity work.cfg_top
+   generic map (
+      FPGACFG_START_ADDR   => FPGACFG_START_ADDR,
+      PLLCFG_START_ADDR    => PLLCFG_START_ADDR,
+      TSTCFG_START_ADDR    => TSTCFG_START_ADDR,
+      PERIPHCFG_START_ADDR => PERIPHCFG_START_ADDR
+   )
+   port map(
+      -- Serial port IOs
+      sdin                 => CFG_TOP_MOSI,
+      sclk                 => CFG_TOP_SCLK,
+      sen                  => CFG_TOP_SS_n,
+      sdout                => CFG_TOP_MISO,
+      -- Signals coming from the pins or top level serial interface
+      lreset               => reset_n,   -- Logic reset signal, resets logic cells only  (use only one reset)
+      mreset               => reset_n,   -- Memory reset signal, resets configuration memory only (use only one reset)
+      to_fpgacfg           => inst0_to_fpgacfg,
+      from_fpgacfg         => inst0_from_fpgacfg,
+      to_pllcfg            => inst0_to_pllcfg,
+      from_pllcfg          => inst0_from_pllcfg,
+      to_tstcfg            => inst0_to_tstcfg,
+      from_tstcfg          => inst0_from_tstcfg,
+      to_tstcfg_from_rxtx  => inst6_to_tstcfg_from_rxtx,
+      to_periphcfg         => inst0_to_periphcfg,
+      from_periphcfg       => inst0_from_periphcfg
+   );
+
+
    -- Module to access FPGA_CFG_SPI_SCLK pin
    u1: USRMCLK port map (
       USRMCLKI    => u1_USRMCLKI,
@@ -350,18 +386,6 @@ begin
    inst0_to_fpgacfg.PWR_SRC   <= '0';
    
    --CPU alive status
-   busy_delay_inst : entity work.busy_delay
-   generic map(
-      clock_period   => 25,  -- input clock period in ns
-      delay_time     => 100  -- delay time in ms
-   )
-   port map(
-      clk      => osc_clk,
-      reset_n  => reset_n,
-      busy_in  => inst0_gpo(0),
-      busy_out => mico32_busy
-   );
-   
    process(osc_clk, reset_n)
    begin 
       if reset_n = '0' then 
@@ -530,8 +554,6 @@ begin
     
    FPGA_CFG_SPI_MOSI <= inst0_fpga_cfg_spi_MOSI;
    FPGA_CFG_SPI_SS_N <= inst0_fpga_cfg_spi_SS_n;
-   
-   LMS_RESET         <= inst0_from_fpgacfg.LMS1_RESET AND inst0_lms_ctr_gpio(0);
    
    --In HW versions before v2.3 this pin is LMS_TXNRX2. After v2.3 - Clock select for LMK clock buffer (CLK_SEL) 
    LMS_TXNRX2_or_CLK_SEL <=   inst0_from_periphcfg.PERIPH_OUTPUT_VAL_1(0) when unsigned(HW_VER) > 5 else 

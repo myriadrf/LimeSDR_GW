@@ -47,6 +47,13 @@ class LMS7TRXTopWrapper(LiteXModule):
         self.HW_VER   = Signal(4)
         self.BOM_VER  = Signal(3)
 
+        # CFG TOP SPI Interface.
+        # ----------------------
+        self.cfg_top_mosi = Signal()
+        self.cfg_top_sclk = Signal()
+        self.cfg_top_ss_n = Signal()
+        self.cfg_top_miso = Signal()
+
         # FT601 FIFO enpoint/ctrl PC<-> FPGA.
         # -----------------------------------
         self.ctrl_fifo   = FIFOInterface(CTRL0_FPGA_RX_RWIDTH, FTDI_DQ_WIDTH)
@@ -145,12 +152,17 @@ class LMS7TRXTopWrapper(LiteXModule):
             i_osc_clk               = ClockSignal("sys"),
 
             # ----------------------------------------------------------------------------
+            # CFG Top SPI Interface
+            i_CFG_TOP_MOSI          = self.cfg_top_mosi,
+            i_CFG_TOP_SCLK          = self.cfg_top_sclk,
+            i_CFG_TOP_SS_n          = self.cfg_top_ss_n,
+            o_CFG_TOP_MISO          = self.cfg_top_miso,
+
+            # ----------------------------------------------------------------------------
             # LMS7002 Digital
             #   PORT2
             o_LMS_TXNRX2_or_CLK_SEL = lms_pads.TXNRX2_or_CLK_SEL, #In v2.3 board version this pin is changed to CLK_SEL
             #   MISC
-            o_LMS_RESET             = lms_pads.RESET,
-
             o_lms_delay_en          = self.delay_control.en,
             o_lms_delay_sel         = self.delay_control.sel,
             o_lms_delay_dir         = self.delay_control.dir,
