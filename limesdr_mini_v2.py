@@ -32,14 +32,16 @@ from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
 from litex.soc.interconnect import stream
 
-from litex.soc.cores.led import LedChaser
-from litex.soc.cores.bitbang import I2CMaster
-from litex.soc.cores.usb_fifo import FT245PHYSynchronous
+from litex.soc.cores.led            import LedChaser
+from litex.soc.cores.bitbang        import I2CMaster
+from litex.soc.cores.spi.spi_master import SPIMaster
+from litex.soc.cores.usb_fifo       import FT245PHYSynchronous
 
 from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
 
 from litescope import LiteScopeAnalyzer
 
+from gateware.busy_delay     import BusyDelay
 from gateware.lms7_trx_top   import LMS7TRXTopWrapper
 from gateware.ft601          import FT601
 from gateware.lms7002_top    import LMS7002Top
@@ -154,6 +156,24 @@ class BaseSoC(SoCCore):
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
         self.add_spi_master(pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
 
+        # SPI (CFG_TOP) ----------------------------------------------------------------------------
+        cfg_top_spi = Record(SPIMaster.pads_layout)
+        self.add_spi_master("cfg_top", pads=cfg_top_spi, data_width=32, spi_clk_freq=sys_clk_freq)
+
+        # mico32_busy(gpo) & busy_delay ------------------------------------------------------------
+        self._gpo = CSRStorage(description="GPO interface", fields=[
+            CSRField("mico32_busy", size=1, offset=0, description="CPU state.", values=[
+                ("``0b0``", "IDLE."),
+                ("``0b1``", "BUSY."),
+            ])
+        ])
+
+        self.busy_delay  = BusyDelay(platform, 25, 100)
+        self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.mico32_busy)
+
+        # LMS Ctrl GPIO ----------------------------------------------------------------------------
+        self._lms_ctr_gpio = CSRStorage(size=4, description="LMS Control GPIOs.")
+
         # TOP --------------------------------------------------------------------------------------
         self.lms7_trx_top = LMS7TRXTopWrapper(self.platform, lms_pads,
             FTDI_DQ_WIDTH        = FTDI_DQ_WIDTH,
@@ -175,10 +195,17 @@ class BaseSoC(SoCCore):
             self.lms7_trx_top.ft_clk.eq(ft_clk),
             self.lms7_trx_top.HW_VER.eq(revision_pads.HW_VER),
             self.lms7_trx_top.BOM_VER.eq(revision_pads.BOM_VER),
+
+            # CFG_TOP SPI Interface.
+            self.lms7_trx_top.cfg_top_mosi.eq(cfg_top_spi.mosi),
+            self.lms7_trx_top.cfg_top_sclk.eq(cfg_top_spi.clk),
+            self.lms7_trx_top.cfg_top_ss_n.eq(cfg_top_spi.cs_n),
+            cfg_top_spi.miso.eq(self.lms7_trx_top.cfg_top_miso),
         ]
 
+        # FIFO Control -----------------------------------------------------------------------------
         from gateware.fifo_ctrl_to_csr import FIFOCtrlToCSR
-        self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, 64)
+        self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
 
         # FT601 ------------------------------------------------------------------------------------
         self.ft601 = FT601(self.platform, platform.request("FT"), ft_clk,
@@ -198,7 +225,7 @@ class BaseSoC(SoCCore):
         )
 
         self.comb += [
-            self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(self.lms7_trx_top.ctrl_fifo_fpga_pc_reset_n),
+            self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(self.fifo_ctrl.fifo_reset_n),
             self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.lms7_trx_top.stream_fifo_pc_fpga_reset_n),
 
             self.fifo_ctrl.ctrl_fifo.connect(self.ft601.ctrl_fifo),
@@ -254,7 +281,8 @@ class BaseSoC(SoCCore):
             self.lms7_trx_top.to_periphcfg.eq(self.general_periph.to_periphcfg),
             self.general_periph.from_periphcfg.eq(self.lms7_trx_top.from_periphcfg),
 
-            self.general_periph.led1_mico32_busy.eq(self.lms7_trx_top.led1_mico32_busy),
+            self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
+            #self.general_periph.led1_mico32_busy.eq(self.lms7_trx_top.led1_mico32_busy),
             self.general_periph.led1_ctrl.eq(self.lms7_trx_top.led1_ctrl),
             self.general_periph.led2_ctrl.eq(self.lms7_trx_top.led2_ctrl),
             self.general_periph.fx3_led_ctrl.eq(self.lms7_trx_top.led3_ctrl),
@@ -282,6 +310,8 @@ class BaseSoC(SoCCore):
             self.rxtx_top.from_fpgacfg.eq(self.lms7_trx_top.from_fpgacfg),
             self.lms7_trx_top.to_tstcfg_from_rxtx.eq(self.rxtx_top.to_tstcfg_from_rxtx),
             self.rxtx_top.from_tstcfg.eq(self.lms7_trx_top.from_tstcfg),
+
+            self.rxtx_top.lms_ctr_gpio0.eq(self._lms_ctr_gpio.storage[0]),
 
             self.rxtx_top.rxtx_smpl_cmp_length.eq(self.lms7_trx_top.rxtx_smpl_cmp_length),
 
