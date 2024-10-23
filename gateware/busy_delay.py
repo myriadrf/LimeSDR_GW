@@ -1,0 +1,45 @@
+#
+# This file is part of LiteX.
+#
+# Copyright (c) 2024 Enjoy-Digital <enjoy-digital.fr>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+from migen import *
+
+from litex.gen import *
+
+# Busy Delay ---------------------------------------------------------------------------------------
+
+class BusyDelay(LiteXModule):
+    def __init__(self, platform,
+        clock_period       = 10,
+        delay_time         = 100,
+        ):
+
+        self.busy_in  = Signal()
+        self.busy_out = Signal()
+
+        # # #
+
+        # busy_delay instance.
+        # -------------------------
+
+        self.specials += Instance("busy_delay",
+            # Parameters
+            p_clock_period = clock_period,
+            p_delay_time   = delay_time,
+
+            # Clk/Reset
+            i_clk          = ClockSignal("sys"),
+            i_reset_n      = ~ResetSignal("sys"),
+
+            # busy IN/OUT
+            i_busy_in      = self.busy_in,
+            o_busy_out     = self.busy_out,
+        )
+
+        self.add_sources(platform)
+
+    def add_sources(self, platform):
+        platform.add_source("LimeSDR-Mini_lms7_trx/src/general/busy_delay.vhd")
