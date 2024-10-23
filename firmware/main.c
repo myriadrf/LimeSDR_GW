@@ -96,6 +96,28 @@ unsigned char dac_data[2];
 
 signed short int converted_val = 300;
 
+static void dac_spi_write(const uint16_t write_data)
+{
+	// register is 32bits and start sending bit 32
+	// we have to shift data to align
+	uint32_t cmd = write_data << 16;
+
+	/* set cs */
+	spimaster_cs_write(1 << 1);
+
+	/* Write SPI MOSI Data */
+    spimaster_mosi_write(cmd);
+
+	/* Start SPI Xfer */
+	spimaster_control_write(
+		(1  << CSR_SPIMASTER_CONTROL_START_OFFSET) |
+		(16 << CSR_SPIMASTER_CONTROL_LENGTH_OFFSET)
+	);
+
+	/* Wait SPI Xfer */
+	while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
+}
+
 unsigned int cfg_top_spi_command(unsigned int write_data, uint8_t *rd_data)
 {
 	//SPI
@@ -129,7 +151,7 @@ unsigned int lat_wishbone_spi_command(int slave_address, unsigned int write_data
 	//SPI
 	unsigned int read_data = 0x0;
 	uint32_t* dest = (uint32_t*)rd_data;
-#if 1
+
 	/* set cs */
 	spimaster_cs_write(slave_address);
 
@@ -147,49 +169,7 @@ unsigned int lat_wishbone_spi_command(int slave_address, unsigned int write_data
 
 	/* Read and return SPI MISO Data */
 	read_data = spimaster_miso_read();
-#else
-	unsigned int slave_address_int;
-	/* Enable slave by writing to master */
-	MicoSPISetSlaveEnable(pMaster, slave_address);
-	/* Check slave enable status. */
-	MicoSPIGetSlaveEnable(pMaster, &slave_address_int);
-	if(slave_address != slave_address_int){
-		//printf("failed to select internal slave! fatal error\n");
-		while(1);
-	}
 
-	/* write data targetted for slave */
-	MicoSPITxData(pMaster, write_data,1);
-
-	/* wait for master's transmission to complete */
-	while(1){
-		volatile unsigned int iTimeout;
-		unsigned int iValue;
-		volatile unsigned int *pStatus;
-		do{
-			if(MicoSPIIsTxDone(pMaster)!=0)
-				break;
-		}while(1);
-
-		/* read data if there's data to read */
-		iTimeout = 0;
-		do{
-			if(MicoSPIRxData(pMaster, &read_data, 0) == 0)
-				break;
-			if(iTimeout >= 10){
-				pStatus = (volatile unsigned int *)(pMaster->base + 8);
-				iValue = *pStatus;
-				pStatus = (volatile unsigned int *)(pMaster->base + 0);
-				iValue = *pStatus;
-				//printf("master failed to rx data within a second %d\n", iTimeout);
-				while(1);
-			}
-			iTimeout++;
-			MicoSleepMilliSecs(100);
-		}while(1);
-		break;
-	}
-#endif
 	*dest = read_data;
 	return read_data;
 }
@@ -631,7 +611,6 @@ int main(void)
 	main_lms_ctr_gpio_write(0x0);
 	main_lms_ctr_gpio_write(0xFFFFFFFF);
 
-#if 0
 	//testEEPROM(i2c_master);
 
 	// Read TCXO DAC value from EEPROM memory
@@ -645,7 +624,7 @@ int main(void)
 	}
 	*/
 
-	if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+DAC_VAL_ADDR_IN_FLASH, 0x2, rdata)!= 0) {
+	/*if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+DAC_VAL_ADDR_IN_FLASH, 0x2, rdata)!= 0) {
 		dac_val = DAC_DEFF_VAL;
 	}
 	else {
@@ -655,22 +634,22 @@ int main(void)
 		else {
 			dac_val = ((uint16_t)rdata[1])<<8 | ((uint16_t)rdata[0]);
 		}
-	}
+	}*/
+	dac_val = DAC_DEFF_VAL;
 
-	spirez = MicoSPISetSlaveEnable(dac_spi, 1);
+	//spirez = MicoSPISetSlaveEnable(dac_spi, 1);
     // Write initial data to the 10bit DAC
 	dac_data[0] = (unsigned char) ((dac_val & 0x03F0) >> 4); //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
 	dac_data[1] = (unsigned char) ((dac_val & 0x000F) << 4); //LSB data
 
 	dac_spi_wrdata = ((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
-	spirez= MicoSPISetSlaveEnable(dac_spi, 0x01);
-	spirez= MicoSPITxData(dac_spi, dac_spi_wrdata, 0);
-#endif
+	//spirez= MicoSPISetSlaveEnable(dac_spi, 0x01);
+	//spirez= MicoSPITxData(dac_spi, dac_spi_wrdata, 0);
+	dac_spi_write(dac_spi_wrdata);
 
+	/* Drive mico32_busy low, high, low */
 	main_gpo_write(0);
-
 	main_gpo_write(1);
-
 	main_gpo_write(0);
 
 	Configure_LM75();
@@ -693,6 +672,7 @@ int main(void)
 			LMS_Ctrl_Packet_Tx->Header.Data_blocks = LMS_Ctrl_Packet_Rx->Header.Data_blocks;
 			LMS_Ctrl_Packet_Tx->Header.Periph_ID = LMS_Ctrl_Packet_Rx->Header.Periph_ID;
 			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BUSY_CMD;
+			//printf("%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
 
 			switch (LMS_Ctrl_Packet_Rx->Header.Command) {
 
@@ -756,7 +736,6 @@ int main(void)
  				break;
 
 			case CMD_GET_INFO:
-				printf("CMD_GET_INFO\n");
 
 				LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
 				LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
@@ -1255,6 +1234,7 @@ int main(void)
 			{
 				dest_byte_reordered = ((dest[cnt] & 0x000000FF) <<24) | ((dest[cnt] & 0x0000FF00) <<8) | ((dest[cnt] & 0x00FF0000) >>8) | ((dest[cnt] & 0xFF000000) >>24);
 				fifo_ctrl_fifo_wdata_write(dest_byte_reordered);
+				//printf("%ld\n", fifo_ctrl_fifo_status_read());
 			};
 
 			//gpo_val = 0x0;
