@@ -123,11 +123,6 @@ class BaseSoC(SoCCore):
             )
         ])
 
-        kwargs["integrated_rom_size"]      = 0x8000
-        kwargs["integrated_sram_ram_size"] = 0x1000
-        kwargs["integrated_main_ram_size"] = 0x4000
-        kwargs["integrated_main_ram_init"] = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
-
         # Enable Compressed Instructions.
         VexRiscvSMP.with_rvc = True
 
@@ -135,14 +130,20 @@ class BaseSoC(SoCCore):
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
-            #cpu_type                 = "vexriscv_smp",
-            #cpu_variant              = "standard",
             cpu_type                 = "picorv32",
+            #cpu_type                 = "vexriscv_smp",
+            #cpu_type                 = "lm32",
+            cpu_variant              = "standard",
             integrated_rom_size      = 0x8000,
             integrated_sram_ram_size = 0x1000,
             integrated_main_ram_size = 0x4000,
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
+            with_uartbone            = True,
+            uart_name                = "crossover",
         )
+
+        # Avoid stalling CPU at startup.
+        self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
         # Automatically jump to pre-initialized firmware.
         self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
@@ -225,7 +226,7 @@ class BaseSoC(SoCCore):
         )
 
         self.comb += [
-            self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(self.fifo_ctrl.fifo_reset_n),
+            self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(~self.fifo_ctrl.fifo_reset),
             self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.lms7_trx_top.stream_fifo_pc_fpga_reset_n),
 
             self.fifo_ctrl.ctrl_fifo.connect(self.ft601.ctrl_fifo),
@@ -282,7 +283,6 @@ class BaseSoC(SoCCore):
             self.general_periph.from_periphcfg.eq(self.lms7_trx_top.from_periphcfg),
 
             self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
-            #self.general_periph.led1_mico32_busy.eq(self.lms7_trx_top.led1_mico32_busy),
             self.general_periph.led1_ctrl.eq(self.lms7_trx_top.led1_ctrl),
             self.general_periph.led2_ctrl.eq(self.lms7_trx_top.led2_ctrl),
             self.general_periph.fx3_led_ctrl.eq(self.lms7_trx_top.led3_ctrl),
@@ -329,6 +329,30 @@ class BaseSoC(SoCCore):
             # General Periph <-> RXTX Top.
             self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_txant_en),
         ]
+
+        analyzer_signals = [
+            self.fifo_ctrl.ctrl_fifo.rd,
+            self.fifo_ctrl.ctrl_fifo.rdata,
+            self.fifo_ctrl.ctrl_fifo.empty,
+            self.fifo_ctrl.ctrl_fifo.wr,
+            self.fifo_ctrl.ctrl_fifo.wdata,
+            self.fifo_ctrl.ctrl_fifo.full,
+            self.fifo_ctrl.fifo_reset,
+
+            self.ft601.ctrl_fifo.rd,
+            self.ft601.ctrl_fifo.rdata,
+            self.ft601.ctrl_fifo.empty,
+            self.ft601.ctrl_fifo.wr,
+            self.ft601.ctrl_fifo.wdata,
+            self.ft601.ctrl_fifo.full,
+            self.ft601.ctrl_fifo_fpga_pc_reset_n,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
 
 
         #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}
