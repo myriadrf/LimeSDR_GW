@@ -96,6 +96,34 @@ unsigned char dac_data[2];
 
 signed short int converted_val = 300;
 
+unsigned int cfg_top_spi_command(unsigned int write_data, uint8_t *rd_data)
+{
+	//SPI
+	unsigned int read_data = 0x0;
+	uint32_t* dest = (uint32_t*)rd_data;
+
+	/* set cs */
+	cfg_top_cs_write(1);
+
+	/* Write SPI MOSI Data */
+    cfg_top_mosi_write(write_data);
+
+	/* Start SPI Xfer */
+	cfg_top_control_write(
+		(1  << CSR_CFG_TOP_CONTROL_START_OFFSET) |
+		(32 << CSR_CFG_TOP_CONTROL_LENGTH_OFFSET)
+	);
+
+	/* Wait SPI Xfer */
+	while ((cfg_top_status_read() & (1 << CSR_CFG_TOP_STATUS_DONE_OFFSET)) == 0);
+
+	/* Read and return SPI MISO Data */
+	read_data = cfg_top_miso_read();
+
+	*dest = read_data;
+	return read_data;
+}
+
 unsigned int lat_wishbone_spi_command(int slave_address, unsigned int write_data, uint8_t *rd_data)
 {
 	//SPI
@@ -470,7 +498,7 @@ int main(void)
     //int k;
     uint16_t * ptr_spi_wrdata;
     uint32_t * p_spi_wrdata32;
-    char cnt = 0;
+    int cnt = 0;
 
 #if 0
     unsigned char test_val;
@@ -494,13 +522,14 @@ int main(void)
     int flash_op_status;
     int read_status;
     int read_data;
+#endif
 
 	unsigned char iValue = 0x1;
-	unsigned int gpio_val = 0x0;
-	unsigned int gpo_val = 0x0;
-	unsigned int gpio_rd_val = 0x0;
-	unsigned int gpio_rd_val2 = 0x0;
-#endif
+	//unsigned int gpio_val = 0x0;
+	//unsigned int gpo_val = 0x0;
+	//unsigned int gpio_rd_val = 0x0;
+	//unsigned int gpio_rd_val2 = 0x0;
+
 	static unsigned int spi_read_val = 0x0;
 	unsigned int spi_read_val_p = 0x0;
 	unsigned char iShiftLeft = 1;
@@ -598,11 +627,11 @@ int main(void)
 	fifo_ctrl_fifo_control_write(1);
 	fifo_ctrl_fifo_control_write(0);
 
-#if 0
     //Reset LMS7
-	MICO_GPIO_WRITE_DATA(lms_ctr_gpio,0x0);
-	MICO_GPIO_WRITE_DATA(lms_ctr_gpio,0xFFFFFFFF);
+	main_lms_ctr_gpio_write(0x0);
+	main_lms_ctr_gpio_write(0xFFFFFFFF);
 
+#if 0
 	//testEEPROM(i2c_master);
 
 	// Read TCXO DAC value from EEPROM memory
@@ -636,17 +665,14 @@ int main(void)
 	dac_spi_wrdata = ((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
 	spirez= MicoSPISetSlaveEnable(dac_spi, 0x01);
 	spirez= MicoSPITxData(dac_spi, dac_spi_wrdata, 0);
-
-	gpo_val = 0x00000000;
-	*gpo_reg = gpo_val;
-
-	gpo_val = 0x00000001;
-	*gpo_reg = gpo_val;
-
-	gpo_val = 0x00000000;
-	*gpo_reg = gpo_val;
-
 #endif
+
+	main_gpo_write(0);
+
+	main_gpo_write(1);
+
+	main_gpo_write(0);
+
 	Configure_LM75();
 
 	while(1) {
@@ -655,10 +681,8 @@ int main(void)
 
 		if(!(spirez & 0x01))
 		{
-#if 0
-			gpo_val = 0x00000001;
-			*gpo_reg = gpo_val;
-#endif
+			main_gpo_write(1);
+
 			//Read packet from the FIFO
 			getFifoData(glEp0Buffer_Rx, 64);
 
@@ -673,7 +697,6 @@ int main(void)
 			switch (LMS_Ctrl_Packet_Rx->Header.Command) {
 
  			case CMD_GPIO_DIR_WR:
-#if 0
  				//if(Check_many_blocks (2)) break;
 
 				//write reg addr
@@ -683,8 +706,9 @@ int main(void)
 				sc_brdg_data[3] = LMS_Ctrl_Packet_Rx->Data_field[0];	// leftmost byte
 				//spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 4, sc_brdg_data, 0, NULL, 0);
 				p_spi_wrdata32 = (uint32_t*) &sc_brdg_data;
-				spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
-#endif
+				//spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
+
+				spi_read_val = cfg_top_spi_command(*p_spi_wrdata32, 0);
 
  				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
  			break;
@@ -732,6 +756,7 @@ int main(void)
  				break;
 
 			case CMD_GET_INFO:
+				printf("CMD_GET_INFO\n");
 
 				LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
 				LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
@@ -742,30 +767,28 @@ int main(void)
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
 			case CMD_LMS_RST:
-#if 0
 
 				switch (LMS_Ctrl_Packet_Rx->Data_field[0])
 				{
 				case LMS_RST_DEACTIVATE:
-					MICO_GPIO_WRITE_DATA(lms_ctr_gpio,0xFFFFFFFF);
+					main_lms_ctr_gpio_write(0xFFFFFFFF);
 					break;
 
 				case LMS_RST_ACTIVATE:
-					MICO_GPIO_WRITE_DATA(lms_ctr_gpio,0x0);
+					main_lms_ctr_gpio_write(0x0);
 					break;
 
 				case LMS_RST_PULSE:
-					MICO_GPIO_WRITE_DATA(lms_ctr_gpio,0x0);
+					main_lms_ctr_gpio_write(0x0);
 					asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
 					asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
-					MICO_GPIO_WRITE_DATA(lms_ctr_gpio,0xFFFFFFFF);
+					main_lms_ctr_gpio_write(0xFFFFFFFF);
 					break;
 
 				default:
 					cmd_errors++;
 					break;
 				}
-#endif
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
@@ -800,7 +823,6 @@ int main(void)
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
 			case CMD_BRDSPI16_WR:
-#if 0
 				if(Check_many_blocks (4)) break;
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
@@ -808,15 +830,14 @@ int main(void)
 					sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); //set write bit
 					//TODO: spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 4, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 0, NULL, 0);
 					p_spi_wrdata32 = (uint32_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-					spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
+					//spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
+					spi_read_val = cfg_top_spi_command(*p_spi_wrdata32, 0);
 				}
-#endif
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
 
 			case CMD_BRDSPI16_RD:
-#if 0
 				if(Check_many_blocks (4)) break;
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
@@ -824,9 +845,9 @@ int main(void)
 					cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7);  //clear write bit
 					//TODO: spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 2, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 2, &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)], 0);
 					ptr_spi_wrdata = (uint16_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
-					spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, ((uint32_t) *ptr_spi_wrdata) << 16, &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)]);
+					//spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, ((uint32_t) *ptr_spi_wrdata) << 16, &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)]);
+					spi_read_val = cfg_top_spi_command(((uint32_t) *ptr_spi_wrdata) << 16, &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)]);
 				}
-#endif
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
 #if 0
@@ -1238,10 +1259,12 @@ int main(void)
 
 			//gpo_val = 0x0;
 			//*gpo_reg = gpo_val;
+			main_gpo_write(0);
 		}
 #if 0
 		unsigned int gpo_reg_04_val = *gpo_reg_04;
 		unsigned int gpo_reg_08_val = *gpo_reg_08;
+#endif
 
 		if (iShiftLeft == 1){
 			if (iValue == 0x8) {
@@ -1257,7 +1280,6 @@ int main(void)
 				iShiftLeft = 1;
 			}
 		}
-#endif
 
 	}
 	
