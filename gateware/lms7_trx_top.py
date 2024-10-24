@@ -318,8 +318,8 @@ class LMS7TRXTopWrapper(LiteXModule):
         )
 
 
-        platform.add_period_constraint(lms_pads.MCLK1, 1e9/125e6)
-        platform.add_period_constraint(lms_pads.MCLK2, 1e9/125e6)
+        #platform.add_period_constraint(lms_pads.MCLK1, 1e9/125e6)
+        #platform.add_period_constraint(lms_pads.MCLK2, 1e9/125e6)
 
         platform.verilog_include_paths.append("LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc")
 

@@ -137,5 +137,5 @@ class Platform(LatticeECP5Platform):
     def create_programmer(self):
         return OpenOCDJTAGProgrammer("openocd_limesdr_mini_v2.cfg")
 
-    def do_finalize(self, fragment):
-        self.add_period_constraint(self.lookup_request("LMK_CLK", loose=True), 1e9/40e6)
+    #def do_finalize(self, fragment):
+    #    self.add_period_constraint(self.lookup_request("LMK_CLK", loose=True), 1e9/40e6)
