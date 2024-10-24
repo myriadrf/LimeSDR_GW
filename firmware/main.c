@@ -103,7 +103,6 @@ static void write_cfg(uint16_t addr, uint8_t *wdata)
 
 static void read_cfg(uint16_t addr, uint8_t *rdata)
 {
-	printf("%x\n", addr);
 	uint32_t value = 0;
 
     switch (addr)
@@ -277,16 +276,18 @@ void getFifoData(uint8_t *buf, uint8_t k)
 	uint32_t* dest = (uint32_t*)buf;
 	uint32_t fifo_val = 0;
 
-	printf("D\n");
-	fifo_val = fifo_ctrl_fifo_rdata_read();
+	printf("D %d\n", k);
+	//fifo_val = fifo_ctrl_fifo_rdata_read();
 	for(cnt=0; cnt<k/sizeof(uint32_t); ++cnt)
 	{
+		fifo_ctrl_fifo_rd_write(1); // RD before read
 		fifo_val = fifo_ctrl_fifo_rdata_read();
-		printf("X%x\n", fifo_val);
+		printf("X%08x ", fifo_val);
 		//dest[cnt] = ((fifo_val & 0x000000FF) <<24) | ((fifo_val & 0x0000FF00) <<8) | ((fifo_val & 0x00FF0000) >>8) | ((fifo_val & 0xFF000000) >>24);	// Read Data from FIFO
 		dest[cnt] = fifo_val; // Read Data From Fifo
 		//dest[cnt] = IORD(FIFO_BASE_ADDRESS, 1);
 	}
+	printf("\n");
 	printf("E\n");
 }
 
@@ -857,20 +858,21 @@ int main(void)
 				break;
 			case CMD_BRDSPI16_WR:
 				printf("CMD_BRDSPI16_WR\n");
-				if(Check_many_blocks (4)) break;
+				//if(Check_many_blocks (4)) break;
 
-				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-				{
-					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-					printf("%04x\n",addr);
-					sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); //set write bit
-					//TODO: spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 4, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 0, NULL, 0);
-					p_spi_wrdata32 = (uint32_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-					//spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
-					spi_read_val = cfg_top_spi_command(*p_spi_wrdata32, 0);
-				}
+				//for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
+				//{
+				//	uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
+				//	printf("%04x\n",addr);
+				//	sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); //set write bit
+				//	//TODO: spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 4, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 0, NULL, 0);
+				//	p_spi_wrdata32 = (uint32_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
+				//	//spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
+				//	spi_read_val = cfg_top_spi_command(*p_spi_wrdata32, 0);
+				//}
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+				printf("end\n");
 				break;
 
 			case CMD_BRDSPI16_RD:
@@ -895,16 +897,19 @@ int main(void)
 					printf("%x\n", addr);
 					if (addr < 0x07) {
 						read_cfg(addr, rdata);
-						LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 2)] = rdata[1];
-						LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 2)] = rdata[0];
+						printf("%02x %02x\n", rdata[0], rdata[1]);
+						LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = rdata[1];
+						LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = rdata[0];
 					} else {
-						cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7);  //clear write bit
+						//cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7);  //clear write bit
 
-						ptr_spi_wrdata = (uint16_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
+						//ptr_spi_wrdata = (uint16_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
 
-						spi_read_val = cfg_top_spi_command(((uint32_t) *ptr_spi_wrdata) << 16, 0);
-						LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 2)] = (spi_read_val >> 8) & 0xff;
-						LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 2)] = (spi_read_val >> 0) & 0xff;
+						//spi_read_val = cfg_top_spi_command(((uint32_t) *ptr_spi_wrdata) << 16, 0);
+						//LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 2)] = (spi_read_val >> 8) & 0xff;
+						//LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 2)] = (spi_read_val >> 0) & 0xff;
+						LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = 0x55;
+						LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = 0xAA;
 					}
 						
 				}
