@@ -43,6 +43,7 @@ from litescope import LiteScopeAnalyzer
 
 from gateware.busy_delay     import BusyDelay
 from gateware.lms7_trx_top   import LMS7TRXTopWrapper
+from gateware.fpgacfg        import FPGACfg
 from gateware.ft601          import FT601
 from gateware.lms7002_top    import LMS7002Top
 from gateware.tst_top        import TstTop
@@ -100,12 +101,14 @@ class _CRG(LiteXModule):
 
         self.comb += self.cd_sys.rst.eq(~por_done)
 
+        platform.add_platform_command("GSR_NET NET min_por_done;")
+
+
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
     def __init__(self, sys_clk_freq=80e6, toolchain="diamond",
-        with_usb_fifo   = True, with_usb_fifo_loopback=False,
-        with_led_chaser = True,
+        with_litescope  = False,
         cpu_firmware    = None,
         **kwargs):
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
@@ -127,6 +130,8 @@ class BaseSoC(SoCCore):
         VexRiscvSMP.with_rvc = True
 
         # SoCCore ----------------------------------------------------------------------------------
+        uart_name     = {True: "crossover", False:"serial"}[with_litescope]
+        with_uartbone = with_litescope
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
@@ -138,9 +143,13 @@ class BaseSoC(SoCCore):
             integrated_sram_ram_size = 0x1000,
             integrated_main_ram_size = 0x4000,
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
-            with_uartbone            = True,
-            uart_name                = "crossover",
+            with_uartbone            = with_uartbone,
+            uart_name                = uart_name,
         )
+
+        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/FT601_timing.sdc")
+        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/LMS7002_timing.sdc")
+        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/timing.sdc")
 
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
@@ -203,6 +212,9 @@ class BaseSoC(SoCCore):
             self.lms7_trx_top.cfg_top_ss_n.eq(cfg_top_spi.cs_n),
             cfg_top_spi.miso.eq(self.lms7_trx_top.cfg_top_miso),
         ]
+
+        # FPGA Cfg ---------------------------------------------------------------------------------
+        self.fpgacfg = FPGACfg()
 
         # FIFO Control -----------------------------------------------------------------------------
         from gateware.fifo_ctrl_to_csr import FIFOCtrlToCSR
@@ -330,29 +342,30 @@ class BaseSoC(SoCCore):
             self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_txant_en),
         ]
 
-        analyzer_signals = [
-            self.fifo_ctrl.ctrl_fifo.rd,
-            self.fifo_ctrl.ctrl_fifo.rdata,
-            self.fifo_ctrl.ctrl_fifo.empty,
-            self.fifo_ctrl.ctrl_fifo.wr,
-            self.fifo_ctrl.ctrl_fifo.wdata,
-            self.fifo_ctrl.ctrl_fifo.full,
-            self.fifo_ctrl.fifo_reset,
+        if with_litescope:
+            analyzer_signals = [
+                self.fifo_ctrl.ctrl_fifo.rd,
+                self.fifo_ctrl.ctrl_fifo.rdata,
+                self.fifo_ctrl.ctrl_fifo.empty,
+                self.fifo_ctrl.ctrl_fifo.wr,
+                self.fifo_ctrl.ctrl_fifo.wdata,
+                self.fifo_ctrl.ctrl_fifo.full,
+                self.fifo_ctrl.fifo_reset,
 
-            self.ft601.ctrl_fifo.rd,
-            self.ft601.ctrl_fifo.rdata,
-            self.ft601.ctrl_fifo.empty,
-            self.ft601.ctrl_fifo.wr,
-            self.ft601.ctrl_fifo.wdata,
-            self.ft601.ctrl_fifo.full,
-            self.ft601.ctrl_fifo_fpga_pc_reset_n,
-        ]
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 1024,
-            clock_domain = "sys",
-            register     = True,
-            csr_csv      = "analyzer.csv"
-        )
+                self.ft601.ctrl_fifo.rd,
+                self.ft601.ctrl_fifo.rdata,
+                self.ft601.ctrl_fifo.empty,
+                self.ft601.ctrl_fifo.wr,
+                self.ft601.ctrl_fifo.wdata,
+                self.ft601.ctrl_fifo.full,
+                self.ft601.ctrl_fifo_fpga_pc_reset_n,
+            ]
+            self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+                depth        = 1024,
+                clock_domain = "sys",
+                register     = True,
+                csr_csv      = "analyzer.csv"
+            )
 
 
         #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}
@@ -362,7 +375,8 @@ class BaseSoC(SoCCore):
 def main():
     from litex.build.parser import LiteXArgumentParser
     parser = LiteXArgumentParser(platform=limesdr_mini_v2.Platform, description="LiteX SoC on LimeSDR-Mini-V2.")
-    parser.add_target_argument("--sys-clk-freq", default=77.5e6, type=float, help="System clock frequency.")
+    parser.add_target_argument("--sys-clk-freq",   default=77.5e6, type=float, help="System clock frequency.")
+    parser.add_target_argument("--with-litescope", action="store_true",        help="Enable LiteScope.")
     args = parser.parse_args()
     args.toolchain = "diamond"
 
@@ -371,9 +385,10 @@ def main():
         prepare = (run == 0)
         build   = ((run == 1) & args.build)
         soc = BaseSoC(
-            sys_clk_freq = args.sys_clk_freq,
-            toolchain    = args.toolchain,
-            cpu_firmware = None if prepare else "firmware/firmware.bin",
+            sys_clk_freq   = args.sys_clk_freq,
+            toolchain      = args.toolchain,
+            with_litescope = args.with_litescope,
+            cpu_firmware   = None if prepare else "firmware/firmware.bin",
             **parser.soc_argdict
         )
         builder = Builder(soc, csr_csv="csr.csv")
