@@ -248,9 +248,10 @@ void getFifoData(uint8_t *buf, uint8_t k)
 	for(cnt=0; cnt<k/sizeof(uint32_t); ++cnt)
 	{
 		fifo_val = fifo_ctrl_fifo_rdata_read();
-		dest[cnt] = ((fifo_val & 0x000000FF) <<24) | ((fifo_val & 0x0000FF00) <<8) | ((fifo_val & 0x00FF0000) >>8) | ((fifo_val & 0xFF000000) >>24);	// Read Data from FIFO
+		//dest[cnt] = ((fifo_val & 0x000000FF) <<24) | ((fifo_val & 0x0000FF00) <<8) | ((fifo_val & 0x00FF0000) >>8) | ((fifo_val & 0xFF000000) >>24);	// Read Data from FIFO
+		dest[cnt] = fifo_val; // Read Data From Fifo
 		//dest[cnt] = IORD(FIFO_BASE_ADDRESS, 1);
-	};
+	}
 }
 
 /**	This function checks if all blocks could fit in data field.
@@ -1232,7 +1233,8 @@ int main(void)
 			//Send response to the command
 			for(cnt=0; cnt<64/sizeof(uint32_t); ++cnt)
 			{
-				dest_byte_reordered = ((dest[cnt] & 0x000000FF) <<24) | ((dest[cnt] & 0x0000FF00) <<8) | ((dest[cnt] & 0x00FF0000) >>8) | ((dest[cnt] & 0xFF000000) >>24);
+				//dest_byte_reordered = ((dest[cnt] & 0x000000FF) <<24) | ((dest[cnt] & 0x0000FF00) <<8) | ((dest[cnt] & 0x00FF0000) >>8) | ((dest[cnt] & 0xFF000000) >>24);
+				dest_byte_reordered = dest[cnt];
 				fifo_ctrl_fifo_wdata_write(dest_byte_reordered);
 				//printf("%ld\n", fifo_ctrl_fifo_status_read());
 			};
