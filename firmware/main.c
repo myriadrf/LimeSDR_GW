@@ -99,29 +99,58 @@ signed short int converted_val = 300;
 
 static void write_cfg(uint16_t addr, uint8_t *wdata)
 {
+	uint32_t value = (0x0000FFFF & (((uint32_t)wdata[0] << 8) | ((uint32_t)wdata[1])));
+
+	switch (addr)
+	{
+	case 0x4:
+		fpgacfg_phase_reg_sel_write(value);
+		break;
+	case 0x5:
+		fpgacfg_drct_clk_en_write(value);
+		break;
+	case 0x6:
+		fpgacfg_load_phase_write(value);
+		break;
+	case 0x7:
+		fpgacfg_channel_cntrl_write(value);
+		break;
+	//case 0x7:
+	//	value = lime_top_rx_path_ch_en_read();
+	//	break;
+	}
 }
 
 static void read_cfg(uint16_t addr, uint8_t *rdata)
 {
 	uint32_t value = 0;
 
-    switch (addr)
-    {
-    case 0x0:
-        value = fpgacfg_board_id_read();
-        break;
-    case 0x1:
-        value = fpgacfg_major_rev_read();
-        break;
-    case 0x2:
-        value = fpgacfg_compile_rev_read();
-        break;
-    case 0x3:
-        value = 0x2;
-        break;
-    //case 0x7:
-    //    value = lime_top_rx_path_ch_en_read();
-    //    break;
+	switch (addr)
+	{
+	case 0x0:
+		value = fpgacfg_board_id_read();
+		break;
+	case 0x1:
+		value = fpgacfg_major_rev_read();
+		break;
+	case 0x2:
+		value = fpgacfg_compile_rev_read();
+		break;
+	case 0x3:
+		value = fpgacfg_bom_hw_ver_read();
+		break;
+	case 0x4:
+		value = fpgacfg_phase_reg_sel_read();
+		break;
+	case 0x5:
+		value = fpgacfg_drct_clk_en_read();
+		break;
+	case 0x6:
+		value = fpgacfg_load_phase_read();
+		break;
+	case 0x7:
+		value = fpgacfg_channel_cntrl_read();
+		break;
 	}
 	rdata[0] = (uint8_t)((value >> 0) & 0xff);
 	rdata[1] = (uint8_t)((value >> 8) & 0xff);
@@ -137,7 +166,7 @@ static void dac_spi_write(const uint16_t write_data)
 	spimaster_cs_write(1 << 1);
 
 	/* Write SPI MOSI Data */
-    spimaster_mosi_write(cmd);
+	spimaster_mosi_write(cmd);
 
 	/* Start SPI Xfer */
 	spimaster_control_write(
@@ -282,7 +311,7 @@ void getFifoData(uint8_t *buf, uint8_t k)
 	{
 		fifo_ctrl_fifo_rd_write(1); // RD before read
 		fifo_val = fifo_ctrl_fifo_rdata_read();
-		printf("X%08x ", fifo_val);
+		printf("X%08lx ", fifo_val);
 		//dest[cnt] = ((fifo_val & 0x000000FF) <<24) | ((fifo_val & 0x0000FF00) <<8) | ((fifo_val & 0x00FF0000) >>8) | ((fifo_val & 0xFF000000) >>24);	// Read Data from FIFO
 		dest[cnt] = fifo_val; // Read Data From Fifo
 		//dest[cnt] = IORD(FIFO_BASE_ADDRESS, 1);
@@ -858,18 +887,19 @@ int main(void)
 				break;
 			case CMD_BRDSPI16_WR:
 				printf("CMD_BRDSPI16_WR\n");
-				//if(Check_many_blocks (4)) break;
+				if(Check_many_blocks (4)) break;
 
-				//for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-				//{
-				//	uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-				//	printf("%04x\n",addr);
-				//	sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); //set write bit
-				//	//TODO: spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 4, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 0, NULL, 0);
-				//	p_spi_wrdata32 = (uint32_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-				//	//spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
-				//	spi_read_val = cfg_top_spi_command(*p_spi_wrdata32, 0);
-				//}
+				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
+				{
+					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
+					printf("%x\n", addr);
+					printf("%04x\n",addr);
+					if (addr < 0x08) {
+						write_cfg(addr, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+					} else {
+					}
+
+				}
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				printf("end\n");
@@ -885,17 +915,10 @@ int main(void)
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
 				{
-					//cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7);  //clear write bit
-
-					//ptr_spi_wrdata = (uint16_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
-					//spi_read_val = cfg_top_spi_command(((uint32_t) *ptr_spi_wrdata) << 24, 0);
-
-					//LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (spi_read_val >> 8) & 0xff;
-					//LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (spi_read_val >> 0) & 0xff;
 					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
 					uint8_t rdata[2];
 					printf("%x\n", addr);
-					if (addr < 0x07) {
+					if (addr < 0x08) {
 						read_cfg(addr, rdata);
 						printf("%02x %02x\n", rdata[0], rdata[1]);
 						LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = rdata[1];
