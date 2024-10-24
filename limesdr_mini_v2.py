@@ -203,8 +203,6 @@ class BaseSoC(SoCCore):
         )
         self.comb += [
             self.lms7_trx_top.ft_clk.eq(ft_clk),
-            self.lms7_trx_top.HW_VER.eq(revision_pads.HW_VER),
-            self.lms7_trx_top.BOM_VER.eq(revision_pads.BOM_VER),
 
             # CFG_TOP SPI Interface.
             self.lms7_trx_top.cfg_top_mosi.eq(cfg_top_spi.mosi),
@@ -214,7 +212,8 @@ class BaseSoC(SoCCore):
         ]
 
         # FPGA Cfg ---------------------------------------------------------------------------------
-        self.fpgacfg = FPGACfg()
+        self.fpgacfg = FPGACfg(revision_pads)
+        self.comb += self.fpgacfg.pwr_src.eq(0),
 
         # FIFO Control -----------------------------------------------------------------------------
         from gateware.fifo_ctrl_to_csr import FIFOCtrlToCSR
@@ -319,7 +318,7 @@ class BaseSoC(SoCCore):
         )
 
         self.comb += [
-            self.rxtx_top.from_fpgacfg.eq(self.lms7_trx_top.from_fpgacfg),
+            self.rxtx_top.from_fpgacfg.eq(self.fpgacfg.from_fpgacfg),
             self.lms7_trx_top.to_tstcfg_from_rxtx.eq(self.rxtx_top.to_tstcfg_from_rxtx),
             self.rxtx_top.from_tstcfg.eq(self.lms7_trx_top.from_tstcfg),
 
