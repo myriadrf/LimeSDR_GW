@@ -101,7 +101,7 @@ class _CRG(LiteXModule):
 
         self.comb += self.cd_sys.rst.eq(~por_done)
 
-        platform.add_platform_command("GSR_NET NET min_por_done;")
+        platform.add_platform_command("GSR_NET NET main_por_done;")
 
 
 # BaseSoC ------------------------------------------------------------------------------------------

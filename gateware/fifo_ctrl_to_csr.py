@@ -25,6 +25,7 @@ class FIFOCtrlToCSR(LiteXModule):
 
         # Read FIFO.
         self._fifo_rdata = CSRStatus(EP02_rwidth, description="FIFO Read Register.")
+        self._fifo_rd    = CSRStorage(1,          description="FIFO rd.")
 
         # Read/Write FIFO Status.
         self._fifo_status  = CSRStatus(description="FIFO Status Register.", fields=[
@@ -45,8 +46,8 @@ class FIFOCtrlToCSR(LiteXModule):
         self.comb += [
             # Read.
             self._fifo_rdata.status.eq(self.ctrl_fifo.rdata),
-            self.ctrl_fifo.rd.eq(self._fifo_rdata.we),
             self._fifo_status.fields.is_rdempty.eq(self.ctrl_fifo.empty),
+            self.ctrl_fifo.rd.eq(self._fifo_rd.re), #self._fifo_rdata.we),
             # Write.
             self.ctrl_fifo.wdata.eq(self._fifo_wdata.storage),
             self.ctrl_fifo.wr.eq(self._fifo_wdata.re),
