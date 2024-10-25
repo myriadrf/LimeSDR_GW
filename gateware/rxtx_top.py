@@ -44,9 +44,12 @@ class RXTXTop(LiteXModule):
         self.rx_smpl_cmp           = SampleCompare()
         self.rxtx_smpl_cmp_length  = Signal(16)
 
-        self.from_fpgacfg          = FromFPGACfg()
-        self.to_tstcfg_from_rxtx   = ToTstCfgFromRXTX()
-        self.from_tstcfg           = FromTstCfg()
+        self.from_fpgacfg             = FromFPGACfg()
+        self.to_tstcfg_from_rxtx      = ToTstCfgFromRXTX()
+        self.from_tstcfg_TEST_EN      = Signal(6)
+        self.from_tstcfg_TEST_FRC_ERR = Signal(6)
+        self.from_tstcfg_TX_TST_I     = Signal(16)
+        self.from_tstcfg_TX_TST_Q     = Signal(16)
 
         self.lms_ctr_gpio0         = Signal()
 
@@ -131,10 +134,10 @@ class RXTXTop(LiteXModule):
             o_DDR2_1_STATUS          = self.to_tstcfg_from_rxtx.DDR2_1_STATUS,
             o_DDR2_1_pnf_per_bit     = self.to_tstcfg_from_rxtx.DDR2_1_pnf_per_bit,
             #from_tstcfg             : in     t_FROM_TSTCFG;
-            i_TEST_EN                = self.from_tstcfg.TEST_EN,
-            i_TEST_FRC_ERR           = self.from_tstcfg.TEST_FRC_ERR,
-            i_TX_TST_I               = self.from_tstcfg.TX_TST_I,
-            i_TX_TST_Q               = self.from_tstcfg.TX_TST_Q,
+            i_TEST_EN                = self.from_tstcfg_TEST_EN,
+            i_TEST_FRC_ERR           = self.from_tstcfg_TEST_FRC_ERR,
+            i_TX_TST_I               = self.from_tstcfg_TX_TST_I,
+            i_TX_TST_Q               = self.from_tstcfg_TX_TST_Q,
 
             ## TX path
             i_tx_clk                 = ClockSignal("lms_tx"),
