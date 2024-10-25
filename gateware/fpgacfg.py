@@ -119,7 +119,7 @@ class FPGACfg(LiteXModule):
 
         # Logic.
         self.comb += [
-            self.bom_hw_ver.status.eq(             Cat(Constant(0, 8), self.pwr_src, _bom_ver, _hw_ver)),
+            self.bom_hw_ver.status.eq(             Cat(_hw_ver, _bom_ver, self.pwr_src, Constant(0, 8))),
             # FPGA direct clocking
             self.from_fpgacfg.phase_reg_sel.eq(    self.phase_reg_sel.storage),
             self.from_fpgacfg.drct_clk_en.eq(      self.drct_clk_en.storage),
@@ -174,7 +174,7 @@ class FPGACfg(LiteXModule):
         ]
         self.sync += [
             If((pads.HW_VER == 0),
-                _bom_ver.eq(Cat(Constant(0, 2), pads.BOM_VER[0:2])),
+                _bom_ver.eq(Cat(pads.BOM_VER[0:2], Constant(0,2))),
                 If(pads.BOM_VER[2] == 0b1,
                     _hw_ver.eq(Constant(2, 4)),
                 ).Else(
