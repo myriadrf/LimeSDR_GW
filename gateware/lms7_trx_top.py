@@ -67,15 +67,6 @@ class LMS7TRXTopWrapper(LiteXModule):
         # -------------------------------
         self.delay_control = DelayControl()
 
-        # General Periph.
-        # ---------------
-        self.led1_mico32_busy  = Signal()
-        self.led1_ctrl         = Signal(3)
-        self.led2_ctrl         = Signal(3)
-        self.led3_ctrl         = Signal(3)
-        self.to_periphcfg      = ToPeriphCfg()
-        self.from_periphcfg    = FromPeriphCfg()
-
         # RXTX.
         # -----
         self.rxtx_smpl_cmp_length = Signal(16)
@@ -177,26 +168,6 @@ class LMS7TRXTopWrapper(LiteXModule):
             #  FPGA I2C
             io_FPGA_I2C_SCL         = Open(),#fpga_i2c_pads.SCL,
             io_FPGA_I2C_SDA         = Open(),#fpga_i2c_pads.SDA,
-
-            # ----------------------------------------------------------------------------
-            # General periphery
-            #  LEDs
-            o_mico32_busy            = self.led1_mico32_busy,
-            o_led1_ctrl              = self.led1_ctrl,
-            o_led2_ctrl              = self.led2_ctrl,
-            o_led3_ctrl              = self.led3_ctrl,
-            # to_periphcfg
-            i_BOARD_GPIO_RD          = self.to_periphcfg.BOARD_GPIO_RD,
-            i_PERIPH_INPUT_RD_0      = self.to_periphcfg.PERIPH_INPUT_RD_0,
-            i_PERIPH_INPUT_RD_1      = self.to_periphcfg.PERIPH_INPUT_RD_1,
-            # from_periphcfg
-            o_BOARD_GPIO_OVRD        = self.from_periphcfg.BOARD_GPIO_OVRD,
-            o_BOARD_GPIO_DIR         = self.from_periphcfg.BOARD_GPIO_DIR,
-            o_BOARD_GPIO_VAL         = self.from_periphcfg.BOARD_GPIO_VAL,
-            o_PERIPH_OUTPUT_OVRD_0   = self.from_periphcfg.PERIPH_OUTPUT_OVRD_0,
-            o_PERIPH_OUTPUT_VAL_0    = self.from_periphcfg.PERIPH_OUTPUT_VAL_0,
-            o_PERIPH_OUTPUT_OVRD_1   = self.from_periphcfg.PERIPH_OUTPUT_OVRD_1,
-            o_PERIPH_OUTPUT_VAL_1    = self.from_periphcfg.PERIPH_OUTPUT_VAL_1,
 
             # RXTX Top
             o_rxtx_smpl_cmp_length  = self.rxtx_smpl_cmp_length,

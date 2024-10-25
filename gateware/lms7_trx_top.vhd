@@ -106,25 +106,6 @@ entity lms7_trx_top is
          -- FPGA I2C
       FPGA_I2C_SCL      : inout  std_logic;
       FPGA_I2C_SDA      : inout  std_logic;
-      -- ----------------------------------------------------------------------------
-      -- General periphery
-         -- LEDs          
-      mico32_busy         : out std_logic;
-      led1_ctrl           : out std_logic_vector(2 downto 0);
-      led2_ctrl           : out std_logic_vector(2 downto 0);
-      led3_ctrl           : out std_logic_vector(2 downto 0);
-      -- to_periphcfg
-      BOARD_GPIO_RD        : in  std_logic_vector(15 downto 0);
-      PERIPH_INPUT_RD_0    : in  std_logic_vector(15 downto 0);
-      PERIPH_INPUT_RD_1    : in  std_logic_vector(15 downto 0);
-      -- from_periphcfg
-      BOARD_GPIO_OVRD      : out std_logic_vector(15 downto 0);
-      BOARD_GPIO_DIR       : out std_logic_vector(15 downto 0);
-      BOARD_GPIO_VAL       : out std_logic_vector(15 downto 0);
-      PERIPH_OUTPUT_OVRD_0 : out std_logic_vector(15 downto 0);
-      PERIPH_OUTPUT_VAL_0  : out std_logic_vector(15 downto 0);
-      PERIPH_OUTPUT_OVRD_1 : out std_logic_vector(15 downto 0);
-      PERIPH_OUTPUT_VAL_1  : out std_logic_vector(15 downto 0);
 
       -- ----------------------------------------------------------------------------
       -- RXTX
@@ -432,22 +413,10 @@ begin
 -- general_periph_top instance.
 -- Control module for external periphery
 -- ----------------------------------------------------------------------------
-   led1_ctrl   <= inst0_from_fpgacfg.FPGA_LED1_CTRL;
-   led2_ctrl   <= inst0_from_fpgacfg.FPGA_LED2_CTRL;
-   led3_ctrl   <= inst0_from_fpgacfg.FX3_LED_CTRL;
-
    -- to_periphcfg
-   inst0_to_periphcfg.BOARD_GPIO_RD     <= BOARD_GPIO_RD;
-   inst0_to_periphcfg.PERIPH_INPUT_RD_0 <= PERIPH_INPUT_RD_0;
-   inst0_to_periphcfg.PERIPH_INPUT_RD_1 <= PERIPH_INPUT_RD_1;
-   -- from_periphcfg
-   BOARD_GPIO_OVRD      <= inst0_from_periphcfg.BOARD_GPIO_OVRD;
-   BOARD_GPIO_DIR       <= inst0_from_periphcfg.BOARD_GPIO_DIR;
-   BOARD_GPIO_VAL       <= inst0_from_periphcfg.BOARD_GPIO_VAL;
-   PERIPH_OUTPUT_OVRD_0 <= inst0_from_periphcfg.PERIPH_OUTPUT_OVRD_0;
-   PERIPH_OUTPUT_VAL_0  <= inst0_from_periphcfg.PERIPH_OUTPUT_VAL_0;
-   PERIPH_OUTPUT_OVRD_1 <= inst0_from_periphcfg.PERIPH_OUTPUT_OVRD_1;
-   PERIPH_OUTPUT_VAL_1  <= inst0_from_periphcfg.PERIPH_OUTPUT_VAL_1;
+   inst0_to_periphcfg.BOARD_GPIO_RD     <= (others => '0'); --BOARD_GPIO_RD;
+   inst0_to_periphcfg.PERIPH_INPUT_RD_0 <= (others => '0'); --PERIPH_INPUT_RD_0;
+   inst0_to_periphcfg.PERIPH_INPUT_RD_1 <= (others => '0'); --PERIPH_INPUT_RD_1;
    
  ----------------------------------------------------------------------------
  -- rxtx_top instance.
