@@ -151,6 +151,55 @@ static void read_cfg(uint16_t addr, uint8_t *rdata)
 	case 0x7:
 		value = fpgacfg_channel_cntrl_read();
 		break;
+	case 0x8:
+		value = fpgacfg_reg08_read();
+		break;
+	case 0x9:
+		value = fpgacfg_reg09_read();
+		break;
+	case 0xa:
+		value = fpgacfg_reg10_read();
+		break;
+	case 0xC:
+		value = fpgacfg_wfm_ch_en_read();
+		break;
+	case 0xD:
+		value = fpgacfg_reg13_read();
+		break;
+	case 0xE:
+		value = fpgacfg_wfm_smpl_width_read();
+		break;
+	case 0xF:
+		value = fpgacfg_sync_size_read();
+		break;
+	case 0x10:
+		value = fpgacfg_txant_pre_read();
+		break;
+	case 0x11:
+		value = fpgacfg_txant_post_read();
+		break;
+	case 0x12:
+		value = fpgacfg_SPI_SS_read();
+		break;
+	case 0x13:
+		value = fpgacfg_LMS1_read();
+		break;
+	case 0x17:
+		value = fpgacfg_GPIO_read();
+		break;
+	case 0x1A:
+		value = fpgacfg_fpga_led_ctrl_read();
+		break;
+	case 0x1C:
+		value = fpgacfg_FX3_LED_CTRL_read();
+		break;
+	case 0x1D:
+		value = fpgacfg_CLK_ENA_read();
+		break;
+	case 0x1E:
+		value = fpgacfg_sync_pulse_period_read();
+		break;
+
 	}
 	rdata[0] = (uint8_t)((value >> 0) & 0xff);
 	rdata[1] = (uint8_t)((value >> 8) & 0xff);
@@ -918,7 +967,7 @@ int main(void)
 					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
 					uint8_t rdata[2];
 					printf("%x\n", addr);
-					if (addr < 0x08) {
+					if (addr < 0x1F) {
 						read_cfg(addr, rdata);
 						printf("%02x %02x\n", rdata[0], rdata[1]);
 						LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = rdata[1];
