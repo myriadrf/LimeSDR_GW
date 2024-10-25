@@ -690,7 +690,7 @@ int main(void)
 			LMS_Ctrl_Packet_Tx->Header.Periph_ID = LMS_Ctrl_Packet_Rx->Header.Periph_ID;
 			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BUSY_CMD;
 			if (LMS_Ctrl_Packet_Rx->Header.Command != 0)
-			printf("b%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
+			//printf("b%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
 
 			switch (LMS_Ctrl_Packet_Rx->Header.Command) {
 
@@ -848,6 +848,7 @@ int main(void)
 					} else if (addr < 192) {
 						tstcfg_write(addr - 96, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
 					} else {
+						periphcfg_write(addr - 192, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
 					}
 
 				}
@@ -875,15 +876,7 @@ int main(void)
 					} else if (addr < 192) {
 						tstcfg_read(addr - 96, rdata);
 					} else {
-						//cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7);  //clear write bit
-
-						//ptr_spi_wrdata = (uint16_t*) &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
-
-						//spi_read_val = cfg_top_spi_command(((uint32_t) *ptr_spi_wrdata) << 16, 0);
-						//LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 2)] = (spi_read_val >> 8) & 0xff;
-						//LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 2)] = (spi_read_val >> 0) & 0xff;
-						rdata[1] = 0x55;
-						rdata[0] = 0xAA;
+						periphcfg_read(addr - 192, rdata);
 					}
 					printf("\t%02x %02x\n", rdata[0], rdata[1]);
 					LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = rdata[1];
