@@ -243,7 +243,7 @@ class BaseSoC(SoCCore):
 
         self.comb += [
             self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(~self.fifo_ctrl.fifo_reset),
-            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.lms7_trx_top.stream_fifo_pc_fpga_reset_n),
+            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.fpgacfg.from_fpgacfg.rx_en),
 
             self.fifo_ctrl.ctrl_fifo.connect(self.ft601.ctrl_fifo),
         ]
@@ -277,9 +277,6 @@ class BaseSoC(SoCCore):
 
         self.comb += [
             self.general_periph.HW_VER.eq(revision_pads.HW_VER),
-
-            self.lms7_trx_top.to_periphcfg.eq(self.general_periph.to_periphcfg),
-            self.general_periph.from_periphcfg.eq(self.lms7_trx_top.from_periphcfg),
 
             self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
             self.general_periph.led1_ctrl.eq(self.fpgacfg.led1_ctrl),
@@ -315,7 +312,7 @@ class BaseSoC(SoCCore):
 
             self.rxtx_top.lms_ctr_gpio0.eq(self._lms_ctr_gpio.storage[0]),
 
-            self.rxtx_top.rxtx_smpl_cmp_length.eq(self.lms7_trx_top.rxtx_smpl_cmp_length),
+            self.rxtx_top.rxtx_smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
 
             # LMS7002 <-> RXTX Top.
             self.lms7002_top.tx_diq1_h.eq(self.rxtx_top.tx_diq1_h),
