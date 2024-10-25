@@ -52,8 +52,8 @@ class TstTop(LiteXModule):
             # input ports
             i_FX3_clk            = fx3_clk,
             i_reset_n            = ~ResetSignal("sys"),
-            i_test_en            = self.test_en,
-            i_test_frc_err       = self.test_frc_err,
+            i_test_en            = self.test_en[0:4],
+            i_test_frc_err       = self.test_frc_err[0:4],
             o_test_cmplt         = self.test_cmplt,
             o_test_rez           = self.test_rez,
 
