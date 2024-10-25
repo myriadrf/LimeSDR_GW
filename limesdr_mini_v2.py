@@ -48,6 +48,7 @@ from gateware.ft601          import FT601
 from gateware.lms7002_top    import LMS7002Top
 from gateware.tst_top        import TstTop
 from gateware.general_periph import GeneralPeriphTop
+from gateware.pllcfg         import PLLCfg
 from gateware.rxtx_top       import RXTXTop
 
 # Constants ----------------------------------------------------------------------------------------
@@ -215,6 +216,10 @@ class BaseSoC(SoCCore):
         self.fpgacfg = FPGACfg(revision_pads)
         self.comb += self.fpgacfg.pwr_src.eq(0),
 
+        # PLL Cfg ----------------------------------------------------------------------------------
+        self.pllcfg = PLLCfg()
+        self.comb += self.fpgacfg.pwr_src.eq(0),
+
         # FIFO Control -----------------------------------------------------------------------------
         from gateware.fifo_ctrl_to_csr import FIFOCtrlToCSR
         self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
@@ -246,36 +251,19 @@ class BaseSoC(SoCCore):
         # LMS7002 Top ------------------------------------------------------------------------------
         self.lms7002_top = LMS7002Top(platform, lms_pads)
 
-        self.comb += self.lms7_trx_top.delay_control.connect(self.lms7002_top.delay_control),
+        self.comb += self.pllcfg.delay_control.connect(self.lms7002_top.delay_control),
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
         self.tst_top = TstTop(platform, ft_clk, platform.request("LMK_CLK"))
         self.comb += [
-            self.tst_top.test_en.eq(self.lms7_trx_top.test_en),
-            self.tst_top.test_frc_err.eq(self.lms7_trx_top.test_frc_err),
-
-            self.lms7_trx_top.test_cmplt.eq(self.tst_top.test_cmplt),
-            self.lms7_trx_top.test_rez.eq(self.tst_top.test_rez),
-
-            self.tst_top.Si5351C_clk_0.eq(self.lms7_trx_top.Si5351C_clk_0),
-            self.tst_top.Si5351C_clk_1.eq(self.lms7_trx_top.Si5351C_clk_1),
-            self.tst_top.Si5351C_clk_2.eq(self.lms7_trx_top.Si5351C_clk_2),
-            self.tst_top.Si5351C_clk_3.eq(self.lms7_trx_top.Si5351C_clk_3),
-            self.tst_top.Si5351C_clk_5.eq(self.lms7_trx_top.Si5351C_clk_5),
-            self.tst_top.Si5351C_clk_6.eq(self.lms7_trx_top.Si5351C_clk_6),
-            self.tst_top.Si5351C_clk_7.eq(self.lms7_trx_top.Si5351C_clk_7),
-            self.tst_top.adf_muxout.eq(self.lms7_trx_top.adf_muxout),
-
-            self.lms7_trx_top.fx3_clk_cnt.eq(self.tst_top.fx3_clk_cnt),
-            self.lms7_trx_top.Si5351C_clk_0_cnt.eq(self.tst_top.Si5351C_clk_0_cnt),
-            self.lms7_trx_top.Si5351C_clk_1_cnt.eq(self.tst_top.Si5351C_clk_1_cnt),
-            self.lms7_trx_top.Si5351C_clk_2_cnt.eq(self.tst_top.Si5351C_clk_2_cnt),
-            self.lms7_trx_top.Si5351C_clk_3_cnt.eq(self.tst_top.Si5351C_clk_3_cnt),
-            self.lms7_trx_top.Si5351C_clk_5_cnt.eq(self.tst_top.Si5351C_clk_5_cnt),
-            self.lms7_trx_top.Si5351C_clk_6_cnt.eq(self.tst_top.Si5351C_clk_6_cnt),
-            self.lms7_trx_top.Si5351C_clk_7_cnt.eq(self.tst_top.Si5351C_clk_7_cnt),
-            self.lms7_trx_top.lmk_clk_cnt.eq(self.tst_top.lmk_clk_cnt),
-            self.lms7_trx_top.adf_muxout_cnt.eq(self.tst_top.adf_muxout_cnt),
+            self.tst_top.Si5351C_clk_0.eq(0),
+            self.tst_top.Si5351C_clk_1.eq(0),
+            self.tst_top.Si5351C_clk_2.eq(0),
+            self.tst_top.Si5351C_clk_3.eq(0),
+            self.tst_top.Si5351C_clk_5.eq(0),
+            self.tst_top.Si5351C_clk_6.eq(0),
+            self.tst_top.Si5351C_clk_7.eq(0),
+            self.tst_top.adf_muxout.eq(0),
         ]
 
         # General Periph ---------------------------------------------------------------------------
@@ -320,7 +308,10 @@ class BaseSoC(SoCCore):
         self.comb += [
             self.rxtx_top.from_fpgacfg.eq(self.fpgacfg.from_fpgacfg),
             self.lms7_trx_top.to_tstcfg_from_rxtx.eq(self.rxtx_top.to_tstcfg_from_rxtx),
-            self.rxtx_top.from_tstcfg.eq(self.lms7_trx_top.from_tstcfg),
+            self.rxtx_top.from_tstcfg_TEST_EN.eq(self.tst_top.test_en),
+            self.rxtx_top.from_tstcfg_TEST_FRC_ERR.eq(self.tst_top.test_frc_err),
+            self.rxtx_top.from_tstcfg_TX_TST_I.eq(self.tst_top.tx_tst_i),
+            self.rxtx_top.from_tstcfg_TX_TST_Q.eq(self.tst_top.tx_tst_q),
 
             self.rxtx_top.lms_ctr_gpio0.eq(self._lms_ctr_gpio.storage[0]),
 
