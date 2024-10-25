@@ -294,9 +294,9 @@ class BaseSoC(SoCCore):
             self.general_periph.from_periphcfg.eq(self.lms7_trx_top.from_periphcfg),
 
             self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
-            self.general_periph.led1_ctrl.eq(self.lms7_trx_top.led1_ctrl),
-            self.general_periph.led2_ctrl.eq(self.lms7_trx_top.led2_ctrl),
-            self.general_periph.fx3_led_ctrl.eq(self.lms7_trx_top.led3_ctrl),
+            self.general_periph.led1_ctrl.eq(self.fpgacfg.led1_ctrl),
+            self.general_periph.led2_ctrl.eq(self.fpgacfg.led2_ctrl),
+            self.general_periph.fx3_led_ctrl.eq(self.fpgacfg.led3_ctrl),
             self.general_periph.ep03_active.eq(self.ft601.stream_fifo.rd_active),
             self.general_periph.ep83_active.eq(self.ft601.stream_fifo.wr_active),
         ]
