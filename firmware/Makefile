@@ -8,7 +8,7 @@ CFLAGS += -g
 
 CFLAGS := $(filter-out -Wmissing-prototypes -Wstrict-prototypes, $(CFLAGS))
 
-OBJECTS   = i2c0.o crt0.o main.o
+OBJECTS   = i2c0.o crt0.o main.o csr_access.o
 
 all: firmware.bin
 
