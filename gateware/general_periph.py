@@ -9,6 +9,8 @@ from migen import *
 
 from litex.gen import *
 
+from litex.soc.interconnect.csr import *
+
 # Layout -------------------------------------------------------------------------------------------
 
 from_periphcfg_layout = [
@@ -40,21 +42,32 @@ class GeneralPeriphTop(LiteXModule):
         dev_family = "CYCLONE IV E",
         gpio_pads  = None, gpio_len=8,
         egpio_pads = None, egpio_len=2,
+        add_csr    = True,
         ):
 
-        self.HW_VER           = Signal(4)
+        self.HW_VER               = Signal(4)
 
-        self.to_periphcfg     = ToPeriphCfg()
-        self.from_periphcfg   = FromPeriphCfg()
+        # to_periphcfg
+        self.BOARD_GPIO_RD        = Signal(16)
+        self.PERIPH_INPUT_RD_0    = Signal(16)
+        self.PERIPH_INPUT_RD_1    = Signal(16)
+        # from_periphcfg
+        self.BOARD_GPIO_OVRD      = Signal(16)
+        self.BOARD_GPIO_DIR       = Signal(16)
+        self.BOARD_GPIO_VAL       = Signal(16)
+        self.PERIPH_OUTPUT_OVRD_0 = Signal(16)
+        self.PERIPH_OUTPUT_VAL_0  = Signal(16)
+        self.PERIPH_OUTPUT_OVRD_1 = Signal(16)
+        self.PERIPH_OUTPUT_VAL_1  = Signal(16)
 
-        self.led1_mico32_busy = Signal()
-        self.led1_ctrl        = Signal(3)
-        self.led2_ctrl        = Signal(3)
-        self.fx3_led_ctrl     = Signal(3)
-        self.tx_txant_en      = Signal()
+        self.led1_mico32_busy     = Signal()
+        self.led1_ctrl            = Signal(3)
+        self.led2_ctrl            = Signal(3)
+        self.fx3_led_ctrl         = Signal(3)
+        self.tx_txant_en          = Signal()
 
-        self.ep03_active      = Signal()
-        self.ep83_active      = Signal()
+        self.ep03_active          = Signal()
+        self.ep83_active          = Signal()
 
         # # #
 
@@ -86,17 +99,17 @@ class GeneralPeriphTop(LiteXModule):
             i_reset_n              = ~ResetSignal("sys"),
 
             # to_periphcfg
-            o_BOARD_GPIO_RD        = self.to_periphcfg.BOARD_GPIO_RD,
-            o_PERIPH_INPUT_RD_0    = self.to_periphcfg.PERIPH_INPUT_RD_0,
-            o_PERIPH_INPUT_RD_1    = self.to_periphcfg.PERIPH_INPUT_RD_1,
+            o_BOARD_GPIO_RD        = self.BOARD_GPIO_RD,
+            o_PERIPH_INPUT_RD_0    = self.PERIPH_INPUT_RD_0,
+            o_PERIPH_INPUT_RD_1    = self.PERIPH_INPUT_RD_1,
             # from_periphcfg
-            i_BOARD_GPIO_OVRD      = self.from_periphcfg.BOARD_GPIO_OVRD,
-            i_BOARD_GPIO_DIR       = self.from_periphcfg.BOARD_GPIO_DIR,
-            i_BOARD_GPIO_VAL       = self.from_periphcfg.BOARD_GPIO_VAL,
-            i_PERIPH_OUTPUT_OVRD_0 = self.from_periphcfg.PERIPH_OUTPUT_OVRD_0,
-            i_PERIPH_OUTPUT_VAL_0  = self.from_periphcfg.PERIPH_OUTPUT_VAL_0,
-            i_PERIPH_OUTPUT_OVRD_1 = self.from_periphcfg.PERIPH_OUTPUT_OVRD_1,
-            i_PERIPH_OUTPUT_VAL_1  = self.from_periphcfg.PERIPH_OUTPUT_VAL_1,
+            i_BOARD_GPIO_OVRD      = self.BOARD_GPIO_OVRD,
+            i_BOARD_GPIO_DIR       = self.BOARD_GPIO_DIR,
+            i_BOARD_GPIO_VAL       = self.BOARD_GPIO_VAL,
+            i_PERIPH_OUTPUT_OVRD_0 = self.PERIPH_OUTPUT_OVRD_0,
+            i_PERIPH_OUTPUT_VAL_0  = self.PERIPH_OUTPUT_VAL_0,
+            i_PERIPH_OUTPUT_OVRD_1 = self.PERIPH_OUTPUT_OVRD_1,
+            i_PERIPH_OUTPUT_VAL_1  = self.PERIPH_OUTPUT_VAL_1,
 
             # Dual colour LEDs
             # LED1 (Clock and PLL lock status)
@@ -136,6 +149,9 @@ class GeneralPeriphTop(LiteXModule):
 
         self.add_sources(platform)
 
+        if add_csr:
+            self.add_csr()
+
     def add_sources(self, platform):
         general_periph_files = [
             "LimeSDR-Mini_lms7_trx/src/general_periph/synth/general_periph_top.vhd",
@@ -151,3 +167,29 @@ class GeneralPeriphTop(LiteXModule):
 
         for file in general_periph_files:
             platform.add_source(file)
+
+    def add_csr(self):
+        self._board_gpio_OVRD      = CSRStorage(16, reset=0xf) # 0
+        self._board_gpio_RD        = CSRStatus(16)             # 2
+        self._board_gpio_DIR       = CSRStorage(16)            # 4
+        self._board_gpio_VAL       = CSRStorage(16)            # 6
+        self._periph_input_RD_0    = CSRStatus(16)             # 8
+        self._periph_input_RD_1    = CSRStatus(16)             # 9
+        self._periph_output_OVRD_0 = CSRStorage(16)            # 12
+        self._periph_output_VAL_0  = CSRStorage(16)            # 13
+        self._periph_output_OVRD_1 = CSRStorage(16)            # 14
+        self._periph_output_VAL_1  = CSRStorage(16)            # 15
+
+        self.comb += [
+            self._board_gpio_RD.status.eq(    self.BOARD_GPIO_RD),
+            self._periph_input_RD_0.status.eq(self.PERIPH_INPUT_RD_0),
+            self._periph_input_RD_1.status.eq(self.PERIPH_INPUT_RD_1),
+
+            self.BOARD_GPIO_OVRD.eq(          self._board_gpio_OVRD.storage),
+            self.BOARD_GPIO_DIR.eq(           self._board_gpio_DIR.storage),
+            self.BOARD_GPIO_VAL.eq(           self._board_gpio_VAL.storage),
+            self.PERIPH_OUTPUT_OVRD_0.eq(     self._periph_output_OVRD_0.storage),
+            self.PERIPH_OUTPUT_VAL_0.eq(      self._periph_output_VAL_0.storage),
+            self.PERIPH_OUTPUT_OVRD_1.eq(     self._periph_output_OVRD_1.storage),
+            self.PERIPH_OUTPUT_VAL_1.eq(      self._periph_output_VAL_1.storage),
+        ]
