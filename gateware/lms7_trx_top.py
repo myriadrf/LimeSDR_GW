@@ -67,33 +67,6 @@ class LMS7TRXTopWrapper(LiteXModule):
         # -------------------------------
         self.delay_control = DelayControl()
 
-        # Tst Top / Clock Test.
-        # ---------------------
-        self.test_en           = Signal(4)
-        self.test_frc_err      = Signal(4)
-        self.test_cmplt        = Signal(4)
-        self.test_rez          = Signal(4)
-
-        self.Si5351C_clk_0     = Signal()
-        self.Si5351C_clk_1     = Signal()
-        self.Si5351C_clk_2     = Signal()
-        self.Si5351C_clk_3     = Signal()
-        self.Si5351C_clk_5     = Signal()
-        self.Si5351C_clk_6     = Signal()
-        self.Si5351C_clk_7     = Signal()
-        self.adf_muxout        = Signal()
-
-        self.fx3_clk_cnt       = Signal(16)
-        self.Si5351C_clk_0_cnt = Signal(16)
-        self.Si5351C_clk_1_cnt = Signal(16)
-        self.Si5351C_clk_2_cnt = Signal(16)
-        self.Si5351C_clk_3_cnt = Signal(16)
-        self.Si5351C_clk_5_cnt = Signal(16)
-        self.Si5351C_clk_6_cnt = Signal(16)
-        self.Si5351C_clk_7_cnt = Signal(16)
-        self.lmk_clk_cnt       = Signal(24)
-        self.adf_muxout_cnt    = Signal(16)
-
         # General Periph.
         # ---------------
         self.led1_mico32_busy  = Signal()
@@ -187,33 +160,6 @@ class LMS7TRXTopWrapper(LiteXModule):
             o_EP82_wr_src    = self.ctrl_fifo.wr,
             o_EP82_wdata_src = self.ctrl_fifo.wdata,
             i_EP82_wfull_src = self.ctrl_fifo.full,
-
-            # ----------------------------------------------------------------------------
-            # Tst Top / Clock Test
-            o_tst_test_en       = self.test_en,
-            o_tst_test_frc_err  = self.test_frc_err,
-            i_tst_test_cmplt    = self.test_cmplt,
-            i_tst_test_rez      = self.test_rez,
-
-            o_Si5351C_clk_0     = self.Si5351C_clk_0,
-            o_Si5351C_clk_1     = self.Si5351C_clk_1,
-            o_Si5351C_clk_2     = self.Si5351C_clk_2,
-            o_Si5351C_clk_3     = self.Si5351C_clk_3,
-            o_Si5351C_clk_5     = self.Si5351C_clk_5,
-            o_Si5351C_clk_6     = self.Si5351C_clk_6,
-            o_Si5351C_clk_7     = self.Si5351C_clk_7,
-            o_adf_muxout        = self.adf_muxout,
-
-            i_fx3_clk_cnt       = self.fx3_clk_cnt,
-            i_Si5351C_clk_0_cnt = self.Si5351C_clk_0_cnt,
-            i_Si5351C_clk_1_cnt = self.Si5351C_clk_1_cnt,
-            i_Si5351C_clk_2_cnt = self.Si5351C_clk_2_cnt,
-            i_Si5351C_clk_3_cnt = self.Si5351C_clk_3_cnt,
-            i_Si5351C_clk_5_cnt = self.Si5351C_clk_5_cnt,
-            i_Si5351C_clk_6_cnt = self.Si5351C_clk_6_cnt,
-            i_Si5351C_clk_7_cnt = self.Si5351C_clk_7_cnt,
-            i_lmk_clk_cnt       = self.lmk_clk_cnt,
-            i_adf_muxout_cnt    = self.adf_muxout_cnt,
 
             # ----------------------------------------------------------------------------
             #  External communication interfaces
