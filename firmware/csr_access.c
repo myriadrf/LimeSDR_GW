@@ -255,3 +255,60 @@ void tstcfg_read(uint16_t addr, uint8_t *rdata)
 	rdata[0] = (uint8_t)((value >> 0) & 0xff);
 	rdata[1] = (uint8_t)((value >> 8) & 0xff);
 }
+
+void periphcfg_write(uint16_t addr, uint8_t *wdata)
+{
+	uint32_t value = (0x0000FFFF & (((uint32_t)wdata[0] << 8) | ((uint32_t)wdata[1])));
+
+	switch (addr)
+	{
+	case 0x0:
+		general_periph_board_gpio_OVRD_write(value);
+		break;
+	case 0x4:
+		general_periph_board_gpio_DIR_write(value);
+		break;
+	case 0x6:
+		general_periph_board_gpio_VAL_write(value);
+		break;
+	case 0x0C:
+		general_periph_periph_output_OVRD_0_write(value);
+		break;
+	case 0x0D:
+		general_periph_periph_output_VAL_0_write(value);
+		break;
+	case 0x0E:
+		general_periph_periph_output_OVRD_1_write(value);
+		break;
+	case 0x0F:
+		general_periph_periph_output_VAL_1_write(value);
+		break;
+	default:
+		printf("PeriphCfg Write error :unhandled register %d\n", addr);
+	}
+}
+
+void periphcfg_read(uint16_t addr, uint8_t *rdata)
+{
+	uint32_t value = 0;
+
+	switch (addr)
+	{
+	case 0x2:
+		value = general_periph_board_gpio_RD_read();
+		break;
+	case 0x6:
+		value = general_periph_board_gpio_VAL_read();
+		break;
+	case 0x08:
+		general_periph_periph_input_RD_0_read();
+		break;
+	case 0x09:
+		general_periph_periph_input_RD_1_read();
+		break;
+	default:
+		printf("PeriphCfg Read error: unhandled register %d\n", addr);
+	}
+	rdata[0] = (uint8_t)((value >> 0) & 0xff);
+	rdata[1] = (uint8_t)((value >> 8) & 0xff);
+}

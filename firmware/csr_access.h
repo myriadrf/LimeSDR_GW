@@ -16,6 +16,9 @@ void pllcfg_read(uint16_t addr, uint8_t *rdata);
 void tstcfg_write(uint16_t addr, uint8_t *wdata);
 void tstcfg_read(uint16_t addr, uint8_t *rdata);
 
+void periphcfg_write(uint16_t addr, uint8_t *wdata);
+void periphcfg_read(uint16_t addr, uint8_t *rdata);
+
 #ifdef __cplusplus
 }
 #endif
