@@ -17,7 +17,8 @@ from gateware.lms7002_top       import DelayControl
 
 class PLLCfg(LiteXModule):
     def __init__(self):
-        self.delay_control = DelayControl()
+        self.delay_control    = DelayControl()
+        self.auto_phcfg_smpls = Signal(16)
 
         self.reg01     = CSRStatus(16,  reset=1)
         self.pll_lock  = CSRStatus(16,  reset=0)
@@ -65,7 +66,7 @@ class PLLCfg(LiteXModule):
         self.c2_cnt           = CSRStorage(16)
         self.c3_cnt           = CSRStorage(16)
         self.c4_cnt           = CSRStorage(16)
-        self.auto_phcfg_smpls = CSRStorage(16, reset=0x3FF) # 30
+        self._auto_phcfg_smpls = CSRStorage(16, reset=0x3FF) # 30
         self.auto_phcfg_step  = CSRStorage(16, reset=0x002) # 31
 
         # # #
@@ -83,4 +84,5 @@ class PLLCfg(LiteXModule):
             ),
             self.delay_control.dir.eq( self.reg03.fields.phcfg_updn),
             self.delay_control.mode.eq(self.reg03.fields.phcfg_mode),
+            self.auto_phcfg_smpls.eq(self._auto_phcfg_smpls.storage),
         ]
