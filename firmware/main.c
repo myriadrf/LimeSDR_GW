@@ -26,6 +26,7 @@
 
 //#include "LMS64C_protocol.h"
 #include "LimeSDR_MINI_brd_v1r0.h"
+#include "csr_access.h"
 
 #include <irq.h>
 #include <generated/csr.h>
@@ -46,6 +47,8 @@
 //#define FW_VER				9 // Temporary fix for LM75 configuration
 #define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
 
+/* DEBUG */
+//#define DEBUG_FIFO
 
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
@@ -96,114 +99,6 @@ uint16_t dac_val = 720;
 unsigned char dac_data[2];
 
 signed short int converted_val = 300;
-
-static void write_cfg(uint16_t addr, uint8_t *wdata)
-{
-	uint32_t value = (0x0000FFFF & (((uint32_t)wdata[0] << 8) | ((uint32_t)wdata[1])));
-
-	switch (addr)
-	{
-	case 0x4:
-		fpgacfg_phase_reg_sel_write(value);
-		break;
-	case 0x5:
-		fpgacfg_drct_clk_en_write(value);
-		break;
-	case 0x6:
-		fpgacfg_load_phase_write(value);
-		break;
-	case 0x7:
-		fpgacfg_channel_cntrl_write(value);
-		break;
-	//case 0x7:
-	//	value = lime_top_rx_path_ch_en_read();
-	//	break;
-	}
-}
-
-static void read_cfg(uint16_t addr, uint8_t *rdata)
-{
-	uint32_t value = 0;
-
-	switch (addr)
-	{
-	case 0x0:
-		value = fpgacfg_board_id_read();
-		break;
-	case 0x1:
-		value = fpgacfg_major_rev_read();
-		break;
-	case 0x2:
-		value = fpgacfg_compile_rev_read();
-		break;
-	case 0x3:
-		value = fpgacfg_bom_hw_ver_read();
-		break;
-	case 0x4:
-		value = fpgacfg_phase_reg_sel_read();
-		break;
-	case 0x5:
-		value = fpgacfg_drct_clk_en_read();
-		break;
-	case 0x6:
-		value = fpgacfg_load_phase_read();
-		break;
-	case 0x7:
-		value = fpgacfg_channel_cntrl_read();
-		break;
-	case 0x8:
-		value = fpgacfg_reg08_read();
-		break;
-	case 0x9:
-		value = fpgacfg_reg09_read();
-		break;
-	case 0xa:
-		value = fpgacfg_reg10_read();
-		break;
-	case 0xC:
-		value = fpgacfg_wfm_ch_en_read();
-		break;
-	case 0xD:
-		value = fpgacfg_reg13_read();
-		break;
-	case 0xE:
-		value = fpgacfg_wfm_smpl_width_read();
-		break;
-	case 0xF:
-		value = fpgacfg_sync_size_read();
-		break;
-	case 0x10:
-		value = fpgacfg_txant_pre_read();
-		break;
-	case 0x11:
-		value = fpgacfg_txant_post_read();
-		break;
-	case 0x12:
-		value = fpgacfg_SPI_SS_read();
-		break;
-	case 0x13:
-		value = fpgacfg_LMS1_read();
-		break;
-	case 0x17:
-		value = fpgacfg_GPIO_read();
-		break;
-	case 0x1A:
-		value = fpgacfg_fpga_led_ctrl_read();
-		break;
-	case 0x1C:
-		value = fpgacfg_FX3_LED_CTRL_read();
-		break;
-	case 0x1D:
-		value = fpgacfg_CLK_ENA_read();
-		break;
-	case 0x1E:
-		value = fpgacfg_sync_pulse_period_read();
-		break;
-
-	}
-	rdata[0] = (uint8_t)((value >> 0) & 0xff);
-	rdata[1] = (uint8_t)((value >> 8) & 0xff);
-}
 
 static void dac_spi_write(const uint16_t write_data)
 {
@@ -354,19 +249,22 @@ void getFifoData(uint8_t *buf, uint8_t k)
 	uint32_t* dest = (uint32_t*)buf;
 	uint32_t fifo_val = 0;
 
+#ifdef DEBUG_FIFO
 	printf("D %d\n", k);
-	//fifo_val = fifo_ctrl_fifo_rdata_read();
+#endif
 	for(cnt=0; cnt<k/sizeof(uint32_t); ++cnt)
 	{
 		fifo_ctrl_fifo_rd_write(1); // RD before read
 		fifo_val = fifo_ctrl_fifo_rdata_read();
+#ifdef DEBUG_FIFO
 		printf("X%08lx ", fifo_val);
-		//dest[cnt] = ((fifo_val & 0x000000FF) <<24) | ((fifo_val & 0x0000FF00) <<8) | ((fifo_val & 0x00FF0000) >>8) | ((fifo_val & 0xFF000000) >>24);	// Read Data from FIFO
+#endif
 		dest[cnt] = fifo_val; // Read Data From Fifo
-		//dest[cnt] = IORD(FIFO_BASE_ADDRESS, 1);
 	}
+#ifdef DEBUG_FIFO
 	printf("\n");
 	printf("E\n");
+#endif
 }
 
 /**	This function checks if all blocks could fit in data field.
@@ -940,11 +838,15 @@ int main(void)
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
 				{
+					cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); //clear write bit
 					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-					printf("%x\n", addr);
-					printf("%04x\n",addr);
-					if (addr < 0x08) {
-						write_cfg(addr, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+					printf("%04d\n",addr);
+					if (addr < 0x1F) {
+						fpgacfg_write(addr, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+					} else if (addr < 96) {
+						pllcfg_write(addr - 32, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+					} else if (addr < 192) {
+						tstcfg_write(addr - 96, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
 					} else {
 					}
 
@@ -960,18 +862,18 @@ int main(void)
 					printf("y\n");
 					break;
 				}
-				printf("z\n");
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
 				{
 					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
 					uint8_t rdata[2];
-					printf("%x\n", addr);
+					printf("%d %d\n", block, addr);
 					if (addr < 0x1F) {
-						read_cfg(addr, rdata);
-						printf("%02x %02x\n", rdata[0], rdata[1]);
-						LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = rdata[1];
-						LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = rdata[0];
+						fpgacfg_read(addr, rdata);
+					} else if (addr < 96) {
+						pllcfg_read(addr - 32, rdata);
+					} else if (addr < 192) {
+						tstcfg_read(addr - 96, rdata);
 					} else {
 						//cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7);  //clear write bit
 
@@ -980,9 +882,12 @@ int main(void)
 						//spi_read_val = cfg_top_spi_command(((uint32_t) *ptr_spi_wrdata) << 16, 0);
 						//LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 2)] = (spi_read_val >> 8) & 0xff;
 						//LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 2)] = (spi_read_val >> 0) & 0xff;
-						LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = 0x55;
-						LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = 0xAA;
+						rdata[1] = 0x55;
+						rdata[0] = 0xAA;
 					}
+					printf("\t%02x %02x\n", rdata[0], rdata[1]);
+					LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = rdata[1];
+					LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = rdata[0];
 						
 				}
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
