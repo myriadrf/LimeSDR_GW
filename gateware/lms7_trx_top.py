@@ -78,11 +78,7 @@ class LMS7TRXTopWrapper(LiteXModule):
 
         # Signals.
         # --------
-        #fpga_spi_pads     = platform.request("FPGA_SPI")
         fpga_cfg_spi_pads = platform.request("FPGA_CFG_SPI")
-        #fpga_i2c_pads     = platform.request("FPGA_I2C")
-        rfsw_pads         = platform.request("RFSW")
-        tx_lb_pads        = platform.request("TX_LB")
 
         # LMS6 TRX TOP.
         # -------------------------
@@ -124,8 +120,6 @@ class LMS7TRXTopWrapper(LiteXModule):
 
             # ----------------------------------------------------------------------------
             # LMS7002 Digital
-            #   PORT2
-            o_LMS_TXNRX2_or_CLK_SEL = lms_pads.TXNRX2_or_CLK_SEL, #In v2.3 board version this pin is changed to CLK_SEL
             #   MISC
             o_lms_delay_en          = self.delay_control.en,
             o_lms_delay_sel         = self.delay_control.sel,
@@ -222,13 +216,6 @@ class LMS7TRXTopWrapper(LiteXModule):
             o_TX_TST_I               = self.from_tstcfg.TX_TST_I,
             o_TX_TST_Q               = self.from_tstcfg.TX_TST_Q,
 
-            #  RF loop back control
-            o_RFSW_RX_V1            = rfsw_pads.RX_V1,
-            o_RFSW_RX_V2            = rfsw_pads.RX_V2,
-            o_RFSW_TX_V1            = rfsw_pads.TX_V1,
-            o_RFSW_TX_V2            = rfsw_pads.TX_V2,
-            o_TX_LB_AT              = tx_lb_pads.AT,
-            o_TX_LB_SH              = tx_lb_pads.SH,
             #  Bill Of material and hardware version
             i_BOM_VER               = self.BOM_VER,
             i_HW_VER                = self.HW_VER,

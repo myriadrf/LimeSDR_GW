@@ -61,8 +61,6 @@ entity lms7_trx_top is
 
       -- ----------------------------------------------------------------------------
       -- LMS7002 Digital
-         -- PORT2
-      LMS_TXNRX2_or_CLK_SEL : out    std_logic; --In v2.3 board version this pin is changed to CLK_SEL
          --MISC
       lms_delay_en      : out std_logic;
       lms_delay_sel     : out std_logic_vector(1 downto 0);
@@ -161,13 +159,6 @@ entity lms7_trx_top is
       TX_TST_I             : out  std_logic_vector(15 downto 0);
       TX_TST_Q             : out  std_logic_vector(15 downto 0);
 
-         -- RF loop back control 
-      RFSW_RX_V1        : out    std_logic;
-      RFSW_RX_V2        : out    std_logic;
-      RFSW_TX_V1        : out    std_logic;
-      RFSW_TX_V2        : out    std_logic;
-      TX_LB_AT          : out    std_logic;
-      TX_LB_SH          : out    std_logic;
          -- Bill Of material and hardware version 
       BOM_VER           : in     std_logic_vector(2 downto 0);
       HW_VER            : in     std_logic_vector(3 downto 0)  --PULL UP has to be enabled for HW_VER
@@ -484,19 +475,4 @@ begin
     
    FPGA_CFG_SPI_MOSI <= inst0_fpga_cfg_spi_MOSI;
    FPGA_CFG_SPI_SS_N <= inst0_fpga_cfg_spi_SS_n;
-   
-   --In HW versions before v2.3 this pin is LMS_TXNRX2. After v2.3 - Clock select for LMK clock buffer (CLK_SEL) 
-   LMS_TXNRX2_or_CLK_SEL <=   inst0_from_periphcfg.PERIPH_OUTPUT_VAL_1(0) when unsigned(HW_VER) > 5 else 
-                              inst0_from_fpgacfg.LMS1_TXNRX2;
-   
-   RFSW_RX_V1        <= inst0_from_fpgacfg.GPIO(8);
-   RFSW_RX_V2        <= inst0_from_fpgacfg.GPIO(9);
-   RFSW_TX_V1        <= inst0_from_fpgacfg.GPIO(12);
-   RFSW_TX_V2        <= inst0_from_fpgacfg.GPIO(13);
-   TX_LB_AT          <= inst0_from_fpgacfg.GPIO(1);
-   TX_LB_SH          <= inst0_from_fpgacfg.GPIO(2);
-   
-   --FT_WAKEUPn        <= '1';
-   
-   
 end arch;   
