@@ -102,6 +102,7 @@ class TstTop(LiteXModule):
             CSRField("ddr2_1_tst_en",   size=1, offset=4),
             CSRField("ddr2_2_tst_en",   size=1, offset=5),
         ])
+
         self._test_frc_err     = CSRStorage(fields=[             # 3
             CSRField("fx3_pclk_tst_frc_err", size=1, offset=0),
             CSRField("Si5351Ck_tst_frc_err", size=1, offset=1),
@@ -110,22 +111,8 @@ class TstTop(LiteXModule):
             CSRField("ddr2_1_tst_frc_err",   size=1, offset=4),
             CSRField("ddr2_2_tst_frc_err",   size=1, offset=5),
         ])
-        self._test_cmplt       = CSRStatus(fields=[             # 5
-            CSRField("fx3_pclk_tst_cmplt", size=1, offset=0),
-            CSRField("Si5351Ck_tst_cmplt", size=1, offset=1),
-            CSRField("vctco_tst_cmplt",    size=1, offset=2),
-            CSRField("adf_tst_cmplt",      size=1, offset=3),
-            CSRField("ddr2_1_tst_cmplt",   size=1, offset=4),
-            CSRField("ddr2_2_tst_cmplt",   size=1, offset=5),
-        ])
-        self._test_rez         = CSRStatus(fields=[             # 7
-            CSRField("fx3_pclk_tst_rez", size=1, offset=0),
-            CSRField("Si5351Ck_tst_rez", size=1, offset=1),
-            CSRField("vctco_tst_rez",    size=1, offset=2),
-            CSRField("adf_tst_rez",      size=1, offset=3),
-            CSRField("ddr2_1_tst_rez",   size=1, offset=4),
-            CSRField("ddr2_2_tst_rez",   size=1, offset=5),
-        ])
+        self._test_cmplt        = CSRStatus(6)                   # 5
+        self._test_rez          = CSRStatus(6)                   # 7
         self._fx3_clk_cnt       = CSRStatus(16) # 9
         self._Si5351C_clk_0_cnt = CSRStatus(16) # 10
         self._Si5351C_clk_1_cnt = CSRStatus(16) # 11
@@ -134,11 +121,12 @@ class TstTop(LiteXModule):
         self._Si5351C_clk_5_cnt = CSRStatus(16) # 15
         self._Si5351C_clk_6_cnt = CSRStatus(16) # 16
         self._Si5351C_clk_7_cnt = CSRStatus(16) # 17
-        self._lmk_clk_cnt       = CSRStatus(24) # 18 & 19 24b
+        self._lmk_clk_cnt0      = CSRStatus(16) # 18
+        self._lmk_clk_cnt1      = CSRStatus(16) # 19
         self._adf_cnt           = CSRStatus(16) # 20
 
-        self._tx_tst_i          = CSRStorage(16) # 29
-        self._tx_tst_q          = CSRStorage(16) # 30
+        self._tx_tst_i          = CSRStorage(16, reset=0xAAAA) # 29
+        self._tx_tst_q          = CSRStorage(16, reset=0x5555) # 30
 
         self.comb += [
             self.test_en.eq(                  self._test_en.storage),
@@ -153,7 +141,8 @@ class TstTop(LiteXModule):
             self._Si5351C_clk_5_cnt.status.eq(self.Si5351C_clk_5_cnt),
             self._Si5351C_clk_6_cnt.status.eq(self.Si5351C_clk_6_cnt),
             self._Si5351C_clk_6_cnt.status.eq(self.Si5351C_clk_6_cnt),
-            self._lmk_clk_cnt.status.eq(      self.lmk_clk_cnt),
+            self._lmk_clk_cnt0.status.eq(     self.lmk_clk_cnt[0:16]),
+            self._lmk_clk_cnt1.status.eq(     Cat(self.lmk_clk_cnt[16:24], Constant(0, 8))),
             self._adf_cnt.status.eq(          self.adf_muxout_cnt),
             self.tx_tst_i.eq(                 self._tx_tst_i.storage),
             self.tx_tst_q.eq(                 self._tx_tst_q.storage),
