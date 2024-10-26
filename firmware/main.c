@@ -49,6 +49,8 @@
 
 /* DEBUG */
 //#define DEBUG_FIFO
+//#define DEBUG_CSR_ACCESS
+//#define DEBUG_LMS_SPI
 
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
@@ -60,14 +62,6 @@
 #define FLASH_USRSEC_START_ADDR	0x00400000  // Start address for user space in FLASH memory
 
 
-const char *LED_GPIO_INSTANCE = "LED";
-const char *GPIO_GPIO_INSTANCE = "GPIO";
-const char *SPI_INSTANCE = "spi";
-const char *SPI_DAC_INSTANCE = "dac_spi_";
-const char *GPIO_LMS_CTR_GPIO_INSTANCE = "lms_ctr_gpio";
-const char *SPI_FLASH_INSTANCE = "SPIFlash_";
-const char *SPI_FLASH_USRMCLKTS_INSTANCE = "SPIFlash_USRMCLKTS_";
-const char *I2C_OC_INSTANCE = "i2cm_oc_";
 const unsigned int uiBlink = 1;
 
 uint8_t test, block, cmd_errors, glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
@@ -104,7 +98,8 @@ static void dac_spi_write(const uint16_t write_data)
 {
 	// register is 32bits and start sending bit 32
 	// we have to shift data to align
-	uint32_t cmd = write_data << 16;
+	uint32_t cmd = ((uint32_t)write_data) << 16;
+	printf("%08x\n", cmd);
 
 	/* set cs */
 	spimaster_cs_write(1 << 1);
@@ -157,7 +152,7 @@ uint32_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_
 	uint32_t* dest = (uint32_t*)rd_data;
 
 	/* set cs */
-	spimaster_cs_write(slave_address);
+	spimaster_cs_write(1);
 
 	/* Write SPI MOSI Data */
     spimaster_mosi_write(write_data);
@@ -489,7 +484,6 @@ int main(void)
     volatile int spirez;
     //int i2crez;
     //int k;
-    uint16_t * ptr_spi_wrdata;
     uint32_t * p_spi_wrdata32;
     int cnt = 0;
 
@@ -554,36 +548,12 @@ int main(void)
         return(0);
     }
 
-    /* Fetch GPIO instance named "lms_ctr_gpio" */
-	MicoGPIOCtx_t *lms_ctr_gpio = (MicoGPIOCtx_t *)MicoGetDevice(GPIO_LMS_CTR_GPIO_INSTANCE);
-    if (lms_ctr_gpio == 0) {
-        //printf("failed to find GPIO instance named GPIO\r\n");
-        return(0);
-    }
-
 	MicoGPIOCtx_t *spiflash_usrmclkts = (MicoGPIOCtx_t *)MicoGetDevice(SPI_FLASH_USRMCLKTS_INSTANCE);
     if (spiflash_usrmclkts == 0) {
         //printf("failed to find GPIO instance named GPIO\r\n");
         return(0);
     }
 
-    // Fetch the context for SPI flash controller named "SPIFlash" from DDStructs.h
-    MicoSPIFlashCtx_t *spiflash = (MicoSPIFlashCtx_t *)MicoGetDevice(SPI_FLASH_INSTANCE);
-    if (spiflash == 0) {
-    	return(0);
-    }
-
-    // Fetch the context for I2C master controller named "i2cm_oc_" from DDStructs.h
-    OpenCoresI2CMasterCtx_t *i2c_master = (OpenCoresI2CMasterCtx_t *)MicoGetDevice(I2C_OC_INSTANCE);
-    if (i2c_master == 0) {
-    	return(0);
-    }
-
-    // Fetch the context for DAC SPI controller named "dac_spi_" from DDStructs.h
-    MicoSPICtx_t *dac_spi = (MicoSPICtx_t *)MicoGetDevice(SPI_DAC_INSTANCE);
-    if (dac_spi == 0) {
-    	return(0);
-    }
 
     MICO_GPIO_WRITE_DATA(spiflash_usrmclkts,0x0);
 
@@ -656,10 +626,13 @@ int main(void)
 
 	//spirez = MicoSPISetSlaveEnable(dac_spi, 1);
     // Write initial data to the 10bit DAC
-	//dac_data[0] = (unsigned char) ((dac_val & 0x03F0) >> 4); //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
-	//dac_data[1] = (unsigned char) ((dac_val & 0x000F) << 4); //LSB data
+	dac_data[0] = (unsigned char) ((dac_val & 0x03F0) >> 4); //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
+	dac_data[1] = (unsigned char) ((dac_val & 0x000F) << 4); //LSB data
+	dac_spi_wrdata = ((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
+	printf("%04x\n", dac_spi_wrdata);
 
 	dac_spi_wrdata = dac_val << 4;//((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
+	printf("%04x\n", dac_spi_wrdata);
 	//spirez= MicoSPISetSlaveEnable(dac_spi, 0x01);
 	//spirez= MicoSPITxData(dac_spi, dac_spi_wrdata, 0);
 	dac_spi_write(dac_spi_wrdata);
@@ -689,12 +662,13 @@ int main(void)
 			LMS_Ctrl_Packet_Tx->Header.Data_blocks = LMS_Ctrl_Packet_Rx->Header.Data_blocks;
 			LMS_Ctrl_Packet_Tx->Header.Periph_ID = LMS_Ctrl_Packet_Rx->Header.Periph_ID;
 			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BUSY_CMD;
-			if (LMS_Ctrl_Packet_Rx->Header.Command != 0)
-			//printf("b%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
+			//if (LMS_Ctrl_Packet_Rx->Header.Command != 0)
+			//	printf("b%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
 
 			switch (LMS_Ctrl_Packet_Rx->Header.Command) {
 
  			case CMD_GPIO_DIR_WR:
+				printf("CMD_GPIO_DIR_WR\n");
  				//if(Check_many_blocks (2)) break;
 
 				//write reg addr
@@ -712,6 +686,7 @@ int main(void)
  			break;
 
  			case CMD_GPIO_DIR_RD:
+				printf("CMD_GPIO_DIR_RD\n");
  				//if(Check_many_blocks (2)) break;
 
  				//write reg addr
@@ -727,6 +702,7 @@ int main(void)
 
 
  			case CMD_GPIO_WR:
+				printf("CMD_GPIO_WR\n");
  				//if(Check_many_blocks (2)) break;
 
  				//write reg addr
@@ -740,6 +716,7 @@ int main(void)
  				break;
 
  			case CMD_GPIO_RD:
+				printf("CMD_GPIO_RD\n");
  				//if(Check_many_blocks (2)) break;
 
  				//write reg addr
@@ -764,7 +741,7 @@ int main(void)
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
 			case CMD_LMS_RST:
-				printf("AA\n");
+				printf("CMD_LMS_RST\n");
 
 				switch (LMS_Ctrl_Packet_Rx->Data_field[0])
 				{
@@ -803,6 +780,15 @@ int main(void)
 					data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
 					data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
 					spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
+#ifdef DEBUG_LMS_SPI
+					printf("%08lx\n", data);
+#endif
+					cbi(data, 31);
+					data = data & ~0xffff;
+					spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
+#ifdef DEBUG_LMS_SPI
+					printf("%08lx %08x\n", data, spi_read_val);
+#endif
 				}
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
@@ -825,40 +811,52 @@ int main(void)
 					spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
 
 					LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-					LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
+					LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
 					LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (spi_read_val >> 8) & 0xff;
 					LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (spi_read_val >> 0) & 0xff;
+#ifdef DEBUG_LMS_SPI
+					printf("%08lx %02x\n", data >> 16, spi_read_val);
+#endif
 				}
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
 			case CMD_BRDSPI16_WR:
+#ifdef DEBUG_CSR_ACCESS
 				printf("CMD_BRDSPI16_WR\n");
+#endif
 				if(Check_many_blocks (4)) break;
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
 				{
 					cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); //clear write bit
 					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-					printf("%04d\n",addr);
-					if (addr < 0x1F) {
-						fpgacfg_write(addr, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+#ifdef DEBUG_CSR_ACCESS
+					printf("csr write @ %04d: %02x%02x\n",addr,
+							LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)],
+							LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]);
+#endif
+					if (addr < 32) {
+						fpgacfg_write(addr & 0x1f, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
 					} else if (addr < 96) {
-						pllcfg_write(addr - 32, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+						pllcfg_write(addr & 0x1f, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
 					} else if (addr < 192) {
-						tstcfg_write(addr - 96, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+						tstcfg_write(addr & 0x1f, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+					} else if (addr < 192+32) {
+						periphcfg_write(addr & 0x1f, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
 					} else {
-						periphcfg_write(addr - 192, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+						printf("write error : %04d %04x\n", addr, addr);
 					}
-
 				}
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-				printf("end\n");
+				//printf("end\n");
 				break;
 
 			case CMD_BRDSPI16_RD:
+#ifdef DEBUG_CSR_ACCESS
 				printf("CMD_BRDSPI16_RD\n");
+#endif
 				if(Check_many_blocks (4)) {
 					printf("y\n");
 					break;
@@ -866,21 +864,25 @@ int main(void)
 
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
 				{
+					cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); //clear write bit
 					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
 					uint8_t rdata[2];
-					printf("%d %d\n", block, addr);
-					if (addr < 0x1F) {
-						fpgacfg_read(addr, rdata);
+					if (addr < 32) {
+						fpgacfg_read(addr & 0x1f, rdata);
 					} else if (addr < 96) {
-						pllcfg_read(addr - 32, rdata);
+						pllcfg_read(addr & 0x1f, rdata);
 					} else if (addr < 192) {
-						tstcfg_read(addr - 96, rdata);
+						tstcfg_read(addr & 0x1f, rdata);
+					} else if (addr < 192+32) {
+						periphcfg_read(addr & 0x1f, rdata);
 					} else {
-						periphcfg_read(addr - 192, rdata);
+						printf("read error\n");
 					}
-					printf("\t%02x %02x\n", rdata[0], rdata[1]);
 					LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = rdata[1];
 					LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = rdata[0];
+#ifdef DEBUG_CSR_ACCESS
+					printf("csr read @ %04d: %02x%02x\n",addr, rdata[1], rdata[0]);
+#endif
 						
 				}
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
@@ -1032,6 +1034,7 @@ int main(void)
 
 						LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (dac_val >> 8) & 0xFF; //unsigned val, MSB byte
 						LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = dac_val & 0xFF; //unsigned val, LSB byte
+						printf("dac_val: %04x\n", dac_val);
 						break;
 
 					case 1: //temperature
@@ -1073,16 +1076,13 @@ int main(void)
 					case 0:
 						if (LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)] == 0) //RAW units?
 						{
-							//dac_val = (LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)] << 8 ) + LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
+							dac_val = (LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)] << 8 ) + LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
 						    // Write data to the 10bit DAC
-							//dac_data[0] = (unsigned char) ((dac_val & 0x03F0) >> 4); //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
-							//dac_data[1] = (unsigned char) ((dac_val & 0x000F) << 4); //LSB data
+							dac_data[0] = (unsigned char) ((dac_val & 0x03F0) >> 4); //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
+							dac_data[1] = (unsigned char) ((dac_val & 0x000F) << 4); //LSB data
 
-							//dac_spi_wrdata = (dac_val << 4);//((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
-							dac_data[0] = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]; // MSB
-							dac_data[1] = LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]; // LSB
-							dac_spi_wrdata = ((uint16_t)dac_data[0])<<8 | ((uint16_t)dac_data[1]);
-							dac_spi_wrdata = dac_spi_wrdata << 4;
+							dac_spi_wrdata = ((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
+							printf("CMD_ANALOG_VAL_WR: %04x\n", dac_spi_wrdata);
 							dac_spi_write(dac_spi_wrdata);
 						}
 						else cmd_errors++;
@@ -1279,6 +1279,7 @@ int main(void)
 
 			default:
 				/* This is unknown request. */
+				printf("Errpr: Unknown request\n");
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_UNKNOWN_CMD;
 				break;
 			}
