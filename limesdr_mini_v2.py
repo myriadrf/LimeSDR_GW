@@ -117,6 +117,8 @@ class BaseSoC(SoCCore):
         ft_clk        = platform.request("FT_CLK")
         lms_pads      = platform.request("LMS")
         revision_pads = platform.request("revision")
+        rfsw_pads     = platform.request("RFSW")
+        tx_lb_pads    = platform.request("TX_LB")
         gpio_pads     = platform.request("FPGA_GPIO")
         #egpio_pads    = platform.request("FPGA_EGPIO")
         platform.add_extension([
@@ -287,7 +289,7 @@ class BaseSoC(SoCCore):
         ]
 
         # RXTX Top ---------------------------------------------------------------------------------
-        self.rxtx_top = RXTXTop(platform, lms_pads,
+        self.rxtx_top = RXTXTop(platform,
             # TX parameters
             TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
             TX_N_BUFF              = TX_N_BUFF,
@@ -310,8 +312,6 @@ class BaseSoC(SoCCore):
             self.rxtx_top.from_tstcfg_TX_TST_I.eq(self.tst_top.tx_tst_i),
             self.rxtx_top.from_tstcfg_TX_TST_Q.eq(self.tst_top.tx_tst_q),
 
-            self.rxtx_top.lms_ctr_gpio0.eq(self._lms_ctr_gpio.storage[0]),
-
             self.rxtx_top.rxtx_smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
 
             # LMS7002 <-> RXTX Top.
@@ -327,6 +327,31 @@ class BaseSoC(SoCCore):
 
             # General Periph <-> RXTX Top.
             self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_txant_en),
+        ]
+
+        # Misc -------------------------------------------------------------------------------------
+        self.comb += [
+            # LMS Controls.
+            If((revision_pads.HW_VER > 5),
+                lms_pads.TXNRX2_or_CLK_SEL.eq(self.general_periph.PERIPH_OUTPUT_VAL_1),
+            ).Else(
+                lms_pads.TXNRX2_or_CLK_SEL.eq(self.fpgacfg.from_fpgacfg.LMS1_TXNRX2),
+            ),
+            lms_pads.TXEN.eq(       self.fpgacfg.from_fpgacfg.LMS1_TXEN),
+            lms_pads.RXEN.eq(       self.fpgacfg.from_fpgacfg.LMS1_RXEN),
+            lms_pads.CORE_LDO_EN.eq(self.fpgacfg.from_fpgacfg.LMS1_CORE_LDO_EN),
+            lms_pads.TXNRX1.eq(     self.fpgacfg.from_fpgacfg.LMS1_TXNRX1),
+            lms_pads.RESET.eq(      self.fpgacfg.from_fpgacfg.LMS1_RESET & self._lms_ctr_gpio.storage[0]),
+
+            # RF Switch.
+            rfsw_pads.RX_V1.eq(self.fpgacfg.from_fpgacfg.GPIO[8]),
+            rfsw_pads.RX_V2.eq(self.fpgacfg.from_fpgacfg.GPIO[9]),
+            rfsw_pads.TX_V1.eq(self.fpgacfg.from_fpgacfg.GPIO[12]),
+            rfsw_pads.TX_V2.eq(self.fpgacfg.from_fpgacfg.GPIO[13]),
+
+            # TX
+            tx_lb_pads.AT.eq(  self.fpgacfg.from_fpgacfg.GPIO[1]),
+            tx_lb_pads.SH.eq(  self.fpgacfg.from_fpgacfg.GPIO[2]),
         ]
 
         if with_litescope:
