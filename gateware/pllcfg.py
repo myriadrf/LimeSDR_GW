@@ -34,30 +34,30 @@ class PLLCfg(LiteXModule):
         ], reset=0)
         self.cnt_phase = CSRStorage(16)
         self.reg05     = CSRStorage(16, fields=[
-            CSRField("pllcfg_lf_cap", size=2, offset=0),
-            CSRField("pllcfg_lf_res", size=5, offset=2),
-            CSRField("pllcfg_vcodiv", size=1, offset=7),
-            CSRField("chp_curr",      size=3, offset=8),
-        ], reset=0x1F0)
+            CSRField("pllcfg_lf_cap", size=2, offset=0, reset=0),
+            CSRField("pllcfg_lf_res", size=5, offset=2, reset=0b11100),
+            CSRField("pllcfg_vcodiv", size=1, offset=7, reset=1),
+            CSRField("chp_curr",      size=3, offset=8, reset=1),
+        ])
 
         self.reg06     = CSRStorage(16, fields=[
-            CSRField("n_byp",    size=1, offset=0),
-            CSRField("n_odddiv", size=1, offset=1),
-            CSRField("m_byp",    size=1, offset=2),
-            CSRField("m_odddiv", size=1, offset=3),
+            CSRField("n_byp",    size=1, offset=0, reset=0),
+            CSRField("n_odddiv", size=1, offset=1, reset=1),
+            CSRField("m_byp",    size=1, offset=2, reset=0),
+            CSRField("m_odddiv", size=1, offset=3, reset=1),
         ], reset=0b1010)
         self.reg07     = CSRStorage(16, fields=[
-            CSRField("c0_byp",    size=1, offset=0),
-            CSRField("c0_odddiv", size=1, offset=1),
-            CSRField("c1_byp",    size=1, offset=2),
-            CSRField("c1_odddiv", size=1, offset=3),
-            CSRField("c2_byp",    size=1, offset=4),
-            CSRField("c2_odddiv", size=1, offset=5),
-            CSRField("c3_byp",    size=1, offset=6),
-            CSRField("c3_odddiv", size=1, offset=7),
-            CSRField("c4_byp",    size=1, offset=8),
-            CSRField("c4_odddiv", size=1, offset=9),
-        ], reset=0xAAAA)
+            CSRField("c0_byp",    size=1, offset=0, reset=0),
+            CSRField("c0_odddiv", size=1, offset=1, reset=1),
+            CSRField("c1_byp",    size=1, offset=2, reset=0),
+            CSRField("c1_odddiv", size=1, offset=3, reset=1),
+            CSRField("c2_byp",    size=1, offset=4, reset=0),
+            CSRField("c2_odddiv", size=1, offset=5, reset=1),
+            CSRField("c3_byp",    size=1, offset=6, reset=0),
+            CSRField("c3_odddiv", size=1, offset=7, reset=1),
+            CSRField("c4_byp",    size=1, offset=8, reset=0),
+            CSRField("c4_odddiv", size=1, offset=9, reset=1),
+        ])
 
         self.n_cnt            = CSRStorage(16) # 10
         self.m_cnt            = CSRStorage(16) # 11
