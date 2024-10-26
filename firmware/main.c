@@ -830,7 +830,7 @@ int main(void)
 				for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
 				{
 					cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); //clear write bit
-					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
+					uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
 #ifdef DEBUG_CSR_ACCESS
 					printf("csr write @ %04d: %02x%02x\n",addr,
 							LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)],
