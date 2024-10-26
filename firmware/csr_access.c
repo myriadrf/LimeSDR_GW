@@ -71,6 +71,8 @@ void fpgacfg_write(uint16_t addr, uint8_t *wdata)
 	case 0x1E:
 		fpgacfg_sync_pulse_period_write(value);
 		break;
+	default:
+		printf("FWE: %04x\n", addr);
 	}
 }
 
@@ -152,6 +154,8 @@ void fpgacfg_read(uint16_t addr, uint8_t *rdata)
 	case 0x1E:
 		value = fpgacfg_sync_pulse_period_read();
 		break;
+	default:
+		printf("FRE: %04x\n", addr);
 	}
 	rdata[0] = (uint8_t)((value >> 0) & 0xff);
 	rdata[1] = (uint8_t)((value >> 8) & 0xff);
@@ -166,8 +170,47 @@ void pllcfg_write(uint16_t addr, uint8_t *wdata)
 	case 0x3:
 		pllcfg_reg03_write(value);
 		break;
+	case 0x4:
+		pllcfg_cnt_phase_write(value);
+		break;
+	case 0x5:
+		pllcfg_reg05_write(value);
+		break;
+	case 0x6:
+		pllcfg_reg06_write(value);
+		break;
+	case 0x7:
+		pllcfg_reg07_write(value);
+		break;
+	case 0xa:
+		pllcfg_n_cnt_write(value);
+		break;
+	case 0xb:
+		pllcfg_m_cnt_write(value);
+		break;
+	case 0xe:
+		pllcfg_c0_cnt_write(value);
+		break;
+	case 0xf:
+		pllcfg_c1_cnt_write(value);
+		break;
+	case 0x10:
+		pllcfg_c2_cnt_write(value);
+		break;
+	case 0x11:
+		pllcfg_c3_cnt_write(value);
+		break;
+	case 0x12:
+		pllcfg_c4_cnt_write(value);
+		break;
+	case 0x1E:
+		pllcfg_auto_phcfg_smpls_write(value);
+		break;
+	case 0x1f:
+		pllcfg_auto_phcfg_step_write(value);
+		break;
 	default:
-		printf("Write error :unhandled register %d\n", addr);
+		printf("Write error :unhandled register %04d\n", addr);
 	}
 }
 
@@ -177,6 +220,12 @@ void pllcfg_read(uint16_t addr, uint8_t *rdata)
 
 	switch (addr)
 	{
+	case 0x01:
+		value = pllcfg_reg01_read();
+		break;
+	case 0x02:
+		value = pllcfg_pll_lock_read();
+		break;
 	default:
 		printf("Read error: unhandled register %d\n", addr);
 	}
@@ -244,7 +293,10 @@ void tstcfg_read(uint16_t addr, uint8_t *rdata)
 		value = tst_top_Si5351C_clk_7_cnt_read();
 		break;
 	case 0x12:
-		value = tst_top_lmk_clk_cnt_read();
+		value = tst_top_lmk_clk_cnt0_read();
+		break;
+	case 0x13:
+		value = tst_top_lmk_clk_cnt1_read();
 		break;
 	case 0x14:
 		value = tst_top_adf_cnt_read();
@@ -296,6 +348,9 @@ void periphcfg_read(uint16_t addr, uint8_t *rdata)
 	{
 	case 0x2:
 		value = general_periph_board_gpio_RD_read();
+		break;
+	case 0x4:
+		value = general_periph_board_gpio_DIR_read();
 		break;
 	case 0x6:
 		value = general_periph_board_gpio_VAL_read();
