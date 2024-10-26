@@ -152,7 +152,7 @@ class BaseSoC(SoCCore):
 
         self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/FT601_timing.sdc")
         self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/LMS7002_timing.sdc")
-        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/timing.sdc")
+        self.platform.add_sdc("gateware/timing.sdc")
 
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
