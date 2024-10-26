@@ -54,25 +54,25 @@ class FPGACfg(LiteXModule):
 
         # Interface config
         self.channel_cntrl     = CSRStorage(fields=[
-            CSRField("ch_en", size=2, offset=0, values=[
+            CSRField("ch_en", size=2, offset=0, reset=0b11, values=[
                 ("``2b01", "Channel A"),
                 ("``2b10", "Channel B"),
                 ("``2b11", "Channels A and B")
-            ], reset=0b11)
+            ])
         ])
         self.reg08             = CSRStorage(fields=[
-            CSRField("smpl_width",  size=2, offset=0),
-            CSRField("mode",        size=1, offset=5),
-            CSRField("ddr_en",      size=1, offset=6),
-            CSRField("trxiq_pulse", size=1, offset=7),
-            CSRField("mimo_int_en", size=1, offset=8),
-            CSRField("synch_dis",   size=1, offset=9),
-            CSRField("synch_mode",  size=1, offset=10),
-        ], reset=0b0000000100000010)
+            CSRField("smpl_width",  size=2, offset=0,  reset=0b10),
+            CSRField("mode",        size=1, offset=5,  reset=0),
+            CSRField("ddr_en",      size=1, offset=6,  reset=0),
+            CSRField("trxiq_pulse", size=1, offset=7,  reset=0),
+            CSRField("mimo_int_en", size=1, offset=8,  reset=1),
+            CSRField("synch_dis",   size=1, offset=9,  reset=0),
+            CSRField("synch_mode",  size=1, offset=10, reset=0),
+        ])
         self.reg09             = CSRStorage(fields=[
-            CSRField("smpl_nr_clr",    size=1, offset=0),
-            CSRField("txpct_loss_clr", size=1, offset=1),
-        ], reset=0b0000000000000011)
+            CSRField("smpl_nr_clr",    size=1, offset=0, reset=1),
+            CSRField("txpct_loss_clr", size=1, offset=1, reset=1),
+        ])
         self.reg10             = CSRStorage(fields=[
             CSRField("rx_en",       size=1, offset=0),
             CSRField("tx_en",       size=1, offset=1),
@@ -80,7 +80,7 @@ class FPGACfg(LiteXModule):
             CSRField("tx_ptrn_en",  size=1, offset=9),
             CSRField("tx_cnt_en",   size=1, offset=10),
         ])
-        self.wfm_ch_en         = CSRStorage(16)
+        self.wfm_ch_en         = CSRStorage(16, reset=0b11)
         self.reg13             = CSRStorage(fields=[
             CSRField("wfm_play", size=1, offset=1),
             CSRField("wfm_load", size=1, offset=2),
@@ -94,14 +94,14 @@ class FPGACfg(LiteXModule):
 
         self.SPI_SS            = CSRStorage(16, reset=0xffff)
         self.LMS1              = CSRStorage(fields=[         # 19
-            CSRField("SS",          size=1, offset=0),
-            CSRField("RESET",       size=1, offset=1),
-            CSRField("CORE_LDO_EN", size=1, offset=2),
-            CSRField("TXNRX1",      size=1, offset=3),
-            CSRField("TXNRX2",      size=1, offset=4),
-            CSRField("TXEN",        size=1, offset=5),
-            CSRField("RXEN",        size=1, offset=6),
-        ], reset=0b0110111101101011)
+            CSRField("SS",          size=1, offset=0, reset=1),
+            CSRField("RESET",       size=1, offset=1, reset=1),
+            CSRField("CORE_LDO_EN", size=1, offset=2, reset=0),
+            CSRField("TXNRX1",      size=1, offset=3, reset=1),
+            CSRField("TXNRX2",      size=1, offset=4, reset=0),
+            CSRField("TXEN",        size=1, offset=5, reset=1),
+            CSRField("RXEN",        size=1, offset=6, reset=1),
+        ])
         self.GPIO              = CSRStorage(16, reset=0b0001000101000100) # 23
         self.fpga_led_ctrl     = CSRStorage(fields=[                      # 26
             CSRField("LED1_CTRL", size=3, offset=0),
