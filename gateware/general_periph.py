@@ -45,29 +45,30 @@ class GeneralPeriphTop(LiteXModule):
         add_csr    = True,
         ):
 
-        self.HW_VER               = Signal(4)
+        self.HW_VER                = Signal(4)
+        self.LMS_TXNRX2_or_CLK_SEL = Signal(1)
 
         # to_periphcfg
-        self.BOARD_GPIO_RD        = Signal(16)
-        self.PERIPH_INPUT_RD_0    = Signal(16)
-        self.PERIPH_INPUT_RD_1    = Signal(16)
+        self.BOARD_GPIO_RD         = Signal(16)
+        self.PERIPH_INPUT_RD_0     = Signal(16)
+        self.PERIPH_INPUT_RD_1     = Signal(16)
         # from_periphcfg
-        self.BOARD_GPIO_OVRD      = Signal(16)
-        self.BOARD_GPIO_DIR       = Signal(16)
-        self.BOARD_GPIO_VAL       = Signal(16)
-        self.PERIPH_OUTPUT_OVRD_0 = Signal(16)
-        self.PERIPH_OUTPUT_VAL_0  = Signal(16)
-        self.PERIPH_OUTPUT_OVRD_1 = Signal(16)
-        self.PERIPH_OUTPUT_VAL_1  = Signal(16)
+        self.BOARD_GPIO_OVRD       = Signal(16)
+        self.BOARD_GPIO_DIR        = Signal(16)
+        self.BOARD_GPIO_VAL        = Signal(16)
+        self.PERIPH_OUTPUT_OVRD_0  = Signal(16)
+        self.PERIPH_OUTPUT_VAL_0   = Signal(16)
+        self.PERIPH_OUTPUT_OVRD_1  = Signal(16)
+        self.PERIPH_OUTPUT_VAL_1   = Signal(16)
 
-        self.led1_mico32_busy     = Signal()
-        self.led1_ctrl            = Signal(3)
-        self.led2_ctrl            = Signal(3)
-        self.fx3_led_ctrl         = Signal(3)
-        self.tx_txant_en          = Signal()
+        self.led1_mico32_busy      = Signal()
+        self.led1_ctrl             = Signal(3)
+        self.led2_ctrl             = Signal(3)
+        self.fx3_led_ctrl          = Signal(3)
+        self.tx_txant_en           = Signal()
 
-        self.ep03_active          = Signal()
-        self.ep83_active          = Signal()
+        self.ep03_active           = Signal()
+        self.ep83_active           = Signal()
 
         # # #
 
@@ -193,3 +194,4 @@ class GeneralPeriphTop(LiteXModule):
             self.PERIPH_OUTPUT_OVRD_1.eq(     self._periph_output_OVRD_1.storage),
             self.PERIPH_OUTPUT_VAL_1.eq(      self._periph_output_VAL_1.storage),
         ]
+
