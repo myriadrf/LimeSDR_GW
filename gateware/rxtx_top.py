@@ -15,7 +15,7 @@ from gateware.lms7002_top import SampleCompare
 # RXTX Top -----------------------------------------------------------------------------------------
 
 class RXTXTop(LiteXModule):
-    def __init__(self, platform, lms_pads=None,
+    def __init__(self, platform,
         # TX parameters
         TX_IQ_WIDTH            = 12,
         TX_N_BUFF              = 4,
@@ -31,8 +31,6 @@ class RXTXTop(LiteXModule):
         RX_SMPL_BUFF_RDUSEDW_W = 11,
         RX_PCT_BUFF_WRUSEDW_W  = 12,
         ):
-
-        assert lms_pads is not None
 
         self.tx_txant_en           = Signal()
         self.tx_diq1_h             = Signal(TX_IQ_WIDTH + 1)
@@ -51,22 +49,9 @@ class RXTXTop(LiteXModule):
         self.from_tstcfg_TX_TST_I     = Signal(16)
         self.from_tstcfg_TX_TST_Q     = Signal(16)
 
-        self.lms_ctr_gpio0         = Signal()
-
         self.stream_fifo           = FIFOInterface(TX_IN_PCT_DATA_W, 64, TX_IN_PCT_RDUSEDW_W, RX_PCT_BUFF_WRUSEDW_W)
 
         # # #
-
-        self.comb += [
-            lms_pads.TXEN.eq(self.from_fpgacfg.LMS1_TXEN),
-            lms_pads.RXEN.eq(self.from_fpgacfg.LMS1_RXEN),
-            lms_pads.CORE_LDO_EN.eq(self.from_fpgacfg.LMS1_CORE_LDO_EN),
-            lms_pads.TXNRX1.eq(self.from_fpgacfg.LMS1_TXNRX1),
-            lms_pads.RESET.eq(self.from_fpgacfg.LMS1_RESET & self.lms_ctr_gpio0)
-        ]
-
-        # Signals.
-        # --------
 
         # rxtx_top wrapper (required due to record).
         # ------------------------------------------
