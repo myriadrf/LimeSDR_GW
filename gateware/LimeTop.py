@@ -104,7 +104,6 @@ class LimeTop(LiteXModule):
         self.comb += self.rx_path.RESET_N.eq(self.lms7002.tx_en.storage)
 
         # Connect RX path AXIS slave to lms7002 AXIS master
-        #self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls, keep={"valid", "ready", "last", "data"})
         self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls)
         self.comb += self.rx_path.s_axis_iqsmpls.areset_n.eq(self.lms7002.tx_en.storage)
 

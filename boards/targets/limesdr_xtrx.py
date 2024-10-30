@@ -274,8 +274,10 @@ class BaseSoC(SoCCore):
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       jtag_clk] -asynchronous")
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       icap_clk] -asynchronous")
 
-        # Lime Top Level Example -------------------------------------------------------------------
+        # Lime Top Level -------------------------------------------------------------------
         from gateware.LimeTop import LimeTop
+        # fft example
+        # from gateware.examples.fft.LimeTop_fft import LimeTop
 
         # Create LimeTop instance.
         self.lime_top = LimeTop(platform, sys_clk_freq)
