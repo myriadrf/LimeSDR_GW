@@ -10,7 +10,7 @@ Fetch this repository and switch to development branch:
 ```bash
 git clone git@github.com:enjoy-digital/LimeSDR-Mini-v2_GW
 cd LimeSDR-Mini-v2_GW
-git checkout origin/litex_SoC
+git checkout origin/litex
 ```
 
 ## Update LiteX
