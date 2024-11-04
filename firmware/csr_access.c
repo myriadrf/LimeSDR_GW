@@ -60,10 +60,10 @@ void fpgacfg_write(uint16_t addr, uint8_t *wdata)
 		fpgacfg_GPIO_write(value);
 		break;
 	case 0x1A:
-		fpgacfg_fpga_led_ctrl_write(value);
+		general_periph_fpga_led_ctrl_write(value);
 		break;
 	case 0x1C:
-		fpgacfg_FX3_LED_CTRL_write(value);
+		general_periph_FX3_LED_CTRL_write(value);
 		break;
 	case 0x1D:
 		fpgacfg_CLK_ENA_write(value);
@@ -143,10 +143,10 @@ void fpgacfg_read(uint16_t addr, uint8_t *rdata)
 		value = fpgacfg_GPIO_read();
 		break;
 	case 0x1A:
-		value = fpgacfg_fpga_led_ctrl_read();
+		value = general_periph_fpga_led_ctrl_read();
 		break;
 	case 0x1C:
-		value = fpgacfg_FX3_LED_CTRL_read();
+		value = general_periph_FX3_LED_CTRL_read();
 		break;
 	case 0x1D:
 		value = fpgacfg_CLK_ENA_read();
