@@ -12,17 +12,9 @@ Gateware sources are split among multiple folders. The folders are:
 
 Example
 ^^^^^^^^^^^^^^^^^^^^^^
-To make the process of adding a custom module to the process easier to understand, an example is provided for LimeSDR XTRX.
+To make the process of adding a custom module to the project easier to understand, an example is provided for LimeSDR XTRX.
 This example will add a fixed point FFT module in the data receive path, so that results of the fourier transform are packed into packets
 instead of RF samples.
-
-All sources required for the example can be found in **gateware/examples/fft**. The files contained there are:
-
-* **fixedpointfft.py** - modified version of a fixed point FFT module from `amlib`_ repository.
-* **fft.v** - verilog source file, pregenerated from **fixedpointfft.py**.
-* **fft_wrap.vhd** - VHDL wrapper for **fft.v** with a basic AXI-STREAM interface.
-* **LimeTop_fft.py** - modified version of regular **LimeTop.py** used in the project. Contains all changes discussed in this example.
-* **limesdr_fft_samples.grc** - gnu radio file containg blocks that properly scale, shift and display FFT data received from the board.
 
 If you are not interested in modifying the code yourself, but want to try out the FFT module, you can modify the **boards/targets/limesdr_xtrx.py** file to use the **LimeTop_fft** 
 file instead of the regular **LimeTop** file like so:
@@ -33,6 +25,14 @@ file instead of the regular **LimeTop** file like so:
         # from gateware.LimeTop import LimeTop
         # fft example
         from gateware.examples.fft.LimeTop_fft import LimeTop
+
+All sources required for the example can be found in **gateware/examples/fft**. The files contained there are:
+
+* **fixedpointfft.py** - modified version of a fixed point FFT module from `amlib`_ repository.
+* **fft.v** - verilog source file, pregenerated from **fixedpointfft.py**.
+* **fft_wrap.vhd** - VHDL wrapper for **fft.v** with a basic AXI-STREAM interface.
+* **LimeTop_fft.py** - modified version of regular **LimeTop.py** used in the project. Contains all changes discussed in this example.
+* **limesdr_fft_samples.grc** - gnu radio file containg blocks that properly scale, shift and display FFT data received from the board.
 
 In order to calculate an FFT from received samples and pack resulting data into packets we must first identify the right location for the FFT module.
 According to information found in `LimeSDR XTRX gateware description`_, raw samples are received by **lms7002_top** and passed to **rx_path_top** for packing.
@@ -112,6 +112,11 @@ After performing these modifications, build the project, and program the board, 
 
 The FFT calculated by the module can be seen using the **limesdr_fft_samples.grc** file provided with the example.
 To be able to use the file please make sure you have up to date versions of GNU Radio and LimeSuiteNG installed.
+
+Below is a screenshot of how the fft looks when run with gnuradio.
+
+.. figure:: images/gnuradio_fft.png
+  :width: 1000
 
 
 .. _amlib: https://github.com/amaranth-farm/amlib
