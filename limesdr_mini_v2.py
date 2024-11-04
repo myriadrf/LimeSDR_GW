@@ -271,19 +271,15 @@ class BaseSoC(SoCCore):
         # General Periph ---------------------------------------------------------------------------
 
         self.general_periph = GeneralPeriphTop(platform, "MAX 10",
-            gpio_pads  = gpio_pads,
-            gpio_len   = len(gpio_pads),
-            egpio_pads = None,
-            egpio_len  = 2,
+            revision_pads = revision_pads,
+            gpio_pads     = gpio_pads,
+            gpio_len      = len(gpio_pads),
+            egpio_pads    = None,
+            egpio_len     = 2,
         )
 
         self.comb += [
-            self.general_periph.HW_VER.eq(revision_pads.HW_VER),
-
             self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
-            self.general_periph.led1_ctrl.eq(self.fpgacfg.led1_ctrl),
-            self.general_periph.led2_ctrl.eq(self.fpgacfg.led2_ctrl),
-            self.general_periph.fx3_led_ctrl.eq(self.fpgacfg.led3_ctrl),
             self.general_periph.ep03_active.eq(self.ft601.stream_fifo.rd_active),
             self.general_periph.ep83_active.eq(self.ft601.stream_fifo.wr_active),
         ]
