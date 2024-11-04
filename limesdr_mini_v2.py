@@ -184,9 +184,6 @@ class BaseSoC(SoCCore):
         self.busy_delay  = BusyDelay(platform, 25, 100)
         self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.mico32_busy)
 
-        # LMS Ctrl GPIO ----------------------------------------------------------------------------
-        self._lms_ctr_gpio = CSRStorage(size=4, description="LMS Control GPIOs.")
-
         # TOP --------------------------------------------------------------------------------------
         self.lms7_trx_top = LMS7TRXTopWrapper(self.platform, lms_pads,
             FTDI_DQ_WIDTH        = FTDI_DQ_WIDTH,
@@ -251,9 +248,7 @@ class BaseSoC(SoCCore):
         ]
 
         # LMS7002 Top ------------------------------------------------------------------------------
-        self.lms7002_top = LMS7002Top(platform, lms_pads)
-
-        self.comb += self.pllcfg.delay_control.connect(self.lms7002_top.delay_control),
+        self.lms7002_top = LMS7002Top(platform, lms_pads, revision_pads.HW_VER)
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
         self.tst_top = TstTop(platform, ft_clk, platform.request("LMK_CLK"))
@@ -323,22 +318,13 @@ class BaseSoC(SoCCore):
 
             # General Periph <-> RXTX Top.
             self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_txant_en),
+
+            # General Periph <-> LMS7002
+            self.lms7002_top.PERIPH_OUTPUT_VAL_1.eq(self.general_periph.PERIPH_OUTPUT_VAL_1),
         ]
 
         # Misc -------------------------------------------------------------------------------------
         self.comb += [
-            # LMS Controls.
-            If((revision_pads.HW_VER > 5),
-                lms_pads.TXNRX2_or_CLK_SEL.eq(self.general_periph.PERIPH_OUTPUT_VAL_1),
-            ).Else(
-                lms_pads.TXNRX2_or_CLK_SEL.eq(self.fpgacfg.from_fpgacfg.LMS1_TXNRX2),
-            ),
-            lms_pads.TXEN.eq(       self.fpgacfg.from_fpgacfg.LMS1_TXEN),
-            lms_pads.RXEN.eq(       self.fpgacfg.from_fpgacfg.LMS1_RXEN),
-            lms_pads.CORE_LDO_EN.eq(self.fpgacfg.from_fpgacfg.LMS1_CORE_LDO_EN),
-            lms_pads.TXNRX1.eq(     self.fpgacfg.from_fpgacfg.LMS1_TXNRX1),
-            lms_pads.RESET.eq(      self.fpgacfg.from_fpgacfg.LMS1_RESET & self._lms_ctr_gpio.storage[0]),
-
             # RF Switch.
             rfsw_pads.RX_V1.eq(self.fpgacfg.from_fpgacfg.GPIO[8]),
             rfsw_pads.RX_V2.eq(self.fpgacfg.from_fpgacfg.GPIO[9]),
