@@ -12,7 +12,7 @@ from litex.gen import *
 # Busy Delay ---------------------------------------------------------------------------------------
 
 class BusyDelay(LiteXModule):
-    def __init__(self, platform,
+    def __init__(self, platform, cd="sys",
         clock_period       = 10,
         delay_time         = 100,
         ):
@@ -31,8 +31,8 @@ class BusyDelay(LiteXModule):
             p_delay_time   = delay_time,
 
             # Clk/Reset
-            i_clk          = ClockSignal("sys"),
-            i_reset_n      = ~ResetSignal("sys"),
+            i_clk          = ClockSignal(cd),
+            i_reset_n      = ~ResetSignal(cd),
 
             # busy IN/OUT
             i_busy_in      = self.busy_in,
