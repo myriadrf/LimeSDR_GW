@@ -1,7 +1,8 @@
 #
-# This file is part of LiteX-Boards.
+# This file is part of LimeSDR-Mini-v2_GW.
 #
-# Copyright (c) 2022 Florent Kermarrec <florent@enjoy-digital.fr>
+# Copyright (c) 2024 Lime Microsystems
+#
 # SPDX-License-Identifier: BSD-2-Clause
 
 from litex.build.generic_platform import *

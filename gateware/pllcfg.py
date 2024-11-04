@@ -1,7 +1,7 @@
 #
-# This file is part of LiteX.
+# This file is part of LimeSDR-Mini-v2_GW.
 #
-# Copyright (c) 2024 Enjoy-Digital <enjoy-digital.fr>
+# Copyright (c) 2024 Lime Microsystems
 #
 # SPDX-License-Identifier: BSD-2-Clause
 

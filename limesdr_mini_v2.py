@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 #
-# This file is part of LiteX-Boards.
+# This file is part of LimeSDR-Mini-v2_GW.
 #
-# Copyright (c) 2022 Florent Kermarrec <florent@enjoy-digital.fr>
+# Copyright (c) 2024 Lime Microsystems
+#
 # SPDX-License-Identifier: BSD-2-Clause
 
 # Build/Use:
@@ -218,11 +219,11 @@ class BaseSoC(SoCCore):
 
         # FPGA Cfg ---------------------------------------------------------------------------------
         self.fpgacfg = FPGACfg(revision_pads)
-        self.comb += self.fpgacfg.pwr_src.eq(0),
+        self.comb += self.fpgacfg.pwr_src.eq(0)
 
         # PLL Cfg ----------------------------------------------------------------------------------
         self.pllcfg = PLLCfg()
-        self.comb += self.fpgacfg.pwr_src.eq(0),
+        self.comb += self.fpgacfg.pwr_src.eq(0)
 
         # FIFO Control -----------------------------------------------------------------------------
         from gateware.fifo_ctrl_to_csr import FIFOCtrlToCSR
