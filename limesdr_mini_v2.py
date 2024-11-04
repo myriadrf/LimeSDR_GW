@@ -77,14 +77,15 @@ C_EP83_WRUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_TX_SIZE / (STRM0_FPGA_
 
 class _CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
-        self.rst    = Signal()
-        self.cd_sys = ClockDomain()
-        self.cd_usb = ClockDomain()
-        self.cd_por = ClockDomain()
+        self.rst      = Signal()
+        self.cd_sys   = ClockDomain()
+        self.cd_por   = ClockDomain()
+        self.cd_ft601 = ClockDomain()
 
         # # #
 
         # Clk.
+        self.ft_clk = platform.request("FT_CLK")
 
         # Power on reset
         por_count = Signal(16, reset=2**16-1)
@@ -104,6 +105,11 @@ class _CRG(LiteXModule):
 
         platform.add_platform_command("GSR_NET NET main_por_done;")
 
+        # FT601 Clk/Rst
+        self.comb += [
+            self.cd_ft601.clk.eq(self.ft_clk),
+            self.cd_ft601.rst.eq(~por_done),
+        ]
 
 # BaseSoC ------------------------------------------------------------------------------------------
 
@@ -114,7 +120,6 @@ class BaseSoC(SoCCore):
         **kwargs):
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
 
-        ft_clk        = platform.request("FT_CLK")
         lms_pads      = platform.request("LMS")
         revision_pads = platform.request("revision")
         rfsw_pads     = platform.request("RFSW")
@@ -181,7 +186,7 @@ class BaseSoC(SoCCore):
             ])
         ])
 
-        self.busy_delay  = BusyDelay(platform, 25, 100)
+        self.busy_delay  = BusyDelay(platform, "sys", 25, 100)
         self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.mico32_busy)
 
         # TOP --------------------------------------------------------------------------------------
@@ -202,7 +207,7 @@ class BaseSoC(SoCCore):
 
         )
         self.comb += [
-            self.lms7_trx_top.ft_clk.eq(ft_clk),
+            self.lms7_trx_top.ft_clk.eq(self.crg.ft_clk),
 
             # CFG_TOP SPI Interface.
             self.lms7_trx_top.cfg_top_mosi.eq(cfg_top_spi.mosi),
@@ -224,7 +229,7 @@ class BaseSoC(SoCCore):
         self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
 
         # FT601 ------------------------------------------------------------------------------------
-        self.ft601 = FT601(self.platform, platform.request("FT"), ft_clk,
+        self.ft601 = FT601(self.platform, platform.request("FT"), self.crg.ft_clk,
             FT_data_width      = FTDI_DQ_WIDTH,
             FT_be_width        = FTDI_DQ_WIDTH // 8,
             EP02_rdusedw_width = C_EP02_RDUSEDW_WIDTH,
@@ -251,7 +256,7 @@ class BaseSoC(SoCCore):
         self.lms7002_top = LMS7002Top(platform, lms_pads, revision_pads.HW_VER)
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
-        self.tst_top = TstTop(platform, ft_clk, platform.request("LMK_CLK"))
+        self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
         self.comb += [
             self.tst_top.Si5351C_clk_0.eq(0),
             self.tst_top.Si5351C_clk_1.eq(0),
