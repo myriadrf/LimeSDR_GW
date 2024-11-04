@@ -40,12 +40,12 @@ def ToPeriphCfg():
 class GeneralPeriphTop(LiteXModule):
     def __init__(self, platform,
         dev_family = "CYCLONE IV E",
-        gpio_pads  = None, gpio_len=8,
-        egpio_pads = None, egpio_len=2,
-        add_csr    = True,
+        revision_pads = None,
+        gpio_pads     = None, gpio_len=8,
+        egpio_pads    = None, egpio_len=2,
+        add_csr       = True,
         ):
 
-        self.HW_VER                = Signal(4)
         self.LMS_TXNRX2_or_CLK_SEL = Signal(1)
 
         # to_periphcfg
@@ -132,7 +132,7 @@ class GeneralPeriphTop(LiteXModule):
             i_led3_g_in            = Constant(0, 1),
             i_led3_r_in            = Constant(0, 1),
             i_led3_ctrl            = self.fx3_led_ctrl,
-            i_led3_hw_ver          = self.HW_VER,
+            i_led3_hw_ver          = revision_pads.HW_VER,
             o_led3_g               = Open(),
             o_led3_r               = Open(),
 
@@ -181,6 +181,13 @@ class GeneralPeriphTop(LiteXModule):
         self._periph_output_OVRD_1 = CSRStorage(16)            # 14
         self._periph_output_VAL_1  = CSRStorage(16)            # 15
 
+        # from fpgacfg
+        self.fpga_led_ctrl         = CSRStorage(fields=[       # fpgacfg.26
+            CSRField("LED1_CTRL", size=3, offset=0),
+            CSRField("LED2_CTRL", size=3, offset=4),
+        ])
+        self._FX3_LED_CTRL         = CSRStorage(3)             # fpgacfg.28
+
         self.comb += [
             self._board_gpio_RD.status.eq(    self.BOARD_GPIO_RD),
             self._periph_input_RD_0.status.eq(self.PERIPH_INPUT_RD_0),
@@ -193,5 +200,9 @@ class GeneralPeriphTop(LiteXModule):
             self.PERIPH_OUTPUT_VAL_0.eq(      self._periph_output_VAL_0.storage),
             self.PERIPH_OUTPUT_OVRD_1.eq(     self._periph_output_OVRD_1.storage),
             self.PERIPH_OUTPUT_VAL_1.eq(      self._periph_output_VAL_1.storage),
+
+            self.led1_ctrl.eq(                self.fpga_led_ctrl.fields.LED1_CTRL),
+            self.led2_ctrl.eq(                self.fpga_led_ctrl.fields.LED2_CTRL),
+            self.fx3_led_ctrl.eq(             self._FX3_LED_CTRL.storage),
         ]
 

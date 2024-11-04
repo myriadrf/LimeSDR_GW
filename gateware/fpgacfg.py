@@ -103,11 +103,6 @@ class FPGACfg(LiteXModule):
             CSRField("RXEN",        size=1, offset=6, reset=1),
         ])
         self.GPIO              = CSRStorage(16, reset=0b0001000101000100) # 23
-        self.fpga_led_ctrl     = CSRStorage(fields=[                      # 26
-            CSRField("LED1_CTRL", size=3, offset=0),
-            CSRField("LED2_CTRL", size=3, offset=4),
-        ])
-        self.FX3_LED_CTRL      = CSRStorage(3)                            # 28
         self.CLK_ENA           = CSRStorage(4, reset=0b1111)              # 29
         self.sync_pulse_period = CSRStorage(32, reset=0x3D090)            # 30
 
@@ -166,9 +161,6 @@ class FPGACfg(LiteXModule):
             self.from_fpgacfg.LMS1_RXEN.eq(        self.LMS1.fields.RXEN),
 
             self.from_fpgacfg.GPIO.eq(             self.GPIO.storage),
-            self.from_fpgacfg.FPGA_LED1_CTRL.eq(   self.fpga_led_ctrl.fields.LED1_CTRL),
-            self.from_fpgacfg.FPGA_LED2_CTRL.eq(   self.fpga_led_ctrl.fields.LED2_CTRL),
-            self.from_fpgacfg.FX3_LED_CTRL.eq(     self.FX3_LED_CTRL.storage),
             self.from_fpgacfg.CLK_ENA.eq(          self.CLK_ENA.storage),
             self.from_fpgacfg.sync_pulse_period.eq(self.sync_pulse_period.storage),
         ]
