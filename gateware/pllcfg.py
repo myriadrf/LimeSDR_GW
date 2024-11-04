@@ -17,21 +17,9 @@ from gateware.lms7002_top       import DelayControl
 
 class PLLCfg(LiteXModule):
     def __init__(self):
-        self.delay_control    = DelayControl()
         self.auto_phcfg_smpls = Signal(16)
 
-        self.reg01     = CSRStatus(16,  reset=1)
         self.pll_lock  = CSRStatus(16,  reset=0)
-        self.reg03     = CSRStorage(16, fields=[
-            CSRField("pllcfg_start", size=1, offset=0),
-            CSRField("phcfg_start",  size=1, offset=1),
-            CSRField("pllrst_start", size=1, offset=2),
-            CSRField("pll_ind",      size=5, offset=3),
-            CSRField("cnt_ind",      size=5, offset=8),
-            CSRField("phcfg_updn",   size=1, offset=13),
-            CSRField("phcfg_mode",   size=1, offset=14),
-            CSRField("phcfg_tst",    size=1, offset=15),
-        ], reset=0)
         self.cnt_phase = CSRStorage(16)
         self.reg05     = CSRStorage(16, fields=[
             CSRField("pllcfg_lf_cap", size=2, offset=0, reset=0),
@@ -73,16 +61,7 @@ class PLLCfg(LiteXModule):
 
         # Logic.
         self.comb += [
-            self.reg01.status.eq(Cat(1, 0, self.delay_control.done, self.delay_control.error, Constant(0, 12))),
             self.pll_lock.status.eq(    Constant(0, 16)),
 
-            self.delay_control.en.eq(self.reg03.fields.phcfg_start),
-            If(self.reg03.fields.cnt_ind == 0b0011,
-                self.delay_control.sel.eq(0),
-            ).Else(
-                self.delay_control.sel.eq(3),
-            ),
-            self.delay_control.dir.eq( self.reg03.fields.phcfg_updn),
-            self.delay_control.mode.eq(self.reg03.fields.phcfg_mode),
             self.auto_phcfg_smpls.eq(self._auto_phcfg_smpls.storage),
         ]
