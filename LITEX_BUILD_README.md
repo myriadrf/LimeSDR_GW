@@ -13,15 +13,6 @@ cd LimeSDR-Mini-v2_GW
 git checkout origin/litex
 ```
 
-## Update LiteX
-
-LiteX repository must be updated to support some not mainlined features:
-
-```bash
-cd /somewhere/litex
-patch -p1 < /somewhere/LimeSDR-Mini-v2_GW/litex_diamond_additions.patch
-```
-
 ## Build gateware
 
 Go back to *LimeSDR-Mini-v2_GW* and execute script with:
