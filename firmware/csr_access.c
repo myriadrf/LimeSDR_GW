@@ -168,7 +168,7 @@ void pllcfg_write(uint16_t addr, uint8_t *wdata)
 	switch (addr)
 	{
 	case 0x3:
-		pllcfg_reg03_write(value);
+		lms7002_top_reg03_write(value);
 		break;
 	case 0x4:
 		pllcfg_cnt_phase_write(value);
@@ -221,7 +221,7 @@ void pllcfg_read(uint16_t addr, uint8_t *rdata)
 	switch (addr)
 	{
 	case 0x01:
-		value = pllcfg_reg01_read();
+		value = lms7002_top_reg01_read();
 		break;
 	case 0x02:
 		value = pllcfg_pll_lock_read();

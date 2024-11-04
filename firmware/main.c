@@ -99,7 +99,7 @@ static void dac_spi_write(const uint16_t write_data)
 	// register is 32bits and start sending bit 32
 	// we have to shift data to align
 	uint32_t cmd = ((uint32_t)write_data) << 16;
-	printf("%08x\n", cmd);
+	printf("%08lx\n", cmd);
 
 	/* set cs */
 	spimaster_cs_write(1 << 1);
@@ -595,8 +595,8 @@ int main(void)
 	fifo_ctrl_fifo_control_write(0);
 
     //Reset LMS7
-	main_lms_ctr_gpio_write(0x0);
-	main_lms_ctr_gpio_write(0xFFFFFFFF);
+	lms7002_top_lms_ctr_gpio_write(0x0);
+	lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
 
 	//testEEPROM(i2c_master);
 
@@ -746,18 +746,18 @@ int main(void)
 				switch (LMS_Ctrl_Packet_Rx->Data_field[0])
 				{
 				case LMS_RST_DEACTIVATE:
-					main_lms_ctr_gpio_write(0xFFFFFFFF);
+					lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
 					break;
 
 				case LMS_RST_ACTIVATE:
-					main_lms_ctr_gpio_write(0x0);
+					lms7002_top_lms_ctr_gpio_write(0x0);
 					break;
 
 				case LMS_RST_PULSE:
-					main_lms_ctr_gpio_write(0x0);
+					lms7002_top_lms_ctr_gpio_write(0x0);
 					asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
 					asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
-					main_lms_ctr_gpio_write(0xFFFFFFFF);
+					lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
 					break;
 
 				default:
