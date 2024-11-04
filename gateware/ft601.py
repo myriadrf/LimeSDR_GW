@@ -33,7 +33,7 @@ def FIFORD_SIZE(wr_width, rd_width, wr_size):
 # FT601 --------------------------------------------------------------------------------------------
 
 class FT601(LiteXModule):
-    def __init__(self, platform, pads=None, clk_pads=None,
+    def __init__(self, platform, pads=None,
         FT_data_width      = 32,
         FT_be_width        = 4,
         EP02_rdusedw_width = 11,
@@ -49,7 +49,6 @@ class FT601(LiteXModule):
         ):
 
         assert pads is not None
-        assert clk_pads is not None
 
         self.ctrl_fifo   = FIFOInterface(EP02_rwidth, EP82_wwidth)
         self.stream_fifo = FIFOInterface(EP03_rwidth, EP83_wwidth, EP03_rdusedw_width, EP83_wrusedw_width)
@@ -142,7 +141,7 @@ class FT601(LiteXModule):
 
         self.specials += Instance("fifodc_w32x1024_r128",
             i_Data    = EP03_wdata,
-            i_WrClock = clk_pads,
+            i_WrClock = ClockSignal("ft601"),
             i_RdClock = ClockSignal("lms_tx"),
             i_WrEn    = self.EP03_fifo_status.busy_in,
             i_RdEn    = self.stream_fifo.rd,

@@ -229,7 +229,7 @@ class BaseSoC(SoCCore):
         self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
 
         # FT601 ------------------------------------------------------------------------------------
-        self.ft601 = FT601(self.platform, platform.request("FT"), self.crg.ft_clk,
+        self.ft601 = FT601(self.platform, platform.request("FT"),
             FT_data_width      = FTDI_DQ_WIDTH,
             FT_be_width        = FTDI_DQ_WIDTH // 8,
             EP02_rdusedw_width = C_EP02_RDUSEDW_WIDTH,
