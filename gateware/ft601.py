@@ -113,8 +113,9 @@ class FT601(LiteXModule):
         )
 
         if True:
+            self.EP03_sink   = stream.Endpoint([("data", 32)])
+            self.EP03_fifo   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", 32)], 1024, True)))
             self.EP03_conv   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(32, 128)))
-            self.EP03_fifo   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", 128)], 1024, True)))
             self.EP03_cdc    = stream.ClockDomainCrossing([("data", 128)],
                 cd_from         = "ft601",
                 cd_to           = "lms_tx",
@@ -122,13 +123,15 @@ class FT601(LiteXModule):
             )
             self.EP03_source = stream.Endpoint([("data", 128)])
             self.EP03_pipeline  = stream.Pipeline(
-                self.EP03_conv,
+                self.EP03_sink,
                 self.EP03_fifo,
+                self.EP03_conv,
                 self.EP03_cdc,
                 self.EP03_source,
             )
 
-            self.sync.lms_tx += self.EP03_source.ready.eq(self.stream_fifo.rd)
+            #self.sync.lms_tx += self.EP03_source.ready.eq(self.stream_fifo.rd)
+            self.comb += self.EP03_source.ready.eq(self.stream_fifo.rd)
 
             self.comb += [
                 # Reset.
@@ -139,9 +142,9 @@ class FT601(LiteXModule):
                 self.stream_fifo.empty.eq(   ~self.EP03_source.valid),
                 self.stream_fifo.rdusedw.eq( self.EP03_fifo.level),
 
-                self.EP03_conv.sink.data.eq( EP03_wdata),
-                self.EP03_conv.sink.valid.eq(self.EP03_fifo_status.busy_in),
-                EP03_fifo_wusedw.eq(         Cat(Constant(0, 2), self.EP03_fifo.level)),
+                self.EP03_sink.data.eq( EP03_wdata),
+                self.EP03_sink.valid.eq(self.EP03_fifo_status.busy_in),
+                EP03_fifo_wusedw.eq(         self.EP03_fifo.level),
             ]
         else:
             self.specials += Instance("fifodc_w32x1024_r128",
