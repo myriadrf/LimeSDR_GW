@@ -40,13 +40,11 @@ lms7_trx_files = [
 ]
 
 lms7_trx_ips = [
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w64x256_r64/fifodc_w64x256_r64.sbx",
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w32x1024_r128/fifodc_w32x1024_r128.sbx",
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w128x256_r128/fifodc_w128x256_r128.sbx",
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w128x256_r64/fifodc_w128x256_r64.sbx",
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w48x1024_r48/fifodc_w48x1024_r48.sbx",
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w32x1024_r128_outreg/fifodc_w32x1024_r128_outreg.sbx",
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w64x2024_r32/fifodc_w64x2024_r32.sbx",
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w32x256_r32_outreg/fifodc_w32x256_r32_outreg.sbx",
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w32x256_r32/fifodc_w32x256_r32.sbx",
+    "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w64x256_r64/fifodc_w64x256_r64.sbx",                       # sync_fifo_rw.vhd.
+    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w32x1024_r128/fifodc_w32x1024_r128.sbx",           # FT601_top.vhd.
+    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w128x256_r128/fifodc_w128x256_r128.sbx",           # one_pct_fifo.vhd.
+    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w128x256_r64/fifodc_w128x256_r64.sbx",             # packets2data.vhd.
+    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w48x1024_r48/fifodc_w48x1024_r48.sbx",             # rx_path_top.vhd.
+    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w64x2024_r32/fifodc_w64x2024_r32.sbx",             # FT601_top.vhd.
+    "LimeSDR-Mini_lms7_trx/proj/ip/fifo_dc/fifodc_w32x256_r32/fifodc_w32x256_r32.sbx",               # FT601_top.vhd.
 ]
