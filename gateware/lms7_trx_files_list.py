@@ -1,5 +1,6 @@
 lms7_trx_files = [
-    # SPI.
+    # SPI / CFG.
+    # ----------
     "LimeSDR-Mini_lms7_trx/src/spi/cfg_top.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/fpgacfg.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/fpgacfg_pkg.vhd",
@@ -12,31 +13,49 @@ lms7_trx_files = [
     "LimeSDR-Mini_lms7_trx/src/spi/tstcfg.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/tstcfg_pkg.vhd",
 
+    # Packages.
+    # ---------
     "LimeSDR-Mini_lms7_trx/src/packages/synth/FIFO_PACK.vhd",
 
     # Revision.
+    # ---------
     "LimeSDR-Mini_lms7_trx/src/revision/revision.vhd",
 
     # PLL.
+    # ----
     "LimeSDR-Mini_lms7_trx/src/pll_top/synth/pll_top.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/pllcfg.vhd",
 
+    # General.
+    # --------
     "LimeSDR-Mini_lms7_trx/src/general/sync_reg.vhd",
+    "LimeSDR-Mini_lms7_trx/src/general/bus_sync_reg.vhd",
+    "LimeSDR-Mini_lms7_trx/src/general/busy_delay.vhd",
 
+    # Self-Test.
+    # ----------
     "LimeSDR-Mini_lms7_trx/src/self_test/transition_count.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/singl_clk_with_ref_test.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/clk_with_ref_test.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/clk_no_ref_test.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/bus_sync_reg.vhd",
+
+    # Altera-Inst.
+    # ------------
     "LimeSDR-Mini_lms7_trx/src/altera_inst/lpm_cnt_inst.vhd",
     "LimeSDR-Mini_lms7_trx/src/altera_inst/fifo_inst.vhd",
+    "LimeSDR-Mini_lms7_trx/src/altera_inst/lpm_compare_inst.vhd",
+
+    # TX-IQ-Mux.
+    # ----------
     "LimeSDR-Mini_lms7_trx/src/txiqmux/synth/txiqmux.vhd",
     "LimeSDR-Mini_lms7_trx/src/txiqmux/synth/txiq_tst_ptrn.vhd",
-    "LimeSDR-Mini_lms7_trx/src/altera_inst/lpm_compare_inst.vhd",
+
+    # Delay-Ctrl.
+    # ----------
     "LimeSDR-Mini_lms7_trx/src/delayf_ctrl/delay_ctrl_fsm.vhd",
     "LimeSDR-Mini_lms7_trx/src/delayf_ctrl/delay_ctrl_top.vhd",
     "LimeSDR-Mini_lms7_trx/src/delayf_ctrl/delayf_ctrl.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/busy_delay.vhd",
+
 ]
 
 lms7_trx_ips = [
