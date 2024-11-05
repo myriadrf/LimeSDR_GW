@@ -27,16 +27,13 @@ import limesdr_mini_v2_platform as limesdr_mini_v2
 
 from litex.build.generic_platform import Subsignal, IOStandard, Pins
 
-from litex.soc.cores.clock import *
-from litex.soc.interconnect.csr import *
+from litex.soc.interconnect         import stream
+from litex.soc.interconnect.csr     import *
 from litex.soc.integration.soc_core import *
-from litex.soc.integration.builder import *
-from litex.soc.interconnect import stream
+from litex.soc.integration.builder  import *
 
-from litex.soc.cores.led            import LedChaser
 from litex.soc.cores.bitbang        import I2CMaster
 from litex.soc.cores.spi.spi_master import SPIMaster
-from litex.soc.cores.usb_fifo       import FT245PHYSynchronous
 
 from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
 
@@ -366,9 +363,6 @@ class BaseSoC(SoCCore):
                 register     = True,
                 csr_csv      = "analyzer.csv"
             )
-
-
-        #eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {/home/gwe/enjoydigital/lime/LimeSDR-Mini-v2_GW/LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32}
 
 # Build --------------------------------------------------------------------------------------------
 
