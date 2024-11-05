@@ -67,8 +67,6 @@ class FT601(LiteXModule):
         EP02_empty        = Signal()
 
         # EP82 fifo signals
-        EP82_fifo_rdusedw = Signal(FIFORD_SIZE(EP82_wwidth, FT_data_width, EP82_wrusedw_width))
-        EP82_fifo_q       = Signal(FT_data_width)
         EP82_fifo_rdreq   = Signal()
 
         # EP03 fifo signals
@@ -104,50 +102,14 @@ class FT601(LiteXModule):
         EP02_fifo      = fifo.AsyncFIFO(32, depth=256)
         self.EP02_fifo = ClockDomainsRenamer({"write":"ft601", "read":"sys"})(EP02_fifo)
 
-        # Control FPGA->PC
-        if True:
-            # Control FPGA->PC FIFO.
-            EP82_async_fifo      = fifo.AsyncFIFO(32, depth=2)
-            self.EP82_async_fifo = ClockDomainsRenamer({"write":"sys", "read":"ft601"})(EP82_async_fifo)
-            self.EP82_fifo       = ResetInserter()(ClockDomainsRenamer("ft601")(fifo.SyncFIFO(32, depth=256)))
+        # Control FPGA->PC FIFO.
+        EP82_async_fifo      = fifo.AsyncFIFO(32, depth=2)
+        self.EP82_async_fifo = ClockDomainsRenamer({"write":"sys", "read":"ft601"})(EP82_async_fifo)
+        self.EP82_fifo       = ResetInserter()(ClockDomainsRenamer("ft601")(fifo.SyncFIFO(32, depth=256)))
 
-            # FIXME: policy with lattice (and maybe altera) is to pop data before reading
-            # (SyncFIFOBuffered not working too).
-            self.sync.ft601 += self.EP82_fifo.re.eq(EP82_fifo_rdreq)
-
-            self.comb += [
-                # EP82 EP.
-                # --------
-                # Reset
-                self.EP82_fifo.reset.eq(      ~self.ctrl_fifo_fpga_pc_reset_n),
-                # Control -> AsyncFIFO
-                self.EP82_async_fifo.din.eq(   self.ctrl_fifo.wdata),
-                self.EP82_async_fifo.we.eq(    self.ctrl_fifo.wr),
-                self.ctrl_fifo.full.eq(        ~self.EP82_async_fifo.writable),
-                # AsyncFIFO -> SyncFIFO
-                self.EP82_fifo.din.eq(         self.EP82_async_fifo.dout),
-                self.EP82_fifo.we.eq(          self.EP82_async_fifo.readable),
-                self.EP82_async_fifo.re.eq(    self.EP82_fifo.writable),
-
-                # SyncFIFO -> arbiter
-                EP82_fifo_q.eq(self.EP82_fifo.dout),
-                EP82_fifo_rdusedw.eq(self.EP82_fifo.level),
-            ]
-        else:
-            self.specials += Instance("fifodc_w32x256_r32", name="EP82_fifo",
-                i_Data    = self.ctrl_fifo.wdata,
-                i_WrClock = ClockSignal("sys"),
-                i_RdClock = ClockSignal("ft601"),
-                i_WrEn    = self.ctrl_fifo.wr,
-                i_RdEn    = EP82_fifo_rdreq,
-                i_Reset   = ~self.ctrl_fifo_fpga_pc_reset_n,
-                i_RPReset = ~self.ctrl_fifo_fpga_pc_reset_n,
-                o_Q       = EP82_fifo_q,
-                o_WCNT    = Open(9),
-                o_RCNT    = EP82_fifo_rdusedw,
-                o_Empty   = Open(),
-                o_Full    = self.ctrl_fifo.full,
-            )
+        # FIXME: policy with lattice (and maybe altera) is to pop data before reading
+        # (SyncFIFOBuffered not working too).
+        self.sync.ft601 += self.EP82_fifo.re.eq(EP82_fifo_rdreq)
 
         # Stream PC->FPGA
         self.EP03_fifo_status = BusyDelay(platform, "ft601",
@@ -212,13 +174,13 @@ class FT601(LiteXModule):
             i_EP02_fifo_wrempty = ~self.EP02_fifo.readable,
 
             # Control EP FPGA->PC.
-            i_EP82_fifo_data    = EP82_fifo_q,
+            i_EP82_fifo_data    = self.EP82_fifo.dout,
             o_EP82_fifo_rd      = EP82_fifo_rdreq,
-            i_EP82_fifo_rdusedw = EP82_fifo_rdusedw,
+            i_EP82_fifo_rdusedw = self.EP82_fifo.level,
 
             # Stream EP PC->FPGA.
             o_EP03_fifo_data    = EP03_wdata,
-            o_EP03_fifo_wr      = EP03_wr,
+            o_EP03_fifo_wr      = EP03_fifo_status.busy_in,
             i_EP03_fifo_wrempty = EP03_rdy,
 
             # Stream EP FPGA->PC.
@@ -272,9 +234,23 @@ class FT601(LiteXModule):
         # ------
         self.comb += [
             # EP02 EP.
+            # --------
             self.EP02_fifo.re.eq(         self.ctrl_fifo.rd),
             self.ctrl_fifo.rdata.eq(      self.EP02_fifo.dout),
             self.ctrl_fifo.empty.eq(      ~self.EP02_fifo.readable),
+
+            # EP82 EP.
+            # --------
+            # Reset
+            self.EP82_fifo.reset.eq(      ~self.ctrl_fifo_fpga_pc_reset_n),
+            # Control -> AsyncFIFO
+            self.EP82_async_fifo.din.eq(   self.ctrl_fifo.wdata),
+            self.EP82_async_fifo.we.eq(    self.ctrl_fifo.wr),
+            self.ctrl_fifo.full.eq(        ~self.EP82_async_fifo.writable),
+            # AsyncFIFO -> SyncFIFO
+            self.EP82_fifo.din.eq(         self.EP82_async_fifo.dout),
+            self.EP82_fifo.we.eq(          self.EP82_async_fifo.readable),
+            self.EP82_async_fifo.re.eq(    self.EP82_fifo.writable),
 
             self.stream_fifo.wr_active.eq(EP83_fifo_status.busy_out),
             pads.RESETn.eq(~ResetSignal("sys")),
@@ -287,7 +263,7 @@ class FT601(LiteXModule):
             ).Else(
                 sync_reg0.eq(Cat(1, sync_reg0[0]))
             ),
-            If(EP03_wr == 0b1,
+            If(EP03_fifo_status.busy_in == 0b1,
                 EP03_wr_cnt.eq(EP03_wr_cnt+1),
             ).Else(
                 EP03_wr_cnt.eq(0),
