@@ -143,7 +143,6 @@ class BaseSoC(SoCCore):
             ident_version            = True,
             cpu_type                 = "picorv32",
             #cpu_type                 = "vexriscv_smp",
-            #cpu_type                 = "lm32",
             cpu_variant              = "standard",
             integrated_rom_size      = 0x8000,
             integrated_sram_ram_size = 0x1000,
@@ -240,7 +239,6 @@ class BaseSoC(SoCCore):
             EP83_wrusedw_width = C_EP83_WRUSEDW_WIDTH,
             EP83_wwidth        = STRM0_FPGA_TX_WWIDTH,
             EP83_wsize         = 2048,
-
         )
 
         self.comb += [
