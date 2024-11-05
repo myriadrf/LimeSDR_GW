@@ -79,7 +79,6 @@ class FT601(LiteXModule):
 
         # EP83 fifo signals
         EP83_fifo_rdusedw = Signal(FIFORD_SIZE(EP83_wwidth, FT_data_width, EP83_wrusedw_width))
-        EP83_fifo_q       = Signal(FT_data_width)
         EP83_fifo_rdreq   = Signal()
         sync_reg0         = Signal(2)
 
@@ -107,10 +106,6 @@ class FT601(LiteXModule):
         self.EP82_async_fifo = ClockDomainsRenamer({"write":"sys", "read":"ft601"})(EP82_async_fifo)
         self.EP82_fifo       = ResetInserter()(ClockDomainsRenamer("ft601")(fifo.SyncFIFO(32, depth=256)))
 
-        # FIXME: policy with lattice (and maybe altera) is to pop data before reading
-        # (SyncFIFOBuffered not working too).
-        self.sync.ft601 += self.EP82_fifo.re.eq(EP82_fifo_rdreq)
-
         # Stream PC->FPGA
         self.EP03_fifo_status = BusyDelay(platform, "ft601",
             clock_period = 10,  #  input clock period in ns
@@ -132,26 +127,26 @@ class FT601(LiteXModule):
             o_Full    = Open()
         )
 
-        # stream FPGA->PC
+        # Stream FPGA->PC
         EP83_fifo_status = BusyDelay(platform, "ft601",
             clock_period = 10,  #  input clock period in ns
             delay_time   = 100, #  delay time in ms
         )
 
-        # EP83_fifo
-        self.specials += Instance("fifodc_w64x2024_r32",
-            i_Data    = self.stream_fifo.wdata,
-            i_WrClock = ClockSignal("lms_rx"),
-            i_RdClock = ClockSignal("ft601"),
-            i_WrEn    = self.stream_fifo.wr,
-            i_RdEn    = EP83_fifo_status.busy_in,
-            i_Reset   = ~self.stream_fifo_fpga_pc_reset_n,
-            i_RPReset = ~self.stream_fifo_fpga_pc_reset_n,
-            o_Q       = EP83_fifo_q,
-            o_WCNT    = self.stream_fifo.wrusedw,
-            o_RCNT    = EP83_fifo_rdusedw,
-            o_Empty   = Open(),
-            o_Full    = self.stream_fifo.full,
+        # Stream FPGA->PC
+        self.EP83_sink = stream.Endpoint([("data", 64)])
+        self.EP83_cdc  = stream.ClockDomainCrossing([("data", 64)],
+            cd_from         = "lms_rx",
+            cd_to           = "ft601",
+            with_common_rst = True,
+        )
+        self.EP83_fifo = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", 64)], 2024, True)))
+        self.EP83_conv = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(64, 32)))
+        self.EP83_pipeline  = stream.Pipeline(
+            self.EP83_sink,
+            self.EP83_cdc,
+            self.EP83_fifo,
+            self.EP83_conv,
         )
 
         # FTDI arbiter
@@ -184,7 +179,7 @@ class FT601(LiteXModule):
             i_EP03_fifo_wrempty = EP03_rdy,
 
             # Stream EP FPGA->PC.
-            i_EP83_fifo_data    = EP83_fifo_q,
+            i_EP83_fifo_data    = self.EP83_conv.source.data,
             o_EP83_fifo_rd      = EP83_fifo_status.busy_in,
             i_EP83_fifo_rdusedw = EP83_fifo_rdusedw,
 
@@ -252,12 +247,34 @@ class FT601(LiteXModule):
             self.EP82_fifo.we.eq(          self.EP82_async_fifo.readable),
             self.EP82_async_fifo.re.eq(    self.EP82_fifo.writable),
 
+            # EP83 Fifo.
+            # ----------
+            # Reset
+            self.EP83_fifo.reset.eq(~self.stream_fifo_fpga_pc_reset_n),
+            self.EP83_conv.reset.eq(~self.stream_fifo_fpga_pc_reset_n),
+            # Fifo Interface -> stream.Endpoint
+            self.EP83_sink.data.eq(self.stream_fifo.wdata),
+            self.EP83_sink.valid.eq(self.stream_fifo.wr),
+            self.stream_fifo.full.eq(~self.EP83_sink.ready),
+            self.stream_fifo.wrusedw.eq(self.EP83_fifo.level),
+            EP83_fifo_rdusedw.eq(Cat(0, self.EP83_fifo.level)),
+
             self.stream_fifo.wr_active.eq(EP83_fifo_status.busy_out),
             pads.RESETn.eq(~ResetSignal("sys")),
             self.stream_fifo.rd_active.eq(self.EP03_fifo_status.busy_out),
         ]
 
         self.sync.ft601 += [
+            # FIXME: policy with lattice (and maybe altera) is to pop data before reading
+            # (SyncFIFOBuffered not working too).
+            # EP82 Fifo.
+            # ----------
+            self.EP82_fifo.re.eq(EP82_fifo_rdreq),
+
+            # EP83 Fifo.
+            # ----------
+            self.EP83_conv.source.ready.eq(EP83_fifo_status.busy_in),
+
             If(self.stream_fifo_pc_fpga_reset_n == 0b0,
                 sync_reg0.eq(0b00),
             ).Else(
