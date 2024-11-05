@@ -244,14 +244,6 @@ class LMS7TRXTopWrapper(LiteXModule):
             "prj_strgy set_value -strategy Strategy1 tmchk_enable_check=False",
         ]
 
-        #mico2_sw = os.path.abspath("LimeSDR-Mini_lms7_trx/mico32_sw/lms7_trx/lms7_trx.mem")
-        #eco_cmd = "eco_config memebr -instance {lms7_trx_top/inst0_cpu/inst_cpu/lm32_inst/ebr/genblk1.ram} -init_all no -mem {" + mico2_sw + "} -format hex -init_data static -module {pmi_ram_dpEhnonessen3213819232138192p13822039} -mode {RAM_DP} -depth {8192} -widtha {32} -widthb {32} "
-        #platform.toolchain.post_export_commands += [
-        #    eco_cmd,
-        #    "prj_project save",
-        #    "prj_run Export -impl impl -task Bitgen -forceOne",
-        #]
-
         self.add_sources(platform)
 
     def add_sources(self, platform):
