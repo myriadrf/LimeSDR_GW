@@ -3,9 +3,9 @@
 #
 # This file is part of LimeSDR-Mini-v2_GW.
 #
-# Copyright (c) 2024 Lime Microsystems
+# Copyright (c) 2024 Lime Microsystems.
 #
-# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-License-Identifier: Apache-2.0
 
 # Build/Use:
 # ./limesdr_mini_v2.py --csr-csv=csr.csv --build --load
