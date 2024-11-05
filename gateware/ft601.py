@@ -112,20 +112,52 @@ class FT601(LiteXModule):
             delay_time   = 100, #  delay time in ms
         )
 
-        self.specials += Instance("fifodc_w32x1024_r128",
-            i_Data    = EP03_wdata,
-            i_WrClock = ClockSignal("ft601"),
-            i_RdClock = ClockSignal("lms_tx"),
-            i_WrEn    = self.EP03_fifo_status.busy_in,
-            i_RdEn    = self.stream_fifo.rd,
-            i_Reset   = ~sync_reg0[1],
-            i_RPReset = ~sync_reg0[1],
-            o_Q       = self.stream_fifo.rdata,
-            o_WCNT    = EP03_fifo_wusedw,
-            o_RCNT    = self.stream_fifo.rdusedw,
-            o_Empty   = self.stream_fifo.empty,
-            o_Full    = Open()
-        )
+        if True:
+            self.EP03_conv   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(32, 128)))
+            self.EP03_fifo   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", 128)], 1024, True)))
+            self.EP03_cdc    = stream.ClockDomainCrossing([("data", 128)],
+                cd_from         = "ft601",
+                cd_to           = "lms_tx",
+                with_common_rst = True,
+            )
+            self.EP03_source = stream.Endpoint([("data", 128)])
+            self.EP03_pipeline  = stream.Pipeline(
+                self.EP03_conv,
+                self.EP03_fifo,
+                self.EP03_cdc,
+                self.EP03_source,
+            )
+
+            self.sync.lms_tx += self.EP03_source.ready.eq(self.stream_fifo.rd)
+
+            self.comb += [
+                # Reset.
+                self.EP03_conv.reset.eq(     ~sync_reg0[1]),
+                self.EP03_fifo.reset.eq(     ~sync_reg0[1]),
+
+                self.stream_fifo.rdata.eq(   self.EP03_source.data),
+                self.stream_fifo.empty.eq(   ~self.EP03_source.valid),
+                self.stream_fifo.rdusedw.eq( self.EP03_fifo.level),
+
+                self.EP03_conv.sink.data.eq( EP03_wdata),
+                self.EP03_conv.sink.valid.eq(self.EP03_fifo_status.busy_in),
+                EP03_fifo_wusedw.eq(         Cat(Constant(0, 2), self.EP03_fifo.level)),
+            ]
+        else:
+            self.specials += Instance("fifodc_w32x1024_r128",
+                i_Data    = EP03_wdata,
+                i_WrClock = ClockSignal("ft601"),
+                i_RdClock = ClockSignal("lms_tx"),
+                i_WrEn    = self.EP03_fifo_status.busy_in,
+                i_RdEn    = self.stream_fifo.rd,
+                i_Reset   = ~sync_reg0[1],
+                i_RPReset = ~sync_reg0[1],
+                o_Q       = self.stream_fifo.rdata,
+                o_WCNT    = EP03_fifo_wusedw,
+                o_RCNT    = self.stream_fifo.rdusedw,
+                o_Empty   = self.stream_fifo.empty,
+                o_Full    = Open()
+            )
 
         # Stream FPGA->PC
         EP83_fifo_status = BusyDelay(platform, "ft601",
