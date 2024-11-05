@@ -225,8 +225,6 @@ class LMS7TRXTopWrapper(LiteXModule):
         #platform.add_period_constraint(lms_pads.MCLK1, 1e9/125e6)
         #platform.add_period_constraint(lms_pads.MCLK2, 1e9/125e6)
 
-        platform.verilog_include_paths.append("LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc")
-
         platform.toolchain.additional_ldf_commands += [
             "prj_strgy set_value -strategy Strategy1 syn_fix_gated_and_generated_clks=False",
             "prj_strgy set_value -strategy Strategy1 syn_default_enum_encode=Onehot",

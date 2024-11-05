@@ -27,8 +27,6 @@ lms7_trx_files = [
     "LimeSDR-Mini_lms7_trx/src/self_test/singl_clk_with_ref_test.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/clk_with_ref_test.vhd",
     "LimeSDR-Mini_lms7_trx/src/self_test/clk_no_ref_test.vhd",
-    "LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc/platform1_vhd.vhd",
-    "LimeSDR-Mini_lms7_trx/mico32_patform/platform1/soc/platform1_top.v",
     "LimeSDR-Mini_lms7_trx/src/general/bus_sync_reg.vhd",
     "LimeSDR-Mini_lms7_trx/src/altera_inst/lpm_cnt_inst.vhd",
     "LimeSDR-Mini_lms7_trx/src/altera_inst/fifo_inst.vhd",
@@ -39,7 +37,6 @@ lms7_trx_files = [
     "LimeSDR-Mini_lms7_trx/src/delayf_ctrl/delay_ctrl_top.vhd",
     "LimeSDR-Mini_lms7_trx/src/delayf_ctrl/delayf_ctrl.vhd",
     "LimeSDR-Mini_lms7_trx/src/general/busy_delay.vhd",
-    "LimeSDR-Mini_lms7_trx/src/cpu/cpu.vhd",
 ]
 
 lms7_trx_ips = [
