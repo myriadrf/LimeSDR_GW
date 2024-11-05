@@ -180,7 +180,7 @@ class FT601(LiteXModule):
 
             # Stream EP PC->FPGA.
             o_EP03_fifo_data    = EP03_wdata,
-            o_EP03_fifo_wr      = EP03_fifo_status.busy_in,
+            o_EP03_fifo_wr      = self.EP03_fifo_status.busy_in,
             i_EP03_fifo_wrempty = EP03_rdy,
 
             # Stream EP FPGA->PC.
@@ -263,7 +263,7 @@ class FT601(LiteXModule):
             ).Else(
                 sync_reg0.eq(Cat(1, sync_reg0[0]))
             ),
-            If(EP03_fifo_status.busy_in == 0b1,
+            If(self.EP03_fifo_status.busy_in == 0b1,
                 EP03_wr_cnt.eq(EP03_wr_cnt+1),
             ).Else(
                 EP03_wr_cnt.eq(0),
