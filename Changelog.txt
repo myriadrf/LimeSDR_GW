@@ -18,5 +18,9 @@ Clocking:
 - Added internal oscilator
 - Mico32 is running on internal oscilator clk source
 
-
-
+Current (litex branch)
+==========================
+- Switch build to LiteX framework.
+- Switch SoC from Mico32 to LiteX SoC with RISC-V CPU and LiteX peripherals.
+- Simplify top-level and integration with LiteX Modules/Connections.
+- Ongoing: Replace vendor specific primitives (FIFOs, PLLs, ) with LiteX equivalent for portability.
