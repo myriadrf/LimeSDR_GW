@@ -9,7 +9,8 @@ import os
 from shutil import which, copyfile
 import subprocess
 
-from migen import *
+from migen        import *
+from migen.genlib import fifo
 
 from litex.build import tools
 
@@ -64,8 +65,6 @@ class FT601(LiteXModule):
 
         # EP02 fifo signals
         EP02_empty        = Signal()
-        EP02_wr           = Signal()
-        EP02_wdata        = Signal(FT_data_width)
 
         # EP82 fifo signals
         EP82_fifo_rdusedw = Signal(FIFORD_SIZE(EP82_wwidth, FT_data_width, EP82_wrusedw_width))
@@ -101,21 +100,9 @@ class FT601(LiteXModule):
         # FTDI endpoint fifos.
         # --------------------
 
-        #  Control PC->FPGA
-        self.specials += Instance("fifodc_w32x256_r32", name="EP02_fifo",
-            i_Data    = EP02_wdata,
-            i_WrClock = ClockSignal("ft601"),
-            i_RdClock = ClockSignal("sys"),
-            i_WrEn    = EP02_wr,
-            i_RdEn    = self.ctrl_fifo.rd,
-            i_Reset   = ResetSignal("sys"),
-            i_RPReset = ResetSignal("sys"),
-            o_Q       = self.ctrl_fifo.rdata,
-            o_WCNT    = Open(9),
-            o_RCNT    = Open(9),
-            o_Empty   = self.ctrl_fifo.empty,
-            o_Full    = Open(),
-        )
+        # Control PC->FPGA FIFO.
+        EP02_fifo      = fifo.AsyncFIFO(32, depth=256)
+        self.EP02_fifo = ClockDomainsRenamer({"write":"ft601", "read":"sys"})(EP02_fifo)
 
         # Control FPGA->PC
         self.specials += Instance("fifodc_w32x256_r32", name="EP82_fifo",
@@ -191,9 +178,9 @@ class FT601(LiteXModule):
             i_enable            = Constant(1, 1),
 
             # Control EP PC->FPGA.
-            o_EP02_fifo_data    = EP02_wdata,
-            o_EP02_fifo_wr      = EP02_wr,
-            i_EP02_fifo_wrempty = self.ctrl_fifo.empty,
+            o_EP02_fifo_data    = self.EP02_fifo.din,
+            o_EP02_fifo_wr      = self.EP02_fifo.we,
+            i_EP02_fifo_wrempty = ~self.EP02_fifo.readable,
 
             # Control EP FPGA->PC.
             i_EP82_fifo_data    = EP82_fifo_q,
@@ -255,6 +242,11 @@ class FT601(LiteXModule):
         # Logic.
         # ------
         self.comb += [
+            # EP02 EP.
+            self.EP02_fifo.re.eq(         self.ctrl_fifo.rd),
+            self.ctrl_fifo.rdata.eq(      self.EP02_fifo.dout),
+            self.ctrl_fifo.empty.eq(      ~self.EP02_fifo.readable),
+
             self.stream_fifo.wr_active.eq(EP83_fifo_status.busy_out),
             pads.RESETn.eq(~ResetSignal("sys")),
             self.stream_fifo.rd_active.eq(self.EP03_fifo_status.busy_out),
