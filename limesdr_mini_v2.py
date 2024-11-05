@@ -116,7 +116,10 @@ class BaseSoC(SoCCore):
         with_litescope  = False,
         cpu_firmware    = None,
         **kwargs):
+        # Platform ---------------------------------------------------------------------------------
+
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
+        platform.name = "limesdr_mini_v2"
 
         lms_pads      = platform.request("LMS")
         revision_pads = platform.request("revision")
