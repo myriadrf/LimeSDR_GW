@@ -249,7 +249,6 @@ void getFifoData(uint8_t *buf, uint8_t k)
 #endif
 	for(cnt=0; cnt<k/sizeof(uint32_t); ++cnt)
 	{
-		fifo_ctrl_fifo_rd_write(1); // RD before read
 		fifo_val = fifo_ctrl_fifo_rdata_read();
 #ifdef DEBUG_FIFO
 		printf("X%08lx ", fifo_val);
