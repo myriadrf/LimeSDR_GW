@@ -38,6 +38,11 @@ In order to calculate an FFT from received samples and pack resulting data into 
 According to information found in `LimeSDR XTRX gateware description`_, raw samples are received by **lms7002_top** and passed to **rx_path_top** for packing.
 That means that in order to reuse sample packing logic, the FFT module has to be inserted between **lms7002_top** and **rx_path_top**.
 
+Below is a block diagram of the structure we want to achieve. New elements are shown in green, elements to be removed are crossed out in red.
+
+.. figure:: limesdr-xtrx/images/limetop_block_diagram_fft.svg
+  :width: 1000
+
 To avoid conflicting assignments, we must disconnect the **lms7002_top** master interface from the **rx_path_top** slave interface.
 This is done by commenting the relevant *connect* command as seen in a code snippet below:
 
@@ -72,10 +77,14 @@ The interface declarations can be copy-pasted from any other module. In this cas
         self.fft_s_axis = AXIStreamInterface(data_width=64, layout=s_axis_layout, clock_domain=self.lms7002.axis_m.clock_domain)
         self.fft_m_axis = AXIStreamInterface(data_width=64, layout=m_axis_layout, clock_domain=self.lms7002.axis_m.clock_domain)
 
-Detailed instructions on how to instantiate a non-LiteX module in a LiteX project can be found in the `Litex documentation`_, 
-in this example it is done like this:
+The sources for the module need to be added and the module instantiated. Detailed instructions on how to instantiate a non-LiteX 
+module in a LiteX project can be found in the `Litex documentation`_, in this example it is done like this:
 
 .. code-block:: python
+        
+        # add fft and wrapper to sources
+        platform.add_source("./gateware/examples/fft/fft.v")
+        platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
 
         # assign fft wrapper ports to appropriate interfaces
         self.fft_params = dict()
@@ -115,7 +124,7 @@ To be able to use the file please make sure you have up to date versions of GNU 
 
 Below is a screenshot of how the fft looks when run with gnuradio.
 
-.. figure:: images/gnuradio_fft.png
+.. figure:: limesdr-xtrx/images/gnuradio_fft.png
   :width: 1000
 
 
