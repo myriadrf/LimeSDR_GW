@@ -317,12 +317,7 @@ class BaseSoC(SoCCore):
             self.lms7002_top.PERIPH_OUTPUT_VAL_1.eq(self.general_periph.PERIPH_OUTPUT_VAL_1),
         ]
 
-        # Timings ----------------------------------------------------------------------------------
-        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/FT601_timing.sdc")
-        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/LMS7002_timing.sdc")
-        self.platform.add_sdc("gateware/timing.sdc")
-
-        # Misc -------------------------------------------------------------------------------------
+        # RF Switches ------------------------------------------------------------------------------
         self.comb += [
             # RF Switch.
             rfsw_pads.RX_V1.eq(self.fpgacfg.from_fpgacfg.GPIO[8]),
@@ -335,6 +330,12 @@ class BaseSoC(SoCCore):
             tx_lb_pads.SH.eq(  self.fpgacfg.from_fpgacfg.GPIO[2]),
         ]
 
+        # Timings ----------------------------------------------------------------------------------
+        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/FT601_timing.sdc")
+        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/LMS7002_timing.sdc")
+        self.platform.add_sdc("gateware/timing.sdc")
+
+        # Analyzer ---------------------------------------------------------------------------------
         if with_litescope:
             analyzer_signals = [
                 self.fifo_ctrl.ctrl_fifo.rd,
