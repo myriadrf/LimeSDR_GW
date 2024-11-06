@@ -10,12 +10,6 @@
 # Build/Use:
 # ./limesdr_mini_v2.py --csr-csv=csr.csv --build --load
 # litex_server --jtag --jtag-config=openocd_limesdr_mini_v2.cfg
-# litex_term crossover
-
-# loading a demo
-# ./limesdr_mini_v2.py --integrated-main-ram-size 0x8000 --load --build --uart-name=jtag_uart
-# litex_bare_metal_demo --build-path build/limesdr_mini_v2
-# litex_term jtag --jtag-config=openocd_limesdr_mini_v2.cfg --kernel demo.bin
 
 import math
 
