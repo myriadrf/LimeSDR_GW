@@ -99,6 +99,7 @@ class _CRG(LiteXModule):
         self.comb += self.cd_sys.rst.eq(~por_done)
 
         platform.add_platform_command("GSR_NET NET main_por_done;")
+        platform.add_platform_command("SYSCONFIG CONFIG_IOVOLTAGE=3.3 SLAVE_SPI_PORT=DISABLE MASTER_SPI_PORT=DISABLE SLAVE_PARALLEL_PORT=DISABLE MCCLK_FREQ=62 CONFIG_MODE=SPI_SERIAL BACKGROUND_RECONFIG=OFF ;")
 
         # FT601 Clk/Rst
         self.comb += [
@@ -140,7 +141,7 @@ class BaseSoC(SoCCore):
             ident_version            = True,
             cpu_type                 = "picorv32", # FIXME: Switch to VexRiscv when working with Diamond.
             cpu_variant              = "standard",
-            integrated_rom_size      = 0x8000,
+            integrated_rom_size      = 0xa000,
             integrated_sram_ram_size = 0x1000,
             integrated_main_ram_size = 0x4000,
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
@@ -166,7 +167,7 @@ class BaseSoC(SoCCore):
         from litespi.modules import W25Q128JV
         from litespi.opcodes import SpiNorFlashOpCodes as Codes
 
-        self.add_spi_flash("FPGA_CFG_SPI", mode="1x", module=W25Q128JV(Codes.READ_1_1_1), with_master=False)
+        self.add_spi_flash(mode="1x", clk_freq=100_000, module=W25Q128JV(Codes.READ_1_1_1), with_master=True)
 
         # mico32_busy(gpo) & busy_delay ------------------------------------------------------------
         self._gpo = CSRStorage(description="GPO interface", fields=[

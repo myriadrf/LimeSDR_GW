@@ -31,11 +31,11 @@ _io = [
     ("FPGA_EGPIO", 0, Pins("A10 A8"),                          IOStandard("LVCMOS33")),
 
     # SPIFlash
-    ("FPGA_CFG_SPI", 0,
+    ("spiflash", 0,
         Subsignal("cs_n", Pins("U17")),
         #Subsignal("clk",  Pins("U16")),
-        Subsignal("miso", Pins("U18")),
-        Subsignal("mosi", Pins("T18")),
+        Subsignal("miso", Pins("T18")),
+        Subsignal("mosi", Pins("U18")),
         IOStandard("LVCMOS33"),
     ),
 
