@@ -1,4 +1,4 @@
-BUILD_DIR?=../build/limesdr_mini_v2_platform
+BUILD_DIR?=../build/limesdr_mini_v2
 
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
@@ -8,7 +8,7 @@ CFLAGS += -g
 
 CFLAGS := $(filter-out -Wmissing-prototypes -Wstrict-prototypes, $(CFLAGS))
 
-OBJECTS   = i2c0.o crt0.o main.o csr_access.o
+OBJECTS   = spiflash.o i2c0.o crt0.o main.o csr_access.o
 
 all: firmware.bin
 

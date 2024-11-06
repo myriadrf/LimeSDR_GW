@@ -27,6 +27,7 @@
 //#include "LMS64C_protocol.h"
 #include "LimeSDR_MINI_brd_v1r0.h"
 #include "csr_access.h"
+#include "spiflash.h"
 
 #include <irq.h>
 #include <generated/csr.h>
@@ -145,6 +146,20 @@ uint32_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_
 	return read_data;
 }
 
+/* SPIFlash ------------------------------------------------------------------*/
+void spiFlash_read(uint32_t rel_addr, uint32_t length, uint32_t *rdata)
+{
+	void *addr = (void *)SPIFLASH_BASE;
+	int i;
+	uint32_t rx;
+	for (i = 0; i < length; i++) {
+		rx = *(uint32_t *)(addr + (i << 2));
+		rdata[i] = rx;
+		printf("%d %lx\n", i, rx);
+	}
+}
+
+/* FIFO ----------------------------------------------------------------------*/
 int FIFO_loopback_test(int base_addr)
 {
     unsigned int fifo_val =0;
@@ -581,6 +596,17 @@ int main(void)
 		dac_val = (uint16_t) eeprom_dac_val;
 	}
 	*/
+
+	uint32_t spi_rdata[10];
+	uint8_t spi_rdatab[10];
+	int i;
+	spiflash_read_id_register(spi_rdatab);
+	for (i = 0; i < 10; i++)
+		printf("%02x\n", spi_rdatab[i]);
+	spiFlash_read(0x0, 10, spi_rdata);
+	for (i = 0; i < 10; i++)
+		printf("%02lx\n", spi_rdata[i]);
+	printf("%08lx\n", spiflash_read_status_register());
 
 	/*if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+DAC_VAL_ADDR_IN_FLASH, 0x2, rdata)!= 0) {
 		dac_val = DAC_DEFF_VAL;

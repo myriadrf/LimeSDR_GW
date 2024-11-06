@@ -99,7 +99,6 @@ class _CRG(LiteXModule):
         self.comb += self.cd_sys.rst.eq(~por_done)
 
         platform.add_platform_command("GSR_NET NET main_por_done;")
-        platform.add_platform_command("SYSCONFIG CONFIG_IOVOLTAGE=3.3 SLAVE_SPI_PORT=DISABLE MASTER_SPI_PORT=DISABLE SLAVE_PARALLEL_PORT=DISABLE MCCLK_FREQ=62 CONFIG_MODE=SPI_SERIAL BACKGROUND_RECONFIG=OFF ;")
 
         # FT601 Clk/Rst
         self.comb += [
