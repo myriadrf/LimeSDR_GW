@@ -285,7 +285,6 @@ class BaseSoC(SoCCore):
 
         self.comb += [
             self.rxtx_top.from_fpgacfg.eq(self.fpgacfg.from_fpgacfg),
-            self.lms7_trx_top.to_tstcfg_from_rxtx.eq(self.rxtx_top.to_tstcfg_from_rxtx),
             self.rxtx_top.from_tstcfg_TEST_EN.eq(self.tst_top.test_en),
             self.rxtx_top.from_tstcfg_TEST_FRC_ERR.eq(self.tst_top.test_frc_err),
             self.rxtx_top.from_tstcfg_TX_TST_I.eq(self.tst_top.tx_tst_i),
