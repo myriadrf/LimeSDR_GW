@@ -3,6 +3,22 @@
 Here we assume LiteX, diamond and a riscv toolchain are already
 present/installed.
 
+## Advantages of LiteX Gateware over previous Gateware.
+
+### Current
+- Simplified integration/cores interconnection.
+- Selection of possible various CPUs with --cpu-type (VexRiscv, PicoRV32, etc...) to select tradeoff between performance/resoruce usage.
+- Use of LiteX Peripherals.
+- Use of LiteX CSR Bus to simplify peripheral control from CPU.
+- Observation/Debug capabilities with LiteScope Logic Analyser over UART/JTAG.
+- Simplified firmware build/integration (automatic).
+- Simplified firmware development with serialboot of firmware not requiring full Gateware recompilation.
+
+### Future
+- Once all FIFOs will be replaced, possibility to try GHDL/Yosys/NextPnr build.
+- Possibility to use the same codebase/project between LimeSDR Mini and Mini-V2 (with just minor changes).
+- Possibility to share the same codebase for common peripherals between LimeSDR Mini, XTRX and future boards.
+
 ## Fetch repository
 
 Fetch this repository and switch to development branch:
