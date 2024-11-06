@@ -166,25 +166,7 @@ class BaseSoC(SoCCore):
         from litespi.modules import W25Q128JV
         from litespi.opcodes import SpiNorFlashOpCodes as Codes
 
-        module            = W25Q128JV(Codes.READ_1_1_1)
-        flash_spi_pads    = platform.request("FPGA_CFG_SPI")
-        flash_spi         = Record(SPIMaster.pads_layout)
-        self.spiflash_phy = LiteSPIPHY(flash_spi,
-            flash           = module,
-            device          = platform.device,
-            default_divisor = math.ceil(self.sys_clk_freq / (2 * 10e6)) - 1,
-            rate            = "1:1",
-        )
-        self.add_spi_flash("spliflash", mode="1x", module=module, phy=self.spiflash_phy, with_master=False)
-        self.comb += [
-            flash_spi.miso.eq(flash_spi_pads.MISO),
-            flash_spi_pads.MOSI.eq(flash_spi.mosi),
-            flash_spi_pads.SS_N.eq(flash_spi.cs_n),
-        ]
-        self.specials += Instance("USRMCLK",
-            i_USRMCLKI  = flash_spi.clk,
-            i_USRMCLKTS = 0,
-        )
+        self.add_spi_flash("FPGA_CFG_SPI", mode="1x", module=W25Q128JV(Codes.READ_1_1_1), with_master=False)
 
         # SPI (CFG_TOP) ----------------------------------------------------------------------------
         cfg_top_spi = Record(SPIMaster.pads_layout)
