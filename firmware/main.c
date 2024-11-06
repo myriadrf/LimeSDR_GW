@@ -117,34 +117,6 @@ static void dac_spi_write(const uint16_t write_data)
 	while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
 }
 
-unsigned int cfg_top_spi_command(unsigned int write_data, uint8_t *rd_data)
-{
-	//SPI
-	unsigned int read_data = 0x0;
-	uint32_t* dest = (uint32_t*)rd_data;
-
-	/* set cs */
-	cfg_top_cs_write(1);
-
-	/* Write SPI MOSI Data */
-    cfg_top_mosi_write(write_data);
-
-	/* Start SPI Xfer */
-	cfg_top_control_write(
-		(1  << CSR_CFG_TOP_CONTROL_START_OFFSET) |
-		(32 << CSR_CFG_TOP_CONTROL_LENGTH_OFFSET)
-	);
-
-	/* Wait SPI Xfer */
-	while ((cfg_top_status_read() & (1 << CSR_CFG_TOP_STATUS_DONE_OFFSET)) == 0);
-
-	/* Read and return SPI MISO Data */
-	read_data = cfg_top_miso_read();
-
-	*dest = read_data;
-	return read_data;
-}
-
 uint32_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_t *rd_data)
 {
 	//SPI
@@ -678,8 +650,6 @@ int main(void)
 				//spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 4, sc_brdg_data, 0, NULL, 0);
 				p_spi_wrdata32 = (uint32_t*) &sc_brdg_data;
 				//spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
-
-				spi_read_val = cfg_top_spi_command(*p_spi_wrdata32, 0);
 
  				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
  			break;

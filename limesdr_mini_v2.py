@@ -35,16 +35,16 @@ from litespi.phy.generic import LiteSPIPHY
 
 from litescope import LiteScopeAnalyzer
 
-from gateware.busy_delay       import BusyDelay
-from gateware.lms7_trx_top     import LMS7TRXTopWrapper
-from gateware.fpgacfg          import FPGACfg
-from gateware.ft601            import FT601
-from gateware.lms7002_top      import LMS7002Top
-from gateware.tst_top          import TstTop
-from gateware.general_periph   import GeneralPeriphTop
-from gateware.pllcfg           import PLLCfg
-from gateware.rxtx_top         import RXTXTop
-from gateware.fifo_ctrl_to_csr import FIFOCtrlToCSR
+from gateware.busy_delay          import BusyDelay
+from gateware.fpgacfg             import FPGACfg
+from gateware.ft601               import FT601
+from gateware.lms7002_top         import LMS7002Top
+from gateware.lms7_trx_files_list import lms7_trx_files, lms7_trx_ips
+from gateware.tst_top             import TstTop
+from gateware.general_periph      import GeneralPeriphTop
+from gateware.pllcfg              import PLLCfg
+from gateware.rxtx_top            import RXTXTop
+from gateware.fifo_ctrl_to_csr    import FIFOCtrlToCSR
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -168,10 +168,6 @@ class BaseSoC(SoCCore):
 
         self.add_spi_flash("FPGA_CFG_SPI", mode="1x", module=W25Q128JV(Codes.READ_1_1_1), with_master=False)
 
-        # SPI (CFG_TOP) ----------------------------------------------------------------------------
-        cfg_top_spi = Record(SPIMaster.pads_layout)
-        self.add_spi_master(name="cfg_top", pads=cfg_top_spi, data_width=32, spi_clk_freq=sys_clk_freq)
-
         # mico32_busy(gpo) & busy_delay ------------------------------------------------------------
         self._gpo = CSRStorage(description="GPO interface", fields=[
             CSRField("mico32_busy", size=1, offset=0, description="CPU state.", values=[
@@ -182,33 +178,6 @@ class BaseSoC(SoCCore):
 
         self.busy_delay  = BusyDelay(platform, "sys", 25, 100)
         self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.mico32_busy)
-
-        # TOP --------------------------------------------------------------------------------------
-        self.lms7_trx_top = LMS7TRXTopWrapper(self.platform, lms_pads,
-            FTDI_DQ_WIDTH        = FTDI_DQ_WIDTH,
-            CTRL0_FPGA_RX_SIZE   = CTRL0_FPGA_RX_SIZE,
-            CTRL0_FPGA_RX_RWIDTH = CTRL0_FPGA_RX_RWIDTH,
-            CTRL0_FPGA_TX_SIZE   = CTRL0_FPGA_TX_SIZE,
-            CTRL0_FPGA_TX_WWIDTH = CTRL0_FPGA_TX_WWIDTH,
-            STRM0_FPGA_RX_SIZE   = STRM0_FPGA_RX_SIZE,
-            STRM0_FPGA_RX_RWIDTH = STRM0_FPGA_RX_RWIDTH,
-            STRM0_FPGA_TX_SIZE   = STRM0_FPGA_TX_SIZE,
-            STRM0_FPGA_TX_WWIDTH = STRM0_FPGA_TX_WWIDTH,
-            C_EP02_RDUSEDW_WIDTH = C_EP02_RDUSEDW_WIDTH,
-            C_EP82_WRUSEDW_WIDTH = C_EP82_WRUSEDW_WIDTH,
-            C_EP03_RDUSEDW_WIDTH = C_EP03_RDUSEDW_WIDTH,
-            C_EP83_WRUSEDW_WIDTH = C_EP83_WRUSEDW_WIDTH,
-
-        )
-        self.comb += [
-            self.lms7_trx_top.ft_clk.eq(self.crg.ft_clk),
-
-            # CFG_TOP SPI Interface.
-            self.lms7_trx_top.cfg_top_mosi.eq(cfg_top_spi.mosi),
-            self.lms7_trx_top.cfg_top_sclk.eq(cfg_top_spi.clk),
-            self.lms7_trx_top.cfg_top_ss_n.eq(cfg_top_spi.cs_n),
-            cfg_top_spi.miso.eq(self.lms7_trx_top.cfg_top_miso),
-        ]
 
         # FPGA Cfg ---------------------------------------------------------------------------------
         self.fpgacfg = FPGACfg(revision_pads)
@@ -334,6 +303,34 @@ class BaseSoC(SoCCore):
         self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/FT601_timing.sdc")
         self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/LMS7002_timing.sdc")
         self.platform.add_sdc("gateware/timing.sdc")
+
+        # Strategy ---------------------------------------------------------------------------------
+        platform.add_strategy("LimeSDR-Mini_lms7_trx/proj/user_timing.sty", "user_timing")
+
+        platform.toolchain.additional_ldf_commands += [
+            "prj_strgy set_value -strategy Strategy1 syn_fix_gated_and_generated_clks=False",
+            "prj_strgy set_value -strategy Strategy1 syn_default_enum_encode=Onehot",
+            "prj_strgy set_value -strategy Strategy1 syn_export_setting=Yes",
+            "prj_strgy set_value -strategy Strategy1 syn_frequency=100",
+            "prj_strgy set_value -strategy Strategy1 syn_critical_path_num=3",
+            "prj_strgy set_value -strategy Strategy1 syn_pipelining_retiming=None",
+            "prj_strgy set_value -strategy Strategy1 syn_push_tristates=False",
+            "prj_strgy set_value -strategy Strategy1 syn_res_sharing=False",
+            "prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True",
+            "prj_strgy set_value -strategy Strategy1 lse_vhdl2008=True",
+            "prj_strgy set_value -strategy Strategy1 lse_frequency=100",
+            "prj_strgy set_value -strategy Strategy1 lse_force_gsr=No",
+            "prj_strgy set_value -strategy Strategy1 lse_fix_gated_clocks=False",
+            "prj_strgy set_value -strategy Strategy1 lse_res_sharing=False",
+            "prj_strgy set_value -strategy Strategy1 par_routeing_pass=10",
+            "prj_strgy set_value -strategy Strategy1 tmchk_enable_check=False",
+        ]
+
+        # Sources ----------------------------------------------------------------------------------
+        for file in lms7_trx_files:
+            platform.add_source(file)
+        for file in lms7_trx_ips:
+            platform.add_ip(file)
 
         # Analyzer ---------------------------------------------------------------------------------
         if with_litescope:
