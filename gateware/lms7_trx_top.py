@@ -78,7 +78,7 @@ class LMS7TRXTopWrapper(LiteXModule):
 
         # Signals.
         # --------
-        fpga_cfg_spi_pads = platform.request("FPGA_CFG_SPI")
+        #fpga_cfg_spi_pads = platform.request("FPGA_CFG_SPI")
 
         # LMS6 TRX TOP.
         # -------------------------
@@ -155,10 +155,10 @@ class LMS7TRXTopWrapper(LiteXModule):
             o_FPGA_SPI_LMS_SS       = Open(),      #fpga_spi_pads.LMS_SS,
             o_FPGA_SPI_DAC_SS       = Open(),      #fpga_spi_pads.DAC_SS,
             #  FPGA_CFG
-            i_FPGA_CFG_SPI_MISO     = fpga_cfg_spi_pads.MISO,
-            o_FPGA_CFG_SPI_MOSI     = fpga_cfg_spi_pads.MOSI,
+            i_FPGA_CFG_SPI_MISO     = Constant(0),
+            o_FPGA_CFG_SPI_MOSI     = Open(),
             #FPGA_CFG_SPI_SCLK : out    std_logic; -- SCLK pin can be accessed only trough USRMCLK component
-            o_FPGA_CFG_SPI_SS_N     = fpga_cfg_spi_pads.SS_N,
+            o_FPGA_CFG_SPI_SS_N     = Open(),
             #  FPGA I2C
             io_FPGA_I2C_SCL         = Open(),#fpga_i2c_pads.SCL,
             io_FPGA_I2C_SDA         = Open(),#fpga_i2c_pads.SDA,

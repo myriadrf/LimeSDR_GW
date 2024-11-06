@@ -31,6 +31,8 @@ from litex.soc.cores.spi.spi_master import SPIMaster
 
 from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
 
+from litespi.phy.generic import LiteSPIPHY
+
 from litescope import LiteScopeAnalyzer
 
 from gateware.busy_delay       import BusyDelay
@@ -160,6 +162,29 @@ class BaseSoC(SoCCore):
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
+        # SPI Flash --------------------------------------------------------------------------------
+        from litespi.modules import W25Q128JV
+        from litespi.opcodes import SpiNorFlashOpCodes as Codes
+
+        module            = W25Q128JV(Codes.READ_1_1_1)
+        flash_spi_pads    = platform.request("FPGA_CFG_SPI")
+        flash_spi         = Record(SPIMaster.pads_layout)
+        self.spiflash_phy = LiteSPIPHY(flash_spi,
+            flash           = module,
+            device          = platform.device,
+            default_divisor = math.ceil(self.sys_clk_freq / (2 * 10e6)) - 1,
+            rate            = "1:1",
+        )
+        self.add_spi_flash("spliflash", mode="1x", module=module, phy=self.spiflash_phy, with_master=False)
+        self.comb += [
+            flash_spi.miso.eq(flash_spi_pads.MISO),
+            flash_spi_pads.MOSI.eq(flash_spi.mosi),
+            flash_spi_pads.SS_N.eq(flash_spi.cs_n),
+        ]
+        self.specials += Instance("USRMCLK",
+            i_USRMCLKI  = flash_spi.clk,
+            i_USRMCLKTS = 0,
+        )
 
         # SPI (CFG_TOP) ----------------------------------------------------------------------------
         cfg_top_spi = Record(SPIMaster.pads_layout)

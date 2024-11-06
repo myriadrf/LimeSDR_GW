@@ -9,6 +9,8 @@ from migen import *
 
 from litex.gen import *
 
+from litex.soc.interconnect.csr import CSRStatus
+
 from gateware.common      import *
 from gateware.lms7002_top import SampleCompare
 
@@ -175,9 +177,9 @@ class RXTXTop(LiteXModule):
         self._ddr2_1_pnf_per_bit_h = CSRStatus(16)
 
         self.comb += [
-            self._ddr2_1_status.eq(       self._DDR2_1_STATUS),
-            self._ddr2_1_pnf_per_bit_l.eq(self._DDR2_1_pnf_per_bit[:16]),
-            self._ddr2_1_pnf_per_bit_h.eq(self._DDR2_1_pnf_per_bit[15:]),
+            self._ddr2_1_status.status.eq(       self._DDR2_1_STATUS),
+            self._ddr2_1_pnf_per_bit_l.status.eq(self._DDR2_1_pnf_per_bit[:16]),
+            self._ddr2_1_pnf_per_bit_h.status.eq(self._DDR2_1_pnf_per_bit[15:]),
         ]
 
     def add_sources(self, platform):
