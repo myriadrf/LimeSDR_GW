@@ -1,16 +1,12 @@
 lms7_trx_files = [
     # SPI / CFG.
     # ----------
-    "LimeSDR-Mini_lms7_trx/src/spi/cfg_top.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/fpgacfg.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/fpgacfg_pkg.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/mcfg_components.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/mcfg32wm_fsm.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/mem_package.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/periphcfg.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/periphcfg_pkg.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/pllcfg_pkg.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/tstcfg.vhd",
     "LimeSDR-Mini_lms7_trx/src/spi/tstcfg_pkg.vhd",
 
     # Packages.
