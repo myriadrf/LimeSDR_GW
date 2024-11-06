@@ -39,15 +39,16 @@ from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
 
 from litescope import LiteScopeAnalyzer
 
-from gateware.busy_delay     import BusyDelay
-from gateware.lms7_trx_top   import LMS7TRXTopWrapper
-from gateware.fpgacfg        import FPGACfg
-from gateware.ft601          import FT601
-from gateware.lms7002_top    import LMS7002Top
-from gateware.tst_top        import TstTop
-from gateware.general_periph import GeneralPeriphTop
-from gateware.pllcfg         import PLLCfg
-from gateware.rxtx_top       import RXTXTop
+from gateware.busy_delay       import BusyDelay
+from gateware.lms7_trx_top     import LMS7TRXTopWrapper
+from gateware.fpgacfg          import FPGACfg
+from gateware.ft601            import FT601
+from gateware.lms7002_top      import LMS7002Top
+from gateware.tst_top          import TstTop
+from gateware.general_periph   import GeneralPeriphTop
+from gateware.pllcfg           import PLLCfg
+from gateware.rxtx_top         import RXTXTop
+from gateware.fifo_ctrl_to_csr import FIFOCtrlToCSR
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -116,9 +117,9 @@ class BaseSoC(SoCCore):
         with_litescope  = False,
         cpu_firmware    = None,
         **kwargs):
-        # Platform ---------------------------------------------------------------------------------
 
-        platform = limesdr_mini_v2.Platform(toolchain=toolchain)
+        # Platform ---------------------------------------------------------------------------------
+        platform      = limesdr_mini_v2.Platform(toolchain=toolchain)
         platform.name = "limesdr_mini_v2"
 
         lms_pads      = platform.request("LMS")
@@ -135,17 +136,13 @@ class BaseSoC(SoCCore):
             )
         ])
 
-        # Enable Compressed Instructions.
-        VexRiscvSMP.with_rvc = True
-
         # SoCCore ----------------------------------------------------------------------------------
         uart_name     = {True: "crossover", False:"serial"}[with_litescope]
         with_uartbone = with_litescope
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
-            cpu_type                 = "picorv32",
-            #cpu_type                 = "vexriscv_smp",
+            cpu_type                 = "picorv32", # FIXME: Switch to VexRiscv when working with Diamond.
             cpu_variant              = "standard",
             integrated_rom_size      = 0x8000,
             integrated_sram_ram_size = 0x1000,
@@ -154,10 +151,6 @@ class BaseSoC(SoCCore):
             with_uartbone            = with_uartbone,
             uart_name                = uart_name,
         )
-
-        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/FT601_timing.sdc")
-        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/LMS7002_timing.sdc")
-        self.platform.add_sdc("gateware/timing.sdc")
 
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
@@ -172,11 +165,11 @@ class BaseSoC(SoCCore):
         self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C", 0))
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
-        self.add_spi_master(pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
+        self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
 
         # SPI (CFG_TOP) ----------------------------------------------------------------------------
         cfg_top_spi = Record(SPIMaster.pads_layout)
-        self.add_spi_master("cfg_top", pads=cfg_top_spi, data_width=32, spi_clk_freq=sys_clk_freq)
+        self.add_spi_master(name="cfg_top", pads=cfg_top_spi, data_width=32, spi_clk_freq=sys_clk_freq)
 
         # mico32_busy(gpo) & busy_delay ------------------------------------------------------------
         self._gpo = CSRStorage(description="GPO interface", fields=[
@@ -225,7 +218,6 @@ class BaseSoC(SoCCore):
         self.comb += self.fpgacfg.pwr_src.eq(0)
 
         # FIFO Control -----------------------------------------------------------------------------
-        from gateware.fifo_ctrl_to_csr import FIFOCtrlToCSR
         self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
 
         # FT601 ------------------------------------------------------------------------------------
@@ -247,7 +239,6 @@ class BaseSoC(SoCCore):
         self.comb += [
             self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(~self.fifo_ctrl.fifo_reset),
             self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.fpgacfg.from_fpgacfg.rx_en),
-
             self.fifo_ctrl.ctrl_fifo.connect(self.ft601.ctrl_fifo),
         ]
 
@@ -268,7 +259,6 @@ class BaseSoC(SoCCore):
         ]
 
         # General Periph ---------------------------------------------------------------------------
-
         self.general_periph = GeneralPeriphTop(platform, "MAX 10",
             revision_pads = revision_pads,
             gpio_pads     = gpio_pads,
@@ -326,6 +316,11 @@ class BaseSoC(SoCCore):
             # General Periph <-> LMS7002
             self.lms7002_top.PERIPH_OUTPUT_VAL_1.eq(self.general_periph.PERIPH_OUTPUT_VAL_1),
         ]
+
+        # Timings ----------------------------------------------------------------------------------
+        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/FT601_timing.sdc")
+        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/LMS7002_timing.sdc")
+        self.platform.add_sdc("gateware/timing.sdc")
 
         # Misc -------------------------------------------------------------------------------------
         self.comb += [
