@@ -114,22 +114,6 @@ signal tx_pct_loss_detect     : std_logic;
 
 
 
-component fifo_w48x1024_r48 is
-   port (
-        empty   : out std_logic;
-        full    : out std_logic;
-        rd_clk  : in  std_logic;
-        rd_cnt  : out std_logic_vector(31 downto 0);
-        rd_data : out std_logic_vector(47 downto 0);
-        rd_en   : in  std_logic;
-        rd_rst  : in  std_logic;
-        wr_clk  : in  std_logic;
-        wr_cnt  : out std_logic_vector(31 downto 0);
-        wr_data : in  std_logic_vector(47 downto 0);
-        wr_en   : in  std_logic;
-        wr_rst  : in  std_logic
-);
-end component;
 
 begin
 
@@ -260,21 +244,20 @@ smpl_fifo_wrreq_out <= inst0_fifo_wrreq;
       --rdusedw        => inst1_rdusedw  
         --);
    
-smpl_fifo_inst1 : fifo_w48x1024_r48
+smpl_fifo_inst1 : entity work.fifodc_w48x1024_r48
    port map (
-      wr_data                                => inst0_fifo_wdata,
-      wr_clk                                 => clk,
-      rd_clk                                 => clk,
-      wr_en                                  => inst0_fifo_wrreq,
-      rd_en                                  => inst2_smpl_buff_rdreq,
-      wr_rst                                 => reset_sync,
-      rd_rst                                 => reset_sync,
-      rd_data                                => inst1_q,
-      wr_cnt                                 => open,
-      rd_cnt(smpl_buff_rdusedw_w-1 downto 0) => inst1_rdusedw,
-	  rd_cnt(31 downto smpl_buff_rdusedw_w)  => open,
-      empty                                  => open,
-      full                                   => inst1_wrfull
+      Data(47 downto 0) => inst0_fifo_wdata,
+      WrClock           => clk,
+      RdClock           => clk,
+      WrEn              => inst0_fifo_wrreq,
+      RdEn              => inst2_smpl_buff_rdreq,
+      Reset             => reset_sync,
+      RPReset           => reset_sync,
+      Q(47 downto 0)    => inst1_q,
+      WCNT              => open,
+      RCNT              => inst1_rdusedw,
+      Empty             => open,
+      Full              => inst1_wrfull
    );
  
 --samples are placed to MSb LSb ar filled with zeros 

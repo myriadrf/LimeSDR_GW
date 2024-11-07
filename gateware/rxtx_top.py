@@ -227,6 +227,7 @@ class RXTXTop(LiteXModule):
 
             # Lattice FIFOs.
             # --------------
+            "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w48x1024_r48/fifodc_w48x1024_r48.vhd",
             "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w128x256_r128/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
             "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w128x256_r64/fifodc_w128x256_r64.vhd",   # packets2data.vhd.
 
