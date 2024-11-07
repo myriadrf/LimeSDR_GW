@@ -187,14 +187,21 @@ class FT601(LiteXModule):
         )
 
         # FTDI arbiter
-        self.specials += Instance("FT601_arb",
+        # ------------
+        ft601_arbiter_params = dict()
+
+        # FT601 Arbiter Parameters.
+        ft601_arbiter_params.update(
             # Parameters
             p_FT_data_width     = FT_data_width,
             p_EP82_fifo_rwidth  = FIFORD_SIZE(EP82_wwidth, FT_data_width, EP82_wrusedw_width),
             p_EP82_wsize        = EP82_wsize,
             p_EP83_fifo_rwidth  = FIFORD_SIZE(EP83_wwidth, FT_data_width, EP83_wrusedw_width),
             p_EP83_wsize        = EP83_wsize,
+        )
 
+        # FT601 Arbiter Signals.
+        ft601_arbiter_params.update(
             # Clk/Rst.
             i_clk               = ClockSignal("ft601"),
             i_reset_n           = ~ResetSignal("ft601"),
@@ -229,6 +236,15 @@ class FT601(LiteXModule):
             i_fsm_wrdata_req    = fsm_wr_data_req,
             o_fsm_wrdata        = fsm_wr_data,
             i_ep_status         = pads.D[8:16],
+        )
+
+        self.ft601_arbiter_converter = VHD2VConverter(platform,
+            top_entity    = "FT601_arb",
+            build_dir     = os.path.abspath(os.path.dirname(__file__)),
+            work_package  = "work",
+            force_convert = True,
+            params        = ft601_arbiter_params,
+            add_instance  = True,
         )
 
         # FTDI fsm
@@ -348,10 +364,10 @@ class FT601(LiteXModule):
 
     def add_sources(self, platform):
         ft601_files = [
-            "LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601_arb.vhd",
             "LimeSDR-Mini_lms7_trx/proj//ip/fifodc_w32x1024_r128/fifodc_w32x1024_r128.vhd",
         ]
         self.ft601_converter.add_source("LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601.vhd")
+        self.ft601_converter.add_source("LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601_arb.vhd")
 
         for file in ft601_files:
             platform.add_source(file)
