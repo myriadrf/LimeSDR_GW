@@ -14,6 +14,8 @@ from migen.genlib import fifo
 
 from litex.build import tools
 
+from litex.build.vhd2v_converter import VHD2VConverter
+
 from litex.gen import *
 
 from litex.soc.interconnect import stream
@@ -102,9 +104,9 @@ class FT601(LiteXModule):
         self.EP02_fifo = ClockDomainsRenamer({"write":"ft601", "read":"sys"})(EP02_fifo)
 
         # Control FPGA->PC FIFO.
-        EP82_async_fifo      = fifo.AsyncFIFO(EP82_wsize, depth=2)
+        EP82_async_fifo      = fifo.AsyncFIFO(EP82_wwidth, depth=2)
         self.EP82_async_fifo = ClockDomainsRenamer({"write":"sys", "read":"ft601"})(EP82_async_fifo)
-        self.EP82_fifo       = ResetInserter()(ClockDomainsRenamer("ft601")(fifo.SyncFIFO(EP82_wsize, depth=256)))
+        self.EP82_fifo       = ResetInserter()(ClockDomainsRenamer("ft601")(fifo.SyncFIFO(EP82_wwidth, depth=256)))
 
         # Stream PC->FPGA
         self.EP03_fifo_status = BusyDelay(platform, "ft601",
@@ -229,14 +231,21 @@ class FT601(LiteXModule):
             i_ep_status         = pads.D[8:16],
         )
 
-        #  FTDI fsm
-        self.specials += Instance("FT601",
+        # FTDI fsm
+        # --------
+        ft601_params = dict()
+
+        # FT601 Parameters.
+        ft601_params.update(
             # Parameters
             p_FT_data_width = FT_data_width,
             p_FT_be_width   = FT_be_width,
             p_EP82_wsize    = EP82_wsize,
             p_EP83_wsize    = EP83_wsize,
+        )
 
+        # FT601 Signals.
+        ft601_params.update(
             # Clk/Rst.
             i_clk           = ClockSignal("ft601"),
             i_reset_n       = ~ResetSignal("ft601"),
@@ -258,6 +267,14 @@ class FT601(LiteXModule):
             io_data         = pads.D,
             io_be           = pads.BE,
             i_txe_n         = pads.TXEn,
+        )
+        self.ft601_converter = VHD2VConverter(platform,
+            top_entity    = "FT601",
+            build_dir     = os.path.abspath(os.path.dirname(__file__)),
+            work_package  = "work",
+            force_convert = False,
+            params        = ft601_params,
+            add_instance  = True,
         )
 
         # Logic.
@@ -332,9 +349,9 @@ class FT601(LiteXModule):
     def add_sources(self, platform):
         ft601_files = [
             "LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601_arb.vhd",
-            "LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601.vhd",
             "LimeSDR-Mini_lms7_trx/proj//ip/fifodc_w32x1024_r128/fifodc_w32x1024_r128.vhd",
         ]
+        self.ft601_converter.add_source("LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601.vhd")
 
         for file in ft601_files:
             platform.add_source(file)
