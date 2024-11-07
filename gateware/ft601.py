@@ -98,13 +98,13 @@ class FT601(LiteXModule):
         # --------------------
 
         # Control PC->FPGA FIFO.
-        EP02_fifo      = fifo.AsyncFIFO(32, depth=256)
+        EP02_fifo      = fifo.AsyncFIFO(EP02_rwidth, depth=256)
         self.EP02_fifo = ClockDomainsRenamer({"write":"ft601", "read":"sys"})(EP02_fifo)
 
         # Control FPGA->PC FIFO.
-        EP82_async_fifo      = fifo.AsyncFIFO(32, depth=2)
+        EP82_async_fifo      = fifo.AsyncFIFO(EP82_wsize, depth=2)
         self.EP82_async_fifo = ClockDomainsRenamer({"write":"sys", "read":"ft601"})(EP82_async_fifo)
-        self.EP82_fifo       = ResetInserter()(ClockDomainsRenamer("ft601")(fifo.SyncFIFO(32, depth=256)))
+        self.EP82_fifo       = ResetInserter()(ClockDomainsRenamer("ft601")(fifo.SyncFIFO(EP82_wsize, depth=256)))
 
         # Stream PC->FPGA
         self.EP03_fifo_status = BusyDelay(platform, "ft601",
@@ -113,15 +113,15 @@ class FT601(LiteXModule):
         )
 
         if False:
-            self.EP03_sink   = stream.Endpoint([("data", 32)])
-            self.EP03_fifo   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", 32)], 1024, True)))
-            self.EP03_conv   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(32, 128)))
-            self.EP03_cdc    = stream.ClockDomainCrossing([("data", 128)],
+            self.EP03_sink   = stream.Endpoint([("data", FT_data_width)])
+            self.EP03_fifo   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", FT_data_width)], 1024, True)))
+            self.EP03_conv   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(FT_data_width, EP03_rwidth)))
+            self.EP03_cdc    = stream.ClockDomainCrossing([("data", EP03_rwidth)],
                 cd_from         = "ft601",
                 cd_to           = "lms_tx",
                 with_common_rst = True,
             )
-            self.EP03_source = stream.Endpoint([("data", 128)])
+            self.EP03_source = stream.Endpoint([("data", EP03_rwidth)])
             self.EP03_pipeline  = stream.Pipeline(
                 self.EP03_sink,
                 self.EP03_fifo,
@@ -169,14 +169,14 @@ class FT601(LiteXModule):
         )
 
         # Stream FPGA->PC
-        self.EP83_sink = stream.Endpoint([("data", 64)])
-        self.EP83_cdc  = stream.ClockDomainCrossing([("data", 64)],
+        self.EP83_sink = stream.Endpoint([("data", EP83_wwidth)])
+        self.EP83_cdc  = stream.ClockDomainCrossing([("data", EP83_wwidth)],
             cd_from         = "lms_rx",
             cd_to           = "ft601",
             with_common_rst = True,
         )
-        self.EP83_fifo = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", 64)], 2024, True)))
-        self.EP83_conv = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(64, 32)))
+        self.EP83_fifo = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", EP83_wwidth)], 2024, True)))
+        self.EP83_conv = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(EP83_wwidth, FT_data_width)))
         self.EP83_pipeline  = stream.Pipeline(
             self.EP83_sink,
             self.EP83_cdc,
