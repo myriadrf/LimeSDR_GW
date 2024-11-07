@@ -53,8 +53,3 @@ lms7_trx_files = [
     "LimeSDR-Mini_lms7_trx/src/delayf_ctrl/delayf_ctrl.vhd",
 
 ]
-
-lms7_trx_ips = [
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w128x256_r128/fifodc_w128x256_r128.sbx", # one_pct_fifo.vhd.
-    "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w128x256_r64/fifodc_w128x256_r64.sbx",   # packets2data.vhd.
-]

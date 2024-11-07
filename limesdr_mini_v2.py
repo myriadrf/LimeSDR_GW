@@ -39,7 +39,7 @@ from gateware.busy_delay          import BusyDelay
 from gateware.fpgacfg             import FPGACfg
 from gateware.ft601               import FT601
 from gateware.lms7002_top         import LMS7002Top
-from gateware.lms7_trx_files_list import lms7_trx_files, lms7_trx_ips
+from gateware.lms7_trx_files_list import lms7_trx_files
 from gateware.tst_top             import TstTop
 from gateware.general_periph      import GeneralPeriphTop
 from gateware.pllcfg              import PLLCfg
@@ -329,8 +329,6 @@ class BaseSoC(SoCCore):
         # Sources ----------------------------------------------------------------------------------
         for file in lms7_trx_files:
             platform.add_source(file)
-        for file in lms7_trx_ips:
-            platform.add_ip(file)
 
         # Analyzer ---------------------------------------------------------------------------------
         if with_litescope:

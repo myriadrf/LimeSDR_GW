@@ -225,6 +225,11 @@ class RXTXTop(LiteXModule):
             "LimeSDR-Mini_lms7_trx/src/rx_path_top/smpl_cnt/synth/iq_smpl_cnt.vhd",
             "LimeSDR-Mini_lms7_trx/src/rx_path_top/smpl_cnt/synth/smpl_cnt.vhd",
 
+            # Lattice FIFOs.
+            # --------------
+            "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w128x256_r128/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
+            "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w128x256_r64/fifodc_w128x256_r64.vhd",   # packets2data.vhd.
+
             # ./fifo_gen --input-width 64 --output-width 64 --depth 256 --build
             "gateware/fifo_w64x256_r64.v",
             # ./fifo_gen --input-width 48 --output-width 48 --depth 1024 --build
