@@ -225,8 +225,10 @@ class RXTXTop(LiteXModule):
             "LimeSDR-Mini_lms7_trx/src/rx_path_top/smpl_cnt/synth/iq_smpl_cnt.vhd",
             "LimeSDR-Mini_lms7_trx/src/rx_path_top/smpl_cnt/synth/smpl_cnt.vhd",
 
-            # ./fifo_gen --input-with 64 --output 64 --depth 256 --build
+            # ./fifo_gen --input-width 64 --output-width 64 --depth 256 --build
             "gateware/fifo_w64x256_r64.v",
+            # ./fifo_gen --input-width 48 --output-width 48 --depth 1024 --build
+            "gateware/fifo_w48x1024_r48.v",
 
             "gateware/rxtx_top_wrapper.vhd",
         ]
