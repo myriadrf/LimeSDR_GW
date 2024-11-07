@@ -71,6 +71,22 @@ component fifo_inst is
         );
 end component;
 
+component fifo_w64x256_r64 is
+   port (
+   	 empty   : out std_logic;
+   	 full    : out std_logic;
+   	 rd_clk  : in  std_logic;
+   	 rd_cnt  : out std_logic_vector(31 downto 0);
+   	 rd_data : out std_logic_vector(63 downto 0);
+   	 rd_en   : in  std_logic;
+   	 rd_rst  : in  std_logic;
+   	 wr_clk  : in  std_logic;
+   	 wr_cnt  : out std_logic_vector(31 downto 0);
+   	 wr_data : in  std_logic_vector(63 downto 0);
+   	 wr_en   : in  std_logic;
+   	 wr_rst  : in  std_logic
+);
+end component;
   
 begin
 
@@ -123,26 +139,22 @@ reset <= not reset_n;
       --rdusedw      => open
         --);
       
-   fifo : entity work.fifodc_w64x256_r64
+   fifo: fifo_w64x256_r64
    port map (
-      Data(63 downto 0) => sync_data,
-      WrClock           => wclk, 
-      RdClock           => rclk, 
-      WrEn              => wrreq, 
-      RdEn              => rdreq, 
-      Reset             => reset, 
-      RPReset           => reset, 
-      Q(63 downto 0)    => sync_q, 
-      WCNT              => open,
-      RCNT              => open,
-      Empty             => rdempty, 
-      Full              => open
+      wr_data => sync_data,
+      wr_clk  => wclk,
+      rd_clk  => rclk,
+      wr_en   => wrreq,
+      rd_en   => rdreq,
+      wr_rst  => reset,
+      rd_rst  => reset,
+      rd_data => sync_q,
+      wr_cnt  => open,
+      rd_cnt  => open,
+      empty   => rdempty,
+      full    => open
    );
 
-
-
-    
-  
 end arch;   
 
 
