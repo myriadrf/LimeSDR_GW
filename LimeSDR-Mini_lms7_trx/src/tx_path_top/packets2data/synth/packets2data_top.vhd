@@ -83,16 +83,22 @@ signal max_fifo_words            : std_logic_vector(decomp_fifo_size-1 downto 0)
 signal fifo_limit                : unsigned(decomp_fifo_size-1 downto 0);
 signal fifo_full_sig             : std_logic;
 
-    component fifodc_w128x256_r64
-        port (Data : in std_logic_vector(127 downto 0); 
-        WrClock: in std_logic; RdClock: in std_logic; WrEn: in std_logic; 
-        RdEn: in std_logic; Reset: in std_logic; RPReset: in std_logic; 
-        Q : out std_logic_vector(63 downto 0); 
-        WCNT : out std_logic_vector(8 downto 0); 
-        RCNT : out std_logic_vector(9 downto 0); Empty: out std_logic; 
-        Full: out std_logic
-    );
-    end component;
+component fifo_w128x256_r64 is
+   port (
+        empty   : out std_logic;
+        full    : out std_logic;
+        rd_clk  : in  std_logic;
+        rd_cnt  : out std_logic_vector(31 downto 0);
+        rd_data : out std_logic_vector(63 downto 0);
+        rd_en   : in  std_logic;
+        rd_rst  : in  std_logic;
+        wr_clk  : in  std_logic;
+        wr_cnt  : out std_logic_vector(31 downto 0);
+        wr_data : in  std_logic_vector(127 downto 0);
+        wr_en   : in  std_logic;
+        wr_rst  : in  std_logic
+);
+end component;
  
 begin
 
@@ -204,20 +210,21 @@ bit_unpack_64_inst1 : entity work.bit_unpack_64
          --rdusedw      => open          
          --);
          
-   fifo_inst_isnt2 : fifodc_w128x256_r64
+   fifo_inst_isnt2 : fifo_w128x256_r64
    port map (
-      Data(127 downto 0)=> inst1_data_out, 
-      WrClock           => rclk, 
-      RdClock           => rclk, 
-      WrEn              => inst1_data_out_valid, 
-      RdEn              => smpl_buff_rdreq, 
-      Reset             => aclr, 
-      RPReset           => aclr, 
-      Q(63 downto 0)    => smpl_buff_q, 
-      WCNT(8 downto 0)  => inst2_wrusedw, 
-      RCNT(9 downto 0)  => open, 
-      Empty             => smpl_buff_rdempty, 
-      Full              => open
+      wr_data                             => inst1_data_out,
+      wr_clk                              => rclk,
+      rd_clk                              => rclk,
+      wr_en                               => inst1_data_out_valid,
+      rd_en                               => smpl_buff_rdreq,
+      rd_rst                              => aclr,
+      wr_rst                              => aclr,
+      rd_data                             => smpl_buff_q,
+      wr_cnt(decomp_fifo_size-1 downto 0) => inst2_wrusedw,
+	  wr_cnt(31 downto decomp_fifo_size)  => open,
+      rd_cnt                              => open,
+      empty                               => smpl_buff_rdempty,
+      full                                => open
    );
   
   
