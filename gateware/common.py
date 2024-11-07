@@ -65,42 +65,24 @@ from_fpgacfg_layout = [
     ("wfm_play",           1),
     ("wfm_load",           1),
     ("wfm_smpl_width",     2),
-    ("SPI_SS",            16),
-    ("LMS1_SS",            1),
-    ("LMS1_RESET",         1),
-    ("LMS1_CORE_LDO_EN",   1),
-    ("LMS1_TXNRX1",        1),
-    ("LMS1_TXNRX2",        1),
-    ("LMS1_TXEN",          1),
-    ("LMS1_RXEN",          1),
-    ("GPIO",              16),
-    ("FPGA_LED1_CTRL",     3),
-    ("FPGA_LED2_CTRL",     3),
-    ("FX3_LED_CTRL",       3),
-    ("CLK_ENA",            4),
+    ("spi_ss",            16),
+    ("lms1_ss",            1),
+    ("lms1_reset",         1),
+    ("lms1_core_ldo_en",   1),
+    ("lms1_txnrx1",        1),
+    ("lms1_txnrx2",        1),
+    ("lms1_txen",          1),
+    ("lms1_rxen",          1),
+    ("gpio",              16),
+    ("fpga_led1_ctrl",     3),
+    ("fpga_led2_ctrl",     3),
+    ("fx3_led_ctrl",       3),
+    ("clk_ena",            4),
     ("sync_pulse_period", 32),
     ("sync_size",         16),
     ("txant_pre",         16),
     ("txant_post",        16),
 ]
 
-to_tstcfg_from_rxtx_layout = [
-    ("DDR2_1_STATUS",       3),
-    ("DDR2_1_pnf_per_bit", 32),
-]
-
-from_tstcfg_layout = [
-    ("TEST_EN",      6),
-    ("TEST_FRC_ERR", 6),
-    ("TX_TST_I",    16),
-    ("TX_TST_Q",    16),
-]
-
 def FromFPGACfg():
     return Record(from_fpgacfg_layout)
-
-def ToTstCfgFromRXTX():
-    return Record(to_tstcfg_from_rxtx_layout)
-
-def FromTstCfg():
-    return Record(from_tstcfg_layout)

@@ -150,18 +150,18 @@ class FPGACfg(LiteXModule):
             self.from_fpgacfg.txant_pre.eq(        self.txant_pre.storage),
             self.from_fpgacfg.txant_post.eq(       self.txant_post.storage),
 
-            self.from_fpgacfg.SPI_SS.eq(           self.SPI_SS.storage),
+            self.from_fpgacfg.spi_ss.eq(           self.SPI_SS.storage),
 
-            self.from_fpgacfg.LMS1_SS.eq(          self.LMS1.fields.SS),
-            self.from_fpgacfg.LMS1_RESET.eq(       self.LMS1.fields.RESET),
-            self.from_fpgacfg.LMS1_CORE_LDO_EN.eq( self.LMS1.fields.CORE_LDO_EN),
-            self.from_fpgacfg.LMS1_TXNRX1.eq(      self.LMS1.fields.TXNRX1),
-            self.from_fpgacfg.LMS1_TXNRX2.eq(      self.LMS1.fields.TXNRX2),
-            self.from_fpgacfg.LMS1_TXEN.eq(        self.LMS1.fields.TXEN),
-            self.from_fpgacfg.LMS1_RXEN.eq(        self.LMS1.fields.RXEN),
+            self.from_fpgacfg.lms1_ss.eq(          self.LMS1.fields.SS),
+            self.from_fpgacfg.lms1_reset.eq(       self.LMS1.fields.RESET),
+            self.from_fpgacfg.lms1_core_ldo_en.eq( self.LMS1.fields.CORE_LDO_EN),
+            self.from_fpgacfg.lms1_txnrx1.eq(      self.LMS1.fields.TXNRX1),
+            self.from_fpgacfg.lms1_txnrx2.eq(      self.LMS1.fields.TXNRX2),
+            self.from_fpgacfg.lms1_txen.eq(        self.LMS1.fields.TXEN),
+            self.from_fpgacfg.lms1_rxen.eq(        self.LMS1.fields.RXEN),
 
-            self.from_fpgacfg.GPIO.eq(             self.GPIO.storage),
-            self.from_fpgacfg.CLK_ENA.eq(          self.CLK_ENA.storage),
+            self.from_fpgacfg.gpio.eq(             self.GPIO.storage),
+            self.from_fpgacfg.clk_ena.eq(          self.CLK_ENA.storage),
             self.from_fpgacfg.sync_pulse_period.eq(self.sync_pulse_period.storage),
         ]
         self.sync += [
