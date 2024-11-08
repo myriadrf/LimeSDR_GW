@@ -134,14 +134,15 @@ class LMS7002Top(LiteXModule):
         # LMS Ctrl GPIO
         self._lms_ctr_gpio = CSRStorage(size=4, description="LMS Control GPIOs.")
 
-        self.LMS1              = CSRStorage(fields=[         # 19
-            CSRField("SS",          size=1, offset=0, reset=1),
-            CSRField("RESET",       size=1, offset=1, reset=1),
-            CSRField("CORE_LDO_EN", size=1, offset=2, reset=0),
-            CSRField("TXNRX1",      size=1, offset=3, reset=1),
-            CSRField("TXNRX2",      size=1, offset=4, reset=0),
-            CSRField("TXEN",        size=1, offset=5, reset=1),
-            CSRField("RXEN",        size=1, offset=6, reset=1),
+        # fpgacfg
+        self.lms1              = CSRStorage(fields=[         # 19
+            CSRField("ss",          size=1, offset=0, reset=1),
+            CSRField("reset",       size=1, offset=1, reset=1),
+            CSRField("core_ldo_en", size=1, offset=2, reset=0),
+            CSRField("txnrx1",      size=1, offset=3, reset=1),
+            CSRField("txnrx2",      size=1, offset=4, reset=0),
+            CSRField("txen",        size=1, offset=5, reset=1),
+            CSRField("rxen",        size=1, offset=6, reset=1),
         ])
 
         # pllcfg
@@ -162,13 +163,13 @@ class LMS7002Top(LiteXModule):
             If((self.hw_ver > 5),
                 self.pads.TXNRX2_or_CLK_SEL.eq(self.periph_output_val_1),
             ).Else(
-                self.pads.TXNRX2_or_CLK_SEL.eq(self.LMS1.fields.TXNRX2),
+                self.pads.TXNRX2_or_CLK_SEL.eq(self.lms1.fields.txnrx2),
             ),
-            self.pads.TXEN.eq(       self.LMS1.fields.TXEN),
-            self.pads.RXEN.eq(       self.LMS1.fields.RXEN),
-            self.pads.CORE_LDO_EN.eq(self.LMS1.fields.CORE_LDO_EN),
-            self.pads.TXNRX1.eq(     self.LMS1.fields.TXNRX1),
-            self.pads.RESET.eq(      self.LMS1.fields.RESET & self._lms_ctr_gpio.storage[0]),
+            self.pads.TXEN.eq(       self.lms1.fields.txen),
+            self.pads.RXEN.eq(       self.lms1.fields.rxen),
+            self.pads.CORE_LDO_EN.eq(self.lms1.fields.core_ldo_en),
+            self.pads.TXNRX1.eq(     self.lms1.fields.txnrx1),
+            self.pads.RESET.eq(      self.lms1.fields.reset & self._lms_ctr_gpio.storage[0]),
 
             # pllcfg
             self.reg01.status.eq(Cat(1, 0, self.delay_ctrl_done, self.delay_ctrl_error, Constant(0, 12))),

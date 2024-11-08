@@ -54,7 +54,7 @@ void fpgacfg_write(uint16_t addr, uint8_t *wdata)
 		fpgacfg_spi_ss_write(value);
 		break;
 	case 0x13:
-		fpgacfg_lms1_write(value);
+		lms7002_top_lms1_write(value);
 		break;
 	case 0x17:
 		fpgacfg_gpio_write(value);
@@ -137,7 +137,7 @@ void fpgacfg_read(uint16_t addr, uint8_t *rdata)
 		value = fpgacfg_spi_ss_read();
 		break;
 	case 0x13:
-		value = fpgacfg_lms1_read();
+		value = lms7002_top_lms1_read();
 		break;
 	case 0x17:
 		value = fpgacfg_gpio_read();
