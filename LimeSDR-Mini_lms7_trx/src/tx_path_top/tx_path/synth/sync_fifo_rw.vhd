@@ -71,7 +71,7 @@ component fifo_inst is
         );
 end component;
 
-component fifo_w64x256_r64 is
+component fifo_w64x256_r64_cdc is
    port (
    	 empty   : out std_logic;
    	 full    : out std_logic;
@@ -139,7 +139,7 @@ reset <= not reset_n;
       --rdusedw      => open
         --);
       
-   fifo: fifo_w64x256_r64
+   fifo: fifo_w64x256_r64_cdc
    port map (
       wr_data => sync_data,
       wr_clk  => wclk,

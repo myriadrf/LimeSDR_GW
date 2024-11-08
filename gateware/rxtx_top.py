@@ -34,6 +34,8 @@ class RXTXTop(LiteXModule):
         RX_PCT_BUFF_WRUSEDW_W  = 12,
         ):
 
+        self.platform              = platform
+
         self.tx_txant_en           = Signal()
         self.tx_diq1_h             = Signal(TX_IQ_WIDTH + 1)
         self.tx_diq1_l             = Signal(TX_IQ_WIDTH + 1)
@@ -224,15 +226,45 @@ class RXTXTop(LiteXModule):
             "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w128x256_r128/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
             "LimeSDR-Mini_lms7_trx/proj/ip/fifodc_w128x256_r64/fifodc_w128x256_r64.vhd",   # packets2data.vhd.
 
-            # ./fifo_gen --input-width 64 --output-width 64 --depth 256 --build
-            "gateware/fifo_w64x256_r64.v",
-            # ./fifo_gen.py --input-width 48 --output-width 48 --depth 1024 --build --with-buffer
-            "gateware/fifo_w48x1024_r48_buffer.v",
-            # ./fifo_gen.py --input-width 128 --output-width 64 --depth 256 --with-buffer --build
-            "gateware/fifo_w128x256_r64_buffer.v",
-
             "gateware/rxtx_top_wrapper.vhd",
         ]
 
         for file in general_periph_files:
             platform.add_source(file)
+
+    def do_finalize(self):
+        import os
+        import subprocess
+        def gen_fifo(input_width, output_width, depth, with_buffer=False, with_cdc=False):
+            output_dir = self.platform.output_dir
+            script_name = os.path.join(os.path.abspath(os.path.dirname(__file__)), "fifo_gen.py")
+
+            filename = f"fifo_w{input_width}x{depth}_r{output_width}"
+
+            cmd = [script_name, "--input-width", str(input_width), "--output-width", str(output_width), "--depth", str(depth), "--build"]
+            cmd += ["--output-dir", output_dir]
+            if with_cdc:
+                cmd.append("--with-cdc")
+                filename += "_cdc"
+            if with_buffer:
+                cmd.append("--with-buffer")
+                filename += "_buffer"
+            filename += ".v"
+
+            s = subprocess.run(cmd)
+            if s.returncode:
+                raise OSError(f"Unable to generate FIFO with: " + " ".join(cmd))
+
+            self.platform.add_source(os.path.join(output_dir, filename))
+
+
+        # LiteX FIFOs.
+        # ------------
+
+        # fifo_w64x256_r64_cdc
+        # ./fifo_gen --input-width 64 --output-width 64 --depth 256 --with-cdc --build
+        gen_fifo(64, 64, 256, with_cdc=True)
+        # ./fifo_gen.py --input-width 48 --output-width 48 --depth 1024 --build --with-buffer
+        gen_fifo(48, 48, 1024, True)
+        # ./fifo_gen.py --input-width 128 --output-width 64 --depth 256 --with-buffer --build
+        gen_fifo(128, 64, 256, True)
