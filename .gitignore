@@ -104,3 +104,6 @@ LimeSDR-Mini_lms7_trx/proj/sim
 
 __pycache__
 build
+*.swp
+*.o
+*-obj08.cf
