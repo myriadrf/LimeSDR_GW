@@ -92,18 +92,18 @@ class FPGACfg(LiteXModule):
         self.txant_pre         = CSRStorage(16, reset=1)
         self.txant_post        = CSRStorage(16, reset=1)
 
-        self.SPI_SS            = CSRStorage(16, reset=0xffff)
-        self.LMS1              = CSRStorage(fields=[         # 19
-            CSRField("SS",          size=1, offset=0, reset=1),
-            CSRField("RESET",       size=1, offset=1, reset=1),
-            CSRField("CORE_LDO_EN", size=1, offset=2, reset=0),
-            CSRField("TXNRX1",      size=1, offset=3, reset=1),
-            CSRField("TXNRX2",      size=1, offset=4, reset=0),
-            CSRField("TXEN",        size=1, offset=5, reset=1),
-            CSRField("RXEN",        size=1, offset=6, reset=1),
+        self.spi_ss            = CSRStorage(16, reset=0xffff)
+        self.lms1              = CSRStorage(fields=[         # 19
+            CSRField("ss",          size=1, offset=0, reset=1),
+            CSRField("reset",       size=1, offset=1, reset=1),
+            CSRField("core_ldo_en", size=1, offset=2, reset=0),
+            CSRField("txnrx1",      size=1, offset=3, reset=1),
+            CSRField("txnrx2",      size=1, offset=4, reset=0),
+            CSRField("txen",        size=1, offset=5, reset=1),
+            CSRField("rxen",        size=1, offset=6, reset=1),
         ])
-        self.GPIO              = CSRStorage(16, reset=0b0001000101000100) # 23
-        self.CLK_ENA           = CSRStorage(4, reset=0b1111)              # 29
+        self.gpio              = CSRStorage(16, reset=0b0001000101000100) # 23
+        self.clk_ena           = CSRStorage(4, reset=0b1111)              # 29
         self.sync_pulse_period = CSRStorage(32, reset=0x3D090)            # 30
 
         # # #
@@ -150,18 +150,18 @@ class FPGACfg(LiteXModule):
             self.from_fpgacfg.txant_pre.eq(        self.txant_pre.storage),
             self.from_fpgacfg.txant_post.eq(       self.txant_post.storage),
 
-            self.from_fpgacfg.spi_ss.eq(           self.SPI_SS.storage),
+            self.from_fpgacfg.spi_ss.eq(           self.spi_ss.storage),
 
-            self.from_fpgacfg.lms1_ss.eq(          self.LMS1.fields.SS),
-            self.from_fpgacfg.lms1_reset.eq(       self.LMS1.fields.RESET),
-            self.from_fpgacfg.lms1_core_ldo_en.eq( self.LMS1.fields.CORE_LDO_EN),
-            self.from_fpgacfg.lms1_txnrx1.eq(      self.LMS1.fields.TXNRX1),
-            self.from_fpgacfg.lms1_txnrx2.eq(      self.LMS1.fields.TXNRX2),
-            self.from_fpgacfg.lms1_txen.eq(        self.LMS1.fields.TXEN),
-            self.from_fpgacfg.lms1_rxen.eq(        self.LMS1.fields.RXEN),
+            self.from_fpgacfg.lms1_ss.eq(          self.lms1.fields.ss),
+            self.from_fpgacfg.lms1_reset.eq(       self.lms1.fields.reset),
+            self.from_fpgacfg.lms1_core_ldo_en.eq( self.lms1.fields.core_ldo_en),
+            self.from_fpgacfg.lms1_txnrx1.eq(      self.lms1.fields.txnrx1),
+            self.from_fpgacfg.lms1_txnrx2.eq(      self.lms1.fields.txnrx2),
+            self.from_fpgacfg.lms1_txen.eq(        self.lms1.fields.txen),
+            self.from_fpgacfg.lms1_rxen.eq(        self.lms1.fields.rxen),
 
-            self.from_fpgacfg.gpio.eq(             self.GPIO.storage),
-            self.from_fpgacfg.clk_ena.eq(          self.CLK_ENA.storage),
+            self.from_fpgacfg.gpio.eq(             self.gpio.storage),
+            self.from_fpgacfg.clk_ena.eq(          self.clk_ena.storage),
             self.from_fpgacfg.sync_pulse_period.eq(self.sync_pulse_period.storage),
         ]
         self.sync += [

@@ -46,6 +46,8 @@ class PLLCfg(LiteXModule):
             CSRField("c4_byp",    size=1, offset=8, reset=0),
             CSRField("c4_odddiv", size=1, offset=9, reset=1),
         ])
+        # unused
+        self.reg08     = CSRStorage(16, reset=0b1010101010101010)
 
         self.n_cnt            = CSRStorage(16) # 10
         self.m_cnt            = CSRStorage(16) # 11

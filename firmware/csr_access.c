@@ -51,13 +51,13 @@ void fpgacfg_write(uint16_t addr, uint8_t *wdata)
 		fpgacfg_txant_post_write(value);
 		break;
 	case 0x12:
-		fpgacfg_SPI_SS_write(value);
+		fpgacfg_spi_ss_write(value);
 		break;
 	case 0x13:
-		fpgacfg_LMS1_write(value);
+		fpgacfg_lms1_write(value);
 		break;
 	case 0x17:
-		fpgacfg_GPIO_write(value);
+		fpgacfg_gpio_write(value);
 		break;
 	case 0x1A:
 		general_periph_fpga_led_ctrl_write(value);
@@ -66,7 +66,7 @@ void fpgacfg_write(uint16_t addr, uint8_t *wdata)
 		general_periph_FX3_LED_CTRL_write(value);
 		break;
 	case 0x1D:
-		fpgacfg_CLK_ENA_write(value);
+		fpgacfg_clk_ena_write(value);
 		break;
 	case 0x1E:
 		fpgacfg_sync_pulse_period_write(value);
@@ -134,13 +134,13 @@ void fpgacfg_read(uint16_t addr, uint8_t *rdata)
 		value = fpgacfg_txant_post_read();
 		break;
 	case 0x12:
-		value = fpgacfg_SPI_SS_read();
+		value = fpgacfg_spi_ss_read();
 		break;
 	case 0x13:
-		value = fpgacfg_LMS1_read();
+		value = fpgacfg_lms1_read();
 		break;
 	case 0x17:
-		value = fpgacfg_GPIO_read();
+		value = fpgacfg_gpio_read();
 		break;
 	case 0x1A:
 		value = general_periph_fpga_led_ctrl_read();
@@ -149,7 +149,7 @@ void fpgacfg_read(uint16_t addr, uint8_t *rdata)
 		value = general_periph_FX3_LED_CTRL_read();
 		break;
 	case 0x1D:
-		value = fpgacfg_CLK_ENA_read();
+		value = fpgacfg_clk_ena_read();
 		break;
 	case 0x1E:
 		value = fpgacfg_sync_pulse_period_read();
@@ -181,6 +181,9 @@ void pllcfg_write(uint16_t addr, uint8_t *wdata)
 		break;
 	case 0x7:
 		pllcfg_reg07_write(value);
+		break;
+	case 0x8: // unused but written...
+		pllcfg_reg08_write(value);
 		break;
 	case 0xa:
 		pllcfg_n_cnt_write(value);
@@ -225,6 +228,9 @@ void pllcfg_read(uint16_t addr, uint8_t *rdata)
 		break;
 	case 0x02:
 		value = pllcfg_pll_lock_read();
+		break;
+	case 0x05:
+		value = pllcfg_reg05_read();
 		break;
 	default:
 		printf("Read error: unhandled register %d\n", addr);
