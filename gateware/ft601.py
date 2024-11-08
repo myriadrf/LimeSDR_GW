@@ -149,7 +149,10 @@ class FT601(LiteXModule):
                 EP03_fifo_wusedw.eq(         self.EP03_fifo.level),
             ]
         else:
-            self.specials += Instance("fifodc_w32x1024_r128",
+            fifo_params = dict()
+
+            # FIFO Signals.
+            fifo_params.update(
                 i_Data    = EP03_wdata,
                 i_WrClock = ClockSignal("ft601"),
                 i_RdClock = ClockSignal("lms_tx"),
@@ -162,6 +165,15 @@ class FT601(LiteXModule):
                 o_RCNT    = self.stream_fifo.rdusedw,
                 o_Empty   = self.stream_fifo.empty,
                 o_Full    = Open()
+            )
+
+            self.fifo_converter = VHD2VConverter(platform,
+                top_entity    = "fifodc_w32x1024_r128",
+                build_dir     = os.path.abspath(os.path.dirname(__file__)),
+                work_package  = "work",
+                force_convert = False,
+                params        = fifo_params,
+                add_instance  = True,
             )
 
         # Stream FPGA->PC
@@ -363,11 +375,13 @@ class FT601(LiteXModule):
         self.add_sources(platform)
 
     def add_sources(self, platform):
-        ft601_files = [
-            "LimeSDR-Mini_lms7_trx/proj//ip/fifodc_w32x1024_r128/fifodc_w32x1024_r128.vhd",
-        ]
         self.ft601_converter.add_source("LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601.vhd")
         self.ft601_converter.add_source("LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601_arb.vhd")
-
-        for file in ft601_files:
-            platform.add_source(file)
+        self.fifo_converter.add_source("LimeSDR-Mini_lms7_trx/proj//ip/fifodc_w32x1024_r128/fifodc_w32x1024_r128.vhd")
+        import subprocess
+        from shutil import which
+        diamond_path = "/".join(which("pnmainc").split('/')[:-3])
+        pre_cmd      = f"ghdl -a --std=08 --work=ecp5u {diamond_path}/cae_library/synthesis/vhdl/ecp5u.vhd"
+        s            = subprocess.run(pre_cmd.split(" "))
+        if s.returncode:
+            raise OSError(f"Unable to convert {inst_name} to verilog, please check your GHDL install")
