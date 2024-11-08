@@ -13,10 +13,6 @@ lms7_trx_files = [
     # ---------
     "LimeSDR-Mini_lms7_trx/src/packages/synth/FIFO_PACK.vhd",
 
-    # Revision.
-    # ---------
-    "LimeSDR-Mini_lms7_trx/src/revision/revision.vhd",
-
     # PLL.
     # ----
     "LimeSDR-Mini_lms7_trx/src/pll_top/synth/pll_top.vhd",
