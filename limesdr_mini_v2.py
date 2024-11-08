@@ -110,6 +110,7 @@ class _CRG(LiteXModule):
 
 class BaseSoC(SoCCore):
     def __init__(self, sys_clk_freq=80e6, toolchain="diamond",
+        with_spi_flash  = False,
         with_litescope  = False,
         cpu_firmware    = None,
         **kwargs):
@@ -163,10 +164,11 @@ class BaseSoC(SoCCore):
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
         # SPI Flash --------------------------------------------------------------------------------
-        from litespi.modules import W25Q128JV
-        from litespi.opcodes import SpiNorFlashOpCodes as Codes
+        if with_spi_flash:
+            from litespi.modules import W25Q128JV
+            from litespi.opcodes import SpiNorFlashOpCodes as Codes
 
-        self.add_spi_flash(mode="1x", clk_freq=100_000, module=W25Q128JV(Codes.READ_1_1_1), with_master=True)
+            self.add_spi_flash(mode="1x", clk_freq=100_000, module=W25Q128JV(Codes.READ_1_1_1), with_master=True)
 
         # mico32_busy(gpo) & busy_delay ------------------------------------------------------------
         self._gpo = CSRStorage(description="GPO interface", fields=[
@@ -362,6 +364,7 @@ def main():
     from litex.build.parser import LiteXArgumentParser
     parser = LiteXArgumentParser(platform=limesdr_mini_v2.Platform, description="LiteX SoC on LimeSDR-Mini-V2.")
     parser.add_target_argument("--sys-clk-freq",   default=77.5e6, type=float, help="System clock frequency.")
+    parser.add_target_argument("--with-spi-flash", action="store_true",        help="Enable SPI Flash (MMAPed).")
     parser.add_target_argument("--with-litescope", action="store_true",        help="Enable LiteScope.")
     args = parser.parse_args()
     args.toolchain = "diamond"
@@ -373,6 +376,7 @@ def main():
         soc = BaseSoC(
             sys_clk_freq   = args.sys_clk_freq,
             toolchain      = args.toolchain,
+            with_spi_flash = args.with_spi_flash,
             with_litescope = args.with_litescope,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
             **parser.soc_argdict
