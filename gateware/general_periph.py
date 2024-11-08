@@ -39,14 +39,11 @@ def ToPeriphCfg():
 
 class GeneralPeriphTop(LiteXModule):
     def __init__(self, platform,
-        dev_family = "CYCLONE IV E",
         revision_pads = None,
         gpio_pads     = None, gpio_len=8,
         egpio_pads    = None, egpio_len=2,
         add_csr       = True,
         ):
-
-        self.LMS_TXNRX2_or_CLK_SEL = Signal(1)
 
         # to_periphcfg
         self.board_gpio_rd         = Signal(16)
@@ -92,7 +89,6 @@ class GeneralPeriphTop(LiteXModule):
         # ----------------------------------------------------
         self.specials += Instance("general_periph_top_wrapper",
             # Parameters
-            #p_DEV_FAMILY           = dev_family,
             p_N_GPIO               = N_GPIO,
 
             # General ports
