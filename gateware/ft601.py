@@ -36,7 +36,7 @@ def FIFORD_SIZE(wr_width, rd_width, wr_size):
 # FT601 --------------------------------------------------------------------------------------------
 
 class FT601(LiteXModule):
-    def __init__(self, platform, pads=None,
+    def __init__(self, platform, pads=None, use_ghdl=False,
         FT_data_width      = 32,
         FT_be_width        = 4,
         EP02_rdusedw_width = 11,
@@ -372,16 +372,17 @@ class FT601(LiteXModule):
             )
         ]
 
-        self.add_sources(platform)
+        self.add_sources(platform, use_ghdl=use_ghdl)
 
-    def add_sources(self, platform):
+    def add_sources(self, platform, use_ghdl=False):
         self.ft601_converter.add_source("LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601.vhd")
         self.ft601_converter.add_source("LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601_arb.vhd")
         self.fifo_converter.add_source("LimeSDR-Mini_lms7_trx/proj//ip/fifodc_w32x1024_r128/fifodc_w32x1024_r128.vhd")
-        import subprocess
-        from shutil import which
-        diamond_path = "/".join(which("pnmainc").split('/')[:-3])
-        pre_cmd      = f"ghdl -a --std=08 --work=ecp5u {diamond_path}/cae_library/synthesis/vhdl/ecp5u.vhd"
-        s            = subprocess.run(pre_cmd.split(" "))
-        if s.returncode:
-            raise OSError(f"Unable to convert {inst_name} to verilog, please check your GHDL install")
+        if use_ghdl:
+            import subprocess
+            from shutil import which
+            diamond_path = "/".join(which("pnmainc").split('/')[:-3])
+            pre_cmd      = f"ghdl -a --std=08 --work=ecp5u {diamond_path}/cae_library/synthesis/vhdl/ecp5u.vhd"
+            s            = subprocess.run(pre_cmd.split(" "))
+            if s.returncode:
+                raise OSError(f"Unable to convert {inst_name} to verilog, please check your GHDL install")
