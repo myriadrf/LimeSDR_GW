@@ -302,9 +302,9 @@ class BaseSoC(SoCCore):
         ]
 
         # Timings ----------------------------------------------------------------------------------
-        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/FT601_timing.sdc")
-        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/LMS7002_timing.sdc")
-        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/Clock_groups.sdc")
+        self.platform.add_sdc("gateware/FT601_timing.sdc")
+        self.platform.add_sdc("gateware/LMS7002_timing.sdc")
+        self.platform.add_sdc("gateware/Clock_groups.sdc")
         self.platform.add_sdc("gateware/timing.sdc")
 
         # Strategy ---------------------------------------------------------------------------------
