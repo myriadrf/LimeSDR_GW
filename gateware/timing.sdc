@@ -177,17 +177,17 @@ set_output_delay 	-min -2 \
 #Inputs
 #set_false_path -from [get_ports FPGA_GPIO* ]
 set_false_path -from [get_ports LM75_OS]
-set_false_path -from [get_ports FPGA_I2C_SCL]
-set_false_path -from [get_ports FPGA_I2C_SDA]
+set_false_path -from [get_ports FPGA_I2C0_scl]
+set_false_path -from [get_ports FPGA_I2C0_sda]
 
 #Outputs
 #set_false_path -to [get_ports FPGA_LED* ]
 #set_false_path -to [get_ports FPGA_GPIO* ]
-set_false_path -to [get_ports FPGA_I2C_SCL]
-set_false_path -to [get_ports FPGA_I2C_SDA]
+set_false_path -to [get_ports FPGA_I2C0_scl]
+set_false_path -to [get_ports FPGA_I2C0_sda]
 set_false_path -to [get_ports LMS_CORE_LDO_EN]
 set_false_path -to [get_ports LMS_RESET]
 set_false_path -to [get_ports LMS_RXEN]
 set_false_path -to [get_ports LMS_TXEN]
 set_false_path -to [get_ports LMS_TXNRX1]
-set_false_path -to [get_ports LMS_TXNRX2]
+set_false_path -to [get_ports LMS_TXNRX2_or_CLK_SEL]
