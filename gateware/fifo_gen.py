@@ -69,11 +69,15 @@ class FIFOGenerator(LiteXModule):
         self.source = source = stream.Endpoint([("data", output_width)])
 
         # # #
+        # Constants --------------------------------------------------------------------------------
+        cd_rd = "rd"
+        cd_wr = {True: "wr", False: "rd"}[with_cdc]
+
         # Clocking ---------------------------------------------------------------------------------
         platform.add_extension(get_ios(input_width, output_width))
-        self.clock_domains.cd_wr = ClockDomain("wr")
         self.clock_domains.cd_rd = ClockDomain("rd")
         if with_cdc:
+            self.clock_domains.cd_wr = ClockDomain("wr")
             self.comb += [
                 self.cd_wr.clk.eq(platform.request("wr_clk")),
                 self.cd_wr.rst.eq(platform.request("wr_rst")),
@@ -84,27 +88,25 @@ class FIFOGenerator(LiteXModule):
             self.comb += [
                 self.cd_rd.clk.eq(platform.request("clk")),
                 self.cd_rd.rst.eq(platform.request("rst")),
-                self.cd_wr.clk.eq(self.cd_rd.clk),
-                self.cd_wr.rst.eq(self.cd_rd.rst),
             ]
 
         # FIFO -------------------------------------------------------------------------------------
 
         # FIFO.
         # -----
-        self.fifo = ClockDomainsRenamer("wr")(stream.SyncFIFO([("data", input_width)], depth, buffered=with_buffer))
+        self.fifo = ClockDomainsRenamer(cd_wr)(stream.SyncFIFO([("data", input_width)], depth, buffered=with_buffer))
 
         # CDC.
         # ----
         self.cdc = stream.ClockDomainCrossing([("data", input_width)],
-            cd_from         = {True: "wr", False: "rd"}[with_cdc],
-            cd_to           = "rd",
+            cd_from         = cd_wr,
+            cd_to           = cd_rd,
             with_common_rst = True,
         )
 
         # Converter.
         # ----------
-        self.conv = ClockDomainsRenamer("rd")(stream.Converter(input_width, output_width, reverse=reverse))
+        self.conv = ClockDomainsRenamer(cd_rd)(stream.Converter(input_width, output_width, reverse=reverse))
 
         # Pipeline.
         # ---------
