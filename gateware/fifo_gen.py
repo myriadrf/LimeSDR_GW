@@ -149,6 +149,7 @@ def main():
     parser.add_argument("--with-buffer",   action="store_true", help="Use SyncFIFOBuffered.")
     parser.add_argument("--with-cdc",      action="store_true", help="Enable ClockDomainCrossing.")
     parser.add_argument("--reverse",       action="store_true", help="Reverse converter ordering.")
+    parser.add_argument("--output-dir",    default="build",     help="Base Output directory.")
     parser.add_argument("--build",         action="store_true", help="Build core")
     args = parser.parse_args()
 
@@ -170,7 +171,7 @@ def main():
     if args.with_buffer:
         build_name += "_buffer"
     if args.build:
-        platform.build(module, build_name=build_name, run=False, regular_comb=True)
+        platform.build(module, build_dir=args.output_dir, build_name=build_name, run=False, regular_comb=True)
 
 if __name__ == "__main__":
     main()
