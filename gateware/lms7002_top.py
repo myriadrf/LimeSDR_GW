@@ -186,10 +186,10 @@ class LMS7002Top(LiteXModule):
 
     def add_sources(self, platform):
         lms7002_files = [
-            "LimeSDR-Mini_lms7_trx/src/lms7002/lms7002_clk.vhd",
-            "LimeSDR-Mini_lms7_trx/src/lms7002/lms7002_top.vhd",
-            "LimeSDR-Mini_lms7_trx/src/lms7002/lms7002_rxiq.vhd",
-            "LimeSDR-Mini_lms7_trx/src/lms7002/lms7002_txiq.vhd",
+            "gateware/hdl/lms7002/lms7002_clk.vhd",
+            "gateware/hdl/lms7002/lms7002_top.vhd",
+            "gateware/hdl/lms7002/lms7002_rxiq.vhd",
+            "gateware/hdl/lms7002/lms7002_txiq.vhd",
         ]
 
         for file in lms7002_files:

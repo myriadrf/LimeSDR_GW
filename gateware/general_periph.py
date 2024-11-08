@@ -151,14 +151,14 @@ class GeneralPeriphTop(LiteXModule):
 
     def add_sources(self, platform):
         general_periph_files = [
-            "LimeSDR-Mini_lms7_trx/src/general_periph/synth/general_periph_top.vhd",
-            "LimeSDR-Mini_lms7_trx/src/general/alive.vhd",
-            "LimeSDR-Mini_lms7_trx/src/general/FPGA_LED_cntrl.vhd",
-            "LimeSDR-Mini_lms7_trx/src/general/FPGA_LED2_ctrl.vhd",
-            "LimeSDR-Mini_lms7_trx/src/general/FX3_LED_ctrl.vhd",
-            "LimeSDR-Mini_lms7_trx/src/general/gpio_ctrl_top.vhd",
-            "LimeSDR-Mini_lms7_trx/src/general/gpio_ctrl.vhd",
-            "LimeSDR-Mini_lms7_trx/src/general/general_pkg.vhd",
+            "gateware/hdl/general_periph/synth/general_periph_top.vhd",
+            "gateware/hdl/general/alive.vhd",
+            "gateware/hdl/general/FPGA_LED_cntrl.vhd",
+            "gateware/hdl/general/FPGA_LED2_ctrl.vhd",
+            "gateware/hdl/general/FX3_LED_ctrl.vhd",
+            "gateware/hdl/general/gpio_ctrl_top.vhd",
+            "gateware/hdl/general/gpio_ctrl.vhd",
+            "gateware/hdl/general/general_pkg.vhd",
             "gateware/general_periph_top_wrapper.vhd",
         ]
 

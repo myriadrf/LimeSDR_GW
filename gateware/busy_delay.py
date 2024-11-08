@@ -42,4 +42,4 @@ class BusyDelay(LiteXModule):
         self.add_sources(platform)
 
     def add_sources(self, platform):
-        platform.add_source("LimeSDR-Mini_lms7_trx/src/general/busy_delay.vhd")
+        platform.add_source("gateware/hdl/general/busy_delay.vhd")

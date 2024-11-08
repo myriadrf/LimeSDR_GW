@@ -86,8 +86,8 @@ class TstTop(LiteXModule):
 
     def add_sources(self, platform):
         tst_top_files = [
-            "LimeSDR-Mini_lms7_trx/src/self_test/tst_top.vhd",
-            "LimeSDR-Mini_lms7_trx/src/self_test/clock_test.vhd",
+            "gateware/hdl/self_test/tst_top.vhd",
+            "gateware/hdl/self_test/clock_test.vhd",
         ]
 
         for file in tst_top_files:

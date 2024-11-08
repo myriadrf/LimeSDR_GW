@@ -1,51 +1,51 @@
 lms7_trx_files = [
     # SPI / CFG.
     # ----------
-    "LimeSDR-Mini_lms7_trx/src/spi/fpgacfg_pkg.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/mcfg_components.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/mcfg32wm_fsm.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/mem_package.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/periphcfg_pkg.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/pllcfg_pkg.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/tstcfg_pkg.vhd",
+    "gateware/hdl/spi/fpgacfg_pkg.vhd",
+    "gateware/hdl/spi/mcfg_components.vhd",
+    "gateware/hdl/spi/mcfg32wm_fsm.vhd",
+    "gateware/hdl/spi/mem_package.vhd",
+    "gateware/hdl/spi/periphcfg_pkg.vhd",
+    "gateware/hdl/spi/pllcfg_pkg.vhd",
+    "gateware/hdl/spi/tstcfg_pkg.vhd",
 
     # Packages.
     # ---------
-    "LimeSDR-Mini_lms7_trx/src/packages/synth/FIFO_PACK.vhd",
+    "gateware/hdl/packages/synth/FIFO_PACK.vhd",
 
     # PLL.
     # ----
-    "LimeSDR-Mini_lms7_trx/src/pll_top/synth/pll_top.vhd",
-    "LimeSDR-Mini_lms7_trx/src/spi/pllcfg.vhd",
+    "gateware/hdl/pll_top/synth/pll_top.vhd",
+    "gateware/hdl/spi/pllcfg.vhd",
 
     # General.
     # --------
-    "LimeSDR-Mini_lms7_trx/src/general/sync_reg.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/bus_sync_reg.vhd",
-    "LimeSDR-Mini_lms7_trx/src/general/busy_delay.vhd",
+    "gateware/hdl/general/sync_reg.vhd",
+    "gateware/hdl/general/bus_sync_reg.vhd",
+    "gateware/hdl/general/busy_delay.vhd",
 
     # Self-Test.
     # ----------
-    "LimeSDR-Mini_lms7_trx/src/self_test/transition_count.vhd",
-    "LimeSDR-Mini_lms7_trx/src/self_test/singl_clk_with_ref_test.vhd",
-    "LimeSDR-Mini_lms7_trx/src/self_test/clk_with_ref_test.vhd",
-    "LimeSDR-Mini_lms7_trx/src/self_test/clk_no_ref_test.vhd",
+    "gateware/hdl/self_test/transition_count.vhd",
+    "gateware/hdl/self_test/singl_clk_with_ref_test.vhd",
+    "gateware/hdl/self_test/clk_with_ref_test.vhd",
+    "gateware/hdl/self_test/clk_no_ref_test.vhd",
 
     # Altera-Inst.
     # ------------
-    "LimeSDR-Mini_lms7_trx/src/altera_inst/lpm_cnt_inst.vhd",
-    "LimeSDR-Mini_lms7_trx/src/altera_inst/fifo_inst.vhd",
-    "LimeSDR-Mini_lms7_trx/src/altera_inst/lpm_compare_inst.vhd",
+    "gateware/hdl/altera_inst/lpm_cnt_inst.vhd",
+    "gateware/hdl/altera_inst/fifo_inst.vhd",
+    "gateware/hdl/altera_inst/lpm_compare_inst.vhd",
 
     # TX-IQ-Mux.
     # ----------
-    "LimeSDR-Mini_lms7_trx/src/txiqmux/synth/txiqmux.vhd",
-    "LimeSDR-Mini_lms7_trx/src/txiqmux/synth/txiq_tst_ptrn.vhd",
+    "gateware/hdl/txiqmux/synth/txiqmux.vhd",
+    "gateware/hdl/txiqmux/synth/txiq_tst_ptrn.vhd",
 
     # Delay-Ctrl.
     # ----------
-    "LimeSDR-Mini_lms7_trx/src/delayf_ctrl/delay_ctrl_fsm.vhd",
-    "LimeSDR-Mini_lms7_trx/src/delayf_ctrl/delay_ctrl_top.vhd",
-    "LimeSDR-Mini_lms7_trx/src/delayf_ctrl/delayf_ctrl.vhd",
+    "gateware/hdl/delayf_ctrl/delay_ctrl_fsm.vhd",
+    "gateware/hdl/delayf_ctrl/delay_ctrl_top.vhd",
+    "gateware/hdl/delayf_ctrl/delayf_ctrl.vhd",
 
 ]
