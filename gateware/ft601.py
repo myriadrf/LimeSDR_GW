@@ -341,6 +341,7 @@ class FT601(LiteXModule):
 
             self.stream_fifo.wr_active.eq(EP83_fifo_status.busy_out),
             pads.RESETn.eq(~ResetSignal("sys")),
+            pads.WAKEUPn.eq(Constant(1, 1)),
             self.stream_fifo.rd_active.eq(self.EP03_fifo_status.busy_out),
         ]
 
