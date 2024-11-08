@@ -52,12 +52,18 @@ class RXTXTop(LiteXModule):
 
         self.stream_fifo           = FIFOInterface(TX_IN_PCT_DATA_W, 64, TX_IN_PCT_RDUSEDW_W, RX_PCT_BUFF_WRUSEDW_W)
 
+        # testcfg_from_rxtx @22
+        self._ddr2_1_status        = CSRStatus(3)
+        # testcfg_from_rxtx @23
+        self._ddr2_1_pnf_per_bit_l = CSRStatus(16)
+        # testcfg_from_rxtx @24
+        self._ddr2_1_pnf_per_bit_h = CSRStatus(16)
+
         # # #
 
         # Signals.
         # --------
-        self._DDR2_1_STATUS      = Signal(3)
-        self._DDR2_1_pnf_per_bit = Signal(32)
+        self._ddr2_1_pnf_per_bit = Signal(32)
 
         # rxtx_top wrapper (required due to record).
         # ------------------------------------------
@@ -122,8 +128,8 @@ class RXTXTop(LiteXModule):
             i_txant_post             = self.from_fpgacfg.txant_post,
 
             ##to_tstcfg_from_rxtx     : out    t_TO_TSTCFG_FROM_RXTX;
-            o_DDR2_1_STATUS          = self._DDR2_1_STATUS,
-            o_DDR2_1_pnf_per_bit     = self._DDR2_1_pnf_per_bit,
+            o_DDR2_1_STATUS          = self._ddr2_1_status.status,
+            o_DDR2_1_pnf_per_bit     = self._ddr2_1_pnf_per_bit,
             #from_tstcfg             : in     t_FROM_TSTCFG;
             i_TEST_EN                = self.from_tstcfg_test_en,
             i_TEST_FRC_ERR           = self.from_tstcfg_test_frc_err,
@@ -163,24 +169,12 @@ class RXTXTop(LiteXModule):
             o_rx_smpl_cmp_err        = self.rx_smpl_cmp.error,
         )
 
-        self.add_csr()
+        self.comb += [
+            self._ddr2_1_pnf_per_bit_l.status.eq(self._ddr2_1_pnf_per_bit[:16]),
+            self._ddr2_1_pnf_per_bit_h.status.eq(self._ddr2_1_pnf_per_bit[15:]),
+        ]
 
         self.add_sources(platform)
-
-    def add_csr(self):
-
-        # testcfg_from_rxtx @22
-        self._ddr2_1_status        = CSRStatus(3)
-        # testcfg_from_rxtx @23
-        self._ddr2_1_pnf_per_bit_l = CSRStatus(16)
-        # testcfg_from_rxtx @24
-        self._ddr2_1_pnf_per_bit_h = CSRStatus(16)
-
-        self.comb += [
-            self._ddr2_1_status.status.eq(       self._DDR2_1_STATUS),
-            self._ddr2_1_pnf_per_bit_l.status.eq(self._DDR2_1_pnf_per_bit[:16]),
-            self._ddr2_1_pnf_per_bit_h.status.eq(self._DDR2_1_pnf_per_bit[15:]),
-        ]
 
     def add_sources(self, platform):
         general_periph_files = [
