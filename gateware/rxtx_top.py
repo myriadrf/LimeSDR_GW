@@ -45,10 +45,10 @@ class RXTXTop(LiteXModule):
         self.rxtx_smpl_cmp_length  = Signal(16)
 
         self.from_fpgacfg             = FromFPGACfg()
-        self.from_tstcfg_TEST_EN      = Signal(6)
-        self.from_tstcfg_TEST_FRC_ERR = Signal(6)
-        self.from_tstcfg_TX_TST_I     = Signal(16)
-        self.from_tstcfg_TX_TST_Q     = Signal(16)
+        self.from_tstcfg_test_en      = Signal(6)
+        self.from_tstcfg_test_frc_err = Signal(6)
+        self.from_tstcfg_tx_tst_i     = Signal(16)
+        self.from_tstcfg_tx_tst_q     = Signal(16)
 
         self.stream_fifo           = FIFOInterface(TX_IN_PCT_DATA_W, 64, TX_IN_PCT_RDUSEDW_W, RX_PCT_BUFF_WRUSEDW_W)
 
@@ -125,10 +125,10 @@ class RXTXTop(LiteXModule):
             o_DDR2_1_STATUS          = self._DDR2_1_STATUS,
             o_DDR2_1_pnf_per_bit     = self._DDR2_1_pnf_per_bit,
             #from_tstcfg             : in     t_FROM_TSTCFG;
-            i_TEST_EN                = self.from_tstcfg_TEST_EN,
-            i_TEST_FRC_ERR           = self.from_tstcfg_TEST_FRC_ERR,
-            i_TX_TST_I               = self.from_tstcfg_TX_TST_I,
-            i_TX_TST_Q               = self.from_tstcfg_TX_TST_Q,
+            i_TEST_EN                = self.from_tstcfg_test_en,
+            i_TEST_FRC_ERR           = self.from_tstcfg_test_frc_err,
+            i_TX_TST_I               = self.from_tstcfg_tx_tst_i,
+            i_TX_TST_Q               = self.from_tstcfg_tx_tst_q,
 
             ## TX path
             i_tx_clk                 = ClockSignal("lms_tx"),
@@ -233,8 +233,8 @@ class RXTXTop(LiteXModule):
 
             # ./fifo_gen --input-width 64 --output-width 64 --depth 256 --build
             "gateware/fifo_w64x256_r64.v",
-            # ./fifo_gen --input-width 48 --output-width 48 --depth 1024 --build
-            "gateware/fifo_w48x1024_r48.v",
+            # ./fifo_gen.py --input-width 48 --output-width 48 --depth 1024 --build --with-buffer
+            "gateware/fifo_w48x1024_r48_buffer.v",
             # ./fifo_gen.py --input-width 128 --output-width 64 --depth 256 --build
             "gateware/fifo_w128x256_r64.v",
 

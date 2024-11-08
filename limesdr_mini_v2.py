@@ -263,10 +263,10 @@ class BaseSoC(SoCCore):
 
         self.comb += [
             self.rxtx_top.from_fpgacfg.eq(self.fpgacfg.from_fpgacfg),
-            self.rxtx_top.from_tstcfg_TEST_EN.eq(self.tst_top.test_en),
-            self.rxtx_top.from_tstcfg_TEST_FRC_ERR.eq(self.tst_top.test_frc_err),
-            self.rxtx_top.from_tstcfg_TX_TST_I.eq(self.tst_top.tx_tst_i),
-            self.rxtx_top.from_tstcfg_TX_TST_Q.eq(self.tst_top.tx_tst_q),
+            self.rxtx_top.from_tstcfg_test_en.eq(self.tst_top.test_en),
+            self.rxtx_top.from_tstcfg_test_frc_err.eq(self.tst_top.test_frc_err),
+            self.rxtx_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
+            self.rxtx_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
 
             self.rxtx_top.rxtx_smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
 
