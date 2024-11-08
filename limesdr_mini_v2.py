@@ -283,7 +283,7 @@ class BaseSoC(SoCCore):
             self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_txant_en),
 
             # General Periph <-> LMS7002
-            self.lms7002_top.PERIPH_OUTPUT_VAL_1.eq(self.general_periph.PERIPH_OUTPUT_VAL_1),
+            self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
         ]
 
         # RF Switches ------------------------------------------------------------------------------

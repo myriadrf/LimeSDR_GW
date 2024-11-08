@@ -56,7 +56,7 @@ class LMS7002Top(LiteXModule):
         assert hw_ver is not None
 
         self.pads                = pads
-        self.PERIPH_OUTPUT_VAL_1 = Signal(16)
+        self.periph_output_val_1 = Signal(16)
 
         self.tx_diq1_h = Signal(13)
         self.tx_diq1_l = Signal(13)
@@ -160,7 +160,7 @@ class LMS7002Top(LiteXModule):
         self.comb += [
             # LMS Controls.
             If((self.hw_ver > 5),
-                self.pads.TXNRX2_or_CLK_SEL.eq(self.PERIPH_OUTPUT_VAL_1),
+                self.pads.TXNRX2_or_CLK_SEL.eq(self.periph_output_val_1),
             ).Else(
                 self.pads.TXNRX2_or_CLK_SEL.eq(self.LMS1.fields.TXNRX2),
             ),

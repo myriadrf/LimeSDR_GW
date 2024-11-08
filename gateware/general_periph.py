@@ -14,19 +14,19 @@ from litex.soc.interconnect.csr import *
 # Layout -------------------------------------------------------------------------------------------
 
 from_periphcfg_layout = [
-    ("BOARD_GPIO_OVRD",      16),
-    ("BOARD_GPIO_DIR",       16),
-    ("BOARD_GPIO_VAL",       16),
-    ("PERIPH_OUTPUT_OVRD_0", 16),
-    ("PERIPH_OUTPUT_VAL_0",  16),
-    ("PERIPH_OUTPUT_OVRD_1", 16),
-    ("PERIPH_OUTPUT_VAL_1",  16),
+    ("board_gpio_ovrd",      16),
+    ("board_gpio_dir",       16),
+    ("board_gpio_val",       16),
+    ("periph_output_ovrd_0", 16),
+    ("periph_output_val_0",  16),
+    ("periph_output_ovrd_1", 16),
+    ("periph_output_val_1",  16),
 ]
 
 to_periphcfg_layout = [
-    ("BOARD_GPIO_RD",     16),
-    ("PERIPH_INPUT_RD_0", 16),
-    ("PERIPH_INPUT_RD_1", 16),
+    ("board_gpio_rd",     16),
+    ("periph_input_rd_0", 16),
+    ("periph_input_rd_1", 16),
 ]
 
 def FromPeriphCfg():
@@ -49,17 +49,17 @@ class GeneralPeriphTop(LiteXModule):
         self.LMS_TXNRX2_or_CLK_SEL = Signal(1)
 
         # to_periphcfg
-        self.BOARD_GPIO_RD         = Signal(16)
-        self.PERIPH_INPUT_RD_0     = Signal(16)
-        self.PERIPH_INPUT_RD_1     = Signal(16)
+        self.board_gpio_rd         = Signal(16)
+        self.periph_input_rd_0     = Signal(16)
+        self.periph_input_rd_1     = Signal(16)
         # from_periphcfg
-        self.BOARD_GPIO_OVRD       = Signal(16)
-        self.BOARD_GPIO_DIR        = Signal(16)
-        self.BOARD_GPIO_VAL        = Signal(16)
-        self.PERIPH_OUTPUT_OVRD_0  = Signal(16)
-        self.PERIPH_OUTPUT_VAL_0   = Signal(16)
-        self.PERIPH_OUTPUT_OVRD_1  = Signal(16)
-        self.PERIPH_OUTPUT_VAL_1   = Signal(16)
+        self.board_gpio_ovrd       = Signal(16)
+        self.board_gpio_dir        = Signal(16)
+        self.board_gpio_val        = Signal(16)
+        self.periph_output_ovrd_0  = Signal(16)
+        self.periph_output_val_0   = Signal(16)
+        self.periph_output_ovrd_1  = Signal(16)
+        self.periph_output_val_1   = Signal(16)
 
         self.led1_mico32_busy      = Signal()
         self.led1_ctrl             = Signal(3)
@@ -100,17 +100,17 @@ class GeneralPeriphTop(LiteXModule):
             i_reset_n              = ~ResetSignal("sys"),
 
             # to_periphcfg
-            o_BOARD_GPIO_RD        = self.BOARD_GPIO_RD,
-            o_PERIPH_INPUT_RD_0    = self.PERIPH_INPUT_RD_0,
-            o_PERIPH_INPUT_RD_1    = self.PERIPH_INPUT_RD_1,
+            o_BOARD_GPIO_RD        = self.board_gpio_rd,
+            o_PERIPH_INPUT_RD_0    = self.periph_input_rd_0,
+            o_PERIPH_INPUT_RD_1    = self.periph_input_rd_1,
             # from_periphcfg
-            i_BOARD_GPIO_OVRD      = self.BOARD_GPIO_OVRD,
-            i_BOARD_GPIO_DIR       = self.BOARD_GPIO_DIR,
-            i_BOARD_GPIO_VAL       = self.BOARD_GPIO_VAL,
-            i_PERIPH_OUTPUT_OVRD_0 = self.PERIPH_OUTPUT_OVRD_0,
-            i_PERIPH_OUTPUT_VAL_0  = self.PERIPH_OUTPUT_VAL_0,
-            i_PERIPH_OUTPUT_OVRD_1 = self.PERIPH_OUTPUT_OVRD_1,
-            i_PERIPH_OUTPUT_VAL_1  = self.PERIPH_OUTPUT_VAL_1,
+            i_BOARD_GPIO_OVRD      = self.board_gpio_ovrd,
+            i_BOARD_GPIO_DIR       = self.board_gpio_dir,
+            i_BOARD_GPIO_VAL       = self.board_gpio_val,
+            i_PERIPH_OUTPUT_OVRD_0 = self.periph_output_ovrd_0,
+            i_PERIPH_OUTPUT_VAL_0  = self.periph_output_val_0,
+            i_PERIPH_OUTPUT_OVRD_1 = self.periph_output_ovrd_1,
+            i_PERIPH_OUTPUT_VAL_1  = self.periph_output_val_1,
 
             # Dual colour LEDs
             # LED1 (Clock and PLL lock status)
@@ -189,17 +189,17 @@ class GeneralPeriphTop(LiteXModule):
         self._FX3_LED_CTRL         = CSRStorage(3)             # fpgacfg.28
 
         self.comb += [
-            self._board_gpio_RD.status.eq(    self.BOARD_GPIO_RD),
-            self._periph_input_RD_0.status.eq(self.PERIPH_INPUT_RD_0),
-            self._periph_input_RD_1.status.eq(self.PERIPH_INPUT_RD_1),
+            self._board_gpio_RD.status.eq(    self.board_gpio_rd),
+            self._periph_input_RD_0.status.eq(self.periph_input_rd_0),
+            self._periph_input_RD_1.status.eq(self.periph_input_rd_1),
 
-            self.BOARD_GPIO_OVRD.eq(          self._board_gpio_OVRD.storage),
-            self.BOARD_GPIO_DIR.eq(           self._board_gpio_DIR.storage),
-            self.BOARD_GPIO_VAL.eq(           self._board_gpio_VAL.storage),
-            self.PERIPH_OUTPUT_OVRD_0.eq(     self._periph_output_OVRD_0.storage),
-            self.PERIPH_OUTPUT_VAL_0.eq(      self._periph_output_VAL_0.storage),
-            self.PERIPH_OUTPUT_OVRD_1.eq(     self._periph_output_OVRD_1.storage),
-            self.PERIPH_OUTPUT_VAL_1.eq(      self._periph_output_VAL_1.storage),
+            self.board_gpio_ovrd.eq(          self._board_gpio_OVRD.storage),
+            self.board_gpio_dir.eq(           self._board_gpio_DIR.storage),
+            self.board_gpio_val.eq(           self._board_gpio_VAL.storage),
+            self.periph_output_ovrd_0.eq(     self._periph_output_OVRD_0.storage),
+            self.periph_output_val_0.eq(      self._periph_output_VAL_0.storage),
+            self.periph_output_ovrd_1.eq(     self._periph_output_OVRD_1.storage),
+            self.periph_output_val_1.eq(      self._periph_output_VAL_1.storage),
 
             self.led1_ctrl.eq(                self.fpga_led_ctrl.fields.LED1_CTRL),
             self.led2_ctrl.eq(                self.fpga_led_ctrl.fields.LED2_CTRL),
