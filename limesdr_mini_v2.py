@@ -308,20 +308,8 @@ class BaseSoC(SoCCore):
         self.platform.add_sdc("gateware/timing.sdc")
 
         # Strategy ---------------------------------------------------------------------------------
-        platform.add_strategy("LimeSDR-Mini_lms7_trx/proj/user_timing.sty", "user_timing")
-
         platform.toolchain.additional_ldf_commands += [
-            #"prj_strgy set_value -strategy Strategy1 syn_fix_gated_and_generated_clks=False",
-            #"prj_strgy set_value -strategy Strategy1 syn_default_enum_encode=Onehot",
-            #"prj_strgy set_value -strategy Strategy1 syn_export_setting=Yes",
-            #"prj_strgy set_value -strategy Strategy1 syn_frequency=100",
-            #"prj_strgy set_value -strategy Strategy1 syn_critical_path_num=3",
-            #"prj_strgy set_value -strategy Strategy1 syn_pipelining_retiming=None",
-            #"prj_strgy set_value -strategy Strategy1 syn_push_tristates=False",
-            #"prj_strgy set_value -strategy Strategy1 syn_res_sharing=False",
             "prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True",
-            #"prj_strgy set_value -strategy Strategy1 par_routeing_pass=10",
-            #"prj_strgy set_value -strategy Strategy1 tmchk_enable_check=False",
         ]
 
         # Sources ----------------------------------------------------------------------------------
