@@ -235,8 +235,8 @@ class RXTXTop(LiteXModule):
             "gateware/fifo_w64x256_r64.v",
             # ./fifo_gen.py --input-width 48 --output-width 48 --depth 1024 --build --with-buffer
             "gateware/fifo_w48x1024_r48_buffer.v",
-            # ./fifo_gen.py --input-width 128 --output-width 64 --depth 256 --build
-            "gateware/fifo_w128x256_r64.v",
+            # ./fifo_gen.py --input-width 128 --output-width 64 --depth 256 --with-buffer --build
+            "gateware/fifo_w128x256_r64_buffer.v",
 
             "gateware/rxtx_top_wrapper.vhd",
         ]
