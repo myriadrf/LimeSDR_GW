@@ -378,7 +378,7 @@ class FT601(LiteXModule):
     def add_sources(self, platform, use_ghdl=False):
         self.ft601_converter.add_source("LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601.vhd")
         self.ft601_converter.add_source("LimeSDR-Mini_lms7_trx/src/FT601/synth/FT601_arb.vhd")
-        self.fifo_converter.add_source("LimeSDR-Mini_lms7_trx/proj//ip/fifodc_w32x1024_r128/fifodc_w32x1024_r128.vhd")
+        self.fifo_converter.add_source("gateware/ip/fifodc_w32x1024_r128.vhd")
         if use_ghdl:
             import subprocess
             from shutil import which
