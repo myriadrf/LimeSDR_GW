@@ -231,7 +231,7 @@ class BaseSoC(SoCCore):
         ]
 
         # General Periph ---------------------------------------------------------------------------
-        self.general_periph = GeneralPeriphTop(platform, "MAX 10",
+        self.general_periph = GeneralPeriphTop(platform,
             revision_pads = revision_pads,
             gpio_pads     = gpio_pads,
             gpio_len      = len(gpio_pads),
@@ -304,6 +304,7 @@ class BaseSoC(SoCCore):
         # Timings ----------------------------------------------------------------------------------
         self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/FT601_timing.sdc")
         self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/LMS7002_timing.sdc")
+        self.platform.add_sdc("LimeSDR-Mini_lms7_trx/proj/Clock_groups.sdc")
         self.platform.add_sdc("gateware/timing.sdc")
 
         # Strategy ---------------------------------------------------------------------------------
@@ -319,11 +320,6 @@ class BaseSoC(SoCCore):
             "prj_strgy set_value -strategy Strategy1 syn_push_tristates=False",
             "prj_strgy set_value -strategy Strategy1 syn_res_sharing=False",
             "prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True",
-            "prj_strgy set_value -strategy Strategy1 lse_vhdl2008=True",
-            "prj_strgy set_value -strategy Strategy1 lse_frequency=100",
-            "prj_strgy set_value -strategy Strategy1 lse_force_gsr=No",
-            "prj_strgy set_value -strategy Strategy1 lse_fix_gated_clocks=False",
-            "prj_strgy set_value -strategy Strategy1 lse_res_sharing=False",
             "prj_strgy set_value -strategy Strategy1 par_routeing_pass=10",
             "prj_strgy set_value -strategy Strategy1 tmchk_enable_check=False",
         ]
