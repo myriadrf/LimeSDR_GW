@@ -14,6 +14,7 @@
 import math
 
 from migen import *
+from migen.genlib.resetsync import AsyncResetSynchronizer
 
 from litex.gen import *
 
@@ -83,11 +84,13 @@ class _CRG(LiteXModule):
         self.ft_clk = platform.request("FT_CLK")
 
         # Power on reset
-        por_count = Signal(16, reset=2**16-1)
+        por_count = Signal(4)
+        por_count.attr.add("keep")
         por_done  = Signal()
+        por_done.attr.add("keep")
         self.comb += self.cd_por.clk.eq(self.cd_sys.clk)
-        self.comb += por_done.eq(por_count == 0)
-        self.sync.por += If(~por_done, por_count.eq(por_count - 1))
+        self.comb += por_done.eq(Reduce("AND", por_count))
+        self.sync.por += por_count.eq(Cat(Constant(1, 1), por_count[0:3]))
 
         # Internal Oscilator
         # DIV values: 2(~155MHz) - 128(~2.4MHz)
@@ -96,15 +99,13 @@ class _CRG(LiteXModule):
             o_OSC = self.cd_sys.clk,
         )
 
-        self.comb += self.cd_sys.rst.eq(~por_done)
+        self.specials += AsyncResetSynchronizer(self.cd_sys, ~por_done)
 
-        platform.add_platform_command("GSR_NET NET main_por_done;")
+        platform.add_platform_command("GSR_NET NET crg_por_done;")
 
         # FT601 Clk/Rst
-        self.comb += [
-            self.cd_ft601.clk.eq(self.ft_clk),
-            self.cd_ft601.rst.eq(~por_done),
-        ]
+        self.comb     += self.cd_ft601.clk.eq(self.ft_clk),
+        self.specials += AsyncResetSynchronizer(self.cd_ft601, ~por_done)
 
 # BaseSoC ------------------------------------------------------------------------------------------
 
@@ -157,6 +158,7 @@ class BaseSoC(SoCCore):
 
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
+        self.comb += self.crg.cd_por.rst.eq(revision_pads.HW_VER[3]) # HW_VER(3) is connected to GND
 
         # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
         self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C", 0))
@@ -187,7 +189,6 @@ class BaseSoC(SoCCore):
 
         # PLL Cfg ----------------------------------------------------------------------------------
         self.pllcfg = PLLCfg()
-        self.comb += self.fpgacfg.pwr_src.eq(0)
 
         # FIFO Control -----------------------------------------------------------------------------
         self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
