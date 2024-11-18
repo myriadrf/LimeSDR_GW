@@ -225,6 +225,7 @@ class RXTXTop(LiteXModule):
             # --------------
             "gateware/ip/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
             "gateware/ip/fifodc_w128x256_r64.vhd",  # packets2data.vhd.
+            "gateware/ip/fifodc_w48x1024_r48.vhd",  # rx_path_top.vhd.
 
             "gateware/rxtx_top_wrapper.vhd",
         ]

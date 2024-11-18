@@ -40,11 +40,6 @@ entity rxtx_top_wrapper is
    port (
       -- Configuration memory ports
       --from_fpgacfg            : in     t_FROM_FPGACFG;
-      phase_reg_sel       : in std_logic_vector(15 downto 0);
-      clk_ind             : in std_logic_vector(4 downto 0);
-      cnt_ind             : in std_logic_vector(4 downto 0);
-      load_phase_reg      : in std_logic;
-      drct_clk_en         : in std_logic_vector(15 downto 0);
       ch_en               : in std_logic_vector(15 downto 0);
       smpl_width          : in std_logic_vector(1 downto 0);
       mode                : in std_logic;
@@ -56,27 +51,10 @@ entity rxtx_top_wrapper is
       smpl_nr_clr         : in std_logic;
       txpct_loss_clr      : in std_logic;
       rx_en               : in std_logic;
-      tx_en               : in std_logic;
       rx_ptrn_en          : in std_logic;
       tx_ptrn_en          : in std_logic;
       tx_cnt_en           : in std_logic;
-      wfm_ch_en           : in std_logic_vector(15 downto 0);
       wfm_play            : in std_logic;
-      wfm_load            : in std_logic;
-      wfm_smpl_width      : in std_logic_vector(1 downto 0);
-      SPI_SS              : in std_logic_vector(15 downto 0);
-      LMS1_SS             : in std_logic;
-      LMS1_RESET          : in std_logic;
-      LMS1_CORE_LDO_EN    : in std_logic;
-      LMS1_TXNRX1         : in std_logic;
-      LMS1_TXNRX2         : in std_logic;
-      LMS1_TXEN           : in std_logic;
-      LMS1_RXEN           : in std_logic;
-      GPIO                : in std_logic_vector(15 downto 0);
-      FPGA_LED1_CTRL      : in std_logic_vector(2 downto 0);
-      FPGA_LED2_CTRL      : in std_logic_vector(2 downto 0);
-      FX3_LED_CTRL        : in std_logic_vector(2 downto 0);
-      CLK_ENA             : in std_logic_vector(3 downto 0);
       sync_pulse_period   : in std_logic_vector(31 downto 0);
       sync_size           : in std_logic_vector(15 downto 0);
       txant_pre           : in std_logic_vector(15 downto 0);
@@ -135,11 +113,13 @@ architecture arch of rxtx_top_wrapper is
   signal from_tstcfg         : t_FROM_TSTCFG;
 begin
 
-   from_fpgacfg.phase_reg_sel     <= phase_reg_sel;
-   from_fpgacfg.clk_ind           <= clk_ind;
-   from_fpgacfg.cnt_ind           <= cnt_ind;
-   from_fpgacfg.load_phase_reg    <= load_phase_reg;
-   from_fpgacfg.drct_clk_en       <= drct_clk_en;
+   -- All signals with a default value must be considered
+   -- as unused.
+   from_fpgacfg.phase_reg_sel     <= (others => '0');
+   from_fpgacfg.clk_ind           <= (others => '0');
+   from_fpgacfg.cnt_ind           <= (others => '0');
+   from_fpgacfg.load_phase_reg    <= '0';
+   from_fpgacfg.drct_clk_en       <= (others => '0');
    from_fpgacfg.ch_en             <= ch_en;
    from_fpgacfg.smpl_width        <= smpl_width;
    from_fpgacfg.mode              <= mode;
@@ -151,27 +131,27 @@ begin
    from_fpgacfg.smpl_nr_clr       <= smpl_nr_clr;
    from_fpgacfg.txpct_loss_clr    <= txpct_loss_clr;
    from_fpgacfg.rx_en             <= rx_en;
-   from_fpgacfg.tx_en             <= tx_en;
+   from_fpgacfg.tx_en             <= '0';
    from_fpgacfg.rx_ptrn_en        <= rx_ptrn_en;
    from_fpgacfg.tx_ptrn_en        <= tx_ptrn_en;
    from_fpgacfg.tx_cnt_en         <= tx_cnt_en;
-   from_fpgacfg.wfm_ch_en         <= wfm_ch_en;
+   from_fpgacfg.wfm_ch_en         <= (others => '0');
    from_fpgacfg.wfm_play          <= wfm_play;
-   from_fpgacfg.wfm_load          <= wfm_load;
-   from_fpgacfg.wfm_smpl_width    <= wfm_smpl_width;
-   from_fpgacfg.SPI_SS            <= SPI_SS;
-   from_fpgacfg.LMS1_SS           <= LMS1_SS;
-   from_fpgacfg.LMS1_RESET        <= LMS1_RESET;
-   from_fpgacfg.LMS1_CORE_LDO_EN  <= LMS1_CORE_LDO_EN;
-   from_fpgacfg.LMS1_TXNRX1       <= LMS1_TXNRX1;
-   from_fpgacfg.LMS1_TXNRX2       <= LMS1_TXNRX2;
-   from_fpgacfg.LMS1_TXEN         <= LMS1_TXEN;
-   from_fpgacfg.LMS1_RXEN         <= LMS1_RXEN;
-   from_fpgacfg.GPIO              <= GPIO;
-   from_fpgacfg.FPGA_LED1_CTRL    <= FPGA_LED1_CTRL;
-   from_fpgacfg.FPGA_LED2_CTRL    <= FPGA_LED2_CTRL;
-   from_fpgacfg.FX3_LED_CTRL      <= FX3_LED_CTRL;
-   from_fpgacfg.CLK_ENA           <= CLK_ENA;
+   from_fpgacfg.wfm_load          <= '0';
+   from_fpgacfg.wfm_smpl_width    <= (others => '0');
+   from_fpgacfg.SPI_SS            <= (others => '0');
+   from_fpgacfg.LMS1_SS           <= '0';
+   from_fpgacfg.LMS1_RESET        <= '0';
+   from_fpgacfg.LMS1_CORE_LDO_EN  <= '0';
+   from_fpgacfg.LMS1_TXNRX1       <= '0';
+   from_fpgacfg.LMS1_TXNRX2       <= '0';
+   from_fpgacfg.LMS1_TXEN         <= '0';
+   from_fpgacfg.LMS1_RXEN         <= '0';
+   from_fpgacfg.GPIO              <= (others => '0');
+   from_fpgacfg.FPGA_LED1_CTRL    <= (others => '0');
+   from_fpgacfg.FPGA_LED2_CTRL    <= (others => '0');
+   from_fpgacfg.FX3_LED_CTRL      <= (others => '0');
+   from_fpgacfg.CLK_ENA           <= (others => '0');
    from_fpgacfg.sync_pulse_period <= sync_pulse_period;
    from_fpgacfg.sync_size         <= sync_size;
    from_fpgacfg.txant_pre         <= txant_pre;
