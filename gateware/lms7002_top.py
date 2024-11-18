@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from migen import *
+from migen.genlib.resetsync import AsyncResetSynchronizer
 
 from litex.gen import *
 
@@ -125,6 +126,9 @@ class LMS7002Top(LiteXModule):
             i_smpl_cmp_error = self.smpl_cmp.error,
             o_smpl_cmp_cnt   = self.smpl_cmp.cnt,
         )
+
+        self.specials += AsyncResetSynchronizer(self.cd_lms_rx, ResetSignal("sys"))
+        self.specials += AsyncResetSynchronizer(self.cd_lms_tx, ResetSignal("sys"))
 
         if add_csr:
             self.add_csr()
