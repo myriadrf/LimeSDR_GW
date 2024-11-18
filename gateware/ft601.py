@@ -9,8 +9,9 @@ import os
 from shutil import which, copyfile
 import subprocess
 
-from migen        import *
-from migen.genlib import fifo
+from migen               import *
+from migen.genlib        import fifo
+from migen.fhdl.specials import Tristate
 
 from litex.build import tools
 
@@ -64,6 +65,14 @@ class FT601(LiteXModule):
 
         # Signals.
         # --------
+
+        # FT601
+        data_o            = Signal(FT_data_width)
+        data_i            = Signal(FT_data_width)
+        data_oe           = Signal(3)
+        be_o              = Signal(FT_be_width)
+        be_i              = Signal(FT_be_width)
+        be_oe             = Signal()
 
         # EP02 fifo signals
         EP02_empty        = Signal()
@@ -166,6 +175,8 @@ class FT601(LiteXModule):
                 o_Empty   = self.stream_fifo.empty,
                 o_Full    = Open()
             )
+            from shutil import which
+            diamond_path = "/".join(which("pnmainc").split('/')[:-3])
 
             self.fifo_converter = VHD2VConverter(platform,
                 top_entity    = "fifodc_w32x1024_r128",
@@ -174,6 +185,7 @@ class FT601(LiteXModule):
                 force_convert = False,
                 params        = fifo_params,
                 add_instance  = True,
+                #libraries     = [("ecp5u", f"{diamond_path}/cae_library/synthesis/vhdl/ecp5u.vhd")]
             )
 
         # Stream FPGA->PC
@@ -247,7 +259,7 @@ class FT601(LiteXModule):
             i_fsm_rddata        = fsm_rd_data,
             i_fsm_wrdata_req    = fsm_wr_data_req,
             o_fsm_wrdata        = fsm_wr_data,
-            i_ep_status         = pads.D[8:16],
+            i_ep_status         = data_i[8:16],
         )
 
         self.ft601_arbiter_converter = VHD2VConverter(platform,
@@ -292,18 +304,31 @@ class FT601(LiteXModule):
             # Physical device.
             o_wr_n          = pads.WRn,
             i_rxf_n         = pads.RXFn,
-            io_data         = pads.D,
-            io_be           = pads.BE,
+            o_data_o        = data_o,
+            i_data_i        = data_i,
+            o_data_oe       = data_oe,
+            o_be_o          = be_o,
+            i_be_i          = be_i,
+            o_be_oe         = be_oe,
             i_txe_n         = pads.TXEn,
         )
         self.ft601_converter = VHD2VConverter(platform,
             top_entity    = "FT601",
             build_dir     = os.path.abspath(os.path.dirname(__file__)),
             work_package  = "work",
-            force_convert = False,
+            force_convert = True,
             params        = ft601_params,
             add_instance  = True,
         )
+
+        self.specials += Tristate(pads.BE, o=be_o, oe=be_oe, i=be_i)
+        for i in range(8):
+            self.specials += [
+                Tristate(pads.D[i], o=data_o[i], oe=data_oe[0], i=data_i[i]),
+                Tristate(pads.D[8+i], o=data_o[8+i], oe=data_oe[1], i=data_i[8+i]), # data + FIFO status
+            ]
+        for i in range(16):
+            self.specials += Tristate(pads.D[16+i], o=data_o[16+i], oe=data_oe[2], i=data_i[16+i])
 
         # Logic.
         # ------
@@ -340,7 +365,7 @@ class FT601(LiteXModule):
             EP83_fifo_rdusedw.eq(Cat(0, self.EP83_fifo.level)),
 
             self.stream_fifo.wr_active.eq(EP83_fifo_status.busy_out),
-            pads.RESETn.eq(~ResetSignal("sys")),
+            pads.RESETn.eq(~ResetSignal("ft601")),
             pads.WAKEUPn.eq(Constant(1, 1)),
             self.stream_fifo.rd_active.eq(self.EP03_fifo_status.busy_out),
         ]
@@ -366,24 +391,16 @@ class FT601(LiteXModule):
             ).Else(
                 EP03_wr_cnt.eq(0),
             ),
-            If(self.stream_fifo.empty == 0b0 or EP03_fifo_wusedw > 0,
+            If((self.stream_fifo.empty == 0b0) | (EP03_fifo_wusedw > 0),
                 EP03_rdy.eq(0),
             ).Else(
                 EP03_rdy.eq(1),
             )
         ]
 
-        self.add_sources(platform, use_ghdl=use_ghdl)
+        self.add_sources(platform)
 
-    def add_sources(self, platform, use_ghdl=False):
+    def add_sources(self, platform):
         self.ft601_converter.add_source("gateware/hdl/FT601/synth/FT601.vhd")
-        self.ft601_converter.add_source("gateware/hdl/FT601/synth/FT601_arb.vhd")
+        self.ft601_arbiter_converter.add_source("gateware/hdl/FT601/synth/FT601_arb.vhd")
         self.fifo_converter.add_source("gateware/ip/fifodc_w32x1024_r128.vhd")
-        if use_ghdl:
-            import subprocess
-            from shutil import which
-            diamond_path = "/".join(which("pnmainc").split('/')[:-3])
-            pre_cmd      = f"ghdl -a --std=08 --work=ecp5u {diamond_path}/cae_library/synthesis/vhdl/ecp5u.vhd"
-            s            = subprocess.run(pre_cmd.split(" "))
-            if s.returncode:
-                raise OSError(f"Unable to convert {inst_name} to verilog, please check your GHDL install")

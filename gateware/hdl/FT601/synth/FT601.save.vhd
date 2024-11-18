@@ -38,6 +38,7 @@ entity FT601 is
 			WR_data        : in std_logic_vector(FT_data_width-1 downto 0); -- should be 2 cycle latency after WR_data_req 
 			wr_n           : out std_logic;
 			rxf_n          : in std_logic;
+			--data           : inout std_logic_vector(FT_data_width-1 downto 0);
 			data_i         : in  std_logic_vector(FT_data_width-1 downto 0);
 			data_o         : out std_logic_vector(FT_data_width-1 downto 0);
 			data_oe        : out std_logic_vector(2 downto 0);
@@ -100,7 +101,7 @@ begin
   	begin 
 		if reset_n='0' then
 		  term_cnt<=(others=>'0');
-		elsif (clk'event and clk='1') then
+		elsif rising_edge(clk) then
 		  if current_state=data_trnsf then 
 				term_cnt<=term_cnt+1;
 		  else 
@@ -114,7 +115,7 @@ begin
   	begin 
 		if reset_n='0' then
 		  master_is_writting <= '0';
-		elsif (clk'event and clk='1') then
+		elsif rising_edge(clk) then
          if current_state = prep_cmd AND rd_wr_reg = '1' then 
             master_is_writting <= '1';
          elsif current_state = idle then 
@@ -133,7 +134,7 @@ process (reset_n, clk)
   	begin 
 		if reset_n='0' then
 		  WR_data_req_cnt<=(others=>'0');
-		elsif (clk'event and clk='1') then
+		elsif rising_edge(clk) then
 		  if WR_data_req_int = '1' then 
 				WR_data_req_cnt<=WR_data_req_cnt+1;
 		  else 
@@ -151,7 +152,7 @@ process(reset_n, clk)
 			rd_wr_reg<='0';
 			ch_n_reg<=(others=>'0');
 			trnsf_en_reg<='0';
-		elsif (clk'event and clk='1') then
+		elsif rising_edge(clk) then
 			trnsf_en_reg<=trnsf_en;	
 			if trnsf_en='1' then 
 				rd_wr_reg   <= rd_wr;
@@ -168,7 +169,7 @@ end process;
 -- ----------------------------------------------------------------------------
 process(clk) 
 	begin	
-	if (clk'event AND clk = '1') then 
+	if rising_edge(clk) then 
 		if current_state=idle AND txe_n = '0' then 
 			ready<='1';
 		else 
@@ -185,10 +186,11 @@ end process;
 gen_32_bus : if FT_data_width = 32 generate 
 process (clk)
 begin
-   if (clk'event AND clk = '1') then 
+   if rising_edge(clk) then 
       case current_state is 
          when idle=>   
             data_o(31 downto 16)<=(others=>'1');
+            --data(15 downto 8)<=(others=>'Z');
             data_o(7 downto 0)<=(others=>'1');
 			data_oe <= "101";
             wr_n_sig<='1';
@@ -197,7 +199,8 @@ begin
             
          when prep_cmd =>
             data_o(31 downto 16)<=(others=>'1');
-            data_o(7 downto 0)<="0000" & ch_n_reg;
+            --data(15 downto 8)<=(others=>'Z');
+            data_o(7 downto 0)<="0000" & ch_n_reg; 
 			data_oe <= "101";
             wr_n_sig<='0';
             be_o<="000" & rd_wr_reg;
@@ -206,14 +209,18 @@ begin
          when cmd => 
             if rd_wr_reg='1' then 
                data_o(31 downto 16)<=(others=>'1');
-               data_o(7 downto 0)<="0000" & ch_n_reg;
+               data_o(7 downto 0)<="0000" & ch_n_reg; 
 			   data_oe <= "101";
                wr_n_sig<='0';
                be_o<="000" & rd_wr_reg;
 			   be_oe <= '1';
             else 
+               --data(31 downto 16)<=(others=>'Z');
+               --data(15 downto 8)<=(others=>'Z');			
+               --data(7 downto 0)<=(others=>'Z');
 			   data_oe <= "000";
                wr_n_sig<='0';
+               --be<=(others=>'Z');
 			   be_oe <= '0';
             end if;
             
@@ -225,8 +232,12 @@ begin
                be_o<=(others=>'1');
 			   be_oe <= '1';
             else 
+               --data(31 downto 16)<=(others=>'Z');
+               --data(15 downto 8)<=(others=>'Z');			
+               --data(7 downto 0)<=(others=>'Z');
 			   data_oe <= "000";
                wr_n_sig<='0';
+               --be<=(others=>'Z');
 			   be_oe <= '0';
             end if;
             
@@ -238,8 +249,12 @@ begin
                be_o<=(others=>'1');
 			   be_oe <= '1';
             else 
+               --data(31 downto 16)<=(others=>'Z');
+               --data(15 downto 8)<=(others=>'Z');			
+               --data(7 downto 0)<=(others=>'Z');
 			   data_oe <= "000";
                wr_n_sig<='0';
+               --be<=(others=>'Z');
 			   be_oe <= '0';
             end if;
             
@@ -255,18 +270,26 @@ begin
                be_o<=(others=>'1');
 			   be_oe <= '1';
             else 
+               --data(31 downto 16)<=(others=>'Z');
+               --data(15 downto 8)<=(others=>'Z');			
+               --data(7 downto 0)<=(others=>'Z');
 			   data_oe <= "000";
                if rxf_n = '0' then
                   wr_n_sig<='0';
                else 
                   wr_n_sig<='1';
                end if;
+               --be<=(others=>'Z');
 			   be_oe <= '0';
             end if;	
             
          when others=> 
+            --data(31 downto 16)<=(others=>'Z');
+            --data(15 downto 8)<=(others=>'Z');			
+            --data(7 downto 0)<=(others=>'Z');
 			data_oe <= "000";
             wr_n_sig<='1';
+            --be<=(others=>'Z');
 			be_oe <= '0';
             
       end case;
@@ -371,11 +394,13 @@ process(clk, reset_n)
    begin
    if reset_n = '0' then 
       WR_data_req_int <= '0';
-   elsif (clk'event AND clk = '1') then
+   elsif rising_edge(clk) then
       if current_state = prep_cmd AND rd_wr_reg = '1' then 
          WR_data_req_int <= '1';
       elsif (EP82_wrdata_req_end = '1' OR EP83_wrdata_req_end = '1') OR (rxf_n = '1' AND current_state = data_trnsf) then 
          WR_data_req_int <= '0';        
+      else
+         WR_data_req_int <= WR_data_req_int;
       end if;
    end if;
 end process;
@@ -388,7 +413,7 @@ WR_data_req <= WR_data_req_int;
 fsm_f : process(clk, reset_n)begin
 	if(reset_n = '0')then
 		current_state <= idle;
-	elsif(clk'event and clk = '1')then 
+	elsif rising_edge(clk)then 
 		current_state <= next_state;
 	end if;	
 end process;
@@ -403,6 +428,8 @@ fsm : process(current_state, trnsf_en_reg, rd_wr_reg, rxf_n, EP82_trnsf_end, EP8
       when idle =>							-- idle state 
          if trnsf_en_reg='1' then  		-- if access is granted go to read or write command
             next_state <= prep_cmd;      
+         else 
+            next_state <= idle;
          end if;
       when prep_cmd => 
          next_state <= cmd;
@@ -423,6 +450,8 @@ fsm : process(current_state, trnsf_en_reg, rd_wr_reg, rxf_n, EP82_trnsf_end, EP8
       when data_trnsf =>					-- data transfer state 
          if rxf_n='1' or EP82_trnsf_end = '1' or EP83_trnsf_end = '1' then 
             next_state  <= idle;
+         else 
+            next_state  <= data_trnsf;
          end if;	
          
       when others => 
@@ -435,7 +464,7 @@ end process;
 -- ----------------------------------------------------------------------------
 process(clk)
    begin 
-      if (clk'event AND clk = '1') then 
+      if rising_edge(clk) then 
          RD_data_valid  <= RD_data_valid_int;
          RD_data        <= data_i;
       end if;
