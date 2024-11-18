@@ -327,8 +327,9 @@ class FT601(LiteXModule):
                 Tristate(pads.D[i], o=data_o[i], oe=data_oe[0], i=data_i[i]),
                 Tristate(pads.D[8+i], o=data_o[8+i], oe=data_oe[1], i=data_i[8+i]), # data + FIFO status
             ]
-        for i in range(16):
-            self.specials += Tristate(pads.D[16+i], o=data_o[16+i], oe=data_oe[2], i=data_i[16+i])
+        if FT_data_width == 32:
+            for i in range(16):
+                self.specials += Tristate(pads.D[16+i], o=data_o[16+i], oe=data_oe[2], i=data_i[16+i])
 
         # Logic.
         # ------

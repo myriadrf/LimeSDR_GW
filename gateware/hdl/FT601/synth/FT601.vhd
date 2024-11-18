@@ -181,35 +181,31 @@ end process;
 -- ----------------------------------------------------------------------------
 -- data bus control
 -- ----------------------------------------------------------------------------
---generate FT bus controll signals when data bus is 32bit wide
-gen_32_bus : if FT_data_width = 32 generate 
 process (clk)
 begin
    if (clk'event AND clk = '1') then 
       case current_state is 
          when idle=>   
-            data_o(31 downto 16)<=(others=>'1');
-            data_o(7 downto 0)<=(others=>'1');
+            data_o <= (others=>'1');
 			data_oe <= "101";
             wr_n_sig<='1';
             be_o<=(others=>'1');
 			be_oe <= '1';
             
          when prep_cmd =>
-            data_o(31 downto 16)<=(others=>'1');
-            data_o(7 downto 0)<="0000" & ch_n_reg;
+            data_o(FT_data_width-1 downto 8) <= (others=>'1');
+            data_o(7 downto 0) <= "0000" & ch_n_reg;
 			data_oe <= "101";
-            wr_n_sig<='0';
-            be_o<="000" & rd_wr_reg;
+            wr_n_sig <= '0';
+            be_o  <= (FT_be_width-1 downto 1 => '0') & rd_wr_reg;
 			be_oe <= '1';
-            
          when cmd => 
             if rd_wr_reg='1' then 
-               data_o(31 downto 16)<=(others=>'1');
-               data_o(7 downto 0)<="0000" & ch_n_reg;
+               data_o(FT_data_width-1 downto 8) <= (others=>'1');
+               data_o(7 downto 0) <= "0000" & ch_n_reg;
 			   data_oe <= "101";
                wr_n_sig<='0';
-               be_o<="000" & rd_wr_reg;
+               be_o  <= (FT_be_width-1 downto 1 => '0') & rd_wr_reg;
 			   be_oe <= '1';
             else 
 			   data_oe <= "000";
@@ -272,94 +268,6 @@ begin
       end case;
     end if;
 end process;
-end generate;
-
---generate FT bus controll signals whe data bus is 16bit wide
---gen_16_bus : if FT_data_width = 16 generate
---  process (clk)
---begin
---   if rising_edge(clk) then 
---      case current_state is 
---         when idle=>   
---            --data(15 downto 8)<=(others=>'Z');
---            data(7 downto 0)<=(others=>'1');
---            wr_n_sig<='1';
---            be<=(others=>'1');
---            
---         when prep_cmd =>
---            data(15 downto 8)<=(others=>'Z');
---            data(7 downto 0)<="0000" & ch_n_reg; 
---            wr_n_sig<='0';
---            be<='0' & rd_wr_reg;
---            
---         when cmd => 
---            if rd_wr_reg='1' then 
---               data(15 downto 8)<=(others=>'Z');
---               data(7 downto 0)<="0000" & ch_n_reg; 
---               wr_n_sig<='0';
---               be<='0' & rd_wr_reg;
---            else 
---               data(15 downto 8)<=(others=>'Z');			
---               data(7 downto 0)<=(others=>'Z');
---               wr_n_sig<='0';
---               be<=(others=>'Z');
---            end if;
---            
---         when bus_turn0 => 
---               if rd_wr_reg='1' then 
---               data<=WR_data;
---               wr_n_sig<='0';
---               be<=(others=>'1');
---            else 
---               data(15 downto 8)<=(others=>'Z');			
---               data(7 downto 0)<=(others=>'Z');
---               wr_n_sig<='0';
---               be<=(others=>'Z');
---            end if;
---            
---         when bus_turn1 => 
---               if rd_wr_reg='1' then 
---               data<=WR_data;
---               wr_n_sig<='0';
---               be<=(others=>'1');
---            else 
---               data(15 downto 8)<=(others=>'Z');			
---               data(7 downto 0)<=(others=>'Z');
---               wr_n_sig<='0';
---               be<=(others=>'Z');
---            end if;
---            
---         when data_trnsf => 
---               if rd_wr_reg='1' then 
---               data<=WR_data;
---               if rxf_n = '0' then
---                  wr_n_sig<='0';
---               else 
---                  wr_n_sig<='1';
---               end if;
---               be<=(others=>'1');
---            else 
---               data(15 downto 8)<=(others=>'Z');			
---               data(7 downto 0)<=(others=>'Z');
---               if rxf_n = '0' then
---                  wr_n_sig<='0';
---               else 
---                  wr_n_sig<='1';
---               end if;
---               be<=(others=>'Z');
---            end if;	
---            
---         when others=> 
---            data(15 downto 8)<=(others=>'Z');			
---            data(7 downto 0)<=(others=>'Z');
---            wr_n_sig<='1';
---            be<=(others=>'Z');
---            
---      end case;
---    end if;
---
---end process;
---end generate;
 
 wr_n<=wr_n_sig;
 
