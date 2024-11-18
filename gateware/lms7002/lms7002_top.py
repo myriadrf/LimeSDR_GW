@@ -5,9 +5,13 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import os
+
 from migen import *
 from migen.genlib.cdc       import MultiReg
 from migen.genlib.resetsync import AsyncResetSynchronizer
+
+from litex.build.vhd2v_converter import VHD2VConverter
 
 from litex.gen import *
 
@@ -41,6 +45,8 @@ class LMS7002Top(LiteXModule):
 
         assert pads   is not None
         assert hw_ver is not None
+
+        self.platform  = platform
 
         self.pads                = pads
         self.periph_output_val_1 = Signal(16)
@@ -135,7 +141,10 @@ class LMS7002Top(LiteXModule):
 
         # Delay control module.
         # ---------------------
-        self.specials += Instance("delay_ctrl_top",
+        self.delay_ctrl_top_params = dict()
+
+        # Delay Ctrl Top Signals
+        self.delay_ctrl_top_params.update(
             # Clk/Reset.
             i_clk              = ClockSignal("lms_rx"),
             i_reset_n          = ~ResetSignal("lms_rx"),
@@ -193,7 +202,6 @@ class LMS7002Top(LiteXModule):
 
         if add_csr:
             self.add_csr()
-        self.add_sources(platform)
 
     def add_csr(self):
         # LMS Ctrl GPIO
@@ -249,13 +257,16 @@ class LMS7002Top(LiteXModule):
 
         ]
 
-    def add_sources(self, platform):
-        lms7002_files = [
-            "gateware/hdl/lms7002/lms7002_clk.vhd",
-            "gateware/hdl/lms7002/lms7002_top.vhd",
-            "gateware/hdl/lms7002/lms7002_rxiq.vhd",
-            "gateware/hdl/lms7002/lms7002_txiq.vhd",
-        ]
+    def do_finalize(self):
+        self.delay_ctrl_top = VHD2VConverter(self.platform,
+            top_entity    = "delay_ctrl_top",
+            build_dir     = os.path.abspath(self.platform.output_dir),
+            work_package  = "work",
+            force_convert = True,
+            params        = self.delay_ctrl_top_params,
+            add_instance  = True,
+        )
+        self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delay_ctrl_fsm.vhd")
+        self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delay_ctrl_top.vhd")
+        self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delayf_ctrl.vhd")
 
-        for file in lms7002_files:
-            platform.add_source(file)

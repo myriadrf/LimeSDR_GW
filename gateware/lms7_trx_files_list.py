@@ -41,11 +41,4 @@ lms7_trx_files = [
     # ----------
     "gateware/hdl/txiqmux/synth/txiqmux.vhd",
     "gateware/hdl/txiqmux/synth/txiq_tst_ptrn.vhd",
-
-    # Delay-Ctrl.
-    # ----------
-    "gateware/hdl/delayf_ctrl/delay_ctrl_fsm.vhd",
-    "gateware/hdl/delayf_ctrl/delay_ctrl_top.vhd",
-    "gateware/hdl/delayf_ctrl/delayf_ctrl.vhd",
-
 ]
