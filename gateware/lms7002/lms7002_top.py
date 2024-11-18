@@ -19,25 +19,6 @@ from gateware.lms7002.lms7002_clk  import LMS7002CLK
 
 # UTILS --------------------------------------------------------------------------------------------
 
-class DelayControl(LiteXModule):
-    def __init__(self):
-        self.en    = Signal()
-        self.sel   = Signal(2)
-        self.dir   = Signal()
-        self.mode  = Signal()
-        self.done  = Signal()
-        self.error = Signal()
-
-    def connect(self, slave_delay_control):
-        return [
-            slave_delay_control.en.eq(self.en),
-            slave_delay_control.sel.eq(self.sel),
-            slave_delay_control.dir.eq(self.dir),
-            slave_delay_control.mode.eq(self.mode),
-            self.done.eq(slave_delay_control.done),
-            self.error.eq(slave_delay_control.error),
-        ]
-
 class SampleCompare(LiteXModule):
     def __init__(self):
         self.en    = Signal()

@@ -11,8 +11,6 @@ from litex.gen import *
 
 from litex.soc.interconnect.csr import *
 
-from gateware.lms7002_top       import DelayControl
-
 # PLL Cfg ------------------------------------------------------------------------------------------
 
 class PLLCfg(LiteXModule):
