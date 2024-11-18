@@ -47,11 +47,11 @@ class LMS7002TXIQ(LiteXModule):
                 Instance("DELAYF",
                     p_DEL_VALUE =  1,
                     p_DEL_MODE  = "USER_DEFINED",
-                    i_A         = oddr_q, 
-                    i_LOADN     = self.data_loadn, 
-                    i_MOVE      = self.data_move, 
-                    i_DIRECTION = self.data_direction, 
-                    o_Z         = delay_z[i], 
+                    i_A         = oddr_q,
+                    i_LOADN     = self.data_loadn,
+                    i_MOVE      = self.data_move,
+                    i_DIRECTION = self.data_direction,
+                    o_Z         = delay_z[i],
                     o_CFLAG     = delay_cflag[i]
                 ),
             ]

@@ -33,7 +33,7 @@ class LMS7002CLK(LiteXModule):
         inst3_move       = Signal()
         inst3_direction  = Signal()
         inst3_cflag      = Signal()
-        
+
         inst4_loadn      = Signal()
         inst4_move       = Signal()
         inst4_direction  = Signal()
@@ -68,45 +68,45 @@ class LMS7002CLK(LiteXModule):
             inst3_direction.eq(self.direction),
             inst4_direction.eq(self.direction),
         ]
-        
+
         self.specials += [
             # Forwarded clock fclk1.
             # ----------------------
             DDROutput(
-                clk = pads.MCLK1, 
-                i1  = 0, 
-                i2  = 1, 
+                clk = pads.MCLK1,
+                i1  = 0,
+                i2  = 1,
                 o   = inst1_q
             ),
-        
+
             # Forwarded clock fclk2.
             # ----------------------
             DDROutput(
-                clk = pads.MCLK2, 
-                i1  = 0, 
-                i2  = 1, 
+                clk = pads.MCLK2,
+                i1  = 0,
+                i2  = 1,
                 o   = inst2_q
             ),
-        
+
             Instance("DELAYF",
                 p_DEL_VALUE = 1,
                 p_DEL_MODE  = "USER_DEFINED",
-                i_A         = inst1_q, 
-                i_LOADN     = inst3_loadn, 
-                i_MOVE      = inst3_move, 
-                i_DIRECTION = inst3_direction, 
-                o_Z         = pads.FCLK1, 
+                i_A         = inst1_q,
+                i_LOADN     = inst3_loadn,
+                i_MOVE      = inst3_move,
+                i_DIRECTION = inst3_direction,
+                o_Z         = pads.FCLK1,
                 o_CFLAG     = inst3_cflag,
             ),
-               
+
             Instance("DELAYF",
                 p_DEL_VALUE = 1,
                 p_DEL_MODE  = "USER_DEFINED",
-                i_A         = inst2_q, 
-                i_LOADN     = inst4_loadn, 
-                i_MOVE      = inst4_move, 
-                i_DIRECTION = inst4_direction, 
-                o_Z         = pads.FCLK2, 
+                i_A         = inst2_q,
+                i_LOADN     = inst4_loadn,
+                i_MOVE      = inst4_move,
+                i_DIRECTION = inst4_direction,
+                o_Z         = pads.FCLK2,
                 o_CFLAG     = inst4_cflag,
             ),
         ]
