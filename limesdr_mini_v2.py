@@ -39,7 +39,7 @@ from litescope import LiteScopeAnalyzer
 from gateware.busy_delay          import BusyDelay
 from gateware.fpgacfg             import FPGACfg
 from gateware.ft601               import FT601
-from gateware.lms7002_top         import LMS7002Top
+from gateware.lms7002.lms7002_top import LMS7002Top
 from gateware.lms7_trx_files_list import lms7_trx_files
 from gateware.tst_top             import TstTop
 from gateware.general_periph      import GeneralPeriphTop
