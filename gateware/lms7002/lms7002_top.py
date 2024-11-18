@@ -14,6 +14,8 @@ from litex.gen import *
 from litex.soc.interconnect.csr import *
 
 from gateware.lms7002.lms7002_rxiq import LMS7002RXIQ
+from gateware.lms7002.lms7002_txiq import LMS7002TXIQ
+from gateware.lms7002.lms7002_clk  import LMS7002CLK
 
 # UTILS --------------------------------------------------------------------------------------------
 
@@ -112,57 +114,34 @@ class LMS7002Top(LiteXModule):
 
         # Clocks.
         # -------
-        self.specials += Instance("lms7002_clk",
-            # Clk/Reset.
-            i_mclk1          = pads.MCLK1,
-            i_mclk1_reset_n  = ~ResetSignal("lms_tx"),
-            i_mclk2          = pads.MCLK2,
-            i_mclk2_reset_n  = ~ResetSignal("lms_rx"),
-
-            # Forwarded clock outputs
-            o_fclk1          = pads.FCLK1,
-            o_fclk2          = pads.FCLK2,
-
-            # Clock for internal logic
-            o_mclk1_int      = self.cd_lms_tx.clk,
-            o_mclk2_int      = self.cd_lms_rx.clk,
-
+        self.lms7002_clk = LMS7002CLK(pads)
+        self.comb += [
+            self.cd_lms_tx.clk.eq(pads.MCLK1),
+            self.cd_lms_rx.clk.eq(pads.MCLK2),
             # Configuration
-            i_sel            = Constant(0, 1), # 0 - fclk1 control, 1 - fclk2 control
-            o_cflag          = Open(),
-            i_direction      = Constant(0, 1),
-            i_loadn          = inst0_loadn,
-            i_move           = inst0_move
-        )
+            self.lms7002_clk.sel.eq(      Constant(0, 1)), # 0 - fclk1 control, 1 - fclk2 control
+            self.lms7002_clk.direction.eq(Constant(0, 1)),
+            self.lms7002_clk.loadn.eq(    inst0_loadn),
+            self.lms7002_clk.move.eq(     inst0_move),
+        ]
 
         # TX Path (DIQ1).
         # ---------------
-        self.specials += Instance("lms7002_txiq",
-            # Parameters.
-            p_iq_width       = 12,
-
-            # Clk/Reset.
-            i_clk            = ClockSignal("lms_tx"),
-            i_reset_n        = ~ResetSignal("lms_tx"),
-
-            # LMS7002 TX pads.
-            o_txiq           = pads.DIQ1_D,
-            o_txiqsel        = pads.ENABLE_IQSEL1,
-
+        self.lms7002_txiq = ClockDomainsRenamer("lms_tx")(LMS7002TXIQ(12, pads))
+        self.comb += [
             # Delay control
-            i_data_loadn     = tx_data_loadn,
-            i_data_move      = tx_data_move,
-            i_data_direction = Constant(0, 1),
-            o_data_cflag     = Open(),
+            self.lms7002_txiq.data_loadn.eq(    tx_data_loadn),
+            self.lms7002_txiq.data_move.eq(     tx_data_move),
+            self.lms7002_txiq.data_direction.eq(0),
 
             # From internal logic
-            i_tx_diq1_h      = self.tx_diq1_h,
-            i_tx_diq1_l      = self.tx_diq1_l
-        )
+            self.lms7002_txiq.tx_diq1_h.eq(      self.tx_diq1_h),
+            self.lms7002_txiq.tx_diq1_l.eq(      self.tx_diq1_l),
+        ]
 
         # RX path (DIQ2).
         # ---------------
-        self.lms7002_rxiq = LMS7002RXIQ(12, pads)
+        self.lms7002_rxiq = ClockDomainsRenamer("lms_rx")(LMS7002RXIQ(12, pads))
         self.comb += [
             self.lms7002_rxiq.data_loadn.eq(    rx_data_loadn),
             self.lms7002_rxiq.data_move.eq(     rx_data_move),
