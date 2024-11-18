@@ -289,16 +289,17 @@ class BaseSoC(SoCCore):
         ]
 
         # RF Switches ------------------------------------------------------------------------------
+        self.gpio = CSRStorage(16, reset=0b0001000101000100) # fpgacfg @23
         self.comb += [
             # RF Switch.
-            rfsw_pads.RX_V1.eq(self.fpgacfg.from_fpgacfg.gpio[8]),
-            rfsw_pads.RX_V2.eq(self.fpgacfg.from_fpgacfg.gpio[9]),
-            rfsw_pads.TX_V1.eq(self.fpgacfg.from_fpgacfg.gpio[12]),
-            rfsw_pads.TX_V2.eq(self.fpgacfg.from_fpgacfg.gpio[13]),
+            rfsw_pads.RX_V1.eq(self.gpio.storage[8]),
+            rfsw_pads.RX_V2.eq(self.gpio.storage[9]),
+            rfsw_pads.TX_V1.eq(self.gpio.storage[12]),
+            rfsw_pads.TX_V2.eq(self.gpio.storage[13]),
 
             # TX
-            tx_lb_pads.AT.eq(  self.fpgacfg.from_fpgacfg.gpio[1]),
-            tx_lb_pads.SH.eq(  self.fpgacfg.from_fpgacfg.gpio[2]),
+            tx_lb_pads.AT.eq(  self.gpio.storage[1]),
+            tx_lb_pads.SH.eq(  self.gpio.storage[2]),
         ]
 
         # Timings ----------------------------------------------------------------------------------

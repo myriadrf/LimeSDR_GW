@@ -57,7 +57,7 @@ void fpgacfg_write(uint16_t addr, uint8_t *wdata)
 		lms7002_top_lms1_write(value);
 		break;
 	case 0x17:
-		fpgacfg_gpio_write(value);
+		main_gpio_write(value);
 		break;
 	case 0x1A:
 		general_periph_fpga_led_ctrl_write(value);
@@ -140,7 +140,7 @@ void fpgacfg_read(uint16_t addr, uint8_t *rdata)
 		value = lms7002_top_lms1_read();
 		break;
 	case 0x17:
-		value = fpgacfg_gpio_read();
+		value = main_gpio_read();
 		break;
 	case 0x1A:
 		value = general_periph_fpga_led_ctrl_read();

@@ -93,7 +93,6 @@ class FPGACfg(LiteXModule):
         self.txant_post        = CSRStorage(16, reset=1)
 
         self.spi_ss            = CSRStorage(16, reset=0xffff)
-        self.gpio              = CSRStorage(16, reset=0b0001000101000100) # 23
         self.clk_ena           = CSRStorage(4, reset=0b1111)              # 29
         self.sync_pulse_period = CSRStorage(32, reset=0x3D090)            # 30
 
@@ -143,7 +142,6 @@ class FPGACfg(LiteXModule):
 
             self.from_fpgacfg.spi_ss.eq(           self.spi_ss.storage),
 
-            self.from_fpgacfg.gpio.eq(             self.gpio.storage),
             self.from_fpgacfg.clk_ena.eq(          self.clk_ena.storage),
             self.from_fpgacfg.sync_pulse_period.eq(self.sync_pulse_period.storage),
         ]
