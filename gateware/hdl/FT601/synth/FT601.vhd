@@ -71,14 +71,11 @@ signal rd_wr_int	  	      : std_logic;
 signal rd_wr_reg		      : std_logic;
 signal ch_n_reg		      : std_logic_vector(3 downto 0);
 signal trnsf_en_reg	      : std_logic;
-signal wr_n_sig   	      : std_logic;
 signal RD_data_valid_int   : std_logic;
 signal EP82_trnsf_end      : std_logic;
 signal EP83_trnsf_end      : std_logic;
 signal EP82_wrdata_req_end : std_logic;
 signal EP83_wrdata_req_end : std_logic;
-
-signal master_is_writting  : std_logic;
 
 
   
@@ -108,23 +105,6 @@ begin
       end if;
 	  end if;
   end process;
-  
-  
-  process (reset_n, clk)
-  	begin 
-		if reset_n='0' then
-		  master_is_writting <= '0';
-		elsif (clk'event and clk='1') then
-         if current_state = prep_cmd AND rd_wr_reg = '1' then 
-            master_is_writting <= '1';
-         elsif current_state = idle then 
-            master_is_writting <= '0';
-         else 
-				master_is_writting <= master_is_writting;
-      end if;
-	  end if;
-  end process;
-   
   
 -- ----------------------------------------------------------------------------
 -- counter to determine when to stop reading wr data buffer
@@ -156,9 +136,6 @@ process(reset_n, clk)
 			if trnsf_en='1' then 
 				rd_wr_reg   <= rd_wr;
 				ch_n_reg    <= ch_n;
-			else 
-				rd_wr_reg   <= rd_wr_reg;
-				ch_n_reg    <= ch_n_reg;
 			end if;
 		end if;
 end process;
@@ -188,7 +165,7 @@ begin
          when idle=>   
             data_o <= (others=>'1');
 			data_oe <= "101";
-            wr_n_sig<='1';
+            wr_n<='1';
             be_o<=(others=>'1');
 			be_oe <= '1';
             
@@ -196,7 +173,7 @@ begin
             data_o(FT_data_width-1 downto 8) <= (others=>'1');
             data_o(7 downto 0) <= "0000" & ch_n_reg;
 			data_oe <= "101";
-            wr_n_sig <= '0';
+            wr_n <= '0';
             be_o  <= (FT_be_width-1 downto 1 => '0') & rd_wr_reg;
 			be_oe <= '1';
          when cmd => 
@@ -204,12 +181,12 @@ begin
                data_o(FT_data_width-1 downto 8) <= (others=>'1');
                data_o(7 downto 0) <= "0000" & ch_n_reg;
 			   data_oe <= "101";
-               wr_n_sig<='0';
+               wr_n<='0';
                be_o  <= (FT_be_width-1 downto 1 => '0') & rd_wr_reg;
 			   be_oe <= '1';
             else 
 			   data_oe <= "000";
-               wr_n_sig<='0';
+               wr_n<='0';
 			   be_oe <= '0';
             end if;
             
@@ -217,60 +194,49 @@ begin
                if rd_wr_reg='1' then 
                data_o  <= WR_data;
 			   data_oe <= "111";
-               wr_n_sig<='0';
+               wr_n<='0';
                be_o<=(others=>'1');
 			   be_oe <= '1';
             else 
 			   data_oe <= "000";
-               wr_n_sig<='0';
+               wr_n<='0';
 			   be_oe <= '0';
             end if;
             
          when bus_turn1 => 
-               if rd_wr_reg='1' then 
+            if rd_wr_reg='1' then 
                data_o  <= WR_data;
 			   data_oe <= "111";
-               wr_n_sig<='0';
+               wr_n<='0';
                be_o<=(others=>'1');
 			   be_oe <= '1';
             else 
 			   data_oe <= "000";
-               wr_n_sig<='0';
+               wr_n<='0';
 			   be_oe <= '0';
             end if;
             
          when data_trnsf => 
-               if rd_wr_reg='1' then 
+            if rd_wr_reg='1' then 
                data_o  <= WR_data;
 			   data_oe <= "111";
-               if rxf_n = '0' then
-                  wr_n_sig<='0';
-               else 
-                  wr_n_sig<='1';
-               end if;
+               wr_n<=rxf_n;
                be_o<=(others=>'1');
 			   be_oe <= '1';
             else 
 			   data_oe <= "000";
-               if rxf_n = '0' then
-                  wr_n_sig<='0';
-               else 
-                  wr_n_sig<='1';
-               end if;
+               wr_n<=rxf_n;
 			   be_oe <= '0';
             end if;	
             
          when others=> 
 			data_oe <= "000";
-            wr_n_sig<='1';
+            wr_n<='1';
 			be_oe <= '0';
             
       end case;
     end if;
 end process;
-
-wr_n<=wr_n_sig;
-
 
 -- ----------------------------------------------------------------------------
 -- WR_data_req signal 
