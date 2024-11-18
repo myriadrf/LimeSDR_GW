@@ -11,8 +11,8 @@ from litex.gen import *
 
 from litex.soc.interconnect.csr import CSRStatus, CSRStorage, CSRField
 
-from gateware.common      import *
-from gateware.lms7002_top import SampleCompare
+from gateware.common              import *
+from gateware.lms7002.lms7002_top import SampleCompare
 
 # RXTX Top -----------------------------------------------------------------------------------------
 
