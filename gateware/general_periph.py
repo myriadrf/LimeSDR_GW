@@ -11,30 +11,6 @@ from litex.gen import *
 
 from litex.soc.interconnect.csr import *
 
-# Layout -------------------------------------------------------------------------------------------
-
-from_periphcfg_layout = [
-    ("board_gpio_ovrd",      16),
-    ("board_gpio_dir",       16),
-    ("board_gpio_val",       16),
-    ("periph_output_ovrd_0", 16),
-    ("periph_output_val_0",  16),
-    ("periph_output_ovrd_1", 16),
-    ("periph_output_val_1",  16),
-]
-
-to_periphcfg_layout = [
-    ("board_gpio_rd",     16),
-    ("periph_input_rd_0", 16),
-    ("periph_input_rd_1", 16),
-]
-
-def FromPeriphCfg():
-    return Record(from_periphcfg_layout)
-
-def ToPeriphCfg():
-    return Record(to_periphcfg_layout)
-
 # General Periph Top -------------------------------------------------------------------------------
 
 class GeneralPeriphTop(LiteXModule):
