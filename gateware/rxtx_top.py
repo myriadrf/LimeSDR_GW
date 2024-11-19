@@ -13,6 +13,7 @@ from litex.soc.interconnect.csr import CSRStatus, CSRStorage, CSRField
 
 from gateware.common              import *
 from gateware.lms7002.lms7002_top import SampleCompare
+from gateware.rx_path             import RXPath
 
 # RXTX Top -----------------------------------------------------------------------------------------
 
@@ -114,6 +115,9 @@ class RXTXTop(LiteXModule):
         # Signals.
         # --------
         self._ddr2_1_pnf_per_bit = Signal(32)
+        pct_hdr_cap              = Signal()
+        smpl_nr_cnt              = Signal(64)
+        tx_pct_loss_flg          = Signal()
 
         # rxtx_top wrapper (required due to record).
         # ------------------------------------------
@@ -127,12 +131,6 @@ class RXTXTop(LiteXModule):
             p_TX_IN_PCT_RDUSEDW_W    = TX_IN_PCT_RDUSEDW_W,
             p_TX_OUT_PCT_DATA_W      = TX_OUT_PCT_DATA_W,
 
-            ## RX parameters
-            p_RX_IQ_WIDTH            = RX_IQ_WIDTH,
-            #p_RX_INVERT_INPUT_CLOCKS = RX_INVERT_INPUT_CLOCKS,
-            p_RX_SMPL_BUFF_RDUSEDW_W = RX_SMPL_BUFF_RDUSEDW_W,
-            p_RX_PCT_BUFF_WRUSEDW_W  = RX_PCT_BUFF_WRUSEDW_W,
-
             # Configuration memory ports
             #from_fpgacfg            : in     t_FROM_FPGACFG;
             i_ch_en                  = Cat(self.channel_cntrl.fields.ch_en, Constant(0, 14)),
@@ -143,10 +141,8 @@ class RXTXTop(LiteXModule):
             i_mimo_int_en            = self.reg08.fields.mimo_int_en,
             i_synch_dis              = self.reg08.fields.synch_dis,
             i_synch_mode             = self.reg08.fields.synch_mode,
-            i_smpl_nr_clr            = self.reg09.fields.smpl_nr_clr,
             i_txpct_loss_clr         = self.reg09.fields.txpct_loss_clr,
             i_rx_en                  = self.reg10.fields.rx_en,
-            i_rx_ptrn_en             = self.reg10.fields.rx_ptrn_en,
             i_tx_ptrn_en             = self.reg10.fields.tx_ptrn_en,
             i_tx_cnt_en              = self.reg10.fields.tx_cnt_en,
             i_wfm_play               = self.reg13.fields.wfm_play,
@@ -168,7 +164,7 @@ class RXTXTop(LiteXModule):
             i_tx_clk                 = ClockSignal("lms_tx"),
             o_tx_clkout              = Open(),
             i_tx_clk_reset_n         = ~ResetSignal("sys"),
-            o_tx_pct_loss_flg        = Open(),
+            o_tx_pct_loss_flg        = tx_pct_loss_flg,
             o_tx_txant_en            = self.tx_txant_en,
             #  Tx interface data
             o_tx_diq1_h              = self.tx_diq1_h,
@@ -179,28 +175,65 @@ class RXTXTop(LiteXModule):
             i_tx_in_pct_rdempty      = self.stream_fifo.empty,
             i_tx_in_pct_rdusedw      = self.stream_fifo.rdusedw,
 
+            i_smpl_nr_cnt            = smpl_nr_cnt,
+            i_pct_hdr_cap            = pct_hdr_cap,
+
+
             ## RX path
             i_rx_clk                 = ClockSignal("lms_rx"),
-            i_rx_clk_reset_n         = ~ResetSignal("sys"),
-            ##  Rx interface data
-            i_rx_diq2_h              = self.rx_diq2_h,
-            i_rx_diq2_l              = self.rx_diq2_l,
-            #  Packet fifo ports
-            o_rx_pct_fifo_aclrn_req  = self.rx_pct_fifo_aclrn_req,
-            i_rx_pct_fifo_wusedw     = self.stream_fifo.wrusedw,
-            o_rx_pct_fifo_wrreq      = self.stream_fifo.wr,
-            o_rx_pct_fifo_wdata      = self.stream_fifo.wdata,
-            #  sample compare
-            i_rx_smpl_cmp_start      = self.rx_smpl_cmp.en,
-            i_rx_smpl_cmp_length     = self.rxtx_smpl_cmp_length,
-            o_rx_smpl_cmp_done       = self.rx_smpl_cmp.done,
-            o_rx_smpl_cmp_err        = self.rx_smpl_cmp.error,
+        )
+
+        self.rx_path = rx_path = RXPath(platform,
+            ## RX parameters
+            RX_IQ_WIDTH            = RX_IQ_WIDTH,
+            RX_SMPL_BUFF_RDUSEDW_W = RX_SMPL_BUFF_RDUSEDW_W,
+            RX_PCT_BUFF_WRUSEDW_W  = RX_PCT_BUFF_WRUSEDW_W,
         )
 
         self.comb += [
+            rx_path.rx_en.eq(             self.reg10.fields.rx_en),
+            rx_path.rx_ptrn_en.eq(        self.reg10.fields.rx_ptrn_en),
+
+            # Mode settings.
+            rx_path.smpl_width.eq(        self.reg08.fields.smpl_width),
+            rx_path.mode.eq(              self.reg08.fields.mode),
+            rx_path.trxiqpulse.eq(        self.reg08.fields.trxiq_pulse),
+            rx_path.ddr_en.eq(            self.reg08.fields.ddr_en),
+            rx_path.mimo_en.eq(           self.reg08.fields.mimo_int_en),
+            rx_path.ch_en.eq(             self.channel_cntrl.fields.ch_en),
+
+            # Rx interface data
+            rx_path.rx_diq2_h.eq(         self.rx_diq2_h),
+            rx_path.rx_diq2_l.eq(         self.rx_diq2_l),
+
+            # Packet fifo ports
+            self.rx_pct_fifo_aclrn_req.eq(rx_path.rx_pct_fifo_aclrn_req),
+            rx_path.rx_pct_fifo_wusedw.eq(self.stream_fifo.wrusedw),
+            self.stream_fifo.wr.eq(       rx_path.rx_pct_fifo_wrreq),
+            self.stream_fifo.wdata.eq(    rx_path.rx_pct_fifo_wdata),
+
+            # sample nr
+            rx_path.smpl_nr_clr.eq(       self.reg09.fields.smpl_nr_clr),
+            smpl_nr_cnt.eq(               rx_path.smpl_nr_cnt),
+
+            # Flag Control.
+            rx_path.tx_pct_loss_flg.eq(   tx_pct_loss_flg),
+            rx_path.tx_pct_loss_clr.eq(   self.reg09.fields.txpct_loss_clr),
+
+            # Sample Compare.
+            rx_path.rx_smpl_cmp_start.eq( self.rx_smpl_cmp.en),
+            rx_path.rx_smpl_cmp_length.eq(self.rxtx_smpl_cmp_length),
+            self.rx_smpl_cmp.done.eq(     rx_path.rx_smpl_cmp_done),
+            self.rx_smpl_cmp.error.eq(    rx_path.rx_smpl_cmp_err),
+        ]
+
+        # Logic.
+        # ------
+
+        self.comb += [
+            self.rx_en.eq(                       self.reg10.fields.rx_en),
             self._ddr2_1_pnf_per_bit_l.status.eq(self._ddr2_1_pnf_per_bit[:16]),
             self._ddr2_1_pnf_per_bit_h.status.eq(self._ddr2_1_pnf_per_bit[15:]),
-            self.rx_en.eq(self.reg10.fields.rx_en),
         ]
 
         self.add_sources(platform)
@@ -227,32 +260,11 @@ class RXTXTop(LiteXModule):
             "gateware/hdl/tx_path_top/bit_unpack/synth/unpack_64_to_48.vhd",
             "gateware/hdl/tx_path_top/bit_unpack/synth/unpack_64_to_56.vhd",
             "gateware/hdl/tx_path_top/bit_unpack/synth/unpack_64_to_64.vhd",
-            "gateware/hdl/rx_path_top/bit_pack/synth/bit_pack.vhd",
-            "gateware/hdl/rx_path_top/bit_pack/synth/pack_48_to_64.vhd",
-            "gateware/hdl/rx_path_top/bit_pack/synth/pack_56_to_64.vhd",
-            "gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd",
-            "gateware/hdl/rx_path_top/rx_path/synth/rx_path_top.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_mimo.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_mimo_ddr.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_pulse_ddr.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_siso.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_siso_ddr.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_siso_sdr.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd",
-            "gateware/hdl/rx_path_top/data2packets/synth/data2packets.vhd",
-            "gateware/hdl/rx_path_top/data2packets/synth/data2packets_fsm.vhd",
-            "gateware/hdl/rx_path_top/data2packets/synth/data2packets_top.vhd",
-            "gateware/hdl/tx_path_top/fifo2diq/synth/edge_delay.vhd",
-            "gateware/hdl/rx_path_top/smpl_cnt/synth/iq_smpl_cnt.vhd",
-            "gateware/hdl/rx_path_top/smpl_cnt/synth/smpl_cnt.vhd",
 
             # Lattice FIFOs.
             # --------------
             "gateware/ip/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
             "gateware/ip/fifodc_w128x256_r64.vhd",  # packets2data.vhd.
-            "gateware/ip/fifodc_w48x1024_r48.vhd",  # rx_path_top.vhd.
 
             "gateware/rxtx_top_wrapper.vhd",
         ]

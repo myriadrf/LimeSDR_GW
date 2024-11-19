@@ -29,13 +29,7 @@ entity rxtx_top_wrapper is
       TX_IN_PCT_HDR_SIZE      : integer := 16;
       TX_IN_PCT_DATA_W        : integer := 128;
       TX_IN_PCT_RDUSEDW_W     : integer := 11;
-      TX_OUT_PCT_DATA_W       : integer := 64;
-
-      -- RX parameters
-      RX_IQ_WIDTH             : integer := 12;
-      RX_INVERT_INPUT_CLOCKS  : string := "ON";
-      RX_SMPL_BUFF_RDUSEDW_W  : integer := 11; --bus width in bits
-      RX_PCT_BUFF_WRUSEDW_W   : integer := 12  --bus width in bits
+      TX_OUT_PCT_DATA_W       : integer := 64
    );
    port (
       -- Configuration memory ports
@@ -48,10 +42,8 @@ entity rxtx_top_wrapper is
       mimo_int_en         : in std_logic;
       synch_dis           : in std_logic;
       synch_mode          : in std_logic;
-      smpl_nr_clr         : in std_logic;
       txpct_loss_clr      : in std_logic;
       rx_en               : in std_logic;
-      rx_ptrn_en          : in std_logic;
       tx_ptrn_en          : in std_logic;
       tx_cnt_en           : in std_logic;
       wfm_play            : in std_logic;
@@ -85,22 +77,11 @@ entity rxtx_top_wrapper is
       tx_in_pct_rdempty   : in  std_logic;
       tx_in_pct_rdusedw   : in  std_logic_vector(TX_IN_PCT_RDUSEDW_W-1 downto 0);
 
-      ---- RX path
-      rx_clk              : in  std_logic;
-      rx_clk_reset_n      : in  std_logic;
-      --   --Rx interface data
-      rx_diq2_h           : in  std_logic_vector(RX_IQ_WIDTH downto 0);
-      rx_diq2_l           : in  std_logic_vector(RX_IQ_WIDTH downto 0);
-      --   --Packet fifo ports
-      rx_pct_fifo_aclrn_req : out std_logic;
-      rx_pct_fifo_wusedw  : in  std_logic_vector(RX_PCT_BUFF_WRUSEDW_W-1 downto 0);
-      rx_pct_fifo_wrreq   : out std_logic;
-      rx_pct_fifo_wdata   : out std_logic_vector(63 downto 0);
-         --sample compare
-      rx_smpl_cmp_start   : in  std_logic;
-      rx_smpl_cmp_length  : in  std_logic_vector(15 downto 0);
-      rx_smpl_cmp_done    : out std_logic;
-      rx_smpl_cmp_err     : out std_logic
+      smpl_nr_cnt         : in 	std_logic_vector(63 downto 0);
+      pct_hdr_cap         : in 	std_logic;
+
+      ------ RX path
+      rx_clk              : in  std_logic
       );
 end rxtx_top_wrapper;
 
@@ -128,11 +109,11 @@ begin
    from_fpgacfg.mimo_int_en       <= mimo_int_en;
    from_fpgacfg.synch_dis         <= synch_dis;
    from_fpgacfg.synch_mode        <= synch_mode;
-   from_fpgacfg.smpl_nr_clr       <= smpl_nr_clr;
+   from_fpgacfg.smpl_nr_clr       <= '0';
    from_fpgacfg.txpct_loss_clr    <= txpct_loss_clr;
    from_fpgacfg.rx_en             <= rx_en;
    from_fpgacfg.tx_en             <= '0';
-   from_fpgacfg.rx_ptrn_en        <= rx_ptrn_en;
+   from_fpgacfg.rx_ptrn_en        <= '0'; --rx_ptrn_en;
    from_fpgacfg.tx_ptrn_en        <= tx_ptrn_en;
    from_fpgacfg.tx_cnt_en         <= tx_cnt_en;
    from_fpgacfg.wfm_ch_en         <= (others => '0');
@@ -175,14 +156,7 @@ begin
       TX_IN_PCT_HDR_SIZE     => TX_IN_PCT_HDR_SIZE,
       TX_IN_PCT_DATA_W       => TX_IN_PCT_DATA_W,
       TX_IN_PCT_RDUSEDW_W    => TX_IN_PCT_RDUSEDW_W,
-      TX_OUT_PCT_DATA_W      => TX_OUT_PCT_DATA_W,
-
-      -- RX parameters
-      RX_IQ_WIDTH            => RX_IQ_WIDTH,
-      RX_INVERT_INPUT_CLOCKS => RX_INVERT_INPUT_CLOCKS,
-      RX_SMPL_BUFF_RDUSEDW_W => RX_SMPL_BUFF_RDUSEDW_W,
-      RX_PCT_BUFF_WRUSEDW_W  => RX_PCT_BUFF_WRUSEDW_W
-
+      TX_OUT_PCT_DATA_W      => TX_OUT_PCT_DATA_W
      )
      port map (
       -- Configuration memory ports
@@ -204,21 +178,10 @@ begin
       tx_in_pct_rdempty      => tx_in_pct_rdempty,
       tx_in_pct_rdusedw      => tx_in_pct_rdusedw,
 
+      inst5_pct_hdr_cap      => pct_hdr_cap,
+      inst5_smpl_nr_cnt      => smpl_nr_cnt,
+
       -- RX path
-      rx_clk                 => rx_clk,
-      rx_clk_reset_n         => rx_clk_reset_n,
-         --Rx interface data
-      rx_diq2_h              => rx_diq2_h,
-      rx_diq2_l              => rx_diq2_l,
-         --Packet fifo ports
-      rx_pct_fifo_aclrn_req  => rx_pct_fifo_aclrn_req,
-      rx_pct_fifo_wusedw     => rx_pct_fifo_wusedw,
-      rx_pct_fifo_wrreq      => rx_pct_fifo_wrreq,
-      rx_pct_fifo_wdata      => rx_pct_fifo_wdata,
-         --sample compare
-      rx_smpl_cmp_start      => rx_smpl_cmp_start,
-      rx_smpl_cmp_length     => rx_smpl_cmp_length,
-      rx_smpl_cmp_done       => rx_smpl_cmp_done,
-      rx_smpl_cmp_err        => rx_smpl_cmp_err
+      rx_clk                 => rx_clk
      );
 end arch;
