@@ -122,6 +122,8 @@ class BaseSoC(SoCCore):
         # XTRX.
         "i2c0"        : 20,
         "i2c1"        : 21,
+        "GNSS_UART"   : 22,
+
 
         # Analyzer.
         "analyzer"    : 30,
@@ -166,6 +168,22 @@ class BaseSoC(SoCCore):
         )
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
+
+
+        # gnss uart
+        gps_pads = platform.request("gps")
+        from litex.soc.cores.uart import UARTPHY
+        from litex.soc.cores.uart import UART
+        gnss_uart_pads      = self.platform.request("gps_serial", loose=True)
+        gnss_uart_phy  = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
+        gnss_uart      = UART(gnss_uart_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
+        self.add_module(name=f"GNSS_UART_phy", module=gnss_uart_phy)
+        self.add_module(name="GNSS_UART", module=gnss_uart)
+
+        # disable reset and standby
+        self.comb += gps_pads.rst.eq(1)
+        self.comb += gps_pads.hw_s.eq(1)
+
 
         self.fpgacfg = fpgacfg_csr()
         self.CNTRL = CNTRL_CSR(1)
