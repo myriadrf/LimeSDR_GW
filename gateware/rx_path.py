@@ -155,7 +155,7 @@ class RXPath(LiteXModule):
             "gateware/hdl/rx_path_top/smpl_cnt/synth/iq_smpl_cnt.vhd",
             "gateware/hdl/rx_path_top/smpl_cnt/synth/smpl_cnt.vhd",
 
-            "gateware/hdl/rx_path_top/diq2fifo/synth/lms7002_rx.vhd",
+            "gateware/LimeDFB/lms7002/src/lms7002_rx.vhd",
 
             # Lattice FIFOs.
             # --------------
