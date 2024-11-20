@@ -37,7 +37,7 @@ def FIFORD_SIZE(wr_width, rd_width, wr_size):
 # FT601 --------------------------------------------------------------------------------------------
 
 class FT601(LiteXModule):
-    def __init__(self, platform, pads=None, use_ghdl=False,
+    def __init__(self, platform, pads=None, use_ghdl=False, use_litex_fifo=False,
         FT_data_width      = 32,
         FT_be_width        = 4,
         EP02_rdusedw_width = 11,
@@ -54,8 +54,11 @@ class FT601(LiteXModule):
 
         assert pads is not None
 
-        self.ctrl_fifo   = FIFOInterface(EP02_rwidth, EP82_wwidth)
-        self.stream_fifo = FIFOInterface(EP03_rwidth, EP83_wwidth, EP03_rdusedw_width, EP83_wrusedw_width)
+        self.platform       = platform
+        self.use_litex_fifo = use_litex_fifo
+
+        self.ctrl_fifo      = FIFOInterface(EP02_rwidth, EP82_wwidth)
+        self.stream_fifo    = FIFOInterface(EP03_rwidth, EP83_wwidth, EP03_rdusedw_width, EP83_wrusedw_width)
 
         self.ctrl_fifo_fpga_pc_reset_n   = Signal()
         self.stream_fifo_fpga_pc_reset_n = Signal()
@@ -123,7 +126,7 @@ class FT601(LiteXModule):
             delay_time   = 100, #  delay time in ms
         )
 
-        if False:
+        if use_litex_fifo:
             self.EP03_sink   = stream.Endpoint([("data", FT_data_width)])
             self.EP03_fifo   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", FT_data_width)], 1024, True)))
             self.EP03_conv   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(FT_data_width, EP03_rwidth)))
@@ -158,10 +161,10 @@ class FT601(LiteXModule):
                 EP03_fifo_wusedw.eq(         self.EP03_fifo.level),
             ]
         else:
-            fifo_params = dict()
+            self.fifo_params = dict()
 
             # FIFO Signals.
-            fifo_params.update(
+            self.fifo_params.update(
                 i_Data    = EP03_wdata,
                 i_WrClock = ClockSignal("ft601"),
                 i_RdClock = ClockSignal("lms_tx"),
@@ -174,18 +177,6 @@ class FT601(LiteXModule):
                 o_RCNT    = self.stream_fifo.rdusedw,
                 o_Empty   = self.stream_fifo.empty,
                 o_Full    = Open()
-            )
-            from shutil import which
-            diamond_path = "/".join(which("pnmainc").split('/')[:-3])
-
-            self.fifo_converter = VHD2VConverter(platform,
-                top_entity    = "fifodc_w32x1024_r128",
-                build_dir     = os.path.abspath(os.path.dirname(__file__)),
-                work_package  = "work",
-                force_convert = False,
-                params        = fifo_params,
-                add_instance  = True,
-                #libraries     = [("ecp5u", f"{diamond_path}/cae_library/synthesis/vhdl/ecp5u.vhd")]
             )
 
         # Stream FPGA->PC
@@ -212,10 +203,10 @@ class FT601(LiteXModule):
 
         # FTDI arbiter
         # ------------
-        ft601_arbiter_params = dict()
+        self.ft601_arbiter_params = dict()
 
         # FT601 Arbiter Parameters.
-        ft601_arbiter_params.update(
+        self.ft601_arbiter_params.update(
             # Parameters
             p_FT_data_width     = FT_data_width,
             p_EP82_fifo_rwidth  = FIFORD_SIZE(EP82_wwidth, FT_data_width, EP82_wrusedw_width),
@@ -225,7 +216,7 @@ class FT601(LiteXModule):
         )
 
         # FT601 Arbiter Signals.
-        ft601_arbiter_params.update(
+        self.ft601_arbiter_params.update(
             # Clk/Rst.
             i_clk               = ClockSignal("ft601"),
             i_reset_n           = ~ResetSignal("ft601"),
@@ -262,21 +253,12 @@ class FT601(LiteXModule):
             i_ep_status         = data_i[8:16],
         )
 
-        self.ft601_arbiter_converter = VHD2VConverter(platform,
-            top_entity    = "FT601_arb",
-            build_dir     = os.path.abspath(os.path.dirname(__file__)),
-            work_package  = "work",
-            force_convert = True,
-            params        = ft601_arbiter_params,
-            add_instance  = True,
-        )
-
         # FTDI fsm
         # --------
-        ft601_params = dict()
+        self.ft601_params = dict()
 
         # FT601 Parameters.
-        ft601_params.update(
+        self.ft601_params.update(
             # Parameters
             p_FT_data_width = FT_data_width,
             p_FT_be_width   = FT_be_width,
@@ -285,7 +267,7 @@ class FT601(LiteXModule):
         )
 
         # FT601 Signals.
-        ft601_params.update(
+        self.ft601_params.update(
             # Clk/Rst.
             i_clk           = ClockSignal("ft601"),
             i_reset_n       = ~ResetSignal("ft601"),
@@ -311,14 +293,6 @@ class FT601(LiteXModule):
             i_be_i          = be_i,
             o_be_oe         = be_oe,
             i_txe_n         = pads.TXEn,
-        )
-        self.ft601_converter = VHD2VConverter(platform,
-            top_entity    = "FT601",
-            build_dir     = os.path.abspath(os.path.dirname(__file__)),
-            work_package  = "work",
-            force_convert = True,
-            params        = ft601_params,
-            add_instance  = True,
         )
 
         self.specials += Tristate(pads.BE, o=be_o, oe=be_oe, i=be_i)
@@ -399,9 +373,40 @@ class FT601(LiteXModule):
             )
         ]
 
-        self.add_sources(platform)
+    def do_finalize(self):
+        output_dir = self.platform.output_dir
 
-    def add_sources(self, platform):
-        self.ft601_converter.add_source("gateware/hdl/FT601/synth/FT601.vhd")
+        if not self.use_litex_fifo:
+            from shutil import which
+            diamond_path = "/".join(which("pnmainc").split('/')[:-3])
+
+            self.fifo_converter = VHD2VConverter(self.platform,
+                top_entity    = "fifodc_w32x1024_r128",
+                build_dir     = os.path.abspath(output_dir),
+                work_package  = "work",
+                force_convert = False,
+                params        = self.fifo_params,
+                add_instance  = True,
+                libraries     = [("ecp5u", f"{diamond_path}/cae_library/synthesis/vhdl/ecp5u.vhd")]
+            )
+            self.fifo_converter.add_source("gateware/ip/fifodc_w32x1024_r128.vhd")
+
+        self.ft601_arbiter_converter = VHD2VConverter(self.platform,
+            top_entity    = "FT601_arb",
+            build_dir     = os.path.abspath(output_dir),
+            work_package  = "work",
+            force_convert = True,
+            params        = self.ft601_arbiter_params,
+            add_instance  = True,
+        )
         self.ft601_arbiter_converter.add_source("gateware/hdl/FT601/synth/FT601_arb.vhd")
-        self.fifo_converter.add_source("gateware/ip/fifodc_w32x1024_r128.vhd")
+
+        self.ft601_converter = VHD2VConverter(self.platform,
+            top_entity    = "FT601",
+            build_dir     = os.path.abspath(output_dir),
+            work_package  = "work",
+            force_convert = True,
+            params        = self.ft601_params,
+            add_instance  = True,
+        )
+        self.ft601_converter.add_source("gateware/hdl/FT601/synth/FT601.vhd")
