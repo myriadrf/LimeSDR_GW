@@ -261,6 +261,9 @@ class RXTXTop(LiteXModule):
             "gateware/hdl/tx_path_top/bit_unpack/synth/unpack_64_to_56.vhd",
             "gateware/hdl/tx_path_top/bit_unpack/synth/unpack_64_to_64.vhd",
 
+            "gateware/LimeDFB/lms7002/src/lms7002_tx.vhd",
+            "gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd",
+
             # Lattice FIFOs.
             # --------------
             "gateware/ip/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
@@ -275,7 +278,7 @@ class RXTXTop(LiteXModule):
     def do_finalize(self):
         import os
         import subprocess
-        def gen_fifo(input_width, output_width, depth, with_buffer=False, with_cdc=False):
+        def gen_fifo(input_width, output_width, depth, with_buffer=False, with_cdc=False, disable_rd_delay=False):
             output_dir = self.platform.output_dir
             script_name = os.path.join(os.path.abspath(os.path.dirname(__file__)), "fifo_gen.py")
 
@@ -289,6 +292,8 @@ class RXTXTop(LiteXModule):
             if with_buffer:
                 cmd.append("--with-buffer")
                 filename += "_buffer"
+            if disable_rd_delay:
+                cmd.append("--disable-rd-delay")
             filename += ".v"
 
             s = subprocess.run(cmd)
@@ -306,5 +311,7 @@ class RXTXTop(LiteXModule):
         gen_fifo(64, 64, 256, with_cdc=True)
         # ./fifo_gen.py --input-width 48 --output-width 48 --depth 1024 --build --with-buffer
         gen_fifo(48, 48, 1024, True)
+        # ./fifo_gen.py --input-width 128 --output-width 128 --depth 1024 --build --with-buffer
+        gen_fifo(128, 128, 256, True, False, True)
         # ./fifo_gen.py --input-width 128 --output-width 64 --depth 256 --with-buffer --build
-        gen_fifo(128, 64, 256, True)
+        gen_fifo(128, 64, 256, True, False, True)
