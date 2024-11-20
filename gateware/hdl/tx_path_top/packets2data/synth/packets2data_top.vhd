@@ -54,7 +54,7 @@ entity packets2data_top is
       
       smpl_buff_rdempty : out std_logic;
       smpl_buff_wrfull  : out std_logic;
-      smpl_buff_q       : out std_logic_vector(out_pct_data_w-1 downto 0);
+      smpl_buff_q       : out std_logic_vector(in_pct_data_w-1 downto 0);
       smpl_buff_rdreq   : in std_logic
       
         );
@@ -69,7 +69,7 @@ architecture arch of packets2data_top is
 signal aclr : std_logic;
 
 --inst0
-signal inst0_smpl_buff_q         : std_logic_vector(out_pct_data_w-1 downto 0); 
+signal inst0_smpl_buff_q         : std_logic_vector(in_pct_data_w-1 downto 0); 
 signal inst0_smpl_buff_valid     : std_logic;
 
 --inst1
@@ -83,13 +83,13 @@ signal max_fifo_words            : std_logic_vector(decomp_fifo_size-1 downto 0)
 signal fifo_limit                : unsigned(decomp_fifo_size-1 downto 0);
 signal fifo_full_sig             : std_logic;
 
-component fifo_w128x256_r64_buffer is
+component fifo_w128x256_r128_buffer is
    port (
         empty   : out std_logic;
         full    : out std_logic;
         clk     : in  std_logic;
         rd_cnt  : out std_logic_vector(31 downto 0);
-        rd_data : out std_logic_vector(63 downto 0);
+        rd_data : out std_logic_vector(127 downto 0);
         rd_en   : in  std_logic;
         rst     : in  std_logic;
         wr_cnt  : out std_logic_vector(31 downto 0);
@@ -171,16 +171,19 @@ smpl_buff_wrfull <= fifo_full_sig;
    );
         
         
-bit_unpack_64_inst1 : entity work.bit_unpack_64
-  port map(
-        clk             => rclk,
-        reset_n         => reset_n,
-        data_in         => inst0_smpl_buff_q,
-        data_in_valid   => inst0_smpl_buff_valid,
-        sample_width    => sample_width,
-        data_out        => inst1_data_out,
-        data_out_valid  => inst1_data_out_valid
-        );
+   inst1_data_out_valid <= inst0_smpl_buff_valid;
+   inst1_data_out       <= inst0_smpl_buff_q;
+   
+--bit_unpack_64_inst1 : entity work.bit_unpack_64
+--  port map(
+--        clk             => rclk,
+--        reset_n         => reset_n,
+--        data_in         => inst0_smpl_buff_q,
+--        data_in_valid   => inst0_smpl_buff_valid,
+--        sample_width    => sample_width,
+--        data_out        => inst1_data_out,
+--        data_out_valid  => inst1_data_out_valid
+--        );
         
         
    --fifo_inst_isnt2 : entity work.fifo_inst
@@ -208,7 +211,7 @@ bit_unpack_64_inst1 : entity work.bit_unpack_64
          --rdusedw      => open          
          --);
          
-   fifo_inst_isnt2 : fifo_w128x256_r64_buffer
+   fifo_inst_isnt2 : fifo_w128x256_r128_buffer
    port map (
       wr_data                             => inst1_data_out,
       clk                                 => rclk,

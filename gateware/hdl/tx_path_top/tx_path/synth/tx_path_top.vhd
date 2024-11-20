@@ -96,7 +96,7 @@ signal inst0_pct_data_rdempty       : std_logic;
 --inst1
 signal inst1_smpl_buff_rdempty      : std_logic;
 signal inst1_smpl_buff_wrfull       : std_logic;
-signal inst1_smpl_buff_q            : std_logic_vector(63 downto 0);
+signal inst1_smpl_buff_q            : std_logic_vector(127 downto 0);
 signal inst1_pct_size               : std_logic_vector(15 downto 0);
 signal inst1_in_pct_clr_flag        : std_logic;
 signal inst1_in_pct_clr_flag_reg    : std_logic;
@@ -106,7 +106,7 @@ signal inst1_in_pct_rdreq           : std_logic;
 
 --inst2
 signal inst2_fifo_rdreq             : std_logic;
-signal inst2_fifo_q                 : std_logic_vector(47 downto 0);
+signal inst2_fifo_q                 : std_logic_vector(127 downto 0);
 signal inst2_pct_buff_rdy           : std_logic;
 
 signal pct_loss_flg_int             : std_logic;
@@ -357,10 +357,11 @@ pct_rdy_combined_vect <= inst1_in_pct_buff_rdy & inst1_smpl_buff_wrfull;
 -- ----------------------------------------------------------------------------
 -- fifo2diq instance
 -- ----------------------------------------------------------------------------       
-inst2_fifo_q <=   inst1_smpl_buff_q(63 downto 52) & 
-                  inst1_smpl_buff_q(47 downto 36) &
-                  inst1_smpl_buff_q(31 downto 20) & 
-                  inst1_smpl_buff_q(15 downto 4);
+--inst2_fifo_q <=   inst1_smpl_buff_q(63 downto 52) & 
+--                  inst1_smpl_buff_q(47 downto 36) &
+--                  inst1_smpl_buff_q(31 downto 20) & 
+--                  inst1_smpl_buff_q(15 downto 4);
+inst2_fifo_q <= inst1_smpl_buff_q;
 
 diq2fifo_inst2 : entity work.fifo2diq
    generic map( 

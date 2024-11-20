@@ -52,7 +52,7 @@ entity packets2data is
       in_pct_buff_rdy         : out std_logic_vector(g_BUFF_COUNT-1 downto 0);
       
       smpl_buff_almost_full   : in std_logic;
-      smpl_buff_q             : out std_logic_vector(out_pct_data_w-1 downto 0);
+      smpl_buff_q             : out std_logic_vector(in_pct_data_w-1 downto 0);
       smpl_buff_valid         : out std_logic
       
         );
@@ -108,7 +108,7 @@ constant c_INSTX_RDUSEDW_W          : integer := FIFO_WORDS_TO_Nbits(g_PCT_MAX_S
 signal instx_wrempty                : std_logic_vector(g_BUFF_COUNT-1 downto 0);
 type instx_rdusedw_array is array (0 to (g_BUFF_COUNT-1)) of std_logic_vector(c_INSTX_RDUSEDW_W-1 downto 0);
 signal instx_rdusedw                : instx_rdusedw_array;
-type instx_q_array is array (0 to (g_BUFF_COUNT-1)) of std_logic_vector(out_pct_data_w-1 downto 0);
+type instx_q_array is array (0 to (g_BUFF_COUNT-1)) of std_logic_vector(in_pct_data_w-1 downto 0);
 signal instx_q                      : instx_q_array;
 signal instx_q_valid                : std_logic_vector(g_BUFF_COUNT-1 downto 0);
 
@@ -120,6 +120,20 @@ signal pct_buff_size                : pct_size_array;
 
 signal smpl_buff_valid_int          : std_logic;
 
+component fifo_w128x256_r128_buffer is
+   port (
+      clk     : in  std_logic;
+      empty   : out std_logic;
+      full    : out std_logic;
+      rd_cnt  : out std_logic_vector( 31 downto 0);
+      rd_data : out std_logic_vector(127 downto 0);
+      rd_en   : in  std_logic;
+      rst     : in  std_logic;
+      wr_cnt  : out std_logic_vector( 31 downto 0);
+      wr_data : in  std_logic_vector(127 downto 0);
+      wr_en   : in  std_logic
+);
+end component;
 
   
 begin
@@ -210,21 +224,36 @@ gen_fifo :
             --rdusedw   => instx_rdusedw(i)          
             --);
    
-   fifo_inst_isntx : entity work.fifodc_w128x256_r64
+   fifo_inst_isntx : fifo_w128x256_r128_buffer
    port map (
-      Data     => inst0_pct_data,
-      WrClock  => wclk, 
-      RdClock  => rclk, 
-      WrEn     => inst0_pct_data_wrreq(i), 
-      RdEn     => inst3_pct_buff_rdreq(i), 
-      Reset    => inst3_pct_buff_clr(i), 
-      RPReset  => inst3_pct_buff_clr(i), 
-      Q        => instx_q(i), 
-      WCNT     => open,
-      RCNT     => instx_rdusedw(i), 
-      Empty    => instx_wrempty(i), --CHECK this, no wrempty signal in LATTICE FIFO
-      Full     => open
+      wr_data                              => inst0_pct_data,
+      clk                                  => wclk, 
+      wr_en                                => inst0_pct_data_wrreq(i), 
+      rd_en                                => inst3_pct_buff_rdreq(i), 
+      rst                                  => inst3_pct_buff_clr(i), 
+      rd_data                              => instx_q(i), 
+      wr_cnt                               => open,
+	  rd_cnt(c_INSTX_RDUSEDW_W-2 downto 0) => instx_rdusedw(i)(c_INSTX_RDUSEDW_W-1 downto 1),
+      rd_cnt(31 downto c_INSTX_RDUSEDW_W-1) => open,
+      empty                                => instx_wrempty(i), --CHECK this, no wrempty signal in LATTICE FIFO
+      full                                 => open
    );
+   instx_rdusedw(i)(0) <= '0';
+   --fifo_inst_isntx : entity work.fifodc_w128x256_r64
+   --port map (
+   --   Data     => inst0_pct_data,
+   --   WrClock  => wclk, 
+   --   RdClock  => rclk, 
+   --   WrEn     => inst0_pct_data_wrreq(i), 
+   --   RdEn     => inst3_pct_buff_rdreq(i), 
+   --   Reset    => inst3_pct_buff_clr(i), 
+   --   RPReset  => inst3_pct_buff_clr(i), 
+   --   Q        => instx_q(i), 
+   --   WCNT     => open,
+   --   RCNT     => instx_rdusedw(i), 
+   --   Empty    => instx_wrempty(i), --CHECK this, no wrempty signal in LATTICE FIFO
+   --   Full     => open
+   --);
 end generate gen_fifo;
 
 
@@ -237,7 +266,7 @@ begin
       pct_buff_size       <= (others=>(others=>'1'));
    elsif (rclk'event AND rclk='1') then 
       for i in 0 to g_BUFF_COUNT-1 loop
-         if unsigned(instx_rdusedw(i)) = unsigned(pct_buff_size(i)) then 
+         if unsigned(instx_rdusedw(i)) >= unsigned(pct_buff_size(i)) then 
             pct_buff_rdy_int(i)<= '1';
          else 
             pct_buff_rdy_int(i)<= '0';

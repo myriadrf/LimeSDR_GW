@@ -43,7 +43,7 @@ entity fifo2diq is
       --fifo ports 
       fifo_rdempty         : in std_logic;
       fifo_rdreq           : out std_logic;
-      fifo_q               : in std_logic_vector(iq_width*4-1 downto 0) 
+      fifo_q               : in std_logic_vector(128-1 downto 0) 
 
         );
 end fifo2diq;
@@ -68,6 +68,16 @@ signal inst4_q             : std_logic;
 signal int_mode            : std_logic_vector(1 downto 0);
 
 signal txant_en_mux        : std_logic;
+
+signal tvalid              : std_logic;
+signal tready              : std_logic;
+signal tlast               : std_logic;
+signal tdata               : std_logic_vector(127 downto 0);
+
+signal m_axis_tvalid       : std_logic;
+signal m_axis_tready       : std_logic;
+signal m_axis_tlast        : std_logic;
+signal m_axis_tdata        : std_logic_vector(63 downto 0);
   
 begin
    
@@ -111,28 +121,78 @@ end process;
 --      txiqsel     => fsync
 --      );
         
-        
- inst1_txiq : entity work.txiq
-   generic map( 
-      dev_family     => dev_family,
-      iq_width       => iq_width
+  inst1_txiq: entity work.LMS7002_TX
+   generic map (
+      G_IQ_WIDTH        => iq_width
    )
+   port map(
+      CLK               => clk,
+      RESET_N           => reset_n,
+      -- Mode settings
+      MODE              => '0',         -- JESD207: 1; TRXIQ: 0
+      TRXIQPULSE        => trxiqpulse,  -- trxiqpulse on: 1; trxiqpulse off: 0
+      DDR_EN            => ddr_en,      -- DDR: 1; SDR: 0
+      MIMO_EN           => mimo_en,     -- SISO: 1; MIMO: 0
+      CH_EN             => ch_en,       -- "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
+      FIDM              => fidm,        -- Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+      -- Tx interface data
+      DIQ_H             => inst0_DIQ_h, --! fsync + DIQ
+      DIQ_L             => inst0_DIQ_l, --! fsync + DIQ
+      --! @virtualbus s_axis_tx @dir in Transmit AXIS bus
+      S_AXIS_ARESET_N   => reset_n,     --! AXIS reset
+      S_AXIS_ACLK       => clk,         --! AXIS clock
+      S_AXIS_TVALID     => m_axis_tvalid, --! AXIS valid transfer
+      S_AXIS_TDATA      => m_axis_tdata,  --! AXIS data
+      S_AXIS_TREADY     => m_axis_tready, --! AXIS ready
+      S_AXIS_TLAST      => m_axis_tlast   --! AXIS last packet boundary @end
+   );
+
+   sample_unpack_inst: entity work.SAMPLE_UNPACK
    port map (
-      clk            => clk,
-      reset_n        => reset_n,
-      en             => inst3_txiq_en,
-      trxiqpulse     => trxiqpulse,
-      ddr_en         => ddr_en,
-      mimo_en        => mimo_en,
-      ch_en          => ch_en, 
-      fidm           => fidm,
-      DIQ_h          => inst0_DIQ_h,
-      DIQ_l          => inst0_DIQ_l,
-      fifo_rdempty   => fifo_rdempty,
-      fifo_rdreq     => inst1_fifo_rdreq,
-      fifo_q         => fifo_q,
-      txant_en       => inst1_txant_en
-        );
+      AXIS_ACLK      => clk,
+      AXIS_ARESET_N  => reset_n,
+      RESET_N        => reset_n,
+
+      S_AXIS_TDATA   => tdata,
+      S_AXIS_TREADY  => tready,
+      S_AXIS_TVALID  => tvalid,
+      S_AXIS_TLAST   => tlast,
+
+      M_AXIS_TDATA   => m_axis_tdata,
+      M_AXIS_TREADY  => m_axis_tready,
+      M_AXIS_TVALID  => m_axis_tvalid,
+
+      CH_EN          => ch_en
+   );
+
+
+   	tvalid           <= not fifo_rdempty;
+   	tdata            <= fifo_q;
+	inst1_fifo_rdreq <= tready;
+	tlast            <= '0'; -- unused
+
+        
+ --inst1_txiq : entity work.txiq
+ --  generic map( 
+ --     dev_family     => dev_family,
+ --     iq_width       => iq_width
+ --  )
+ --  port map (
+ --     clk            => clk,
+ --     reset_n        => reset_n,
+ --     en             => inst3_txiq_en,
+ --     trxiqpulse     => trxiqpulse,
+ --     ddr_en         => ddr_en,
+ --     mimo_en        => mimo_en,
+ --     ch_en          => ch_en, 
+ --     fidm           => fidm,
+ --     DIQ_h          => inst0_DIQ_h,
+ --     DIQ_l          => inst0_DIQ_l,
+ --     fifo_rdempty   => fifo_rdempty,
+ --     fifo_rdreq     => inst1_fifo_rdreq,
+ --     fifo_q         => fifo_q,
+ --     txant_en       => inst1_txant_en
+ --       );
         
 txiq_ctrl_inst3 : entity work.txiq_ctrl
    port map(
