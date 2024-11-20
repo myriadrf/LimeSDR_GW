@@ -58,12 +58,13 @@ def get_ios(input_width, output_width):
 
 class FIFOGenerator(LiteXModule):
     def __init__(self, platform,
-        input_width  = 128,
-        output_width = 64,
-        depth        = 32,
-        with_cdc     = False,
-        with_buffer  = False,
-        reverse      = False,
+        input_width      = 128,
+        output_width     = 64,
+        depth            = 32,
+        with_cdc         = False,
+        with_buffer      = False,
+        reverse          = False,
+        disable_rd_delay = False,
         ):
         self.sink   = sink   = stream.Endpoint([("data",  input_width)])
         self.source = source = stream.Endpoint([("data", output_width)])
@@ -120,10 +121,13 @@ class FIFOGenerator(LiteXModule):
 
         # Interface --------------------------------------------------------------------------------
 
-        self.sync.rd += [
-            # Read.
-            source.ready.eq(platform.request("rd_en")),  # CHECKME: Latency?.
-        ]
+        if disable_rd_delay:
+            self.comb += source.ready.eq(platform.request("rd_en"))
+        else:
+            self.sync.rd += [
+                # Read.
+                source.ready.eq(platform.request("rd_en")),  # CHECKME: Latency?.
+            ]
         self.comb += [
             # Write.
             sink.valid.eq(platform.request("wr_en")),
@@ -143,14 +147,15 @@ class FIFOGenerator(LiteXModule):
 
 def main():
     parser = argparse.ArgumentParser(description="FIFO Generator")
-    parser.add_argument("--input-width",   default=128, help="Input data width  (default=128).")
-    parser.add_argument("--output-width",  default=64,  help="Output data width (default=64).")
-    parser.add_argument("--depth",         default=32,  help="Depth (default=32).")
-    parser.add_argument("--with-buffer",   action="store_true", help="Use SyncFIFOBuffered.")
-    parser.add_argument("--with-cdc",      action="store_true", help="Enable ClockDomainCrossing.")
-    parser.add_argument("--reverse",       action="store_true", help="Reverse converter ordering.")
-    parser.add_argument("--output-dir",    default="build",     help="Base Output directory.")
-    parser.add_argument("--build",         action="store_true", help="Build core")
+    parser.add_argument("--input-width",      default=128, help="Input data width  (default=128).")
+    parser.add_argument("--output-width",     default=64,  help="Output data width (default=64).")
+    parser.add_argument("--depth",            default=32,  help="Depth (default=32).")
+    parser.add_argument("--with-buffer",      action="store_true", help="Use SyncFIFOBuffered.")
+    parser.add_argument("--with-cdc",         action="store_true", help="Enable ClockDomainCrossing.")
+    parser.add_argument("--reverse",          action="store_true", help="Reverse converter ordering.")
+    parser.add_argument("--disable-rd-delay", action="store_true", help="Disable delay on rd_en signal.")
+    parser.add_argument("--output-dir",       default="build",     help="Base Output directory.")
+    parser.add_argument("--build",            action="store_true", help="Build core")
     args = parser.parse_args()
 
     # Generate core --------------------------------------------------------------------------------
@@ -159,12 +164,13 @@ def main():
     depth        = int(args.depth)
     platform   = LatticePlatform("", io=[], toolchain="diamond")
     module     = FIFOGenerator(platform,
-        input_width  = input_width,
-        output_width = output_width,
-        depth        = depth,
-        with_cdc     = args.with_cdc,
-        with_buffer  = args.with_buffer,
-        reverse      = args.reverse)
+        input_width      = input_width,
+        output_width     = output_width,
+        depth            = depth,
+        with_cdc         = args.with_cdc,
+        with_buffer      = args.with_buffer,
+        reverse          = args.reverse,
+        disable_rd_delay = args.disable_rd_delay)
     build_name = "fifo_w{}x{}_r{}".format(input_width, depth, output_width)
     if args.with_cdc:
         build_name += "_cdc"
