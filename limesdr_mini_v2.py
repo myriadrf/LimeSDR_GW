@@ -215,7 +215,7 @@ class BaseSoC(SoCCore):
         ]
 
         # LMS7002 Top ------------------------------------------------------------------------------
-        self.lms7002_top = LMS7002Top(platform, lms_pads, revision_pads.HW_VER)
+        self.lms7002_top = LMS7002Top(platform, lms_pads, revision_pads.HW_VER, True, self.fpgacfg, LMS_DIQ_WIDTH)
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
         self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
@@ -267,14 +267,14 @@ class BaseSoC(SoCCore):
             self.rxtx_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
             self.rxtx_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
 
-            self.rxtx_top.rxtx_smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
+            # LMS7002 <-> PLLCFG
+            self.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
 
             # LMS7002 <-> RXTX Top.
-            self.lms7002_top.tx_diq1_h.eq(self.rxtx_top.tx_diq1_h),
-            self.lms7002_top.tx_diq1_l.eq(self.rxtx_top.tx_diq1_l),
-            self.rxtx_top.rx_diq2_h.eq(self.lms7002_top.rx_diq2_h),
-            self.rxtx_top.rx_diq2_l.eq(self.lms7002_top.rx_diq2_l),
-            self.lms7002_top.smpl_cmp.connect(self.rxtx_top.rx_smpl_cmp),
+            self.lms7002_top.tx_diq1_h.eq(       self.rxtx_top.tx_diq1_h),
+            self.lms7002_top.tx_diq1_l.eq(       self.rxtx_top.tx_diq1_l),
+            self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
+            self.lms7002_top.axis_m.connect(     self.rxtx_top.axis_s),
 
             # FT601 <-> RXTX Top.
             self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
