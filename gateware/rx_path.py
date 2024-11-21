@@ -113,25 +113,13 @@ class RXPath(LiteXModule):
             "gateware/hdl/rx_path_top/bit_pack/synth/bit_pack.vhd",
             "gateware/hdl/rx_path_top/bit_pack/synth/pack_48_to_64.vhd",
             "gateware/hdl/rx_path_top/bit_pack/synth/pack_56_to_64.vhd",
-            "gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd",
             "gateware/hdl/rx_path_top/rx_path/synth/rx_path_top.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_mimo.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_mimo_ddr.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_pulse_ddr.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_siso.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_siso_ddr.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/rxiq_siso_sdr.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd",
             "gateware/hdl/rx_path_top/data2packets/synth/data2packets.vhd",
             "gateware/hdl/rx_path_top/data2packets/synth/data2packets_fsm.vhd",
             "gateware/hdl/rx_path_top/data2packets/synth/data2packets_top.vhd",
             "gateware/hdl/tx_path_top/fifo2diq/synth/edge_delay.vhd",
             "gateware/hdl/rx_path_top/smpl_cnt/synth/iq_smpl_cnt.vhd",
             "gateware/hdl/rx_path_top/smpl_cnt/synth/smpl_cnt.vhd",
-
-            "gateware/LimeDFB/lms7002/src/lms7002_rx.vhd",
 
             # Lattice FIFOs.
             # --------------

@@ -241,6 +241,8 @@ class LMS7002Top(LiteXModule):
         self.specials += AsyncResetSynchronizer(self.cd_lms_rx, ResetSignal("sys"))
         self.specials += AsyncResetSynchronizer(self.cd_lms_tx, ResetSignal("sys"))
 
+        self.add_source(platform)
+
         if add_csr:
             self.add_csr()
 
@@ -297,6 +299,18 @@ class LMS7002Top(LiteXModule):
             self.delay_ctrl_mode.eq(self.reg03.fields.phcfg_mode),
 
         ]
+
+    def add_source(self, platform):
+        lms7002_files = [
+            # RX
+            "gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd",
+            "gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd",
+            "gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd",
+            "gateware/LimeDFB/lms7002/src/lms7002_rx.vhd",
+        ]
+
+        for file in lms7002_files:
+            platform.add_source(file)
 
     def do_finalize(self):
         self.delay_ctrl_top = VHD2VConverter(self.platform,
