@@ -32,10 +32,12 @@ entity diq2fifo is
       --Rx interface data 
       rx_diq2_h      : in std_logic_vector(iq_width downto 0);
       rx_diq2_l      : in std_logic_vector(iq_width downto 0);
-      --fifo ports 
-      fifo_wfull     : in std_logic;
-      fifo_wrreq     : out std_logic;
-      fifo_wdata     : out std_logic_vector(iq_width*4-1 downto 0);
+      -- AXI Stream master port.
+      m_axis_tdata   : out std_logic_vector(iq_width*4-1 downto 0);
+      m_axis_tkeep   : out std_logic_vector(7 downto 0);
+      m_axis_tvalid  : out std_logic;
+      m_axis_tlast   : out std_logic;
+      m_axis_tready  : in  std_logic;
       --sample compare
       smpl_cmp_start : in std_logic;
       smpl_cmp_length: in std_logic_vector(15 downto 0);
@@ -69,10 +71,12 @@ signal mux0_diq_l_reg   : std_logic_vector (iq_width downto 0);
 
 signal smpl_cnt_en_reg  : std_logic;
 
-signal m_axis_tdata     : std_logic_vector(63 downto 0);
+signal tdata            : std_logic_vector(63 downto 0);
+signal tkeep            : std_logic_vector(7 downto 0);
 signal chaA             : std_logic_vector(iq_width*4-1 downto 0);
 signal tvalid           : std_logic;
 signal tvalid_d         : std_logic;
+signal tlast            : std_logic;
   
 begin
 
@@ -109,27 +113,6 @@ inst0_reset_n <= reset_n when smpl_cmp_start = '0' else '1';
       end if;
    end process;
 
-        
---inst1_rxiq : entity work.rxiq
---   generic map( 
---      dev_family           => dev_family,
---      iq_width             => iq_width
---   )
---   port map (
---      clk         => clk,
---      reset_n     => reset_n,
---      trxiqpulse  => trxiqpulse,
---      ddr_en      => ddr_en,
---      mimo_en     => mimo_en,
---      ch_en       => ch_en, 
---      fidm        => fidm,
---      DIQ_h       => mux0_diq_h_reg,
---      DIQ_l       => mux0_diq_l_reg,
---      fifo_wfull  => fifo_wfull,
---      fifo_wrreq  => fifo_wrreq,
---      fifo_wdata  => fifo_wdata
---        );
-
   inst1_rxiq: entity work.lms7002_rx
    generic map (
       g_IQ_WIDTH           => iq_width,
@@ -152,10 +135,10 @@ inst0_reset_n <= reset_n when smpl_cmp_start = '0' else '1';
       m_axis_areset_n  => '0',
       m_axis_aclk      => '0',
       m_axis_tvalid    => tvalid,
-      m_axis_tdata     => m_axis_tdata,
-      m_axis_tkeep     => open,
-      m_axis_tready    => not fifo_wfull,
-      m_axis_tlast     => open
+      m_axis_tdata     => tdata,
+      m_axis_tkeep     => tkeep,
+      m_axis_tready    => m_axis_tready,
+      m_axis_tlast     => tlast
    );
 
    -- to keep lms7002_rx unchanged but to honour channel select.
@@ -169,13 +152,15 @@ inst0_reset_n <= reset_n when smpl_cmp_start = '0' else '1';
             if tvalid = '1' then
                 tvalid_d <= not tvalid_d;
                 chaA <= chaA(23 downto 0) &
-                       m_axis_tdata(31 downto 20) &
-                       m_axis_tdata(15 downto  4);
-                fifo_wrreq <= tvalid_d;
+                       tdata(31 downto 20) &
+                       tdata(15 downto  4);
+                m_axis_tvalid <= tvalid_d;
+                m_axis_tlast  <= tlast;
+                m_axis_tkeep  <= tkeep;
             end if;
         end if;
     end process;
-    fifo_wdata <= chaA;
+    m_axis_tdata <= chaA;
   
 int2_test_data_dd : entity work.test_data_dd
 port map(
