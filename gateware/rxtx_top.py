@@ -139,7 +139,7 @@ class RXTXTop(LiteXModule):
             i_rx_clk                 = ClockSignal("lms_rx"),
         )
 
-        self.rx_path = rx_path = RXPath(platform,
+        self.rx_path = rx_path = RXPath(platform, fpgacfg_manager,
             ## RX parameters
             RX_IQ_WIDTH            = RX_IQ_WIDTH,
             RX_SMPL_BUFF_RDUSEDW_W = RX_SMPL_BUFF_RDUSEDW_W,
@@ -147,17 +147,6 @@ class RXTXTop(LiteXModule):
         )
 
         self.comb += [
-            rx_path.rx_en.eq(             fpgacfg_manager.rx_en),
-            rx_path.rx_ptrn_en.eq(        fpgacfg_manager.rx_ptrn_en),
-
-            # Mode settings.
-            rx_path.smpl_width.eq(        fpgacfg_manager.smpl_width),
-            rx_path.mode.eq(              fpgacfg_manager.mode),
-            rx_path.trxiqpulse.eq(        fpgacfg_manager.trxiq_pulse),
-            rx_path.ddr_en.eq(            fpgacfg_manager.ddr_en),
-            rx_path.mimo_en.eq(           fpgacfg_manager.mimo_int_en),
-            rx_path.ch_en.eq(             fpgacfg_manager.ch_en),
-
             # Rx interface data
             rx_path.rx_diq2_h.eq(         self.rx_diq2_h),
             rx_path.rx_diq2_l.eq(         self.rx_diq2_l),
@@ -167,14 +156,13 @@ class RXTXTop(LiteXModule):
             rx_path.rx_pct_fifo_wusedw.eq(self.stream_fifo.wrusedw),
             self.stream_fifo.wr.eq(       rx_path.rx_pct_fifo_wrreq),
             self.stream_fifo.wdata.eq(    rx_path.rx_pct_fifo_wdata),
+            pct_hdr_cap.eq(               rx_path.pct_hdr_cap),
 
             # sample nr
-            rx_path.smpl_nr_clr.eq(       fpgacfg_manager.smpl_nr_clr),
             smpl_nr_cnt.eq(               rx_path.smpl_nr_cnt),
 
             # Flag Control.
             rx_path.tx_pct_loss_flg.eq(   tx_pct_loss_flg),
-            rx_path.tx_pct_loss_clr.eq(   fpgacfg_manager.txpct_loss_clr),
 
             # Sample Compare.
             rx_path.rx_smpl_cmp_start.eq( self.rx_smpl_cmp.en),
