@@ -246,7 +246,7 @@ class BaseSoC(SoCCore):
         ]
 
         # RXTX Top ---------------------------------------------------------------------------------
-        self.rxtx_top = RXTXTop(platform,
+        self.rxtx_top = RXTXTop(platform, self.fpgacfg,
             # TX parameters
             TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
             TX_N_BUFF              = TX_N_BUFF,
