@@ -19,13 +19,15 @@ from gateware.lms7002.lms7002_top import SampleCompare
 # RX Path ------------------------------------------------------------------------------------------
 
 class RXPath(LiteXModule):
-    def __init__(self, platform,
+    def __init__(self, platform, fpgacfg_manager=None,
         # RX parameters
         RX_IQ_WIDTH            = 12,
         RX_INVERT_INPUT_CLOCKS = "OFF",
         RX_SMPL_BUFF_RDUSEDW_W = 11,
         RX_PCT_BUFF_WRUSEDW_W  = 12,
         ):
+
+        assert fpgacfg_manager is not None
 
         self.platform              = platform
 
@@ -37,25 +39,13 @@ class RXPath(LiteXModule):
         self.rx_pct_fifo_wrreq     = Signal()
         self.rx_pct_fifo_wdata     = Signal(64)
 
-        self.rx_en                 = Signal()
         self.pct_hdr_cap           = Signal()
 
-        # from fpgacfg
-        self.rx_ptrn_en            = Signal()
-        self.smpl_width            = Signal(2)
-        self.mode                  = Signal()
-        self.trxiqpulse            = Signal()
-        self.ddr_en                = Signal()
-        self.mimo_en               = Signal()
-        self.ch_en                 = Signal(2)
-
         # Sample NR.
-        self.smpl_nr_clr           = Signal()
         self.smpl_nr_cnt           = Signal(64)
 
         # Flag Control.
         self.tx_pct_loss_flg       = Signal()
-        self.tx_pct_loss_clr       = Signal()
 
         # Sample Compare.
         self.rx_smpl_cmp_start     = Signal()
@@ -68,18 +58,8 @@ class RXPath(LiteXModule):
         inst5_reset_n   = Signal()
 
         self.specials += [
-            Instance("sync_reg",
-                i_clk         = ClockSignal("lms_rx"),
-                i_reset_n     = self.rx_en,
-                i_async_in    = Constant(1),
-                o_sync_out    = inst5_reset_n,
-            ),
-            Instance("sync_reg",
-                i_clk         = ClockSignal("lms_rx"),
-                i_reset_n     = inst5_reset_n,
-                i_async_in    = Constant(1),
-                o_sync_out    = self.rx_pct_fifo_aclrn_req,
-            ),
+            MultiReg(fpgacfg_manager.rx_en, inst5_reset_n,              "lms_rx", reset=1),
+            MultiReg(inst5_reset_n,         self.rx_pct_fifo_aclrn_req, "lms_rx", reset=1),
             Instance("rx_path_top",
                 p_iq_width            = RX_IQ_WIDTH,
                 p_invert_input_clocks = RX_INVERT_INPUT_CLOCKS,
@@ -89,16 +69,16 @@ class RXPath(LiteXModule):
                 # Clk/Reset.
                 i_clk                 = ClockSignal("lms_rx"),
                 i_reset_n             = inst5_reset_n,
-                i_test_ptrn_en        = self.rx_ptrn_en,
+                i_test_ptrn_en        = fpgacfg_manager.rx_ptrn_en,
 
                 # Mode settings.
-                i_sample_width        = self.smpl_width, # "10"-12bit, "01"-14bit, "00"-16bit;
-                i_mode                = self.mode,       # JESD207: 1; TRXIQ: 0
-                i_trxiqpulse          = self.trxiqpulse, # trxiqpulse on: 1; trxiqpulse off: 0
-                i_ddr_en              = self.ddr_en,     # DDR: 1; SDR: 0
-                i_mimo_en             = self.mimo_en,    # SISO: 1; MIMO: 0
-                i_ch_en               = self.ch_en,      # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
-                i_fidm                = Constant(0, 1),  # Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+                i_sample_width        = fpgacfg_manager.smpl_width,  # "10"-12bit, "01"-14bit, "00"-16bit;
+                i_mode                = fpgacfg_manager.mode,        # JESD207: 1; TRXIQ: 0
+                i_trxiqpulse          = fpgacfg_manager.trxiq_pulse, # trxiqpulse on: 1; trxiqpulse off: 0
+                i_ddr_en              = fpgacfg_manager.ddr_en,      # DDR: 1; SDR: 0
+                i_mimo_en             = fpgacfg_manager.mimo_int_en, # SISO: 1; MIMO: 0
+                i_ch_en               = fpgacfg_manager.ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
+                i_fidm                = Constant(0, 1),              # Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
                 # Rx interface data
                 i_rx_diq2_h           = self.rx_diq2_h,
                 i_rx_diq2_l           = self.rx_diq2_l,
@@ -113,14 +93,14 @@ class RXPath(LiteXModule):
                 o_pct_hdr_cap         = self.pct_hdr_cap,
 
                 # sample nr
-                i_clr_smpl_nr         = self.smpl_nr_clr,
+                i_clr_smpl_nr         = fpgacfg_manager.smpl_nr_clr,
                 i_ld_smpl_nr          = Constant(0, 1),
                 i_smpl_nr_in          = Constant(0, 64),
                 o_smpl_nr_cnt         = self.smpl_nr_cnt,
 
                 # flag control
                 i_tx_pct_loss         = self.tx_pct_loss_flg,
-                i_tx_pct_loss_clr     = self.tx_pct_loss_clr,
+                i_tx_pct_loss_clr     = fpgacfg_manager.txpct_loss_clr,
 
                 # sample compare
                 i_smpl_cmp_start      = self.rx_smpl_cmp_start,
