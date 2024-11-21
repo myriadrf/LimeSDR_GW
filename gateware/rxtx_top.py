@@ -18,7 +18,7 @@ from gateware.rx_path             import RXPath
 # RXTX Top -----------------------------------------------------------------------------------------
 
 class RXTXTop(LiteXModule):
-    def __init__(self, platform,
+    def __init__(self, platform, fpgacfg_manager=None,
         # TX parameters
         TX_IQ_WIDTH            = 12,
         TX_N_BUFF              = 4,
@@ -34,6 +34,8 @@ class RXTXTop(LiteXModule):
         RX_SMPL_BUFF_RDUSEDW_W = 11,
         RX_PCT_BUFF_WRUSEDW_W  = 12,
         ):
+
+        assert fpgacfg_manager is not None
 
         self.platform              = platform
 
@@ -54,52 +56,6 @@ class RXTXTop(LiteXModule):
         self.from_tstcfg_tx_tst_q     = Signal(16)
 
         self.stream_fifo           = FIFOInterface(TX_IN_PCT_DATA_W, 64, TX_IN_PCT_RDUSEDW_W, RX_PCT_BUFF_WRUSEDW_W)
-
-        # From FPGA Cfg.
-        # --------------
-        # Peripheral config.
-        self.txant_pre         = CSRStorage(16, reset=1)
-        self.txant_post        = CSRStorage(16, reset=1)
-
-        # Interface config
-        self.channel_cntrl     = CSRStorage(fields=[
-            CSRField("ch_en", size=2, offset=0, reset=0b11, values=[
-                ("``2b01", "Channel A"),
-                ("``2b10", "Channel B"),
-                ("``2b11", "Channels A and B")
-            ])
-        ])
-        self.reg08             = CSRStorage(fields=[
-            CSRField("smpl_width",  size=2, offset=0,  reset=0b10),
-            CSRField("mode",        size=1, offset=5,  reset=0),
-            CSRField("ddr_en",      size=1, offset=6,  reset=0),
-            CSRField("trxiq_pulse", size=1, offset=7,  reset=0),
-            CSRField("mimo_int_en", size=1, offset=8,  reset=1),
-            CSRField("synch_dis",   size=1, offset=9,  reset=0),
-            CSRField("synch_mode",  size=1, offset=10, reset=0),
-        ])
-        self.reg09             = CSRStorage(fields=[
-            CSRField("smpl_nr_clr",    size=1, offset=0, reset=1),
-            CSRField("txpct_loss_clr", size=1, offset=1, reset=1),
-        ])
-        self.reg10             = CSRStorage(fields=[
-            CSRField("rx_en",       size=1, offset=0),
-            CSRField("tx_en",       size=1, offset=1),
-            CSRField("rx_ptrn_en" , size=1, offset=8),
-            CSRField("tx_ptrn_en",  size=1, offset=9),
-            CSRField("tx_cnt_en",   size=1, offset=10),
-        ])
-
-        self.reg13             = CSRStorage(fields=[
-            CSRField("wfm_play", size=1, offset=1),
-            CSRField("wfm_load", size=1, offset=2),
-        ])
-
-        self.sync_size         = CSRStorage(16, reset=0x03FC)
-
-        # Peripheral config.
-
-        self.sync_pulse_period = CSRStorage(32, reset=0x3D090)            # 30
 
         # Test Cfg From RXTX.
         # -------------------
@@ -133,23 +89,23 @@ class RXTXTop(LiteXModule):
 
             # Configuration memory ports
             #from_fpgacfg            : in     t_FROM_FPGACFG;
-            i_ch_en                  = Cat(self.channel_cntrl.fields.ch_en, Constant(0, 14)),
-            i_smpl_width             = self.reg08.fields.smpl_width,
-            i_mode                   = self.reg08.fields.mode,
-            i_ddr_en                 = self.reg08.fields.ddr_en,
-            i_trxiq_pulse            = self.reg08.fields.trxiq_pulse,
-            i_mimo_int_en            = self.reg08.fields.mimo_int_en,
-            i_synch_dis              = self.reg08.fields.synch_dis,
-            i_synch_mode             = self.reg08.fields.synch_mode,
-            i_txpct_loss_clr         = self.reg09.fields.txpct_loss_clr,
-            i_rx_en                  = self.reg10.fields.rx_en,
-            i_tx_ptrn_en             = self.reg10.fields.tx_ptrn_en,
-            i_tx_cnt_en              = self.reg10.fields.tx_cnt_en,
-            i_wfm_play               = self.reg13.fields.wfm_play,
-            i_sync_pulse_period      = self.sync_pulse_period.storage,
-            i_sync_size              = self.sync_size.storage,
-            i_txant_pre              = self.txant_pre.storage,
-            i_txant_post             = self.txant_post.storage,
+            i_ch_en                  = Cat(fpgacfg_manager.ch_en, Constant(0, 14)),
+            i_smpl_width             = fpgacfg_manager.smpl_width,
+            i_mode                   = fpgacfg_manager.mode,
+            i_ddr_en                 = fpgacfg_manager.ddr_en,
+            i_trxiq_pulse            = fpgacfg_manager.trxiq_pulse,
+            i_mimo_int_en            = fpgacfg_manager.mimo_int_en,
+            i_synch_dis              = fpgacfg_manager.synch_dis,
+            i_synch_mode             = fpgacfg_manager.synch_mode,
+            i_txpct_loss_clr         = fpgacfg_manager.txpct_loss_clr,
+            i_rx_en                  = fpgacfg_manager.rx_en,
+            i_tx_ptrn_en             = fpgacfg_manager.tx_ptrn_en,
+            i_tx_cnt_en              = fpgacfg_manager.tx_cnt_en,
+            i_wfm_play               = fpgacfg_manager.wfm_play,
+            i_sync_pulse_period      = fpgacfg_manager.sync_pulse_period,
+            i_sync_size              = fpgacfg_manager.sync_size,
+            i_txant_pre              = fpgacfg_manager.txant_pre,
+            i_txant_post             = fpgacfg_manager.txant_post,
 
             ##to_tstcfg_from_rxtx     : out    t_TO_TSTCFG_FROM_RXTX;
             o_DDR2_1_STATUS          = self._ddr2_1_status.status,
@@ -191,16 +147,16 @@ class RXTXTop(LiteXModule):
         )
 
         self.comb += [
-            rx_path.rx_en.eq(             self.reg10.fields.rx_en),
-            rx_path.rx_ptrn_en.eq(        self.reg10.fields.rx_ptrn_en),
+            rx_path.rx_en.eq(             fpgacfg_manager.rx_en),
+            rx_path.rx_ptrn_en.eq(        fpgacfg_manager.rx_ptrn_en),
 
             # Mode settings.
-            rx_path.smpl_width.eq(        self.reg08.fields.smpl_width),
-            rx_path.mode.eq(              self.reg08.fields.mode),
-            rx_path.trxiqpulse.eq(        self.reg08.fields.trxiq_pulse),
-            rx_path.ddr_en.eq(            self.reg08.fields.ddr_en),
-            rx_path.mimo_en.eq(           self.reg08.fields.mimo_int_en),
-            rx_path.ch_en.eq(             self.channel_cntrl.fields.ch_en),
+            rx_path.smpl_width.eq(        fpgacfg_manager.smpl_width),
+            rx_path.mode.eq(              fpgacfg_manager.mode),
+            rx_path.trxiqpulse.eq(        fpgacfg_manager.trxiq_pulse),
+            rx_path.ddr_en.eq(            fpgacfg_manager.ddr_en),
+            rx_path.mimo_en.eq(           fpgacfg_manager.mimo_int_en),
+            rx_path.ch_en.eq(             fpgacfg_manager.ch_en),
 
             # Rx interface data
             rx_path.rx_diq2_h.eq(         self.rx_diq2_h),
@@ -213,12 +169,12 @@ class RXTXTop(LiteXModule):
             self.stream_fifo.wdata.eq(    rx_path.rx_pct_fifo_wdata),
 
             # sample nr
-            rx_path.smpl_nr_clr.eq(       self.reg09.fields.smpl_nr_clr),
+            rx_path.smpl_nr_clr.eq(       fpgacfg_manager.smpl_nr_clr),
             smpl_nr_cnt.eq(               rx_path.smpl_nr_cnt),
 
             # Flag Control.
             rx_path.tx_pct_loss_flg.eq(   tx_pct_loss_flg),
-            rx_path.tx_pct_loss_clr.eq(   self.reg09.fields.txpct_loss_clr),
+            rx_path.tx_pct_loss_clr.eq(   fpgacfg_manager.txpct_loss_clr),
 
             # Sample Compare.
             rx_path.rx_smpl_cmp_start.eq( self.rx_smpl_cmp.en),
@@ -231,7 +187,7 @@ class RXTXTop(LiteXModule):
         # ------
 
         self.comb += [
-            self.rx_en.eq(                       self.reg10.fields.rx_en),
+            self.rx_en.eq(                       fpgacfg_manager.rx_en),
             self._ddr2_1_pnf_per_bit_l.status.eq(self._ddr2_1_pnf_per_bit[:16]),
             self._ddr2_1_pnf_per_bit_h.status.eq(self._ddr2_1_pnf_per_bit[15:]),
         ]
