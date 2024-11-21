@@ -15,47 +15,31 @@ from litex.build.vhd2v_converter import VHD2VConverter
 
 from litex.gen import *
 
-from litex.soc.interconnect.csr import *
+from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
+from litex.soc.interconnect.csr            import *
 
 from gateware.lms7002.lms7002_rxiq import LMS7002RXIQ
 from gateware.lms7002.lms7002_txiq import LMS7002TXIQ
 from gateware.lms7002.lms7002_clk  import LMS7002CLK
 
-# UTILS --------------------------------------------------------------------------------------------
-
-class SampleCompare(LiteXModule):
-    def __init__(self):
-        self.en    = Signal()
-        self.done  = Signal()
-        self.error = Signal()
-        self.cnt   = Signal(16)
-
-    def connect(self, slave_sample_compare):
-        return [
-            slave_sample_compare.en.eq(self.en),
-            self.done.eq(slave_sample_compare.done),
-            self.error.eq(slave_sample_compare.error),
-            slave_sample_compare.cnt.eq(self.cnt),
-        ]
-
 # LMS7002 Top --------------------------------------------------------------------------------------
 
 class LMS7002Top(LiteXModule):
-    def __init__(self, platform, pads=None, hw_ver=None, add_csr=True):
+    def __init__(self, platform, pads=None, hw_ver=None, add_csr=True, fpgacfg_manager=None, diq_width=12):
 
-        assert pads   is not None
-        assert hw_ver is not None
+        assert pads            is not None
+        assert hw_ver          is not None
+        assert fpgacfg_manager is not None
 
-        self.platform  = platform
+        self.axis_m            = AXIStreamInterface(4 * diq_width, 8, clock_domain="lms_rx")
+
+        self.platform          = platform
 
         self.pads                = pads
         self.periph_output_val_1 = Signal(16)
 
-        self.tx_diq1_h = Signal(13)
-        self.tx_diq1_l = Signal(13)
-
-        self.rx_diq2_h = Signal(13)
-        self.rx_diq2_l = Signal(13)
+        self.tx_diq1_h        = Signal(13)
+        self.tx_diq1_l        = Signal(13)
 
         self.delay_ctrl_en    = Signal()
         self.delay_ctrl_sel   = Signal(2)
@@ -63,8 +47,13 @@ class LMS7002Top(LiteXModule):
         self.delay_ctrl_mode  = Signal()
         self.delay_ctrl_done  = Signal()
         self.delay_ctrl_error = Signal()
-        self.smpl_cmp         = SampleCompare()
         self.hw_ver           = Signal(4)
+
+        self.smpl_cnt_en      = Signal() # To rx_path
+        self.smpl_cmp_length  = Signal(16)
+        self.smpl_cmp_cnt     = Signal(16) # Unused
+
+        self.smpl_width       = Signal()
 
         # # #
 
@@ -75,9 +64,6 @@ class LMS7002Top(LiteXModule):
 
         # Signals.
         # --------
-        smpl_cmp_done_sync  = Signal()
-        smpl_cmp_error_sync = Signal()
-
         delay_sel           = Signal(2)
 
         inst0_loadn         = Signal()
@@ -92,12 +78,20 @@ class LMS7002Top(LiteXModule):
         rx_data_loadn       = Signal()
         rx_data_move        = Signal()
 
-        # CMP Resync.
-        # -----------
-        self.specials += [
-            MultiReg(self.smpl_cmp.error, smpl_cmp_error_sync, "lms_rx"),
-            MultiReg(self.smpl_cmp.done,  smpl_cmp_done_sync,  "lms_rx"),
-        ]
+        rx_ptrn_en          = Signal()
+
+        mode                = Signal()
+        trxiqpulse          = Signal()
+        ddr_en              = Signal()
+        mimo_en             = Signal()
+        ch_en               = Signal(2)
+
+        smpl_cmp_en         = Signal()
+        smpl_cmp_done       = Signal()
+        smpl_cmp_error      = Signal()
+        smpl_cmp_length     = Signal(16)
+
+        reset_n             = Signal()
 
         # Clocks.
         # -------
@@ -127,16 +121,63 @@ class LMS7002Top(LiteXModule):
         ]
 
         # RX path (DIQ2).
-        # ---------------
+        # ------------------------------------------------------------------------------------------
+
         self.lms7002_rxiq = ClockDomainsRenamer("lms_rx")(LMS7002RXIQ(12, pads))
         self.comb += [
             self.lms7002_rxiq.data_loadn.eq(    rx_data_loadn),
             self.lms7002_rxiq.data_move.eq(     rx_data_move),
             self.lms7002_rxiq.data_direction.eq(Constant(0, 1)),
+        ]
 
-            # Output ports to internal logic.
-            self.rx_diq2_h.eq(self.lms7002_rxiq.rx_diq2_h),
-            self.rx_diq2_l.eq(self.lms7002_rxiq.rx_diq2_l),
+        # lms7002_rx.
+        # -----------
+        self.specials += [
+            Instance("diq2fifo",
+                # Parameters.
+                p_iq_width       = diq_width,
+                p_invert_input_clocks = "OFF",
+                # Clk/Reset.
+                i_clk            = ClockSignal("lms_rx"),
+                i_reset_n        = reset_n,
+                # Mode settings
+                i_test_ptrn_en   = rx_ptrn_en,
+                i_mode           = mode,           # JESD207: 1; TRXIQ: 0
+                i_trxiqpulse     = trxiqpulse,     # trxiqpulse on: 1; trxiqpulse off: 0
+                i_ddr_en         = ddr_en,         # DDR: 1; SDR: 0
+                i_mimo_en        = mimo_en,        # SISO: 1; MIMO: 0
+                i_ch_en          = ch_en,          # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
+                i_fidm           = Constant(0, 1), # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+                # Rx interface data
+                i_rx_diq2_h      = self.lms7002_rxiq.rx_diq2_h,
+                i_rx_diq2_l      = self.lms7002_rxiq.rx_diq2_l,
+
+                # AXI Stream Master Interface.
+                o_m_axis_tdata   = self.axis_m.data,
+                o_m_axis_tkeep   = self.axis_m.keep,
+                o_m_axis_tvalid  = self.axis_m.valid,
+                o_m_axis_tlast   = self.axis_m.last,
+                i_m_axis_tready  = self.axis_m.ready,
+
+                # sample compare
+                i_smpl_cmp_start  = smpl_cmp_en,
+                i_smpl_cmp_length = smpl_cmp_length,
+                o_smpl_cmp_done   = smpl_cmp_done,
+                o_smpl_cmp_err    = smpl_cmp_error,
+                ## sample counter enable
+                o_smpl_cnt_en     = self.smpl_cnt_en,
+
+            )
+        ]
+        self.specials += [
+            MultiReg(fpgacfg_manager.rx_en,       reset_n,         odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.rx_ptrn_en,  rx_ptrn_en,      odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.mode,        mode,            odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.trxiq_pulse, trxiqpulse,      odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.ddr_en,      ddr_en,          odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,         odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.ch_en,       ch_en,           odomain="lms_rx"),
+            MultiReg(self.smpl_cmp_length,        smpl_cmp_length, odomain="lms_rx"),
         ]
 
         # Delay control module.
@@ -158,10 +199,10 @@ class LMS7002Top(LiteXModule):
             o_delay_error      = self.delay_ctrl_error,
 
             # signals from sample compare module (required for automatic phase searching)
-            o_smpl_cmp_en      = self.smpl_cmp.en,
-            i_smpl_cmp_done    = smpl_cmp_done_sync,
-            i_smpl_cmp_error   = smpl_cmp_error_sync,
-            o_smpl_cmp_cnt     = self.smpl_cmp.cnt,
+            o_smpl_cmp_en      = smpl_cmp_en,
+            i_smpl_cmp_done    = smpl_cmp_done,
+            i_smpl_cmp_error   = smpl_cmp_error,
+            o_smpl_cmp_cnt     = self.smpl_cmp_cnt,
 
             o_delayf_loadn     = inst1_delayf_loadn,
             o_delayf_move      = inst1_delayf_move,
