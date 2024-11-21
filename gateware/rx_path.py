@@ -11,10 +11,10 @@ from migen.genlib.cdc import MultiReg
 
 from litex.gen import *
 
-from litex.soc.interconnect.csr import CSRStatus, CSRStorage, CSRField
+from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
+from litex.soc.interconnect.csr            import CSRStatus, CSRStorage, CSRField
 
 from gateware.common              import *
-from gateware.lms7002.lms7002_top import SampleCompare
 
 # RX Path ------------------------------------------------------------------------------------------
 
@@ -31,8 +31,8 @@ class RXPath(LiteXModule):
 
         self.platform              = platform
 
-        self.rx_diq2_h             = Signal(RX_IQ_WIDTH + 1)
-        self.rx_diq2_l             = Signal(RX_IQ_WIDTH + 1)
+        self.axis_s                = AXIStreamInterface(RX_IQ_WIDTH * 4, 8, clock_domain="lms_rx")
+
         self.rx_pct_fifo_aclrn_req = Signal()
 
         self.rx_pct_fifo_wusedw    = Signal(RX_PCT_BUFF_WRUSEDW_W)
@@ -48,10 +48,7 @@ class RXPath(LiteXModule):
         self.tx_pct_loss_flg       = Signal()
 
         # Sample Compare.
-        self.rx_smpl_cmp_start     = Signal()
-        self.rx_smpl_cmp_length    = Signal(16)
-        self.rx_smpl_cmp_done      = Signal()
-        self.rx_smpl_cmp_err       = Signal()
+        self.smpl_cnt_en           = Signal()
 
         # # #
 
@@ -69,7 +66,6 @@ class RXPath(LiteXModule):
                 # Clk/Reset.
                 i_clk                 = ClockSignal("lms_rx"),
                 i_reset_n             = inst5_reset_n,
-                i_test_ptrn_en        = fpgacfg_manager.rx_ptrn_en,
 
                 # Mode settings.
                 i_sample_width        = fpgacfg_manager.smpl_width,  # "10"-12bit, "01"-14bit, "00"-16bit;
@@ -78,10 +74,13 @@ class RXPath(LiteXModule):
                 i_ddr_en              = fpgacfg_manager.ddr_en,      # DDR: 1; SDR: 0
                 i_mimo_en             = fpgacfg_manager.mimo_int_en, # SISO: 1; MIMO: 0
                 i_ch_en               = fpgacfg_manager.ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
-                i_fidm                = Constant(0, 1),              # Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
-                # Rx interface data
-                i_rx_diq2_h           = self.rx_diq2_h,
-                i_rx_diq2_l           = self.rx_diq2_l,
+
+                # AXI Stream Slave Interface.
+                i_s_axis_tdata   = self.axis_s.data,
+                i_s_axis_tkeep   = self.axis_s.keep,
+                i_s_axis_tvalid  = self.axis_s.valid,
+                i_s_axis_tlast   = self.axis_s.last,
+                o_s_axis_tready  = self.axis_s.ready,
 
                 # samples
                 o_smpl_fifo_wrreq_out = Open(),
@@ -103,10 +102,7 @@ class RXPath(LiteXModule):
                 i_tx_pct_loss_clr     = fpgacfg_manager.txpct_loss_clr,
 
                 # sample compare
-                i_smpl_cmp_start      = self.rx_smpl_cmp_start,
-                i_smpl_cmp_length     = self.rx_smpl_cmp_length,
-                o_smpl_cmp_done       = self.rx_smpl_cmp_done,
-                o_smpl_cmp_err        = self.rx_smpl_cmp_err,
+                o_smpl_cnt_en          = self.smpl_cnt_en,
             )
         ]
 

@@ -9,10 +9,10 @@ from migen import *
 
 from litex.gen import *
 
-from litex.soc.interconnect.csr import CSRStatus, CSRStorage, CSRField
+from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
+from litex.soc.interconnect.csr            import CSRStatus, CSRStorage, CSRField
 
 from gateware.common              import *
-from gateware.lms7002.lms7002_top import SampleCompare
 from gateware.rx_path             import RXPath
 
 # RXTX Top -----------------------------------------------------------------------------------------
@@ -39,15 +39,13 @@ class RXTXTop(LiteXModule):
 
         self.platform              = platform
 
+        self.axis_s                = AXIStreamInterface(RX_IQ_WIDTH * 4, 8, clock_domain="lms_rx")
+
         self.tx_txant_en           = Signal()
         self.tx_diq1_h             = Signal(TX_IQ_WIDTH + 1)
         self.tx_diq1_l             = Signal(TX_IQ_WIDTH + 1)
 
-        self.rx_diq2_h             = Signal(RX_IQ_WIDTH + 1)
-        self.rx_diq2_l             = Signal(RX_IQ_WIDTH + 1)
         self.rx_pct_fifo_aclrn_req = Signal()
-        self.rx_smpl_cmp           = SampleCompare()
-        self.rxtx_smpl_cmp_length  = Signal(16)
 
         self.rx_en                    = Signal()
         self.from_tstcfg_test_en      = Signal(6)
@@ -147,9 +145,7 @@ class RXTXTop(LiteXModule):
         )
 
         self.comb += [
-            # Rx interface data
-            rx_path.rx_diq2_h.eq(         self.rx_diq2_h),
-            rx_path.rx_diq2_l.eq(         self.rx_diq2_l),
+            self.axis_s.connect(self.rx_path.axis_s),
 
             # Packet fifo ports
             self.rx_pct_fifo_aclrn_req.eq(rx_path.rx_pct_fifo_aclrn_req),
@@ -163,12 +159,6 @@ class RXTXTop(LiteXModule):
 
             # Flag Control.
             rx_path.tx_pct_loss_flg.eq(   tx_pct_loss_flg),
-
-            # Sample Compare.
-            rx_path.rx_smpl_cmp_start.eq( self.rx_smpl_cmp.en),
-            rx_path.rx_smpl_cmp_length.eq(self.rxtx_smpl_cmp_length),
-            self.rx_smpl_cmp.done.eq(     rx_path.rx_smpl_cmp_done),
-            self.rx_smpl_cmp.error.eq(    rx_path.rx_smpl_cmp_err),
         ]
 
         # Logic.
