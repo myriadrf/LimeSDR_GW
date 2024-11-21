@@ -21,34 +21,34 @@ void fpgacfg_write(uint16_t addr, uint8_t *wdata)
 		fpgacfg_load_phase_write(value);
 		break;
 	case 0x7:
-		rxtx_top_channel_cntrl_write(value);
+		fpgacfg_ch_en_write(value);
 		break;
 	case 0x8:
-		rxtx_top_reg08_write(value);
+		fpgacfg_reg08_write(value);
 		break;
 	case 0x9:
-		rxtx_top_reg09_write(value);
+		fpgacfg_reg09_write(value);
 		break;
 	case 0xa:
-		rxtx_top_reg10_write(value);
+		fpgacfg_reg10_write(value);
 		break;
 	case 0xC:
 		fpgacfg_wfm_ch_en_write(value);
 		break;
 	case 0xD:
-		rxtx_top_reg13_write(value);
+		fpgacfg_reg13_write(value);
 		break;
 	case 0xE:
 		fpgacfg_wfm_smpl_width_write(value);
 		break;
 	case 0xF:
-		rxtx_top_sync_size_write(value);
+		fpgacfg_sync_size_write(value);
 		break;
 	case 0x10:
-		rxtx_top_txant_pre_write(value);
+		fpgacfg_txant_pre_write(value);
 		break;
 	case 0x11:
-		rxtx_top_txant_post_write(value);
+		fpgacfg_txant_post_write(value);
 		break;
 	case 0x12:
 		fpgacfg_spi_ss_write(value);
@@ -69,7 +69,7 @@ void fpgacfg_write(uint16_t addr, uint8_t *wdata)
 		fpgacfg_clk_ena_write(value);
 		break;
 	case 0x1E:
-		rxtx_top_sync_pulse_period_write(value);
+		fpgacfg_sync_pulse_period_write(value);
 		break;
 	default:
 		printf("FWE: %04x\n", addr);
@@ -104,34 +104,34 @@ void fpgacfg_read(uint16_t addr, uint8_t *rdata)
 		value = fpgacfg_load_phase_read();
 		break;
 	case 0x7:
-		value = rxtx_top_channel_cntrl_read();
+		value = fpgacfg_ch_en_read();
 		break;
 	case 0x8:
-		value = rxtx_top_reg08_read();
+		value = fpgacfg_reg08_read();
 		break;
 	case 0x9:
-		value = rxtx_top_reg09_read();
+		value = fpgacfg_reg09_read();
 		break;
 	case 0xa:
-		value = rxtx_top_reg10_read();
+		value = fpgacfg_reg10_read();
 		break;
 	case 0xC:
 		value = fpgacfg_wfm_ch_en_read();
 		break;
 	case 0xD:
-		value = rxtx_top_reg13_read();
+		value = fpgacfg_reg13_read();
 		break;
 	case 0xE:
 		value = fpgacfg_wfm_smpl_width_read();
 		break;
 	case 0xF:
-		value = rxtx_top_sync_size_read();
+		value = fpgacfg_sync_size_read();
 		break;
 	case 0x10:
-		value = rxtx_top_txant_pre_read();
+		value = fpgacfg_txant_pre_read();
 		break;
 	case 0x11:
-		value = rxtx_top_txant_post_read();
+		value = fpgacfg_txant_post_read();
 		break;
 	case 0x12:
 		value = fpgacfg_spi_ss_read();
@@ -152,7 +152,7 @@ void fpgacfg_read(uint16_t addr, uint8_t *rdata)
 		value = fpgacfg_clk_ena_read();
 		break;
 	case 0x1E:
-		value = rxtx_top_sync_pulse_period_read();
+		value = fpgacfg_sync_pulse_period_read();
 		break;
 	default:
 		printf("FRE: %04x\n", addr);
