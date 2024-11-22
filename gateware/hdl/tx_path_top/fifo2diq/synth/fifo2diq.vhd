@@ -40,11 +40,11 @@ entity fifo2diq is
       fsync                : out std_logic;
       DIQ_h                : out std_logic_vector(iq_width downto 0);
       DIQ_l                : out std_logic_vector(iq_width downto 0);
-      --fifo ports 
-      fifo_rdempty         : in std_logic;
-      fifo_rdreq           : out std_logic;
-      fifo_q               : in std_logic_vector(128-1 downto 0) 
-
+      -- AXIStream Slave Interface.
+      axis_s_tdata         : in  std_logic_vector(127 downto 0);
+      axis_s_tvalid        : in  std_logic;
+      axis_s_tready        : out std_logic;
+      axis_s_tlast         : in  std_logic
         );
 end fifo2diq;
 
@@ -153,10 +153,10 @@ end process;
       AXIS_ARESET_N  => reset_n,
       RESET_N        => reset_n,
 
-      S_AXIS_TDATA   => tdata,
-      S_AXIS_TREADY  => tready,
-      S_AXIS_TVALID  => tvalid,
-      S_AXIS_TLAST   => tlast,
+      S_AXIS_TDATA   => axis_s_tdata,
+      S_AXIS_TREADY  => axis_s_tready,
+      S_AXIS_TVALID  => axis_s_tvalid,
+      S_AXIS_TLAST   => axis_s_tlast,
 
       M_AXIS_TDATA   => m_axis_tdata,
       M_AXIS_TREADY  => m_axis_tready,
@@ -165,35 +165,6 @@ end process;
       CH_EN          => ch_en
    );
 
-
-   	tvalid           <= not fifo_rdempty;
-   	tdata            <= fifo_q;
-	inst1_fifo_rdreq <= tready;
-	tlast            <= '0'; -- unused
-
-        
- --inst1_txiq : entity work.txiq
- --  generic map( 
- --     dev_family     => dev_family,
- --     iq_width       => iq_width
- --  )
- --  port map (
- --     clk            => clk,
- --     reset_n        => reset_n,
- --     en             => inst3_txiq_en,
- --     trxiqpulse     => trxiqpulse,
- --     ddr_en         => ddr_en,
- --     mimo_en        => mimo_en,
- --     ch_en          => ch_en, 
- --     fidm           => fidm,
- --     DIQ_h          => inst0_DIQ_h,
- --     DIQ_l          => inst0_DIQ_l,
- --     fifo_rdempty   => fifo_rdempty,
- --     fifo_rdreq     => inst1_fifo_rdreq,
- --     fifo_q         => fifo_q,
- --     txant_en       => inst1_txant_en
- --       );
-        
 txiq_ctrl_inst3 : entity work.txiq_ctrl
    port map(
       clk                  => clk,
@@ -209,7 +180,7 @@ txiq_ctrl_inst3 : entity work.txiq_ctrl
       txant_cyc_after_en   => txant_cyc_after_en,
       txant_en             => inst3_txant_en
         );
-        
+
 edge_delay_inst4 : entity work.edge_delay
    port map(
       clk      => clk,
@@ -237,9 +208,7 @@ end process;
 
 
 txant_en    <= txant_en_mux;
-fifo_rdreq  <= inst1_fifo_rdreq;
 DIQ_h       <= inst0_DIQ_h;
 DIQ_l       <= inst0_DIQ_l;
 
-  
 end arch;
