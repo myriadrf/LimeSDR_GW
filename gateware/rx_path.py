@@ -31,7 +31,7 @@ class RXPath(LiteXModule):
 
         self.platform              = platform
 
-        self.sink                  = AXIStreamInterface(RX_IQ_WIDTH * 4, 8, clock_domain="lms_rx")
+        self.sink                  = AXIStreamInterface(64, clock_domain="lms_rx")
 
         self.rx_pct_fifo_aclrn_req = Signal()
 
@@ -52,11 +52,30 @@ class RXPath(LiteXModule):
 
         # # #
 
+        iq_to_rx_tdata             = Signal(64)
+        iq_to_rx_tvalid            = Signal()
+        iq_to_rx_tkeep             = Signal(8)
+
         inst5_reset_n   = Signal()
 
         self.specials += [
             MultiReg(fpgacfg_manager.rx_en, inst5_reset_n,              "lms_rx", reset=1),
             MultiReg(inst5_reset_n,         self.rx_pct_fifo_aclrn_req, "lms_rx", reset=1),
+            # IQ Stream Combiner
+            Instance("IQ_STREAM_COMBINER",
+                # Clk/Reset.
+                i_CLK               = ClockSignal("lms_rx"),
+                i_RESET_N           = inst5_reset_n,
+                # AXI Stream Slave
+                i_S_AXIS_TVALID     = self.sink.valid,
+                o_S_AXIS_TREADY     = self.sink.ready,
+                i_S_AXIS_TDATA      = self.sink.data,
+                i_S_AXIS_TKEEP      = self.sink.keep,
+                # AXI Stream Master
+                o_M_AXIS_TVALID     = iq_to_rx_tvalid,
+                o_M_AXIS_TDATA      = iq_to_rx_tdata,
+                o_M_AXIS_TKEEP      = iq_to_rx_tkeep,
+            ),
             Instance("rx_path_top",
                 p_iq_width            = RX_IQ_WIDTH,
                 p_invert_input_clocks = RX_INVERT_INPUT_CLOCKS,
@@ -76,11 +95,11 @@ class RXPath(LiteXModule):
                 i_ch_en               = fpgacfg_manager.ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
 
                 # AXI Stream Slave Interface.
-                i_s_axis_tdata   = self.sink.data,
-                i_s_axis_tkeep   = self.sink.keep,
-                i_s_axis_tvalid  = self.sink.valid,
-                i_s_axis_tlast   = self.sink.last,
-                o_s_axis_tready  = self.sink.ready,
+                i_s_axis_tdata        = iq_to_rx_tdata,
+                i_s_axis_tkeep        = iq_to_rx_tkeep,
+                i_s_axis_tvalid       = iq_to_rx_tvalid,
+                i_s_axis_tlast        = Constant(0, 1),
+                o_s_axis_tready       = Open(),
 
                 # samples
                 o_smpl_fifo_wrreq_out = Open(),
@@ -120,6 +139,8 @@ class RXPath(LiteXModule):
             "gateware/hdl/tx_path_top/fifo2diq/synth/edge_delay.vhd",
             "gateware/hdl/rx_path_top/smpl_cnt/synth/iq_smpl_cnt.vhd",
             "gateware/hdl/rx_path_top/smpl_cnt/synth/smpl_cnt.vhd",
+
+            "gateware/LimeDFB/rx_path_top/iq_stream_combiner.vhd",
 
             # Lattice FIFOs.
             # --------------
