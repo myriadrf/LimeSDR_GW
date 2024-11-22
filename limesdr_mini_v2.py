@@ -274,8 +274,6 @@ class BaseSoC(SoCCore):
             self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
             self.lms7002_top.source.connect(     self.rxtx_top.rx_path.sink),
             self.rxtx_top.tx_path.source.connect(self.lms7002_top.sink),
-            self.lms7002_top.pct_sync_pulse.eq(  self.rxtx_top.tx_path.pct_sync_pulse),
-            self.lms7002_top.pct_buff_rdy.eq(    self.rxtx_top.tx_path.pct_buff_rdy),
 
             # FT601 <-> RXTX Top.
             self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
@@ -283,7 +281,7 @@ class BaseSoC(SoCCore):
             self.rxtx_top.stream_fifo.connect(self.ft601.stream_fifo),
 
             # General Periph <-> RXTX Top.
-            self.general_periph.tx_txant_en.eq(self.lms7002_top.tx_txant_en),
+            self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_path.tx_txant_en),
 
             # General Periph <-> LMS7002
             self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),

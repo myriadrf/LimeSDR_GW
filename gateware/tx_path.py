@@ -32,7 +32,7 @@ class TXPath(LiteXModule):
 
         self.platform          = platform
 
-        self.source            = AXIStreamInterface(128, clock_domain="lms_rx")
+        self.source            = AXIStreamInterface(64, clock_domain="lms_rx")
 
         # FIFO
         self.stream_fifo_rd    = Signal()
@@ -42,16 +42,29 @@ class TXPath(LiteXModule):
         self.rx_sample_nr      = Signal(64)
         self.pct_loss_flg      = Signal()
         self.pct_loss_flg_clr  = Signal()
-        self.pct_buff_rdy      = Signal()
 
-        self.pct_sync_pulse    = Signal()
+        self.tx_txant_en       = Signal()
 
         # # #
 
+        # Signals.
         reset_n = Signal()
 
+        # AXI TX Path -> FIFO2DIQ
+        tpf_axi_data   = Signal(128)
+        tpf_axi_valid  = Signal()
+        tpf_axi_ready  = Signal()
+        tpf_axi_last   = Signal()
+
+        pct_buff_rdy   = Signal()
+        pct_sync_pulse = Signal()
+
+        trxiqpulse     = Signal()
+        ddr_en         = Signal()
+        mimo_en        = Signal()
+        ch_en          = Signal(2)
+
         self.specials += [
-            MultiReg(fpgacfg_manager.rx_en, reset_n, "lms_tx"),
             Instance("tx_path_top",
                 p_g_IQ_WIDTH       = IQ_WIDTH,
                 p_g_PCT_MAX_SIZE   = PCT_MAX_SIZE,
@@ -74,7 +87,7 @@ class TXPath(LiteXModule):
                 o_pct_loss_flg     = self.pct_loss_flg,
                 i_pct_loss_flg_clr = self.pct_loss_flg_clr,
 
-                o_pct_buff_rdy     = self.pct_buff_rdy,
+                o_pct_buff_rdy     = pct_buff_rdy,
 
                 # Mode settings.
                 i_mode             = fpgacfg_manager.mode,        # JESD207: 1; TRXIQ: 0
@@ -86,29 +99,75 @@ class TXPath(LiteXModule):
                 i_sample_width     = fpgacfg_manager.smpl_width,  # "10"-12bit, "01"-14bit, "00"-16bit;
 
                 # AXI Stream Master Interface.
-                o_axis_m_tdata     = self.source.data,
-                o_axis_m_tvalid    = self.source.valid,
-                i_axis_m_tready    = self.source.ready,
-                o_axis_m_tlast     = self.source.last,
+                o_axis_m_tdata     = tpf_axi_data,
+                o_axis_m_tvalid    = tpf_axi_valid,
+                i_axis_m_tready    = tpf_axi_ready,
+                o_axis_m_tlast     = tpf_axi_last,
 
                 # Packet ports
                 o_fifo_rdreq       = self.stream_fifo_rd,
                 i_fifo_data        = self.stream_fifo_data,
                 i_fifo_rdempty     = self.stream_fifo_empty,
             ),
+            # FIFO 2 DIQ
+            Instance("fifo2diq",
+                # Parameters.
+                p_iq_width            = IQ_WIDTH,
+
+                # Clk/Reset.
+                i_clk                 = ClockSignal("lms_tx"),
+                i_reset_n             = reset_n,
+
+                # Mode settings.
+                #i_mode                = tx_mode,
+                i_trxiqpulse          = trxiqpulse,
+                i_ddr_en              = ddr_en,
+                i_mimo_en             = mimo_en,
+                i_ch_en               = ch_en,
+                #i_fidm                = Constant(0, 1),
+                i_pct_sync_mode       = fpgacfg_manager.synch_mode,
+                i_pct_sync_pulse      = pct_sync_pulse,
+                i_pct_sync_size       = fpgacfg_manager.sync_size,
+                i_pct_buff_rdy        = pct_buff_rdy,
+
+                # txant
+                i_txant_cyc_before_en = fpgacfg_manager.txant_pre,
+                i_txant_cyc_after_en  = fpgacfg_manager.txant_post,
+                o_txant_en            = self.tx_txant_en,
+
+                # AXI Stream Slave Interface.
+                i_axis_s_tdata        = tpf_axi_data,
+                i_axis_s_tvalid       = tpf_axi_valid,
+                o_axis_s_tready       = tpf_axi_ready,
+                i_axis_s_tlast        = tpf_axi_last,
+
+                # AXIStream Master Interface (to lms7002_tx).
+                o_m_axis_tdata        = self.source.data,
+                o_m_axis_tvalid       = self.source.valid,
+                i_m_axis_tready       = self.source.ready,
+                o_m_axis_tlast        = self.source.last,
+            ),
             # pulse_gen instance instance.
             Instance("pulse_gen",
                 i_clk         = ClockSignal("lms_tx"),
                 i_reset_n     = reset_n,
                 i_wait_cycles = fpgacfg_manager.sync_pulse_period,
-                o_pulse       = self.pct_sync_pulse
-            )
+                o_pulse       = pct_sync_pulse
+            ),
+            MultiReg(fpgacfg_manager.rx_en,       reset_n,    odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.trxiq_pulse, trxiqpulse, odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.ddr_en,      ddr_en,     odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,    odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.ch_en,       ch_en,      odomain="lms_tx"),
         ]
 
         self.add_sources(platform)
 
     def add_sources(self, platform):
         general_periph_files = [
+            "gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd",
+            "gateware/hdl/tx_path_top/fifo2diq/synth/fifo2diq.vhd",
+            "gateware/hdl/tx_path_top/fifo2diq/synth/txiq_ctrl.vhd",
             "gateware/hdl/tx_path_top/tx_path/synth/sync_fifo_rw.vhd",
             "gateware/hdl/tx_path_top/tx_path/synth/tx_path_top.vhd",
             "gateware/hdl/tx_path_top/pulse_gen/synth/pulse_gen.vhd",
