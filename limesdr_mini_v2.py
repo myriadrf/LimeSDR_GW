@@ -262,19 +262,20 @@ class BaseSoC(SoCCore):
         )
 
         self.comb += [
-            self.rxtx_top.from_tstcfg_test_en.eq(self.tst_top.test_en),
-            self.rxtx_top.from_tstcfg_test_frc_err.eq(self.tst_top.test_frc_err),
-            self.rxtx_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
-            self.rxtx_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
+            # LMS7002 <-> TstTop.
+            self.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
+            self.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
+            self.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
 
             # LMS7002 <-> PLLCFG
             self.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
 
             # LMS7002 <-> RXTX Top.
-            self.lms7002_top.tx_diq1_h.eq(       self.rxtx_top.tx_diq1_h),
-            self.lms7002_top.tx_diq1_l.eq(       self.rxtx_top.tx_diq1_l),
             self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
             self.lms7002_top.axis_m.connect(     self.rxtx_top.axis_s),
+            self.rxtx_top.axis_m.connect(        self.lms7002_top.axis_s),
+            self.lms7002_top.pct_sync_pulse.eq(  self.rxtx_top.pct_sync_pulse),
+            self.lms7002_top.pct_buff_rdy.eq(    self.rxtx_top.pct_buff_rdy),
 
             # FT601 <-> RXTX Top.
             self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
@@ -282,7 +283,7 @@ class BaseSoC(SoCCore):
             self.rxtx_top.stream_fifo.connect(self.ft601.stream_fifo),
 
             # General Periph <-> RXTX Top.
-            self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_txant_en),
+            self.general_periph.tx_txant_en.eq(self.lms7002_top.tx_txant_en),
 
             # General Periph <-> LMS7002
             self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
