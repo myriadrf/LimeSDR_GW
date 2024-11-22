@@ -41,17 +41,21 @@ entity rxtx_top is
    port (
       -- Configuration memory ports     
       from_fpgacfg            : in     t_FROM_FPGACFG;
-      to_tstcfg_from_rxtx     : out    t_TO_TSTCFG_FROM_RXTX;
-      from_tstcfg             : in     t_FROM_TSTCFG;
+
       -- TX path
       tx_clk                  : in     std_logic;
       tx_clkout               : out    std_logic;
       tx_clk_reset_n          : in     std_logic;    
       tx_pct_loss_flg         : out    std_logic;
-      tx_txant_en             : out    std_logic;  
-         -- Tx interface data 
-      tx_diq1_h               : out    std_logic_vector(TX_IQ_WIDTH downto 0);
-      tx_diq1_l               : out    std_logic_vector(TX_IQ_WIDTH downto 0);
+
+      pct_sync_pulse          : out std_logic; -- external packet synchronisation pulse signal
+      pct_buff_rdy            : out std_logic;
+
+      -- AXIStream Master Interface.
+      axis_m_tdata            : out std_logic_vector(127 downto 0);
+      axis_m_tvalid           : out std_logic;
+      axis_m_tready           : in  std_logic;
+      axis_m_tlast            : out std_logic;
          -- TX FIFO read ports
       tx_in_pct_rdreq         : out    std_logic;
       tx_in_pct_data          : in     std_logic_vector(TX_IN_PCT_DATA_W-1 downto 0);
@@ -129,18 +133,13 @@ begin
       rx_sample_clk        => rx_clk,
       rx_sample_nr         => inst5_smpl_nr_cnt,
       
-      pct_sync_mode        => from_fpgacfg.synch_mode,
       pct_sync_dis         => from_fpgacfg.synch_dis,
-      pct_sync_pulse       => inst6_pulse,
       pct_sync_size        => from_fpgacfg.sync_size,
+
+      pct_buff_rdy         => pct_buff_rdy,
             
       pct_loss_flg         => tx_pct_loss_flg,
       pct_loss_flg_clr     => inst5_pct_hdr_cap, --from_fpgacfg.txpct_loss_clr
-      
-      --txant
-      txant_cyc_before_en  => from_fpgacfg.txant_pre,
-      txant_cyc_after_en   => from_fpgacfg.txant_post,
-      txant_en             => tx_txant_en,
       
       --Mode settings
       mode                 => from_fpgacfg.mode,       -- JESD207: 1; TRXIQ: 0
@@ -150,43 +149,18 @@ begin
       ch_en                => from_fpgacfg.ch_en(1 downto 0),      --"11" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B. 
       fidm                 => '0',       -- Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
       sample_width         => from_fpgacfg.smpl_width, --"10"-12bit, "01"-14bit, "00"-16bit;
-      --Tx interface data 
-      DIQ                  => open,
-      fsync                => open, 
-      DIQ_h                => inst1_DIQ_h,
-      DIQ_l                => inst1_DIQ_l,
+
+      -- AXIStream Master Interface.
+      axis_m_tdata         => axis_m_tdata,
+      axis_m_tvalid        => axis_m_tvalid,
+      axis_m_tready        => axis_m_tready,
+      axis_m_tlast         => axis_m_tlast,
       --fifo ports
       fifo_rdreq           => tx_in_pct_rdreq,
       fifo_data            => tx_in_pct_data,
       fifo_rdempty         => tx_in_pct_rdempty
       );
             
--- ----------------------------------------------------------------------------
--- txiqmux instance.
--- 
--- ----------------------------------------------------------------------------       
-   txiqmux_inst3 : entity work.txiqmux
-   generic map(
-      diq_width   => TX_IQ_WIDTH
-   )
-   port map(
-      clk               => tx_clk,
-      reset_n           => tx_clk_reset_n,
-      test_ptrn_en      => from_fpgacfg.tx_ptrn_en,   -- Enables test pattern
-      test_ptrn_fidm    => '0',   -- External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
-      test_ptrn_I       => from_tstcfg.TX_TST_I,
-      test_ptrn_Q       => from_tstcfg.TX_TST_Q,
-      test_data_en      => from_fpgacfg.tx_cnt_en,
-      test_data_mimo_en => '1',
-      mux_sel           => from_fpgacfg.wfm_play,   -- Mux select: 0 - tx, 1 - wfm
-      tx_diq_h          => inst1_DIQ_h,
-      tx_diq_l          => inst1_DIQ_l,
-      wfm_diq_h         => (others=> '0'),
-      wfm_diq_l         => (others=> '0'),
-      diq_h             => tx_diq1_h, --inst3_diq_h,
-      diq_l             => tx_diq1_l  --inst3_diq_l
-   );
-   
 -- ----------------------------------------------------------------------------
 -- lms7002_ddout instance.
 -- 
@@ -218,7 +192,7 @@ begin
       clk         => tx_clk,
       reset_n     => inst6_reset_n,
       wait_cycles => from_fpgacfg.sync_pulse_period,
-      pulse       => inst6_pulse
+      pulse       => pct_sync_pulse
    );
    
    
