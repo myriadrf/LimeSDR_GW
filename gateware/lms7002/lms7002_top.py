@@ -31,8 +31,8 @@ class LMS7002Top(LiteXModule):
         assert hw_ver          is not None
         assert fpgacfg_manager is not None
 
-        self.axis_m            = AXIStreamInterface(4 * diq_width, 8, clock_domain="lms_rx")
-        self.axis_s            = AXIStreamInterface(128,              clock_domain="lms_tx")
+        self.source            = AXIStreamInterface(4 * diq_width, 8, clock_domain="lms_rx")
+        self.sink              = AXIStreamInterface(128,              clock_domain="lms_tx")
 
         self.platform          = platform
 
@@ -162,10 +162,10 @@ class LMS7002Top(LiteXModule):
                 o_DIQ_l               = tx_diq_l,
 
                 # AXI Stream Slave Interface.
-                i_axis_s_tdata        = self.axis_s.data,
-                i_axis_s_tvalid       = self.axis_s.valid,
-                o_axis_s_tready       = self.axis_s.ready,
-                i_axis_s_tlast        = self.axis_s.last,
+                i_axis_s_tdata        = self.sink.data,
+                i_axis_s_tvalid       = self.sink.valid,
+                o_axis_s_tready       = self.sink.ready,
+                i_axis_s_tlast        = self.sink.last,
             ),
             # txiqmux instance.
             # -----------------
@@ -243,11 +243,11 @@ class LMS7002Top(LiteXModule):
                 i_rx_diq2_l      = self.lms7002_rxiq.rx_diq2_l,
 
                 # AXI Stream Master Interface.
-                o_m_axis_tdata   = self.axis_m.data,
-                o_m_axis_tkeep   = self.axis_m.keep,
-                o_m_axis_tvalid  = self.axis_m.valid,
-                o_m_axis_tlast   = self.axis_m.last,
-                i_m_axis_tready  = self.axis_m.ready,
+                o_m_axis_tdata   = self.source.data,
+                o_m_axis_tkeep   = self.source.keep,
+                o_m_axis_tvalid  = self.source.valid,
+                o_m_axis_tlast   = self.source.last,
+                i_m_axis_tready  = self.source.ready,
 
                 # sample compare
                 i_smpl_cmp_start  = smpl_cmp_en,

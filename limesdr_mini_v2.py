@@ -272,8 +272,8 @@ class BaseSoC(SoCCore):
 
             # LMS7002 <-> RXTX Top.
             self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
-            self.lms7002_top.axis_m.connect(     self.rxtx_top.axis_s),
-            self.rxtx_top.axis_m.connect(        self.lms7002_top.axis_s),
+            self.lms7002_top.source.connect(     self.rxtx_top.rx_path.sink),
+            self.rxtx_top.source.connect(        self.lms7002_top.sink),
             self.lms7002_top.pct_sync_pulse.eq(  self.rxtx_top.pct_sync_pulse),
             self.lms7002_top.pct_buff_rdy.eq(    self.rxtx_top.pct_buff_rdy),
 

@@ -39,8 +39,7 @@ class RXTXTop(LiteXModule):
 
         self.platform              = platform
 
-        self.axis_s                = AXIStreamInterface(RX_IQ_WIDTH * 4, 8, clock_domain="lms_rx")
-        self.axis_m                = AXIStreamInterface(128,                clock_domain="lms_tx")
+        self.source                = AXIStreamInterface(128, clock_domain="lms_tx")
 
         self.rx_pct_fifo_aclrn_req = Signal()
 
@@ -109,10 +108,10 @@ class RXTXTop(LiteXModule):
             o_tx_pct_loss_flg        = tx_pct_loss_flg,
 
             # AXIStream Master Interface.
-            o_axis_m_tdata           = self.axis_m.data,
-            o_axis_m_tvalid          = self.axis_m.valid,
-            i_axis_m_tready          = self.axis_m.ready,
-            o_axis_m_tlast           = self.axis_m.last,
+            o_axis_m_tdata           = self.source.data,
+            o_axis_m_tvalid          = self.source.valid,
+            i_axis_m_tready          = self.source.ready,
+            o_axis_m_tlast           = self.source.last,
 
             #  TX FIFO read ports
             o_tx_in_pct_rdreq        = self.stream_fifo.rd,
@@ -135,8 +134,6 @@ class RXTXTop(LiteXModule):
         )
 
         self.comb += [
-            self.axis_s.connect(self.rx_path.axis_s),
-
             # Packet fifo ports
             self.rx_pct_fifo_aclrn_req.eq(rx_path.rx_pct_fifo_aclrn_req),
             rx_path.rx_pct_fifo_wusedw.eq(self.stream_fifo.wrusedw),
