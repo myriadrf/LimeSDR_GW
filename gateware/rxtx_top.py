@@ -139,8 +139,8 @@ class RXTXTop(LiteXModule):
         # fifo_w64x256_r64_cdc
         # ./fifo_gen --input-width 64 --output-width 64 --depth 256 --with-cdc --build
         gen_fifo(64, 64, 256, with_cdc=True)
-        # ./fifo_gen.py --input-width 48 --output-width 48 --depth 1024 --build --with-buffer
-        gen_fifo(48, 48, 1024, True)
+        # ./fifo_gen.py --input-width 64 --output-width 64 --depth 1024 --build --with-buffer
+        gen_fifo(input_width=64, output_width=64, depth=1024, with_buffer=True)
         # ./fifo_gen.py --input-width 128 --output-width 128 --depth 1024 --build --with-buffer
         gen_fifo(128, 128, 256, True, False, True)
         # ./fifo_gen.py --input-width 128 --output-width 64 --depth 256 --with-buffer --build
