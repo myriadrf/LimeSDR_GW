@@ -31,8 +31,8 @@ class LMS7002Top(LiteXModule):
         assert hw_ver          is not None
         assert fpgacfg_manager is not None
 
-        self.source            = AXIStreamInterface(4 * diq_width, 8, clock_domain="lms_rx")
-        self.sink              = AXIStreamInterface(64,               clock_domain="lms_tx")
+        self.source            = AXIStreamInterface(64, clock_domain="lms_rx")
+        self.sink              = AXIStreamInterface(64, clock_domain="lms_tx")
 
         self.platform          = platform
 
