@@ -1,4 +1,4 @@
-BUILD_DIR?=../build/limesdr_xtrx_platform
+BUILD_DIR?=../../build/limesdr_xtrx_platform
 
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak

@@ -45,6 +45,11 @@ void readCSR(uint8_t* address, uint8_t* regdata_array)
 		value |= lime_top_lms7002_test_ptrn_en_read() << 9;
 		value |= rfsw_control_rfsw_auto_en_read() << 11;
 		break;
+	case 0x18:
+		value = 0;
+		value |= value | ((fpgacfg_TCXO_EN_read() & 0x1) << 1);
+		value |= value | ((fpgacfg_EXT_CLK_read() & 0x1) << 2);
+		break;
 	case 0x19:
 		value = lime_top_rx_path_pkt_size_read();
 		break;
@@ -87,6 +92,15 @@ void readCSR(uint8_t* address, uint8_t* regdata_array)
 		break;
 	case 0x3E:
 		value = csr_read_simple(smpl_cmp_addrs.cmp_length);
+		break;
+	case 0xCA:
+		value = periphcfg_PERIPH_INPUT_SEL_0_read();
+		break;
+	case 0xD2:
+		value = periphcfg_PERIPH_EN_read();
+		break;
+	case 0xD3:
+		value = periphcfg_PERIPH_SEL_read();
 		break;
 
 
@@ -141,7 +155,8 @@ void writeCSR(uint8_t* address, uint8_t* wrdata_array)
 		printf("13\n");
 		break;
 	case 0x18:
-		printf("18\n");
+		fpgacfg_TCXO_EN_write((value & 0x2) >> 1);
+		fpgacfg_EXT_CLK_write((value & 0x4) >> 2);
 		break;
 	case 0x19:
 		lime_top_rx_path_pkt_size_write(value);
@@ -178,6 +193,15 @@ void writeCSR(uint8_t* address, uint8_t* wrdata_array)
 		break;
 	case 0x3E:
 		csr_write_simple(value, smpl_cmp_addrs.cmp_length);
+		break;
+	case 0xCA:
+		periphcfg_PERIPH_INPUT_SEL_0_write(value);
+		break;
+	case 0xD2:
+		periphcfg_PERIPH_EN_write(value);
+		break;
+	case 0xD3:
+		periphcfg_PERIPH_SEL_write(value);
 		break;
 
 	default:

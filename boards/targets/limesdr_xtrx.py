@@ -50,31 +50,38 @@ class CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
         self.cd_sys    = ClockDomain()
         self.cd_idelay = ClockDomain()
+        self.cd_usb = ClockDomain()
+        self.cd_xo_fpga = ClockDomain()
 
         # # #
+        self.clk26 = platform.request("clk26")
+
+        self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
 
         # Clk / Rst.
         clk125 = ClockSignal("pcie")
         rst125 = ResetSignal("pcie")
 
         # PLL.
-        self.pll = pll = S7PLL(speedgrade=-1)
+        self.pll = pll = S7MMCM(speedgrade=-2)
         self.comb += pll.reset.eq(rst125)
         pll.register_clkin(clk125, 125e6)
-        pll.create_clkout(self.cd_sys,    sys_clk_freq)
-        pll.create_clkout(self.cd_idelay, 200e6)
+        pll.create_clkout(self.cd_idelay, 200e6, margin=0)
+        pll.create_clkout(self.cd_sys,    sys_clk_freq, margin=0)
+        pll.create_clkout(self.cd_usb, 26e6, margin=0)
 
         # IDelayCtrl.
         self.idelayctrl = S7IDELAYCTRL(self.cd_idelay)
 
 # LMS Control CSR----------------------------------------------------------------------------------------
 class CNTRL_CSR(LiteXModule):
-    def __init__(self, ndmas):
+    def __init__(self, ndmas, nuart):
         self.cntrl          = CSRStorage(512, 0)
         self.enable         = CSRStorage()
         self.test           = CSRStorage(32)
         self.ndma           = CSRStatus(4, reset=ndmas)
         self.enable_both    = CSRStorage()
+        self.nuart          = CSRStatus(4, reset=nuart)
 
         # Create event manager for interrupt
         self.ev = EventManager()
@@ -88,7 +95,7 @@ class CNTRL_CSR(LiteXModule):
 class fpgacfg_csr(LiteXModule):
     def __init__(self):
         self.board_id       = CSRStatus(16, reset=27)
-        self.major_rev      = CSRStatus(16, reset=1)
+        self.major_rev      = CSRStatus(16, reset=2)
         self.compile_rev    = CSRStatus(16, reset=18)
         self.reserved_03    = CSRStorage(16, reset=0)
         self.reserved_04    = CSRStorage(16, reset=0)
@@ -101,6 +108,29 @@ class fpgacfg_csr(LiteXModule):
                 ("``2b11", "Channels A and B")
             ], reset=0)
         ])
+        self.TCXO_EN = CSRStorage(1, reset=1,
+            description="TCXO Enable: 0: Disabled, 1: Enabled."
+        )
+        self.EXT_CLK = CSRStorage(1, reset=0,
+            description="CLK source select: 0: Internal, 1: External."
+        )
+
+# periphcfg
+class periphcfg_csr(LiteXModule):
+    def __init__(self):
+        self.BOARD_GPIO_OVRD        = CSRStorage(16, reset=0)
+        self.BOARD_GPIO_RD          = CSRStorage(16, reset=0)
+        self.BOARD_GPIO_DIR         = CSRStorage(16, reset=0)
+        self.BOARD_GPIO_VAL         = CSRStorage(16, reset=0)
+        self.PERIPH_INPUT_SEL_0     = CSRStorage(16, reset=0)
+        self.PERIPH_INPUT_RD_0      = CSRStorage(16, reset=0)
+        self.PERIPH_INPUT_RD_1      = CSRStorage(16, reset=0)
+        self.PERIPH_OUTPUT_OVRD_0   = CSRStorage(16, reset=0)
+        self.PERIPH_OUTPUT_VAL_0    = CSRStorage(16, reset=0)
+        self.PERIPH_OUTPUT_OVRD_1   = CSRStorage(16, reset=0)
+        self.PERIPH_OUTPUT_VAL_1    = CSRStorage(16, reset=0)
+        self.PERIPH_EN              = CSRStorage(16, reset=0)
+        self.PERIPH_SEL             = CSRStorage(16, reset=0)
 
 
 # BaseSoC -----------------------------------------------------------------------------------------
@@ -110,29 +140,31 @@ class BaseSoC(SoCCore):
         # SoC.
         "uart"        : 0,
         "icap"        : 1,
-        "flash"       : 10, #10
-        "xadc"        : 11, #11
-        "dna"         : 12, #12
 
         # PCIe.
         "pcie_phy"    : 2, #10
         "pcie_msi"    : 3, #11
         "pcie_dma0"   : 5, #12
+        "PCIE_UART0"  : 13,
+        "PCIE_UART1"  : 14,
+
+        "flash"       : 15,  # 10
+        "xadc"        : 16,  # 11
+        "dna"         : 17,  # 12
 
         # XTRX.
-        "i2c0"        : 20,
-        "i2c1"        : 21,
-        "GNSS_UART"   : 22,
-
-
-        # Analyzer.
-        "analyzer"    : 30,
+        "i2c0"        : 18,
+        "i2c1"        : 19,
 
         # CNTRL
         "CNTRL"       : 26,
+
+        # Analyzer.
+        "analyzer"    : 31,
+
     }
 
-    def __init__(self, board="limesdr", sys_clk_freq=int(125e6),
+    def __init__(self, board="limesdr", sys_clk_freq=int(100e6),
         with_cpu              = True, cpu_firmware=None,
         with_jtagbone         = True,
         with_bscan            = False,
@@ -162,31 +194,16 @@ class BaseSoC(SoCCore):
             cpu_variant              = "standard",
             integrated_rom_size      = 0x8000 if with_cpu else 0,
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
-            integrated_main_ram_size = 0x4100 if with_cpu else 0,
+            integrated_main_ram_size = 0x4200 if with_cpu else 0,
             integrated_main_ram_init = [] if cpu_firmware is None or flash_boot else get_mem_data(cpu_firmware, endianness="little"),
             uart_name                = "gpio_serial",#"crossover",
         )
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
-
-        # gnss uart
-        gps_pads = platform.request("gps")
-        from litex.soc.cores.uart import UARTPHY
-        from litex.soc.cores.uart import UART
-        gnss_uart_pads      = self.platform.request("gps_serial", loose=True)
-        gnss_uart_phy  = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
-        gnss_uart      = UART(gnss_uart_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
-        self.add_module(name=f"GNSS_UART_phy", module=gnss_uart_phy)
-        self.add_module(name="GNSS_UART", module=gnss_uart)
-
-        # disable reset and standby
-        self.comb += gps_pads.rst.eq(1)
-        self.comb += gps_pads.hw_s.eq(1)
-
-
         self.fpgacfg = fpgacfg_csr()
-        self.CNTRL = CNTRL_CSR(1)
+        self.periphcfg = periphcfg_csr()
+        self.CNTRL = CNTRL_CSR(1,2)
         self.irq.add("CNTRL")
 
         # Clocking ---------------------------------------------------------------------------------
@@ -330,13 +347,59 @@ class BaseSoC(SoCCore):
         )
 
         vctcxo_pads = platform.request("vctcxo")
-        self.comb += vctcxo_pads.sel.eq(0)
-        self.comb += vctcxo_pads.en.eq(1)
+        self.comb += vctcxo_pads.sel.eq(self.fpgacfg.EXT_CLK.storage)
+        self.comb += vctcxo_pads.en.eq(self.fpgacfg.TCXO_EN.storage)
 
         rfsw_pads = platform.request("rf_switches")
 
         self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
         #self.comb += rfsw_pads.tx.eq(1)
+
+        # GPS serial connected to LimeUART0
+        from litex.soc.cores.uart import UARTPHY
+        from litex.soc.cores.uart import UART
+
+        gps_pads = platform.request("gps")
+        gnss_uart_pads = self.platform.request("gps_serial", loose=True)
+        gnss_uart_phy = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
+        pcie_uart0 = UART(gnss_uart_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
+        self.add_module(name=f"PCIE_UART0_phy", module=gnss_uart_phy)
+        self.add_module(name="PCIE_UART0", module=pcie_uart0)
+
+
+        # VCTCXO tamer
+        self.pps_internal = Signal()
+
+        synchro_pads = platform.request("synchro")
+        self.comb += [
+            If(self.periphcfg.PERIPH_INPUT_SEL_0.storage[0:1] == 0b01,
+                self.pps_internal.eq(synchro_pads.pps_in)
+            ).Else(
+                self.pps_internal.eq(gps_pads.pps)
+            )
+        ]
+
+        # Define a layout for vctcxo_tamer_pads
+        vctcxo_tamer_layout = [("tune_ref", 1)]  # 1-bit wide signal for tune_ref
+        vctcxo_tamer_pads = Record(vctcxo_tamer_layout)
+        vctcxo_tamer_pads.tune_ref =self.pps_internal
+
+        from gateware.LimeDFB.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
+        self.vctcxo_tamer = vctcxo_tamer_top(platform=platform, vctcxo_tamer_pads=vctcxo_tamer_pads, clk100_domain="sys", vctcxo_clk_domain="xo_fpga")
+        self.comb += self.vctcxo_tamer.RESET_N.eq(self.crg.pll.locked)
+
+
+        vctcxo_tamer_serial_layout = [("rx", 1),
+                                      ("tx", 1)]  # 1-bit wide signal for tune_ref
+        vctcxo_tamer_serial_pads = Record(vctcxo_tamer_serial_layout)
+        self.comb += vctcxo_tamer_serial_pads.rx.eq(self.vctcxo_tamer.UART_TX)
+        self.comb += self.vctcxo_tamer.UART_RX.eq(vctcxo_tamer_serial_pads.tx)
+
+        pcie_uart1_phy = UARTPHY(vctcxo_tamer_serial_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
+        pcie_uart1 = UART(pcie_uart1_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
+        self.add_module(name=f"PCIE_UART1_phy", module=pcie_uart1_phy)
+        self.add_module(name="PCIE_UART1", module=pcie_uart1)
+
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
