@@ -32,14 +32,21 @@ class LMS7002Top(LiteXModule):
         assert fpgacfg_manager is not None
 
         self.axis_m            = AXIStreamInterface(4 * diq_width, 8, clock_domain="lms_rx")
+        self.axis_s            = AXIStreamInterface(128,              clock_domain="lms_tx")
 
         self.platform          = platform
 
         self.pads                = pads
         self.periph_output_val_1 = Signal(16)
 
-        self.tx_diq1_h        = Signal(13)
-        self.tx_diq1_l        = Signal(13)
+        self.pct_sync_pulse      = Signal() # From RXTX
+        self.pct_buff_rdy        = Signal() # From RXTX
+
+        self.from_tstcfg_test_en      = Signal(6)
+        self.from_tstcfg_tx_tst_i     = Signal(16)
+        self.from_tstcfg_tx_tst_q     = Signal(16)
+
+        self.tx_txant_en      = Signal()
 
         self.delay_ctrl_en    = Signal()
         self.delay_ctrl_sel   = Signal(2)
@@ -75,23 +82,36 @@ class LMS7002Top(LiteXModule):
         tx_data_loadn       = Signal()
         tx_data_move        = Signal()
 
+        rx_reset_n          = Signal()
+
         rx_data_loadn       = Signal()
         rx_data_move        = Signal()
 
         rx_ptrn_en          = Signal()
 
-        mode                = Signal()
-        trxiqpulse          = Signal()
-        ddr_en              = Signal()
-        mimo_en             = Signal()
-        ch_en               = Signal(2)
+        rx_mode             = Signal()
+        rx_trxiqpulse       = Signal()
+        rx_ddr_en           = Signal()
+        rx_mimo_en          = Signal()
+        rx_ch_en            = Signal(2)
+
+        tx_reset_n          = Signal()
+
+        tx_ptrn_en          = Signal()
+
+        tx_mode             = Signal()
+        tx_trxiqpulse       = Signal()
+        tx_ddr_en           = Signal()
+        tx_mimo_en          = Signal()
+        tx_ch_en            = Signal(2)
+        tx_diq_h            = Signal(diq_width + 1)
+        tx_diq_l            = Signal(diq_width + 1)
 
         smpl_cmp_en         = Signal()
         smpl_cmp_done       = Signal()
         smpl_cmp_error      = Signal()
         smpl_cmp_length     = Signal(16)
 
-        reset_n             = Signal()
 
         # Clocks.
         # -------
@@ -107,17 +127,87 @@ class LMS7002Top(LiteXModule):
         ]
 
         # TX Path (DIQ1).
-        # ---------------
+        # ------------------------------------------------------------------------------------------
         self.lms7002_txiq = ClockDomainsRenamer("lms_tx")(LMS7002TXIQ(12, pads))
+
+        self.specials += [
+            # FIFO 2 DIQ
+            Instance("fifo2diq",
+                # Parameters.
+                p_iq_width            = diq_width,
+
+                # Clk/Reset.
+                i_clk                 = ClockSignal("lms_tx"),
+                i_reset_n             = tx_reset_n,
+
+                # Mode settings.
+                i_mode                = tx_mode,
+                i_trxiqpulse          = tx_trxiqpulse,
+                i_ddr_en              = tx_ddr_en,
+                i_mimo_en             = tx_mimo_en,
+                i_ch_en               = tx_ch_en,
+                i_fidm                = Constant(0, 1),
+                i_pct_sync_mode       = fpgacfg_manager.synch_mode,
+                i_pct_sync_pulse      = self.pct_sync_pulse,
+                i_pct_sync_size       = fpgacfg_manager.sync_size,
+                i_pct_buff_rdy        = self.pct_buff_rdy,
+
+                # txant
+                i_txant_cyc_before_en = fpgacfg_manager.txant_pre,
+                i_txant_cyc_after_en  = fpgacfg_manager.txant_post,
+                o_txant_en            = self.tx_txant_en,
+                o_DIQ                 = Open(diq_width),
+                o_fsync               = Open(),
+                o_DIQ_h               = tx_diq_h,
+                o_DIQ_l               = tx_diq_l,
+
+                # AXI Stream Slave Interface.
+                i_axis_s_tdata        = self.axis_s.data,
+                i_axis_s_tvalid       = self.axis_s.valid,
+                o_axis_s_tready       = self.axis_s.ready,
+                i_axis_s_tlast        = self.axis_s.last,
+            ),
+            # txiqmux instance.
+            # -----------------
+            Instance("txiqmux",
+                p_diq_width   = diq_width,
+                i_clk               = ClockSignal("lms_tx"),
+                i_reset_n           = ~ResetSignal("sys"),
+                i_test_ptrn_en      = tx_ptrn_en,                # Enables test pattern
+                i_test_ptrn_fidm    = Constant(0, 1),            # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+                i_test_ptrn_I       = self.from_tstcfg_tx_tst_i,
+                i_test_ptrn_Q       = self.from_tstcfg_tx_tst_q,
+                i_test_data_en      = fpgacfg_manager.tx_cnt_en,
+                i_test_data_mimo_en = Constant(1, 1),
+                i_mux_sel           = fpgacfg_manager.wfm_play,  # Mux select: 0 - tx, 1 - wfm
+                i_tx_diq_h          = tx_diq_h,
+                i_tx_diq_l          = tx_diq_l,
+                i_wfm_diq_h         = Constant(0, diq_width + 1),
+                i_wfm_diq_l         = Constant(0, diq_width + 1),
+                o_diq_h             = self.lms7002_txiq.tx_diq1_h,
+                o_diq_l             = self.lms7002_txiq.tx_diq1_l,
+            ),
+        ]
+
+
+
+
         self.comb += [
             # Delay control
             self.lms7002_txiq.data_loadn.eq(    tx_data_loadn),
             self.lms7002_txiq.data_move.eq(     tx_data_move),
             self.lms7002_txiq.data_direction.eq(0),
+        ]
 
-            # From internal logic
-            self.lms7002_txiq.tx_diq1_h.eq(      self.tx_diq1_h),
-            self.lms7002_txiq.tx_diq1_l.eq(      self.tx_diq1_l),
+        self.specials += [
+            MultiReg(fpgacfg_manager.rx_en,       tx_reset_n,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.rx_ptrn_en,  tx_ptrn_en,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.mode,        tx_mode,         odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.trxiq_pulse, tx_trxiqpulse,   odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.ddr_en,      tx_ddr_en,       odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.mimo_int_en, tx_mimo_en,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.ch_en,       tx_ch_en,        odomain="lms_tx"),
+            MultiReg(self.smpl_cmp_length,        smpl_cmp_length, odomain="lms_tx"),
         ]
 
         # RX path (DIQ2).
@@ -139,14 +229,14 @@ class LMS7002Top(LiteXModule):
                 p_invert_input_clocks = "OFF",
                 # Clk/Reset.
                 i_clk            = ClockSignal("lms_rx"),
-                i_reset_n        = reset_n,
+                i_reset_n        = rx_reset_n,
                 # Mode settings
                 i_test_ptrn_en   = rx_ptrn_en,
-                i_mode           = mode,           # JESD207: 1; TRXIQ: 0
-                i_trxiqpulse     = trxiqpulse,     # trxiqpulse on: 1; trxiqpulse off: 0
-                i_ddr_en         = ddr_en,         # DDR: 1; SDR: 0
-                i_mimo_en        = mimo_en,        # SISO: 1; MIMO: 0
-                i_ch_en          = ch_en,          # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
+                i_mode           = rx_mode,        # JESD207: 1; TRXIQ: 0
+                i_trxiqpulse     = rx_trxiqpulse,  # trxiqpulse on: 1; trxiqpulse off: 0
+                i_ddr_en         = rx_ddr_en,      # DDR: 1; SDR: 0
+                i_mimo_en        = rx_mimo_en,     # SISO: 1; MIMO: 0
+                i_ch_en          = rx_ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
                 i_fidm           = Constant(0, 1), # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
                 # Rx interface data
                 i_rx_diq2_h      = self.lms7002_rxiq.rx_diq2_h,
@@ -166,17 +256,16 @@ class LMS7002Top(LiteXModule):
                 o_smpl_cmp_err    = smpl_cmp_error,
                 ## sample counter enable
                 o_smpl_cnt_en     = self.smpl_cnt_en,
-
             )
         ]
         self.specials += [
-            MultiReg(fpgacfg_manager.rx_en,       reset_n,         odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.rx_en,       rx_reset_n,      odomain="lms_rx"),
             MultiReg(fpgacfg_manager.rx_ptrn_en,  rx_ptrn_en,      odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.mode,        mode,            odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.trxiq_pulse, trxiqpulse,      odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.ddr_en,      ddr_en,          odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,         odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.ch_en,       ch_en,           odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.mode,        rx_mode,         odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.trxiq_pulse, rx_trxiqpulse,   odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.ddr_en,      rx_ddr_en,       odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.mimo_int_en, rx_mimo_en,      odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.ch_en,       rx_ch_en,        odomain="lms_rx"),
             MultiReg(self.smpl_cmp_length,        smpl_cmp_length, odomain="lms_rx"),
         ]
 
