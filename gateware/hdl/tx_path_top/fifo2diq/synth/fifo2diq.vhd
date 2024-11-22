@@ -21,12 +21,10 @@ entity fifo2diq is
       clk                  : in std_logic;
       reset_n              : in std_logic;
       --Mode settings
-      mode                 : in std_logic; -- JESD207: 1; TRXIQ: 0
       trxiqpulse           : in std_logic; -- trxiqpulse on: 1; trxiqpulse off: 0
       ddr_en               : in std_logic; -- DDR: 1; SDR: 0
       mimo_en              : in std_logic; -- SISO: 1; MIMO: 0
       ch_en                : in std_logic_vector(1 downto 0); --"01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B. 
-      fidm                 : in std_logic; -- External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
       pct_sync_mode        : in std_logic; -- 0 - timestamp, 1 - external pulse 
       pct_sync_pulse       : in std_logic; -- external packet synchronisation pulse signal
       pct_sync_size        : in std_logic_vector(15 downto 0); -- valid in external pulse mode only
@@ -35,16 +33,16 @@ entity fifo2diq is
       txant_cyc_before_en  : in std_logic_vector(15 downto 0); -- valid in external pulse sync mode only
       txant_cyc_after_en   : in std_logic_vector(15 downto 0); -- valid in external pulse sync mode only 
       txant_en             : out std_logic;                 
-      --Tx interface data 
-      DIQ                  : out std_logic_vector(iq_width-1 downto 0);
-      fsync                : out std_logic;
-      DIQ_h                : out std_logic_vector(iq_width downto 0);
-      DIQ_l                : out std_logic_vector(iq_width downto 0);
-      -- AXIStream Slave Interface.
+      -- AXIStream Slave Interface (from fifo2diq).
       axis_s_tdata         : in  std_logic_vector(127 downto 0);
       axis_s_tvalid        : in  std_logic;
       axis_s_tready        : out std_logic;
-      axis_s_tlast         : in  std_logic
+      axis_s_tlast         : in  std_logic;
+	  -- AXIStream Master Interface (to lms7002_tx).
+      m_axis_tdata        : out std_logic_vector(63 downto 0);
+      m_axis_tvalid       : out std_logic;
+      m_axis_tready       : in  std_logic;
+      m_axis_tlast        : out std_logic
         );
 end fifo2diq;
 
@@ -53,8 +51,6 @@ end fifo2diq;
 -- ----------------------------------------------------------------------------
 architecture arch of fifo2diq is
 --declare signals,  components here
-signal inst0_DIQ_h         : std_logic_vector (iq_width downto 0); 
-signal inst0_DIQ_l         : std_logic_vector (iq_width downto 0);
 --inst1 signals
 signal inst1_fifo_rdreq    : std_logic;
 signal inst1_txant_en      : std_logic;
@@ -67,18 +63,6 @@ signal inst4_q             : std_logic;
 
 signal int_mode            : std_logic_vector(1 downto 0);
 
-signal txant_en_mux        : std_logic;
-
-signal tvalid              : std_logic;
-signal tready              : std_logic;
-signal tlast               : std_logic;
-signal tdata               : std_logic_vector(127 downto 0);
-
-signal m_axis_tvalid       : std_logic;
-signal m_axis_tready       : std_logic;
-signal m_axis_tlast        : std_logic;
-signal m_axis_tdata        : std_logic_vector(63 downto 0);
-  
 begin
    
    -- ----------------------------------------------------------------------------
@@ -105,47 +89,6 @@ begin
       end if;
    end if;
 end process;
-
-        
---inst0_lms7002_dout : entity work.lms7002_ddout
---   generic map( 
---      dev_family  => dev_family,
---      iq_width    => iq_width
---   )
---   port map(
---      clk         => clk,
---      reset_n     => reset_n,
---      data_in_h   => inst0_DIQ_h,
---      data_in_l   => inst0_DIQ_l,
---      txiq        => DIQ,
---      txiqsel     => fsync
---      );
-        
-  inst1_txiq: entity work.LMS7002_TX
-   generic map (
-      G_IQ_WIDTH        => iq_width
-   )
-   port map(
-      CLK               => clk,
-      RESET_N           => reset_n,
-      -- Mode settings
-      MODE              => '0',         -- JESD207: 1; TRXIQ: 0
-      TRXIQPULSE        => trxiqpulse,  -- trxiqpulse on: 1; trxiqpulse off: 0
-      DDR_EN            => ddr_en,      -- DDR: 1; SDR: 0
-      MIMO_EN           => mimo_en,     -- SISO: 1; MIMO: 0
-      CH_EN             => ch_en,       -- "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
-      FIDM              => fidm,        -- Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
-      -- Tx interface data
-      DIQ_H             => inst0_DIQ_h, --! fsync + DIQ
-      DIQ_L             => inst0_DIQ_l, --! fsync + DIQ
-      --! @virtualbus s_axis_tx @dir in Transmit AXIS bus
-      S_AXIS_ARESET_N   => reset_n,     --! AXIS reset
-      S_AXIS_ACLK       => clk,         --! AXIS clock
-      S_AXIS_TVALID     => m_axis_tvalid, --! AXIS valid transfer
-      S_AXIS_TDATA      => m_axis_tdata,  --! AXIS data
-      S_AXIS_TREADY     => m_axis_tready, --! AXIS ready
-      S_AXIS_TLAST      => m_axis_tlast   --! AXIS last packet boundary @end
-   );
 
    sample_unpack_inst: entity work.SAMPLE_UNPACK
    port map (
@@ -195,20 +138,14 @@ edge_delay_inst4 : entity work.edge_delay
 process(clk, reset_n)
 begin
    if reset_n = '0' then 
-      txant_en_mux <= '0';
+      txant_en <= '0';
    elsif (clk'event AND clk='1') then 
       if  pct_sync_mode = '0' then 
-         txant_en_mux <= inst4_q;
+         txant_en <= inst4_q;
       else 
-         txant_en_mux <= inst3_txant_en; 
+         txant_en <= inst3_txant_en;
       end if;
    end if;
 end process;
-
-
-
-txant_en    <= txant_en_mux;
-DIQ_h       <= inst0_DIQ_h;
-DIQ_l       <= inst0_DIQ_l;
 
 end arch;
