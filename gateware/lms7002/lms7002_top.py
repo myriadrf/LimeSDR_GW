@@ -32,21 +32,21 @@ class LMS7002Top(LiteXModule):
         assert fpgacfg_manager is not None
 
         self.source            = AXIStreamInterface(4 * diq_width, 8, clock_domain="lms_rx")
-        self.sink              = AXIStreamInterface(128,              clock_domain="lms_tx")
+        self.sink              = AXIStreamInterface(64,               clock_domain="lms_tx")
 
         self.platform          = platform
 
         self.pads                = pads
         self.periph_output_val_1 = Signal(16)
 
-        self.pct_sync_pulse      = Signal() # From RXTX
-        self.pct_buff_rdy        = Signal() # From RXTX
+        #self.pct_sync_pulse      = Signal() # From RXTX
+        #self.pct_buff_rdy        = Signal() # From RXTX
 
         self.from_tstcfg_test_en      = Signal(6)
         self.from_tstcfg_tx_tst_i     = Signal(16)
         self.from_tstcfg_tx_tst_q     = Signal(16)
 
-        self.tx_txant_en      = Signal()
+        #self.tx_txant_en      = Signal()
 
         self.delay_ctrl_en    = Signal()
         self.delay_ctrl_sel   = Signal(2)
@@ -59,8 +59,6 @@ class LMS7002Top(LiteXModule):
         self.smpl_cnt_en      = Signal() # To rx_path
         self.smpl_cmp_length  = Signal(16)
         self.smpl_cmp_cnt     = Signal(16) # Unused
-
-        self.smpl_width       = Signal()
 
         # # #
 
@@ -131,41 +129,33 @@ class LMS7002Top(LiteXModule):
         self.lms7002_txiq = ClockDomainsRenamer("lms_tx")(LMS7002TXIQ(12, pads))
 
         self.specials += [
-            # FIFO 2 DIQ
-            Instance("fifo2diq",
+            Instance("LMS7002_TX",
                 # Parameters.
-                p_iq_width            = diq_width,
+                p_G_IQ_WIDTH      = diq_width,
 
                 # Clk/Reset.
-                i_clk                 = ClockSignal("lms_tx"),
-                i_reset_n             = tx_reset_n,
+                i_CLK             = ClockSignal("lms_tx"),
+                i_RESET_N         = tx_reset_n,
 
-                # Mode settings.
-                i_mode                = tx_mode,
-                i_trxiqpulse          = tx_trxiqpulse,
-                i_ddr_en              = tx_ddr_en,
-                i_mimo_en             = tx_mimo_en,
-                i_ch_en               = tx_ch_en,
-                i_fidm                = Constant(0, 1),
-                i_pct_sync_mode       = fpgacfg_manager.synch_mode,
-                i_pct_sync_pulse      = self.pct_sync_pulse,
-                i_pct_sync_size       = fpgacfg_manager.sync_size,
-                i_pct_buff_rdy        = self.pct_buff_rdy,
+                # Mode settings
+                i_MODE            = tx_mode,
+                i_TRXIQPULSE      = tx_trxiqpulse,
+                i_DDR_EN          = tx_ddr_en,
+                i_MIMO_EN         = tx_mimo_en,
+                i_CH_EN           = tx_ch_en,
+                i_FIDM            = Constant(0, 1),
 
-                # txant
-                i_txant_cyc_before_en = fpgacfg_manager.txant_pre,
-                i_txant_cyc_after_en  = fpgacfg_manager.txant_post,
-                o_txant_en            = self.tx_txant_en,
-                o_DIQ                 = Open(diq_width),
-                o_fsync               = Open(),
-                o_DIQ_h               = tx_diq_h,
-                o_DIQ_l               = tx_diq_l,
+                # Tx interface data.
+                o_DIQ_H             = tx_diq_h,
+                o_DIQ_L             = tx_diq_l,
 
                 # AXI Stream Slave Interface.
-                i_axis_s_tdata        = self.sink.data,
-                i_axis_s_tvalid       = self.sink.valid,
-                o_axis_s_tready       = self.sink.ready,
-                i_axis_s_tlast        = self.sink.last,
+                i_S_AXIS_ARESET_N = Constant(0, 1), # Unused
+                i_S_AXIS_ACLK     = Constant(0, 1), # Unused
+                i_S_AXIS_TVALID   = self.sink.valid,
+                i_S_AXIS_TDATA    = self.sink.data,
+                o_S_AXIS_TREADY   = self.sink.ready,
+                i_S_AXIS_TLAST    = self.sink.last,
             ),
             # txiqmux instance.
             # -----------------
@@ -399,9 +389,6 @@ class LMS7002Top(LiteXModule):
 
             # TX
             "gateware/LimeDFB/lms7002/src/lms7002_tx.vhd",
-            "gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd",
-            "gateware/hdl/tx_path_top/fifo2diq/synth/fifo2diq.vhd",
-            "gateware/hdl/tx_path_top/fifo2diq/synth/txiq_ctrl.vhd",
         ]
 
         for file in lms7002_files:
