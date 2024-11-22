@@ -177,16 +177,6 @@ class RXTXTop(LiteXModule):
             "gateware/hdl/tx_path_top/packets2data/synth/packets2data.vhd",
             "gateware/hdl/tx_path_top/packets2data/synth/packets2data_top.vhd",
             "gateware/hdl/tx_path_top/handshake_sync/synth/handshake_sync.vhd",
-            "gateware/hdl/tx_path_top/fifo2diq/synth/fifo2diq.vhd",
-            "gateware/hdl/tx_path_top/fifo2diq/synth/txiq.vhd",
-            "gateware/hdl/tx_path_top/fifo2diq/synth/txiq_ctrl.vhd",
-            "gateware/hdl/tx_path_top/bit_unpack/synth/bit_unpack_64.vhd",
-            "gateware/hdl/tx_path_top/bit_unpack/synth/unpack_64_to_48.vhd",
-            "gateware/hdl/tx_path_top/bit_unpack/synth/unpack_64_to_56.vhd",
-            "gateware/hdl/tx_path_top/bit_unpack/synth/unpack_64_to_64.vhd",
-
-            "gateware/LimeDFB/lms7002/src/lms7002_tx.vhd",
-            "gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd",
 
             # Lattice FIFOs.
             # --------------

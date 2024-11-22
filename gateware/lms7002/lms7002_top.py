@@ -396,6 +396,12 @@ class LMS7002Top(LiteXModule):
             "gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd",
             "gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd",
             "gateware/LimeDFB/lms7002/src/lms7002_rx.vhd",
+
+            # TX
+            "gateware/LimeDFB/lms7002/src/lms7002_tx.vhd",
+            "gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd",
+            "gateware/hdl/tx_path_top/fifo2diq/synth/fifo2diq.vhd",
+            "gateware/hdl/tx_path_top/fifo2diq/synth/txiq_ctrl.vhd",
         ]
 
         for file in lms7002_files:
