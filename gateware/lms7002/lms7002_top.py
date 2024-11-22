@@ -200,8 +200,7 @@ class LMS7002Top(LiteXModule):
             MultiReg(self.smpl_cmp_length,        smpl_cmp_length, odomain="lms_tx"),
         ]
 
-        # RX path (DIQ2).
-        # ------------------------------------------------------------------------------------------
+        # RX path (DIQ2). --------------------------------------------------------------------------
 
         self.lms7002_rxiq = ClockDomainsRenamer("lms_rx")(LMS7002RXIQ(12, pads))
         self.comb += [
@@ -213,6 +212,25 @@ class LMS7002Top(LiteXModule):
         # lms7002_rx.
         # -----------
         self.specials += [
+            Instance("smpl_cmp",
+                # Parameters.
+                p_smpl_width    = diq_width,
+
+                # Clk/Reset.
+                i_clk           = ClockSignal("lms_rx"),
+                i_reset_n       = smpl_cmp_en,
+
+                # Control signals
+                i_cmp_start     = smpl_cmp_en,
+                i_cmp_length    = smpl_cmp_length,
+                o_cmp_done      = smpl_cmp_done,
+                o_cmp_error     = smpl_cmp_error,
+                o_cmp_error_cnt = Open(16),
+
+                # DIQ bus.
+                i_diq_h         = self.lms7002_rxiq.rx_diq2_h,
+                i_diq_l         = self.lms7002_rxiq.rx_diq2_l,
+            ),
             Instance("diq2fifo",
                 # Parameters.
                 p_iq_width       = diq_width,
@@ -241,9 +259,6 @@ class LMS7002Top(LiteXModule):
 
                 # sample compare
                 i_smpl_cmp_start  = smpl_cmp_en,
-                i_smpl_cmp_length = smpl_cmp_length,
-                o_smpl_cmp_done   = smpl_cmp_done,
-                o_smpl_cmp_err    = smpl_cmp_error,
                 ## sample counter enable
                 o_smpl_cnt_en     = self.smpl_cnt_en,
             )
@@ -383,7 +398,7 @@ class LMS7002Top(LiteXModule):
         lms7002_files = [
             # RX
             "gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd",
-            "gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd",
+            "gateware/LimeDFB/lms7002/src/smpl_cmp.vhd",
             "gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd",
             "gateware/LimeDFB/lms7002/src/lms7002_rx.vhd",
 

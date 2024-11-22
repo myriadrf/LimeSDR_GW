@@ -40,9 +40,6 @@ entity diq2fifo is
       m_axis_tready  : in  std_logic;
       --sample compare
       smpl_cmp_start : in std_logic;
-      smpl_cmp_length: in std_logic_vector(15 downto 0);
-      smpl_cmp_done  : out std_logic;
-      smpl_cmp_err   : out std_logic;
       -- sample counter enable
       smpl_cnt_en    : out std_logic
 
@@ -60,8 +57,6 @@ signal inst0_reset_n    : std_logic;
 
 signal inst2_data_h     : std_logic_vector (iq_width downto 0);
 signal inst2_data_l     : std_logic_vector (iq_width downto 0);
-
-signal inst3_reset_n    : std_logic; 
 
 signal mux0_diq_h       : std_logic_vector (iq_width downto 0); 
 signal mux0_diq_l       : std_logic_vector (iq_width downto 0);
@@ -190,39 +185,6 @@ begin
    end if;
 end process;
 
-
-inst3_reset_n <= smpl_cmp_start;
-
-inst3_smpl_cmp : entity work.smpl_cmp
-   generic map(
-      smpl_width  => iq_width
-   )
-   port map(
-
-      clk         => clk,
-      reset_n     => inst3_reset_n,
-      --Mode settings
-      mode        => mode,
-      trxiqpulse  => trxiqpulse,
-      ddr_en      => ddr_en,
-      mimo_en     => mimo_en,
-      ch_en       => ch_en,
-      fidm        => fidm,
-      --control and status
-      cmp_start   => smpl_cmp_start,
-      cmp_length  => smpl_cmp_length,
-      cmp_AI      => x"AAA",
-      cmp_AQ      => x"555",
-      cmp_BI      => x"AAA",
-      cmp_BQ      => x"555",
-      cmp_done    => smpl_cmp_done,
-      cmp_error   => smpl_cmp_err,
-      --DIQ bus
-      diq_h       => inst0_diq_out_h,
-      diq_l       => inst0_diq_out_l
-      );
-      
-      
 -- ----------------------------------------------------------------------------
 -- Output ports
 -- ----------------------------------------------------------------------------   
