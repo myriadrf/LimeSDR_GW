@@ -33,7 +33,7 @@ entity diq2fifo is
       rx_diq2_h      : in std_logic_vector(iq_width downto 0);
       rx_diq2_l      : in std_logic_vector(iq_width downto 0);
       -- AXI Stream master port.
-      m_axis_tdata   : out std_logic_vector(iq_width*4-1 downto 0);
+      m_axis_tdata   : out std_logic_vector(63 downto 0);
       m_axis_tkeep   : out std_logic_vector(7 downto 0);
       m_axis_tvalid  : out std_logic;
       m_axis_tlast   : out std_logic;
@@ -138,24 +138,27 @@ inst0_reset_n <= reset_n when smpl_cmp_start = '0' else '1';
 
    -- to keep lms7002_rx unchanged but to honour channel select.
    -- ----------------------------------------------------------
-   process(clk, reset_n)
-    begin
-        if reset_n = '0' then
-            chaA <= (others => '0');
-            tvalid_d <= '0';
-        elsif rising_edge(clk) then
-            if tvalid = '1' then
-                tvalid_d <= not tvalid_d;
-                chaA <= chaA(23 downto 0) &
-                       tdata(31 downto 20) &
-                       tdata(15 downto  4);
-                m_axis_tvalid <= tvalid_d;
-                m_axis_tlast  <= tlast;
-                m_axis_tkeep  <= tkeep;
-            end if;
-        end if;
-    end process;
-    m_axis_tdata <= chaA;
+   --process(clk, reset_n)
+   -- begin
+   --     if reset_n = '0' then
+   --         chaA <= (others => '0');
+   --         tvalid_d <= '0';
+   --     elsif rising_edge(clk) then
+   --         if tvalid = '1' then
+   --             tvalid_d <= not tvalid_d;
+   --             chaA <= chaA(23 downto 0) &
+   --                    tdata(31 downto 20) &
+   --                    tdata(15 downto  4);
+   --             m_axis_tvalid <= tvalid_d;
+   --             m_axis_tlast  <= tlast;
+   --             m_axis_tkeep  <= tkeep;
+   --         end if;
+   --     end if;
+   -- end process;
+   m_axis_tdata <= tdata;
+   m_axis_tvalid <= tvalid;
+   m_axis_tkeep  <= tkeep;
+   m_axis_tlast  <= tlast;
   
 int2_test_data_dd : entity work.test_data_dd
 port map(
