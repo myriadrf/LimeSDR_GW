@@ -40,18 +40,14 @@ class RXTXTop(LiteXModule):
         self.platform              = platform
 
         self.axis_s                = AXIStreamInterface(RX_IQ_WIDTH * 4, 8, clock_domain="lms_rx")
-
-        self.tx_txant_en           = Signal()
-        self.tx_diq1_h             = Signal(TX_IQ_WIDTH + 1)
-        self.tx_diq1_l             = Signal(TX_IQ_WIDTH + 1)
+        self.axis_m                = AXIStreamInterface(128,                clock_domain="lms_tx")
 
         self.rx_pct_fifo_aclrn_req = Signal()
 
-        self.rx_en                    = Signal()
-        self.from_tstcfg_test_en      = Signal(6)
-        self.from_tstcfg_test_frc_err = Signal(6)
-        self.from_tstcfg_tx_tst_i     = Signal(16)
-        self.from_tstcfg_tx_tst_q     = Signal(16)
+        self.pct_sync_pulse        = Signal()
+        self.pct_buff_rdy          = Signal()
+
+        self.rx_en                 = Signal()
 
         self.stream_fifo           = FIFOInterface(TX_IN_PCT_DATA_W, 64, TX_IN_PCT_RDUSEDW_W, RX_PCT_BUFF_WRUSEDW_W)
 
@@ -102,27 +98,22 @@ class RXTXTop(LiteXModule):
             i_wfm_play               = fpgacfg_manager.wfm_play,
             i_sync_pulse_period      = fpgacfg_manager.sync_pulse_period,
             i_sync_size              = fpgacfg_manager.sync_size,
-            i_txant_pre              = fpgacfg_manager.txant_pre,
-            i_txant_post             = fpgacfg_manager.txant_post,
 
-            ##to_tstcfg_from_rxtx     : out    t_TO_TSTCFG_FROM_RXTX;
-            o_DDR2_1_STATUS          = self._ddr2_1_status.status,
-            o_DDR2_1_pnf_per_bit     = self._ddr2_1_pnf_per_bit,
-            #from_tstcfg             : in     t_FROM_TSTCFG;
-            i_TEST_EN                = self.from_tstcfg_test_en,
-            i_TEST_FRC_ERR           = self.from_tstcfg_test_frc_err,
-            i_TX_TST_I               = self.from_tstcfg_tx_tst_i,
-            i_TX_TST_Q               = self.from_tstcfg_tx_tst_q,
+            o_pct_sync_pulse         = self.pct_sync_pulse,
+            o_pct_buff_rdy           = self.pct_buff_rdy,
 
             ## TX path
             i_tx_clk                 = ClockSignal("lms_tx"),
             o_tx_clkout              = Open(),
             i_tx_clk_reset_n         = ~ResetSignal("sys"),
             o_tx_pct_loss_flg        = tx_pct_loss_flg,
-            o_tx_txant_en            = self.tx_txant_en,
-            #  Tx interface data
-            o_tx_diq1_h              = self.tx_diq1_h,
-            o_tx_diq1_l              = self.tx_diq1_l,
+
+            # AXIStream Master Interface.
+            o_axis_m_tdata           = self.axis_m.data,
+            o_axis_m_tvalid          = self.axis_m.valid,
+            i_axis_m_tready          = self.axis_m.ready,
+            o_axis_m_tlast           = self.axis_m.last,
+
             #  TX FIFO read ports
             o_tx_in_pct_rdreq        = self.stream_fifo.rd,
             i_tx_in_pct_data         = self.stream_fifo.rdata,
@@ -131,7 +122,6 @@ class RXTXTop(LiteXModule):
 
             i_smpl_nr_cnt            = smpl_nr_cnt,
             i_pct_hdr_cap            = pct_hdr_cap,
-
 
             ## RX path
             i_rx_clk                 = ClockSignal("lms_rx"),

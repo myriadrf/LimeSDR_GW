@@ -43,34 +43,28 @@ entity rxtx_top_wrapper is
       synch_dis           : in std_logic;
       synch_mode          : in std_logic;
       txpct_loss_clr      : in std_logic;
+
+      pct_sync_pulse      : out std_logic;
+      pct_buff_rdy        : out std_logic;
+
       rx_en               : in std_logic;
       tx_ptrn_en          : in std_logic;
       tx_cnt_en           : in std_logic;
       wfm_play            : in std_logic;
       sync_pulse_period   : in std_logic_vector(31 downto 0);
       sync_size           : in std_logic_vector(15 downto 0);
-      txant_pre           : in std_logic_vector(15 downto 0);
-      txant_post          : in std_logic_vector(15 downto 0);
-
-      ---- to_tstcfg_from_rxtx     : out    t_TO_TSTCFG_FROM_RXTX;
-      DDR2_1_STATUS       : out std_logic_vector(2 downto 0);
-      DDR2_1_pnf_per_bit  : out std_logic_vector(31 downto 0);
-
-      --from_tstcfg             : in     t_FROM_TSTCFG;
-      TEST_EN             : in  std_logic_vector(5 downto 0);
-      TEST_FRC_ERR        : in  std_logic_vector(5 downto 0);
-      TX_TST_I            : in  std_logic_vector(15 downto 0);
-      TX_TST_Q            : in  std_logic_vector(15 downto 0);
 
       ---- TX path
       tx_clk              : in  std_logic;
       tx_clkout           : out std_logic;
       tx_clk_reset_n      : in  std_logic;
       tx_pct_loss_flg     : out std_logic;
-      tx_txant_en         : out std_logic;
-         -- Tx interface data
-      tx_diq1_h           : out std_logic_vector(TX_IQ_WIDTH downto 0);
-      tx_diq1_l           : out std_logic_vector(TX_IQ_WIDTH downto 0);
+      -- AXIStream Master Interface.
+      axis_m_tdata         : out std_logic_vector(127 downto 0);
+      axis_m_tvalid        : out std_logic;
+      axis_m_tready        : in  std_logic;
+      axis_m_tlast         : out std_logic;
+
          -- TX FIFO read ports
       tx_in_pct_rdreq     : out std_logic;
       tx_in_pct_data      : in  std_logic_vector(TX_IN_PCT_DATA_W-1 downto 0);
@@ -90,8 +84,6 @@ end rxtx_top_wrapper;
 -- ----------------------------------------------------------------------------
 architecture arch of rxtx_top_wrapper is
   signal from_fpgacfg        : t_FROM_FPGACFG;
-  signal to_tstcfg_from_rxtx : t_TO_TSTCFG_FROM_RXTX;
-  signal from_tstcfg         : t_FROM_TSTCFG;
 begin
 
    -- All signals with a default value must be considered
@@ -135,16 +127,8 @@ begin
    from_fpgacfg.CLK_ENA           <= (others => '0');
    from_fpgacfg.sync_pulse_period <= sync_pulse_period;
    from_fpgacfg.sync_size         <= sync_size;
-   from_fpgacfg.txant_pre         <= txant_pre;
-   from_fpgacfg.txant_post        <= txant_post;
-
-   DDR2_1_STATUS                  <= to_tstcfg_from_rxtx.DDR2_1_STATUS;
-   DDR2_1_pnf_per_bit             <= to_tstcfg_from_rxtx.DDR2_1_pnf_per_bit;
-
-   from_tstcfg.TEST_EN            <= TEST_EN;
-   from_tstcfg.TEST_FRC_ERR       <= TEST_FRC_ERR;
-   from_tstcfg.TX_TST_I           <= TX_TST_I;
-   from_tstcfg.TX_TST_Q           <= TX_TST_Q;
+   from_fpgacfg.txant_pre         <= (others => '0');
+   from_fpgacfg.txant_post        <= (others => '0');
 
    rx_tx_top_inst : entity work.rxtx_top
    generic map (
@@ -161,17 +145,21 @@ begin
      port map (
       -- Configuration memory ports
       from_fpgacfg           => from_fpgacfg,
-      to_tstcfg_from_rxtx    => to_tstcfg_from_rxtx,
-      from_tstcfg            => from_tstcfg,
       -- TX path
       tx_clk                 => tx_clk,
       tx_clkout              => tx_clkout,
       tx_clk_reset_n         => tx_clk_reset_n,
       tx_pct_loss_flg        => tx_pct_loss_flg,
-      tx_txant_en            => tx_txant_en,
-         -- Tx interface data
-      tx_diq1_h              => tx_diq1_h,
-      tx_diq1_l              => tx_diq1_l,
+
+      pct_sync_pulse         => pct_sync_pulse,
+      pct_buff_rdy           => pct_buff_rdy,
+
+      -- AXIStream Master Interface.
+      axis_m_tdata           => axis_m_tdata,
+      axis_m_tvalid          => axis_m_tvalid,
+      axis_m_tready          => axis_m_tready,
+      axis_m_tlast           => axis_m_tlast,
+
          -- TX FIFO read ports
       tx_in_pct_rdreq        => tx_in_pct_rdreq,
       tx_in_pct_data         => tx_in_pct_data,
