@@ -31,18 +31,13 @@ entity tx_path_top is
       rx_sample_clk        : in std_logic;
       rx_sample_nr         : in std_logic_vector(63 downto 0);
       
-      pct_sync_mode        : in std_logic := '1'; -- 0 - timestamp, 1 - external pulse 
       pct_sync_dis         : in std_logic;
-      pct_sync_pulse       : in std_logic; -- external packet synchronisation pulse signal
       pct_sync_size        : in std_logic_vector(15 downto 0):=x"03FC"; -- valid in external pulse mode only
             
       pct_loss_flg         : out std_logic;
       pct_loss_flg_clr     : in std_logic;
-      
-      --txant
-      txant_cyc_before_en  : in std_logic_vector(15 downto 0) := x"0001";
-      txant_cyc_after_en   : in std_logic_vector(15 downto 0) := x"0001";
-      txant_en             : out std_logic;
+
+      pct_buff_rdy         : out std_logic;
       
       --Mode settings
       mode                 : in std_logic; -- JESD207: 1; TRXIQ: 0
@@ -52,11 +47,12 @@ entity tx_path_top is
       ch_en                : in std_logic_vector(1 downto 0); --"11" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B. 
       fidm                 : in std_logic; -- External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
       sample_width         : in std_logic_vector(1 downto 0); --"10"-12bit, "01"-14bit, "00"-16bit;
-      --Tx interface data 
-      DIQ                  : out std_logic_vector(g_IQ_WIDTH-1 downto 0);
-      fsync                : out std_logic;
-      DIQ_h                : out std_logic_vector(g_IQ_WIDTH downto 0);
-      DIQ_l                : out std_logic_vector(g_IQ_WIDTH downto 0);
+
+      -- AXIStream Master Interface.
+      axis_m_tdata         : out std_logic_vector(127 downto 0);
+      axis_m_tvalid        : out std_logic;
+      axis_m_tready        : in  std_logic;
+      axis_m_tlast         : out std_logic;
       --FIFO ports
       fifo_rdreq           : out std_logic;
       fifo_data            : in std_logic_vector(g_FIFO_DATA_W-1 downto 0);
@@ -214,20 +210,20 @@ begin
    end if; 
 end process;
 
---inst2_pct_buff_rdy signal formation for fifo2diq module
+-- pct_buff_rdy signal formation for fifo2diq module
 process(iq_rdclk, reset_n)
 begin
    if reset_n = '0' then 
-      inst2_pct_buff_rdy <= '0';
+      pct_buff_rdy <= '0';
    elsif (iq_rdclk'event AND iq_rdclk = '1') then
       if inst1_smpl_buff_wrfull = '1' then 
          if pct_sync_num_of_rdy_packets >= unsigned(pct_sync_num_of_packets)then 
-            inst2_pct_buff_rdy <= '1';
+            pct_buff_rdy <= '1';
          else 
-            inst2_pct_buff_rdy <= '0';
+            pct_buff_rdy <= '0';
          end if;
       else 
-         inst2_pct_buff_rdy <= '0';
+         pct_buff_rdy <= '0';
       end if;
    end if;
 end process;
@@ -357,46 +353,9 @@ pct_rdy_combined_vect <= inst1_in_pct_buff_rdy & inst1_smpl_buff_wrfull;
 -- ----------------------------------------------------------------------------
 -- fifo2diq instance
 -- ----------------------------------------------------------------------------       
---inst2_fifo_q <=   inst1_smpl_buff_q(63 downto 52) & 
---                  inst1_smpl_buff_q(47 downto 36) &
---                  inst1_smpl_buff_q(31 downto 20) & 
---                  inst1_smpl_buff_q(15 downto 4);
-inst2_fifo_q <= inst1_smpl_buff_q;
+axis_m_tdata     <= inst1_smpl_buff_q;
+axis_m_tvalid    <= not inst1_smpl_buff_rdempty;
+inst2_fifo_rdreq <= axis_m_tready;
+axis_m_tlast     <= '0';
 
-diq2fifo_inst2 : entity work.fifo2diq
-   generic map( 
-      dev_family     => g_DEV_FAMILY,
-      iq_width       => g_IQ_WIDTH
-   )
-   port map (
-      clk                  => iq_rdclk,
-      reset_n              => en_sync_iq_rdclk,
-      mode                 => mode_sync_iq_rdclk,
-      trxiqpulse           => trxiqpulse_sync_iq_rdclk,
-      ddr_en               => ddr_en_sync_iq_rdclk,
-      mimo_en              => mimo_en_sync_iq_rdclk,
-      ch_en                => ch_en_sync_iq_rdclk,
-      fidm                 => fidm_sync_iq_rdclk,
-      pct_sync_mode        => pct_sync_mode,      
-      pct_sync_pulse       => pct_sync_pulse,
-      pct_sync_size        => pct_sync_size,
-      pct_buff_rdy         => inst2_pct_buff_rdy,
-      --txant              
-      txant_cyc_before_en  => txant_cyc_before_en,
-      txant_cyc_after_en   => txant_cyc_after_en,
-      txant_en             => txant_en,
-      DIQ                  => DIQ,
-      fsync                => fsync,
-      DIQ_h                => DIQ_h,
-      DIQ_l                => DIQ_l,
-      fifo_rdempty         => inst1_smpl_buff_rdempty,
-      fifo_rdreq           => inst2_fifo_rdreq,
-      fifo_q               => inst2_fifo_q 
-   
-      );
-end arch;   
-
-
-
-
-
+end arch;
