@@ -48,7 +48,6 @@ _io = [
 
     # SPI.
     ("FPGA_SPI", 0,
-        # SPI.
         Subsignal("clk",    Pins("M3")),
         #Subsignal("LMS_SS", Pins("N3")),
         #Subsignal("DAC_SS", Pins("L4")),
@@ -61,7 +60,7 @@ _io = [
     # Temperature Sensor.
     ("LM75_OS", 0, Pins("K2"), IOStandard("LVCMOS25")),
 
-    # FAN Control.
+    # Fan Control.
     ("FAN_CTRL", 0, Pins("A11"), IOStandard("LVCMOS33")),
 
     # USB-FIFO.
@@ -91,14 +90,14 @@ _io = [
         Subsignal("RXEN",             Pins("D6")),
         Subsignal("TXEN",             Pins("B7")),
 
-        # RX-Interface (LMS -> FPGA).
+        # RX Interface (LMS -> FPGA).
         Subsignal("DIQ1_D",            Pins("J2 L1 K1 K4 G3 F4 J1 H1 G4 F2 G1 H2")),
         Subsignal("TXNRX1",            Pins("F1")),
         Subsignal("ENABLE_IQSEL1",     Pins("F3")),
         Subsignal("MCLK1",             Pins("H4")),
         Subsignal("FCLK1",             Pins("H3")),
 
-        # RX-Interface (FPGA -> LMS).
+        # TX Interface (FPGA -> LMS).
         Subsignal("DIQ2_D",            Pins("A3 C2 A2 B4 C3 B2 D3 B1 A4 C1 C7 A6")),
         Subsignal("TXNRX2_or_CLK_SEL", Pins("B6")),
         Subsignal("ENABLE_IQSEL2",     Pins("C4")),
@@ -109,7 +108,7 @@ _io = [
         IOStandard("LVCMOS25"),
     ),
 
-    # RF loop back control.
+    # RF Loopback Control.
     ("RFSW", 0,
         Subsignal("RX_V1", Pins("C11")),
         Subsignal("RX_V2", Pins("B11")),
@@ -120,9 +119,8 @@ _io = [
     ("TX_LB", 0,
         Subsignal("AT", Pins("C8")),
         Subsignal("SH", Pins("B8")),
-        IOStandard("LVCMOS33"),
+        IOStandard("3.3-V LVCMOS")
     ),
-
 ]
 
 # Platform -----------------------------------------------------------------------------------------
