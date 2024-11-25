@@ -165,6 +165,7 @@ class BaseSoC(SoCCore):
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
+
         # SPI Flash --------------------------------------------------------------------------------
         if with_spi_flash:
             from litespi.modules import W25Q128JV

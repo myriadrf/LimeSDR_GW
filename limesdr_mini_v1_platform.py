@@ -13,7 +13,7 @@ from litex.build.altera.programmer import USBBlaster
 
 _io = [
     # Clk.
-    ("LMK_CLK", 0, Pins("H6"), IOStandard("2.5V")),
+    ("LMK_CLK", 0, Pins("H6"), IOStandard("2.5 V")),
 
     # Leds.
     ("FPGA_LED_G", 0, Pins("D8"), IOStandard("3.3-V LVCMOS")),
@@ -55,7 +55,7 @@ _io = [
         Subsignal("cs_n", Pins("K8 J5")),
         Subsignal("mosi", Pins("J7")),
         Subsignal("miso", Pins("J6")),
-        IOStandard("2.5V")
+        IOStandard("2.5 V")
     ),
 
     # Temperature Sensor.
@@ -103,7 +103,7 @@ _io = [
         Subsignal("FCLK2",         Pins("M3")),
 
         # IOStandard/Slew Rate.
-        IOStandard("2.5V")
+        IOStandard("2.5 V")
     ),
 
     # RF Loopback Control.
@@ -126,6 +126,7 @@ _io = [
 class Platform(AlteraPlatform):
     default_clk_name   = "LMK_CLK"
     default_clk_period = 1e9/40e6
+    create_rbf         = False
 
     def __init__(self, device="10M16SAU169C8G", **kwargs):
         AlteraPlatform.__init__(self, device, _io, **kwargs)
@@ -133,5 +134,5 @@ class Platform(AlteraPlatform):
     def create_programmer(self):
         return USBBlaster()
 
-    #def do_finalize(self, fragment):
-    #    self.add_period_constraint(self.lookup_request("LMK_CLK", loose=True), 1e9/40e6)
+    def do_finalize(self, fragment):
+        self.add_period_constraint(self.lookup_request("LMK_CLK", loose=True), 1e9/40e6)
