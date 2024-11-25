@@ -220,9 +220,21 @@ class LMS7002Top(LiteXModule):
                 i_clk           = ClockSignal("lms_rx"),
                 i_reset_n       = smpl_cmp_en,
 
+                # Mode settings
+                i_mode          = rx_mode,
+                i_trxiqpulse    = rx_trxiqpulse,
+                i_ddr_en        = rx_ddr_en,
+                i_mimo_en       = rx_mimo_en,
+                i_ch_en         = rx_ch_en,
+                i_fidm          = Constant(0, 1),
+
                 # Control signals
                 i_cmp_start     = smpl_cmp_en,
                 i_cmp_length    = smpl_cmp_length,
+                i_cmp_AI        = Constant(0xAAA, diq_width),
+                i_cmp_AQ        = Constant(0x555, diq_width),
+                i_cmp_BI        = Constant(0xAAA, diq_width),
+                i_cmp_BQ        = Constant(0x555, diq_width),
                 o_cmp_done      = smpl_cmp_done,
                 o_cmp_error     = smpl_cmp_error,
                 o_cmp_error_cnt = Open(16),
@@ -398,7 +410,8 @@ class LMS7002Top(LiteXModule):
         lms7002_files = [
             # RX
             "gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd",
-            "gateware/LimeDFB/lms7002/src/smpl_cmp.vhd",
+            "gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd",
+            #"gateware/LimeDFB/lms7002/src/smpl_cmp.vhd",
             "gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd",
             "gateware/LimeDFB/lms7002/src/lms7002_rx.vhd",
 
