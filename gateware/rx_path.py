@@ -52,20 +52,32 @@ class RXPath(LiteXModule):
 
         # # #
 
-        iq_to_rx_tdata             = Signal(64)
-        iq_to_rx_tvalid            = Signal()
-        iq_to_rx_tkeep             = Signal(8)
+        # Signals.
+        # --------
 
-        inst5_reset_n   = Signal()
+        # sync.
+        inst5_reset_n          = Signal()
+        mimo_en                = Signal()
+        ddr_en                 = Signal()
+
+        # IQ Stream Combiner To Rx Path Top.
+        iq_to_rx_tdata         = Signal(64)
+        iq_to_rx_tvalid        = Signal()
+        iq_to_rx_tkeep         = Signal(8)
 
         self.specials += [
-            MultiReg(fpgacfg_manager.rx_en, inst5_reset_n,              "lms_rx", reset=1),
-            MultiReg(inst5_reset_n,         self.rx_pct_fifo_aclrn_req, "lms_rx", reset=1),
+            MultiReg(fpgacfg_manager.rx_en,       inst5_reset_n,              "lms_rx", reset=1),
+            MultiReg(inst5_reset_n,               self.rx_pct_fifo_aclrn_req, "lms_rx", reset=1),
+            MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,                    "lms_rx"),
+            MultiReg(fpgacfg_manager.ddr_en,      ddr_en,                     "lms_rx"),
             # IQ Stream Combiner
             Instance("IQ_STREAM_COMBINER",
                 # Clk/Reset.
                 i_CLK               = ClockSignal("lms_rx"),
                 i_RESET_N           = inst5_reset_n,
+                # Mode Settings.
+                i_ddr_en            = ddr_en,
+                i_mimo_en           = mimo_en,
                 # AXI Stream Slave
                 i_S_AXIS_TVALID     = self.sink.valid,
                 o_S_AXIS_TREADY     = self.sink.ready,
@@ -90,8 +102,8 @@ class RXPath(LiteXModule):
                 i_sample_width        = fpgacfg_manager.smpl_width,  # "10"-12bit, "01"-14bit, "00"-16bit;
                 i_mode                = fpgacfg_manager.mode,        # JESD207: 1; TRXIQ: 0
                 i_trxiqpulse          = fpgacfg_manager.trxiq_pulse, # trxiqpulse on: 1; trxiqpulse off: 0
-                i_ddr_en              = fpgacfg_manager.ddr_en,      # DDR: 1; SDR: 0
-                i_mimo_en             = fpgacfg_manager.mimo_int_en, # SISO: 1; MIMO: 0
+                i_ddr_en              = ddr_en,                      # DDR: 1; SDR: 0
+                i_mimo_en             = mimo_en,                     # Enabled: 1; Disabled: 0
                 i_ch_en               = fpgacfg_manager.ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
 
                 # AXI Stream Slave Interface.
