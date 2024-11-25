@@ -7,7 +7,7 @@
 
 from litex.build.generic_platform import *
 from litex.build.altera import AlteraPlatform
-from litex.build.altera.programmer import QuartusProgrammer
+from litex.build.altera.programmer import USBBlaster
 
 # IOs ----------------------------------------------------------------------------------------------
 
@@ -23,8 +23,8 @@ _io = [
     ("revision", 0,
         Subsignal("HW_VER",  Pins("E3 E4 F4 G4")),
         Subsignal("BOM_VER", Pins("K7 H3 C2")),
+        Misc("WEAK_PULL_UP_RESISTOR ON"),
         IOStandard("1.8V"),
-        Misc("PULLUP")  # CHECKME: Pullup with Altera.
     ),
 
     # GPIO.
@@ -131,7 +131,7 @@ class Platform(AlteraPlatform):
         AlteraPlatform.__init__(self, device, _io, **kwargs)
 
     def create_programmer(self):
-        return QuartusProgrammer()
+        return USBBlaster()
 
     #def do_finalize(self, fragment):
     #    self.add_period_constraint(self.lookup_request("LMK_CLK", loose=True), 1e9/40e6)
