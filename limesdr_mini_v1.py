@@ -134,11 +134,11 @@ class BaseSoC(SoCCore):
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V1",
             ident_version            = True,
-            cpu_type                 = "picorv32", # FIXME: Switch to VexRiscv when working with Diamond.
-            cpu_variant              = "standard",
-            integrated_rom_size      = 0xa000,
-            integrated_sram_ram_size = 0x1000,
-            integrated_main_ram_size = 0x4000,
+            cpu_type                 = "vexriscv", # FIXME: Switch to VexRiscv.
+            cpu_variant              = "lite",
+            integrated_rom_size      = 0x6000,
+            integrated_sram_ram_size = 0x0200, # FIXME: Increase.
+            integrated_main_ram_size = 0x0000, # FIXME: Increase.
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
             with_uartbone            = with_uartbone,
             uart_name                = uart_name,
@@ -153,30 +153,30 @@ class BaseSoC(SoCCore):
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
 
-#        # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
-#        self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C", 0))
-#
-#        # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
-#        self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
-#
-#        # SPI Flash --------------------------------------------------------------------------------
-#        if with_spi_flash:
-#            from litespi.modules import W25Q128JV
-#            from litespi.opcodes import SpiNorFlashOpCodes as Codes
-#
-#            self.add_spi_flash(mode="1x", clk_freq=100_000, module=W25Q128JV(Codes.READ_1_1_1), with_master=True)
-#
-#        # mico32_busy(gpo) & busy_delay ------------------------------------------------------------
-#        self._gpo = CSRStorage(description="GPO interface", fields=[
-#            CSRField("mico32_busy", size=1, offset=0, description="CPU state.", values=[
-#                ("``0b0``", "IDLE."),
-#                ("``0b1``", "BUSY."),
-#            ])
-#        ])
-#
-#        self.busy_delay  = BusyDelay(platform, "sys", 25, 100)
-#        self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.mico32_busy)
-#
+        # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
+        self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C", 0))
+
+        # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
+        self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
+
+        # SPI Flash --------------------------------------------------------------------------------
+        if with_spi_flash:
+            from litespi.modules import W25Q128JV
+            from litespi.opcodes import SpiNorFlashOpCodes as Codes
+
+            self.add_spi_flash(mode="1x", clk_freq=100_000, module=W25Q128JV(Codes.READ_1_1_1), with_master=True)
+
+        # mico32_busy(gpo) & busy_delay ------------------------------------------------------------
+        self._gpo = CSRStorage(description="GPO interface", fields=[
+            CSRField("mico32_busy", size=1, offset=0, description="CPU state.", values=[
+                ("``0b0``", "IDLE."),
+                ("``0b1``", "BUSY."),
+            ])
+        ])
+
+        self.busy_delay  = BusyDelay(platform, "sys", 25, 100)
+        self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.mico32_busy)
+
 #        # FPGA Cfg ---------------------------------------------------------------------------------
 #        self.fpgacfg = FPGACfg(revision_pads)
 #        self.comb += self.fpgacfg.pwr_src.eq(0)
@@ -351,8 +351,8 @@ def main():
             #cpu_firmware   = None if prepare else "firmware/firmware.bin",
             **parser.soc_argdict
         )
-        builder = Builder(soc, csr_csv="csr.csv")
-        builder.build(run=build)
+        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        builder.build(run=build, synth_tool="quartus_syn")
         if prepare:
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
 
