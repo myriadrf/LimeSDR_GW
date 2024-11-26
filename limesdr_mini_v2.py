@@ -351,34 +351,43 @@ class BaseSoC(SoCCore):
 # Build --------------------------------------------------------------------------------------------
 
 def main():
-    from litex.build.parser import LiteXArgumentParser
-    parser = LiteXArgumentParser(platform=limesdr_mini_v2.Platform, description="LiteX SoC on LimeSDR-Mini-V2.")
-    parser.add_target_argument("--sys-clk-freq",   default=77.5e6, type=float, help="System clock frequency.")
-    parser.add_target_argument("--with-spi-flash", action="store_true",        help="Enable SPI Flash (MMAPed).")
-    parser.add_target_argument("--with-litescope", action="store_true",        help="Enable LiteScope.")
+    parser = argparse.ArgumentParser(description="LimeSDR-Mini-V2 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # Build/Load/Utilities.
+    parser.add_argument("--build", action="store_true", help="Build bitstream.")
+    parser.add_argument("--load",  action="store_true", help="Load bitstream.")
+    parser.add_argument("--flash", action="store_true", help="Flash bitstream.")
+
+    # SoC parameters.
+    parser.add_argument("--with-spi-flash", action="store_true", help="Enable SPI Flash (MMAPed).")
+    parser.add_argument("--with-litescope", action="store_true", help="Enable LiteScope.")
+
     args = parser.parse_args()
-    args.toolchain = "diamond"
 
     # Build SoC.
     for run in range(2):
         prepare = (run == 0)
         build   = ((run == 1) & args.build)
         soc = BaseSoC(
-            sys_clk_freq   = args.sys_clk_freq,
-            toolchain      = args.toolchain,
+            toolchain      = "diamond",
             with_spi_flash = args.with_spi_flash,
             with_litescope = args.with_litescope,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
-            **parser.soc_argdict
         )
         builder = Builder(soc, csr_csv="csr.csv")
         builder.build(run=build)
+        # Build Firmware.
         if prepare:
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
 
+    # Load Bistream.
     if args.load:
         prog = soc.platform.create_programmer()
         prog.load_bitstream(builder.get_bitstream_filename(mode="sram", ext=".bit"))
+
+    # Flash Bitstream.
+    if args.flash:
+        prog = soc.platform.create_programmer()
+        prog.flash(0, builder.get_bitstream_filename(mode="sram", ext=".bit"))
 
 if __name__ == "__main__":
     main()
