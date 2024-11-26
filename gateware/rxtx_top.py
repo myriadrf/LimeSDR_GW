@@ -5,6 +5,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import os
+import subprocess
+
 from migen import *
 
 from litex.gen import *
@@ -106,10 +109,8 @@ class RXTXTop(LiteXModule):
         ]
 
     def do_finalize(self):
-        import os
-        import subprocess
-        def gen_fifo(input_width, output_width, depth, with_buffer=False, with_cdc=False, disable_rd_delay=False, vendor="lattice"):
-            output_dir = self.platform.output_dir
+        def gen_fifo(vendor, input_width, output_width, depth, with_buffer=False, with_cdc=False, disable_rd_delay=False):
+            output_dir  = os.path.join(self.platform.output_dir, "fifo")
             script_name = os.path.join(os.path.abspath(os.path.dirname(__file__)), "fifo_gen.py")
 
             filename = f"fifo_w{input_width}x{depth}_r{output_width}"
@@ -136,18 +137,20 @@ class RXTXTop(LiteXModule):
 
         # LiteX FIFOs.
         # ------------
-
         vendor = {
             "limesdr_mini_v1" : "altera",
             "limesdr_mini_v2" : "lattice",
         }[self.platform.name]
 
-        # fifo_w64x256_r64_cdc
-        # ./fifo_gen --input-width 64 --output-width 64 --depth 256 --with-cdc --build
-        gen_fifo(64, 64, 256, with_cdc=True, vendor=vendor)
-        # ./fifo_gen.py --input-width 64 --output-width 64 --depth 1024 --build --with-buffer
-        gen_fifo(input_width=64, output_width=64, depth=1024, with_buffer=True, vendor=vendor)
-        # ./fifo_gen.py --input-width 128 --output-width 128 --depth 1024 --build --with-buffer
-        gen_fifo(128, 128, 256, True, False, True, vendor=vendor)
-        # ./fifo_gen.py --input-width 128 --output-width 64 --depth 256 --with-buffer --build
-        gen_fifo(128, 64, 256, True, False, True, vendor=vendor)
+
+        # Generate fifo_w64x256_r64_cdc.v
+        gen_fifo(vendor=vendor, input_width= 64,  output_width= 64, depth=256,  with_cdc=True)
+
+        # Generate fifo_w64x1024_r64_buffer.v
+        gen_fifo(vendor=vendor, input_width= 64,  output_width= 64, depth=1024, with_buffer=True)
+
+        # Generate fifo_w128x128_r256_buffer.v
+        gen_fifo(vendor=vendor, input_width=128, output_width=128,  depth=256,  with_buffer=True, disable_rd_delay=True)
+
+        # Generate fifo_w128x64_r256_buffer.v
+        gen_fifo(vendor=vendor, input_width=128, output_width= 64,  depth=256,  with_buffer=True, disable_rd_delay=True)
