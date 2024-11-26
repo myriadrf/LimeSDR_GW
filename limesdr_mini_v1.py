@@ -135,10 +135,10 @@ class BaseSoC(SoCCore):
             ident                    = "LiteX SoC on LimeSDR-Mini-V1",
             ident_version            = True,
             cpu_type                 = "vexriscv", # FIXME: Switch to VexRiscv.
-            cpu_variant              = "lite",
-            integrated_rom_size      = 0x6000,
-            integrated_sram_ram_size = 0x0200, # FIXME: Increase.
-            integrated_main_ram_size = 0x0000, # FIXME: Increase.
+            cpu_variant              = "minimal",
+            integrated_rom_size      = 0xa000,
+            integrated_sram_ram_size = 0x1000,
+            integrated_main_ram_size = 0x4000,
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
             with_uartbone            = with_uartbone,
             uart_name                = uart_name,
