@@ -76,6 +76,8 @@ class _CRG(LiteXModule):
         self.cd_sys   = ClockDomain()
         self.cd_por   = ClockDomain()
         self.cd_ft601 = ClockDomain()
+        self.cd_lms_rx = ClockDomain() # FIXME: Fake for now.
+        self.cd_lms_tx = ClockDomain() # FIXME: Fake for now.
 
         # # #
 
@@ -181,33 +183,34 @@ class BaseSoC(SoCCore):
         self.fpgacfg = FPGACfg(revision_pads)
         self.comb += self.fpgacfg.pwr_src.eq(0)
 
-#        # PLL Cfg ----------------------------------------------------------------------------------
-#        self.pllcfg = PLLCfg()
-#
+        # PLL Cfg ----------------------------------------------------------------------------------
+        self.pllcfg = PLLCfg()
+
         # FIFO Control -----------------------------------------------------------------------------
         self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
 
-#        # FT601 ------------------------------------------------------------------------------------
-#        self.ft601 = FT601(self.platform, platform.request("FT"),
-#            FT_data_width      = FTDI_DQ_WIDTH,
-#            FT_be_width        = FTDI_DQ_WIDTH // 8,
-#            EP02_rdusedw_width = C_EP02_RDUSEDW_WIDTH,
-#            EP02_rwidth        = CTRL0_FPGA_RX_RWIDTH,
-#            EP82_wrusedw_width = C_EP82_WRUSEDW_WIDTH,
-#            EP82_wwidth        = CTRL0_FPGA_TX_WWIDTH,
-#            EP82_wsize         = 64,
-#            EP03_rdusedw_width = C_EP03_RDUSEDW_WIDTH,
-#            EP03_rwidth        = STRM0_FPGA_RX_RWIDTH,
-#            EP83_wrusedw_width = C_EP83_WRUSEDW_WIDTH,
-#            EP83_wwidth        = STRM0_FPGA_TX_WWIDTH,
-#            EP83_wsize         = 2048,
-#        )
-#
-#        self.comb += [
-#            self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(~self.fifo_ctrl.fifo_reset),
-#            self.fifo_ctrl.ctrl_fifo.connect(self.ft601.ctrl_fifo),
-#        ]
-#
+        # FT601 ------------------------------------------------------------------------------------
+        self.ft601 = FT601(self.platform, platform.request("FT"),
+            FT_data_width      = FTDI_DQ_WIDTH,
+            FT_be_width        = FTDI_DQ_WIDTH // 8,
+            EP02_rdusedw_width = C_EP02_RDUSEDW_WIDTH,
+            EP02_rwidth        = CTRL0_FPGA_RX_RWIDTH,
+            EP82_wrusedw_width = C_EP82_WRUSEDW_WIDTH,
+            EP82_wwidth        = CTRL0_FPGA_TX_WWIDTH,
+            EP82_wsize         = 64,
+            EP03_rdusedw_width = C_EP03_RDUSEDW_WIDTH,
+            EP03_rwidth        = STRM0_FPGA_RX_RWIDTH,
+            EP83_wrusedw_width = C_EP83_WRUSEDW_WIDTH,
+            EP83_wwidth        = STRM0_FPGA_TX_WWIDTH,
+            EP83_wsize         = 2048,
+            use_litex_fifo     = True,
+        )
+
+        self.comb += [
+            self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(~self.fifo_ctrl.fifo_reset),
+            self.fifo_ctrl.ctrl_fifo.connect(self.ft601.ctrl_fifo),
+        ]
+
 #        # LMS7002 Top ------------------------------------------------------------------------------
 #        self.lms7002_top = LMS7002Top(platform, lms_pads, revision_pads.HW_VER, True, self.fpgacfg, LMS_DIQ_WIDTH)
 #
