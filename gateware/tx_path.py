@@ -183,7 +183,7 @@ class TXPath(LiteXModule):
         ]
 
         if platform.name in ["limesdr_mini_v2"]:
-            general_periph_files = [
+            general_periph_files += [
                 # Lattice FIFOs.
                 # --------------
                 "gateware/ip/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
