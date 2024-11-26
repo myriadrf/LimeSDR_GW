@@ -83,14 +83,15 @@ class _CRG(LiteXModule):
         self.ft_clk = platform.request("FT_CLK")
 
         # Power on reset.
-        por_count = Signal(4)
-        por_count.attr.add("keep")
+        por_count = Signal(4, reset=2**4-1)
         por_done  = Signal()
+        por_count.attr.add("keep")
         por_done.attr.add("keep")
         self.comb += self.cd_por.clk.eq(self.cd_sys.clk)
-        self.comb += por_done.eq(Reduce("AND", por_count))
-        self.sync.por += por_count.eq(Cat(Constant(1, 1), por_count[0:3]))
+        self.comb += por_done.eq(por_count == 0)
+        self.sync.por += If(~por_done, por_count.eq(por_count - 1))
 
+        # PLL / Internal Oscillator.
         if use_pll:
             # PLL.
             self.pll = pll = ECP5PLL()
@@ -98,7 +99,7 @@ class _CRG(LiteXModule):
             pll.register_clkin(self.ft_clk, 100e6)
             pll.create_clkout(self.cd_sys, sys_clk_freq)
         else:
-            # Internal Oscilator
+            # Internal Oscillator
             # DIV values: 2(~155MHz) - 128(~2.4MHz)
             self.specials += Instance("OSCG",
                 p_DIV = 4,

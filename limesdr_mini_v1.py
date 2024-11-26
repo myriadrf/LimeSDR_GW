@@ -81,14 +81,14 @@ class _CRG(LiteXModule):
         # Clk.
         self.ft_clk = platform.request("FT_CLK")
 
-        # Power on reset
-        por_count = Signal(4)
-        por_count.attr.add("keep")
+        # Power on reset.
+        por_count = Signal(4, reset=2**4-1)
         por_done  = Signal()
+        por_count.attr.add("keep")
         por_done.attr.add("keep")
         self.comb += self.cd_por.clk.eq(self.cd_sys.clk)
-        self.comb += por_done.eq(Reduce("AND", por_count))
-        self.sync.por += por_count.eq(Cat(Constant(1, 1), por_count[0:3]))
+        self.comb += por_done.eq(por_count == 0)
+        self.sync.por += If(~por_done, por_count.eq(por_count - 1))
 
         # PLL.
         self.pll = pll = Max10PLL(speedgrade="-8")
