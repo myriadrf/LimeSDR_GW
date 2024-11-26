@@ -114,7 +114,7 @@ class BaseSoC(SoCCore):
         platform.name = "limesdr_mini_v1"
 
         #lms_pads      = platform.request("LMS")
-        #revision_pads = platform.request("revision")
+        revision_pads = platform.request("revision")
         #rfsw_pads     = platform.request("RFSW")
         #tx_lb_pads    = platform.request("TX_LB")
         #gpio_pads     = platform.request("FPGA_GPIO")
@@ -177,16 +177,16 @@ class BaseSoC(SoCCore):
         self.busy_delay  = BusyDelay(platform, "sys", 25, 100)
         self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.mico32_busy)
 
-#        # FPGA Cfg ---------------------------------------------------------------------------------
-#        self.fpgacfg = FPGACfg(revision_pads)
-#        self.comb += self.fpgacfg.pwr_src.eq(0)
-#
+        # FPGA Cfg ---------------------------------------------------------------------------------
+        self.fpgacfg = FPGACfg(revision_pads)
+        self.comb += self.fpgacfg.pwr_src.eq(0)
+
 #        # PLL Cfg ----------------------------------------------------------------------------------
 #        self.pllcfg = PLLCfg()
 #
-#        # FIFO Control -----------------------------------------------------------------------------
-#        self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
-#
+        # FIFO Control -----------------------------------------------------------------------------
+        self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
+
 #        # FT601 ------------------------------------------------------------------------------------
 #        self.ft601 = FT601(self.platform, platform.request("FT"),
 #            FT_data_width      = FTDI_DQ_WIDTH,

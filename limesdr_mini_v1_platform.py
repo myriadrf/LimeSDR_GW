@@ -55,7 +55,7 @@ _io = [
         Subsignal("cs_n", Pins("K8 J5")),
         Subsignal("mosi", Pins("J7")),
         Subsignal("miso", Pins("J6")),
-        IOStandard("2.5 V")
+        IOStandard("1.8 V")
     ),
 
     # Temperature Sensor.
