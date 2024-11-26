@@ -15,17 +15,18 @@ from litex.gen import *
 
 from litex.build import tools
 from litex.build.generic_platform import *
+
 from litex.build.lattice import LatticePlatform
+from litex.build.altera import AlteraPlatform
 
 from litex.soc.interconnect import stream
-
 
 # FIXME/CHECKME:
 # - FIFO/CDC/Converter order depending use-case.
 # - empty flag generation (currently ~source.valid).
 # - rd_en latency.
 # - converter order (--reverse).
-# - rd_cnt generated in wr clok domain -> See how it's used.
+# - rd_cnt generated in wr clock domain -> See how it's used.
 
 # IOs/Interfaces -----------------------------------------------------------------------------------
 
@@ -115,7 +116,7 @@ class FIFOGenerator(LiteXModule):
             self.sink,
             self.fifo,
             self.cdc,
-            self.conv, # CHECKME: Order? Should we put it after of before the FIFO?
+            self.conv, # CHECKME: Order? Should we put it after or before the FIFO?
             self.source,
         )
 
@@ -126,7 +127,7 @@ class FIFOGenerator(LiteXModule):
         else:
             self.sync.rd += [
                 # Read.
-                source.ready.eq(platform.request("rd_en")),  # CHECKME: Latency?.
+                source.ready.eq(platform.request("rd_en")),  # CHECKME: Latency?
             ]
         self.comb += [
             # Write.
@@ -138,15 +139,16 @@ class FIFOGenerator(LiteXModule):
 
             # Status.
             platform.request("full").eq(~sink.ready),
-            platform.request("empty").eq(~source.valid), # CHECKME...
+            platform.request("empty").eq(~source.valid),  # CHECKME...
             platform.request("wr_cnt").eq(self.fifo.level),
-            platform.request("rd_cnt").eq(self.fifo.level), # FIXME: CDC! if used from rd clk domain.
+            platform.request("rd_cnt").eq(self.fifo.level),  # FIXME: CDC! if used from rd clk domain.
         ]
 
 # Build --------------------------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(description="FIFO Generator")
+    parser.add_argument("--vendor", default="lattice", choices=["lattice", "altera"], help="Vendor (lattice or altera).")
     parser.add_argument("--input-width",      default=128, help="Input data width  (default=128).")
     parser.add_argument("--output-width",     default=64,  help="Output data width (default=64).")
     parser.add_argument("--depth",            default=32,  help="Depth (default=32).")
@@ -162,7 +164,15 @@ def main():
     input_width  = int(args.input_width)
     output_width = int(args.output_width)
     depth        = int(args.depth)
-    platform   = LatticePlatform("", io=[], toolchain="diamond")
+
+    # Select platform based on vendor
+    if args.vendor == "lattice":
+        platform = LatticePlatform("", io=[], toolchain="diamond")
+        regular_comb = True  # Specific to Lattice toolchain
+    elif args.vendor == "altera":
+        platform = AlteraPlatform("", io=[], toolchain="quartus")
+        regular_comb = False  # Not needed for Altera toolchain
+
     module     = FIFOGenerator(platform,
         input_width      = input_width,
         output_width     = output_width,
@@ -177,7 +187,7 @@ def main():
     if args.with_buffer:
         build_name += "_buffer"
     if args.build:
-        platform.build(module, build_dir=args.output_dir, build_name=build_name, run=False, regular_comb=True)
+        platform.build(module, build_dir=args.output_dir, build_name=build_name, run=False, regular_comb=regular_comb)
 
 if __name__ == "__main__":
     main()
