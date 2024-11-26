@@ -153,11 +153,18 @@ class RXPath(LiteXModule):
             "gateware/hdl/rx_path_top/smpl_cnt/synth/smpl_cnt.vhd",
 
             "gateware/LimeDFB/rx_path_top/iq_stream_combiner.vhd",
-
-            # Lattice FIFOs.
-            # --------------
-            "gateware/ip/fifodc_w48x1024_r48.vhd",  # rx_path_top.vhd.
         ]
+        if platform.name in ["limesdr_mini_v2"]:
+            general_periph_files += [
+                # Lattice FIFOs.
+                # --------------
+                "gateware/ip/fifodc_w48x1024_r48.vhd",  # rx_path_top.vhd.
+            ]
+        else:
+            general_periph_files += [
+                "gateware/ip/fifodc_w48x1024_r48_stub.vhd",  # rx_path_top.vhd.
+            ]
+            print("RXPath Missing FIFOs!")
 
         for file in general_periph_files:
             platform.add_source(file)

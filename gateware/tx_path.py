@@ -180,12 +180,21 @@ class TXPath(LiteXModule):
             "gateware/hdl/tx_path_top/packets2data/synth/packets2data.vhd",
             "gateware/hdl/tx_path_top/packets2data/synth/packets2data_top.vhd",
             "gateware/hdl/tx_path_top/handshake_sync/synth/handshake_sync.vhd",
-
-            # Lattice FIFOs.
-            # --------------
-            "gateware/ip/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
-            "gateware/ip/fifodc_w128x256_r64.vhd",  # packets2data.vhd.
         ]
+
+        if platform.name in ["limesdr_mini_v2"]:
+            general_periph_files = [
+                # Lattice FIFOs.
+                # --------------
+                "gateware/ip/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
+                "gateware/ip/fifodc_w128x256_r64.vhd",  # packets2data.vhd.
+            ]
+        else:
+            general_periph_files += [
+                "gateware/ip/fifodc_w128x256_r128_stub.vhd", # one_pct_fifo.vhd.
+                "gateware/ip/fifodc_w128x256_r64_stub.vhd",  # packets2data.vhd.
+            ]
+            print("RXPath Missing FIFOs!")
 
         for file in general_periph_files:
             platform.add_source(file)
