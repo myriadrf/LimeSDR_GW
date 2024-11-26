@@ -20,8 +20,6 @@ from litex.gen import *
 
 import limesdr_mini_v2_platform as limesdr_mini_v2
 
-from litex.build.generic_platform import Subsignal, IOStandard, Pins
-
 from litex.soc.interconnect         import stream
 from litex.soc.interconnect.csr     import *
 from litex.soc.integration.soc_core import *
@@ -132,13 +130,6 @@ class BaseSoC(SoCCore):
         tx_lb_pads    = platform.request("TX_LB")
         gpio_pads     = platform.request("FPGA_GPIO")
         #egpio_pads    = platform.request("FPGA_EGPIO")
-        platform.add_extension([
-            ("serial", 0,
-                Subsignal("tx", Pins("A10")),
-                Subsignal("rx", Pins("A8")),
-                IOStandard("LVCMOS33")
-            )
-        ])
 
         # SoCCore ----------------------------------------------------------------------------------
         uart_name     = {True: "crossover", False:"serial"}[with_litescope]

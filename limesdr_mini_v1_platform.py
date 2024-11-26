@@ -29,6 +29,13 @@ _io = [
         Misc("WEAK_PULL_UP_RESISTOR ON"),
     ),
 
+    # Serial/Debug.
+    ("serial", 0,
+        Subsignal("tx", Pins("B7")), # FPGA_EGPIO0.
+        Subsignal("rx", Pins("D6")), # FPGA_EGPIO1.
+        IOStandard("LVCMOS33")
+    ),
+
     # GPIO.
     ("FPGA_GPIO",  0, Pins("A11 B10 C10 D11 E13 F13 F10 G10"), IOStandard("3.3-V LVCMOS")),
     ("FPGA_EGPIO", 0, Pins("B7 D6"),                           IOStandard("3.3-V LVCMOS")),
