@@ -27,10 +27,9 @@ from litex.soc.interconnect.csr     import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder  import *
 
+from litex.soc.cores.clock          import ECP5PLL
 from litex.soc.cores.bitbang        import I2CMaster
 from litex.soc.cores.spi.spi_master import SPIMaster
-
-from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
 
 from litespi.phy.generic import LiteSPIPHY
 
@@ -72,7 +71,7 @@ C_EP83_WRUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_TX_SIZE / (STRM0_FPGA_
 # CRG ----------------------------------------------------------------------------------------------
 
 class _CRG(LiteXModule):
-    def __init__(self, platform, sys_clk_freq):
+    def __init__(self, platform, sys_clk_freq, use_pll=False):
         self.rst      = Signal()
         self.cd_sys   = ClockDomain()
         self.cd_por   = ClockDomain()
@@ -83,7 +82,7 @@ class _CRG(LiteXModule):
         # Clk.
         self.ft_clk = platform.request("FT_CLK")
 
-        # Power on reset
+        # Power on reset.
         por_count = Signal(4)
         por_count.attr.add("keep")
         por_done  = Signal()
@@ -92,14 +91,20 @@ class _CRG(LiteXModule):
         self.comb += por_done.eq(Reduce("AND", por_count))
         self.sync.por += por_count.eq(Cat(Constant(1, 1), por_count[0:3]))
 
-        # Internal Oscilator
-        # DIV values: 2(~155MHz) - 128(~2.4MHz)
-        self.specials += Instance("OSCG",
-            p_DIV = 4,
-            o_OSC = self.cd_sys.clk,
-        )
-
-        self.specials += AsyncResetSynchronizer(self.cd_sys, ~por_done)
+        if use_pll:
+            # PLL.
+            self.pll = pll = ECP5PLL()
+            self.comb += pll.reset.eq(self.rst | ~por_done)
+            pll.register_clkin(self.ft_clk, 100e6)
+            pll.create_clkout(self.cd_sys, sys_clk_freq)
+        else:
+            # Internal Oscilator
+            # DIV values: 2(~155MHz) - 128(~2.4MHz)
+            self.specials += Instance("OSCG",
+                p_DIV = 4,
+                o_OSC = self.cd_sys.clk,
+            )
+            self.specials += AsyncResetSynchronizer(self.cd_sys, ~por_done)
 
         platform.add_platform_command("GSR_NET NET crg_por_done;")
 
@@ -110,7 +115,7 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=80e6, toolchain="diamond",
+    def __init__(self, sys_clk_freq=77.5e6, toolchain="diamond",
         with_spi_flash  = False,
         with_litescope  = False,
         cpu_firmware    = None,
