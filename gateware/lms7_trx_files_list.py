@@ -3,8 +3,6 @@ lms7_trx_files = [
     # ----------
     "gateware/hdl/spi/fpgacfg_pkg.vhd",
     "gateware/hdl/spi/mcfg_components.vhd",
-    "gateware/hdl/spi/mcfg32wm_fsm.vhd",
-    "gateware/hdl/spi/mem_package.vhd",
     "gateware/hdl/spi/periphcfg_pkg.vhd",
     "gateware/hdl/spi/tstcfg_pkg.vhd",
 
