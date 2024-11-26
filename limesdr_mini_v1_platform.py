@@ -141,4 +141,5 @@ class Platform(AlteraPlatform):
         return OpenFPGALoader(cable="digilent_hs2")
 
     def do_finalize(self, fragment):
+        self.add_period_constraint(self.lookup_request("FT_CLK",  loose=True), 1e9/100e6)
         self.add_period_constraint(self.lookup_request("LMK_CLK", loose=True), 1e9/40e6)
