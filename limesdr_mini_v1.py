@@ -117,10 +117,10 @@ class BaseSoC(SoCCore):
 
         #lms_pads      = platform.request("LMS")
         revision_pads = platform.request("revision")
-        #rfsw_pads     = platform.request("RFSW")
-        #tx_lb_pads    = platform.request("TX_LB")
+        rfsw_pads     = platform.request("RFSW")
+        tx_lb_pads    = platform.request("TX_LB")
         gpio_pads     = platform.request("FPGA_GPIO")
-        #egpio_pads    = platform.request("FPGA_EGPIO")
+        egpio_pads    = platform.request("FPGA_EGPIO")
         #platform.add_extension([
         #    ("serial", 0, # FIXME.
         #        Subsignal("tx", Pins("B8")),
@@ -232,8 +232,8 @@ class BaseSoC(SoCCore):
             revision_pads = revision_pads,
             gpio_pads     = gpio_pads,
             gpio_len      = len(gpio_pads),
-            egpio_pads    = None,
-            egpio_len     = 2,
+            egpio_pads    = egpio_pads,
+            egpio_len     = len(egpio_pads),
         )
 
         self.comb += [
@@ -284,23 +284,23 @@ class BaseSoC(SoCCore):
 #            self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
 #        ]
 #
-#        # RF Switches ------------------------------------------------------------------------------
-#        self.gpio = CSRStorage(16, reset=0b0001000101000100) # fpgacfg @23
-#        self.comb += [
-#            # RF Switch.
-#            rfsw_pads.RX_V1.eq(self.gpio.storage[8]),
-#            rfsw_pads.RX_V2.eq(self.gpio.storage[9]),
-#            rfsw_pads.TX_V1.eq(self.gpio.storage[12]),
-#            rfsw_pads.TX_V2.eq(self.gpio.storage[13]),
-#
-#            # TX
-#            tx_lb_pads.AT.eq(  self.gpio.storage[1]),
-#            tx_lb_pads.SH.eq(  self.gpio.storage[2]),
-#        ]
-#
-#        # Timing Constraints -----------------------------------------------------------------------
-#        # TODO: Add timing constraints.
-#
+        # RF Switches ------------------------------------------------------------------------------
+        self.gpio = CSRStorage(16, reset=0b0001000101000100) # fpgacfg @23
+        self.comb += [
+            # RF Switch.
+            rfsw_pads.RX_V1.eq(self.gpio.storage[8]),
+            rfsw_pads.RX_V2.eq(self.gpio.storage[9]),
+            rfsw_pads.TX_V1.eq(self.gpio.storage[12]),
+            rfsw_pads.TX_V2.eq(self.gpio.storage[13]),
+
+            # TX
+            tx_lb_pads.AT.eq(  self.gpio.storage[1]),
+            tx_lb_pads.SH.eq(  self.gpio.storage[2]),
+        ]
+
+        # Timing Constraints -----------------------------------------------------------------------
+        # TODO: Add timing constraints.
+
         # Sources ----------------------------------------------------------------------------------
         platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
         for file in lms7_trx_files:

@@ -108,11 +108,11 @@ _io = [
 
     # RF Loopback Control.
     ("RFSW", 0,
-        Subsignal("RX_V1", Pins("A10")),
-        Subsignal("RX_V2", Pins("C9")),
-        Subsignal("TX_V1", Pins("L11")),
-        Subsignal("TX_V2", Pins("C4")),
-        IOStandard("3.3-V LVCMOS")
+        Subsignal("RX_V1", Pins("A10"), IOStandard("3.3-V LVCMOS")),
+        Subsignal("RX_V2", Pins("C9"),  IOStandard("3.3-V LVCMOS")),
+        Subsignal("TX_V1", Pins("L11"), IOStandard("1.8 V")),
+        Subsignal("TX_V2", Pins("C4"),  IOStandard("3.3-V LVCMOS")),
+
     ),
     ("TX_LB", 0,
         Subsignal("AT", Pins("K10")),
