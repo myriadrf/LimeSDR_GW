@@ -130,6 +130,10 @@ class Platform(AlteraPlatform):
 
     def __init__(self, device="10M16SAU169C8G", **kwargs):
         AlteraPlatform.__init__(self, device, _io, **kwargs)
+        self.add_platform_command("set_global_assignment -name AUTO_RESTART_CONFIGURATION ON")
+        self.add_platform_command("set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF")
+        self.add_platform_command("set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF")
+        self.add_platform_command("set_global_assignment -name INTERNAL_FLASH_UPDATE_MODE \"SINGLE IMAGE WITH ERAM\"")
 
     def create_programmer(self):
         return USBBlaster()

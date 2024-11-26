@@ -352,7 +352,7 @@ def main():
             **parser.soc_argdict
         )
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
-        builder.build(run=build, synth_tool="quartus_syn")
+        builder.build(run=build)
         if prepare:
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
 
