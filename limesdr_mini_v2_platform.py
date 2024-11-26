@@ -7,7 +7,7 @@
 
 from litex.build.generic_platform import *
 from litex.build.lattice import LatticeECP5Platform
-from litex.build.lattice.programmer import OpenOCDJTAGProgrammer
+from litex.build.openfpgaloader import OpenFPGALoader
 
 # IOs ----------------------------------------------------------------------------------------------
 
@@ -134,7 +134,7 @@ class Platform(LatticeECP5Platform):
         LatticeECP5Platform.__init__(self, device + "-45F-8MG285C", _io, toolchain=toolchain, **kwargs)
 
     def create_programmer(self):
-        return OpenOCDJTAGProgrammer("openocd_limesdr_mini_v2.cfg")
+        return OpenFPGALoader(cable="digilent_hs2")
 
     #def do_finalize(self, fragment):
     #    self.add_period_constraint(self.lookup_request("LMK_CLK", loose=True), 1e9/40e6)
