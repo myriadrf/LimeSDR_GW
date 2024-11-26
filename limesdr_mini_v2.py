@@ -153,7 +153,6 @@ class BaseSoC(SoCCore):
 
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
-        self.comb += self.crg.cd_por.rst.eq(revision_pads.HW_VER[3]) # HW_VER(3) is connected to GND
 
         # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
         self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C", 0))
