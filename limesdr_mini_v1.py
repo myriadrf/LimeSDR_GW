@@ -39,7 +39,7 @@ from gateware.busy_delay          import BusyDelay
 from gateware.fpgacfg             import FPGACfg
 from gateware.ft601               import FT601
 from gateware.lms7002.lms7002_top import LMS7002Top
-from gateware.lms7_trx_files_list import lms7_trx_files
+from gateware.lms7_trx_files_list_v1 import lms7_trx_files
 from gateware.tst_top             import TstTop
 from gateware.general_periph      import GeneralPeriphTop
 from gateware.pllcfg              import PLLCfg
@@ -119,7 +119,7 @@ class BaseSoC(SoCCore):
         revision_pads = platform.request("revision")
         #rfsw_pads     = platform.request("RFSW")
         #tx_lb_pads    = platform.request("TX_LB")
-        #gpio_pads     = platform.request("FPGA_GPIO")
+        gpio_pads     = platform.request("FPGA_GPIO")
         #egpio_pads    = platform.request("FPGA_EGPIO")
         #platform.add_extension([
         #    ("serial", 0, # FIXME.
@@ -226,22 +226,22 @@ class BaseSoC(SoCCore):
 #            self.tst_top.Si5351C_clk_7.eq(0),
 #            self.tst_top.adf_muxout.eq(0),
 #        ]
-#
-#        # General Periph ---------------------------------------------------------------------------
-#        self.general_periph = GeneralPeriphTop(platform,
-#            revision_pads = revision_pads,
-#            gpio_pads     = gpio_pads,
-#            gpio_len      = len(gpio_pads),
-#            egpio_pads    = None,
-#            egpio_len     = 2,
-#        )
-#
-#        self.comb += [
-#            self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
-#            self.general_periph.ep03_active.eq(self.ft601.stream_fifo.rd_active),
-#            self.general_periph.ep83_active.eq(self.ft601.stream_fifo.wr_active),
-#        ]
-#
+
+        # General Periph ---------------------------------------------------------------------------
+        self.general_periph = GeneralPeriphTop(platform,
+            revision_pads = revision_pads,
+            gpio_pads     = gpio_pads,
+            gpio_len      = len(gpio_pads),
+            egpio_pads    = None,
+            egpio_len     = 2,
+        )
+
+        self.comb += [
+            self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
+            self.general_periph.ep03_active.eq(self.ft601.stream_fifo.rd_active),
+            self.general_periph.ep83_active.eq(self.ft601.stream_fifo.wr_active),
+        ]
+
 #        # RXTX Top ---------------------------------------------------------------------------------
 #        self.rxtx_top = RXTXTop(platform, self.fpgacfg,
 #            # TX parameters
@@ -301,9 +301,10 @@ class BaseSoC(SoCCore):
 #        # Timing Constraints -----------------------------------------------------------------------
 #        # TODO: Add timing constraints.
 #
-#        # Sources ----------------------------------------------------------------------------------
-#        for file in lms7_trx_files:
-#            platform.add_source(file)
+        # Sources ----------------------------------------------------------------------------------
+        platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
+        for file in lms7_trx_files:
+            platform.add_source(file)
 #
 #        # Analyzer ---------------------------------------------------------------------------------
 #        if with_litescope:

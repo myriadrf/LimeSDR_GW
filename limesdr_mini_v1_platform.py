@@ -16,8 +16,8 @@ _io = [
     ("LMK_CLK", 0, Pins("H6"), IOStandard("2.5 V")),
 
     # Leds.
-    ("FPGA_LED_G", 0, Pins("D8"), IOStandard("3.3-V LVCMOS")),
-    ("FPGA_LED_R", 0, Pins("B9"), IOStandard("3.3-V LVCMOS")),
+    ("FPGA_LED1_G", 0, Pins("D8"), IOStandard("3.3-V LVCMOS")),
+    ("FPGA_LED1_R", 0, Pins("B9"), IOStandard("3.3-V LVCMOS")),
 
     # Revision.
     ("revision", 0,
