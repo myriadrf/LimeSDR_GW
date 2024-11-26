@@ -104,6 +104,7 @@ class RXTXTop(LiteXModule):
             # RX -> FIFO
             self.rx_pct_fifo_aclrn_req.eq(rx_path.rx_pct_fifo_aclrn_req),
             rx_path.rx_pct_fifo_wusedw.eq(self.stream_fifo.wrusedw),
+            rx_path.rx_pct_fifo_ready.eq( ~self.stream_fifo.full),
             self.stream_fifo.wr.eq(       rx_path.rx_pct_fifo_wrreq),
             self.stream_fifo.wdata.eq(    rx_path.rx_pct_fifo_wdata),
         ]
@@ -153,4 +154,7 @@ class RXTXTop(LiteXModule):
         gen_fifo(vendor=vendor, input_width=128, output_width=128,  depth=256,  with_buffer=True, disable_rd_delay=True)
 
         # Generate fifo_w128x64_r256_buffer.v
+        gen_fifo(vendor=vendor, input_width=128, output_width= 64,  depth=256,  with_buffer=True, disable_rd_delay=True)
+
+        # Generate fifo_w128x512_r128_buffer.v
         gen_fifo(vendor=vendor, input_width=128, output_width= 64,  depth=256,  with_buffer=True, disable_rd_delay=True)
