@@ -6,17 +6,11 @@ lms7_trx_files = [
     "gateware/hdl/spi/mcfg32wm_fsm.vhd",
     "gateware/hdl/spi/mem_package.vhd",
     "gateware/hdl/spi/periphcfg_pkg.vhd",
-    "gateware/hdl/spi/pllcfg_pkg.vhd",
     "gateware/hdl/spi/tstcfg_pkg.vhd",
 
     # Packages.
     # ---------
     "gateware/hdl/packages/synth/FIFO_PACK.vhd",
-
-    # PLL.
-    # ----
-    "gateware/hdl/pll_top/synth/pll_top.vhd",
-    "gateware/hdl/spi/pllcfg.vhd",
 
     # General.
     # --------
