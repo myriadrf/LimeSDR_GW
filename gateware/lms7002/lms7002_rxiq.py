@@ -14,7 +14,7 @@ from litex.build.io import DDRInput
 # LMS7002 RXIQ -------------------------------------------------------------------------------------
 
 class LMS7002RXIQ(LiteXModule):
-    def __init__(self, iq_width=12, pads=None):
+    def __init__(self, platform, iq_width=12, pads=None):
         # Delay control
         self.data_loadn     = Signal()
         self.data_move      = Signal()
@@ -37,28 +37,34 @@ class LMS7002RXIQ(LiteXModule):
         gen_delay_cflag      = Signal(iq_width + 1)
 
         for i in range(iq_width + 1):
-            buf_datain     = Signal()
+            buf_datain   = Signal()
             delay_datain = Signal()
 
+            if platform.name in ["limesdr_mini_v2"]:
+                self.specials += [
+                    # Input buffers.
+                    # --------------
+                    Instance("IB",
+                        i_I = datain[i],
+                        o_O = buf_datain,
+                    ),
+                    # Delay components.
+                    # -----------------
+                    Instance("DELAYF",
+                        p_DEL_VALUE = 1,
+                        p_DEL_MODE  = "USER_DEFINED",
+                        i_A         = buf_datain,
+                        i_LOADN     = self.data_loadn,
+                        i_MOVE      = self.data_move,
+                        i_DIRECTION = self.data_direction,
+                        o_Z         = delay_datain,
+                        o_CFLAG     = gen_delay_cflag[i],
+                    )
+                ]
+            else:
+                print("LMS7002RXIQ Missing Delay!")
+
             self.specials += [
-                # Input buffers.
-                # --------------
-                Instance("IB",
-                    i_I = datain[i],
-                    o_O = buf_datain,
-                ),
-                # Delay components.
-                # -----------------
-                Instance("DELAYF",
-                    p_DEL_VALUE = 1,
-                    p_DEL_MODE  = "USER_DEFINED",
-                    i_A         = buf_datain,
-                    i_LOADN     = self.data_loadn,
-                    i_MOVE      = self.data_move,
-                    i_DIRECTION = self.data_direction,
-                    o_Z         = delay_datain,
-                    o_CFLAG     = gen_delay_cflag[i],
-                ),
                 # IDDR components.
                 # ----------------
                 DDRInput(

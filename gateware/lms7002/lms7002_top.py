@@ -35,6 +35,7 @@ class LMS7002Top(LiteXModule):
         self.sink              = AXIStreamInterface(64, clock_domain="lms_tx")
 
         self.platform          = platform
+        assert platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]
 
         self.pads                = pads
         self.periph_output_val_1 = Signal(16)
@@ -113,7 +114,7 @@ class LMS7002Top(LiteXModule):
 
         # Clocks.
         # -------
-        self.lms7002_clk = LMS7002CLK(pads)
+        self.lms7002_clk = LMS7002CLK(platform, pads)
         self.comb += [
             self.cd_lms_tx.clk.eq(pads.MCLK1),
             self.cd_lms_rx.clk.eq(pads.MCLK2),
@@ -126,7 +127,7 @@ class LMS7002Top(LiteXModule):
 
         # TX Path (DIQ1).
         # ------------------------------------------------------------------------------------------
-        self.lms7002_txiq = ClockDomainsRenamer("lms_tx")(LMS7002TXIQ(12, pads))
+        self.lms7002_txiq = ClockDomainsRenamer("lms_tx")(LMS7002TXIQ(platform, 12, pads))
 
         self.specials += [
             Instance("LMS7002_TX",
@@ -202,7 +203,7 @@ class LMS7002Top(LiteXModule):
 
         # RX path (DIQ2). --------------------------------------------------------------------------
 
-        self.lms7002_rxiq = ClockDomainsRenamer("lms_rx")(LMS7002RXIQ(12, pads))
+        self.lms7002_rxiq = ClockDomainsRenamer("lms_rx")(LMS7002RXIQ(platform, 12, pads))
         self.comb += [
             self.lms7002_rxiq.data_loadn.eq(    rx_data_loadn),
             self.lms7002_rxiq.data_move.eq(     rx_data_move),
@@ -350,9 +351,9 @@ class LMS7002Top(LiteXModule):
         self.add_source(platform)
 
         if add_csr:
-            self.add_csr()
+            self.add_csr(platform)
 
-    def add_csr(self):
+    def add_csr(self, platform):
         # LMS Ctrl GPIO
         self._lms_ctr_gpio = CSRStorage(size=4, description="LMS Control GPIOs.")
 
@@ -380,13 +381,17 @@ class LMS7002Top(LiteXModule):
             CSRField("phcfg_tst",    size=1, offset=15),
         ], reset=0)
 
+
+        # LMS Controls.
+        if platform.name in ["limesdr_mini_v2"]:
+            self.comb += [
+                If((self.hw_ver > 5),
+                    self.pads.TXNRX2_or_CLK_SEL.eq(self.periph_output_val_1),
+                ).Else(
+                    self.pads.TXNRX2_or_CLK_SEL.eq(self.lms1.fields.txnrx2),
+                ),
+            ]
         self.comb += [
-            # LMS Controls.
-            If((self.hw_ver > 5),
-                self.pads.TXNRX2_or_CLK_SEL.eq(self.periph_output_val_1),
-            ).Else(
-                self.pads.TXNRX2_or_CLK_SEL.eq(self.lms1.fields.txnrx2),
-            ),
             self.pads.TXEN.eq(       self.lms1.fields.txen),
             self.pads.RXEN.eq(       self.lms1.fields.rxen),
             self.pads.CORE_LDO_EN.eq(self.lms1.fields.core_ldo_en),

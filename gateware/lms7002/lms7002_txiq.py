@@ -14,7 +14,7 @@ from litex.build.io import DDROutput
 # LMS7002 TXIQ -------------------------------------------------------------------------------------
 
 class LMS7002TXIQ(LiteXModule):
-    def __init__(self, iq_width=12, pads=None):
+    def __init__(self, platform, iq_width=12, pads=None):
         # Delay control
         self.data_loadn     = Signal()
         self.data_move      = Signal()
@@ -42,19 +42,25 @@ class LMS7002TXIQ(LiteXModule):
                     i2  = self.tx_diq1_l[i],
                     o   = oddr_q,
                 ),
-                # Delay component.
-                # ----------------
-                Instance("DELAYF",
-                    p_DEL_VALUE =  1,
-                    p_DEL_MODE  = "USER_DEFINED",
-                    i_A         = oddr_q,
-                    i_LOADN     = self.data_loadn,
-                    i_MOVE      = self.data_move,
-                    i_DIRECTION = self.data_direction,
-                    o_Z         = delay_z[i],
-                    o_CFLAG     = delay_cflag[i]
-                ),
             ]
+            if platform.name in ["limesdr_mini_v2"]:
+                self.specials += [
+                    # Delay component.
+                    # ----------------
+                    Instance("DELAYF",
+                        p_DEL_VALUE =  1,
+                        p_DEL_MODE  = "USER_DEFINED",
+                        i_A         = oddr_q,
+                        i_LOADN     = self.data_loadn,
+                        i_MOVE      = self.data_move,
+                        i_DIRECTION = self.data_direction,
+                        o_Z         = delay_z[i],
+                        o_CFLAG     = delay_cflag[i]
+                    ),
+                ]
+            else:
+                print("LMS7002TXIQ Missing Delay!")
+
 
         # Connect outputs.
         # ----------------

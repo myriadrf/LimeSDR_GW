@@ -14,7 +14,7 @@ from litex.build.io import DDROutput
 # LMS7002 CLK --------------------------------------------------------------------------------------
 
 class LMS7002CLK(LiteXModule):
-    def __init__(self, pads=None):
+    def __init__(self, platform, pads=None):
         # Configuration
         self.sel       = Signal() # 0 - fclk1 control, 1 - fclk2 control
         self.cflag     = Signal()
@@ -86,27 +86,30 @@ class LMS7002CLK(LiteXModule):
                 i1  = 0,
                 i2  = 1,
                 o   = inst2_q
-            ),
-
-            Instance("DELAYF",
-                p_DEL_VALUE = 1,
-                p_DEL_MODE  = "USER_DEFINED",
-                i_A         = inst1_q,
-                i_LOADN     = inst3_loadn,
-                i_MOVE      = inst3_move,
-                i_DIRECTION = inst3_direction,
-                o_Z         = pads.FCLK1,
-                o_CFLAG     = inst3_cflag,
-            ),
-
-            Instance("DELAYF",
-                p_DEL_VALUE = 1,
-                p_DEL_MODE  = "USER_DEFINED",
-                i_A         = inst2_q,
-                i_LOADN     = inst4_loadn,
-                i_MOVE      = inst4_move,
-                i_DIRECTION = inst4_direction,
-                o_Z         = pads.FCLK2,
-                o_CFLAG     = inst4_cflag,
-            ),
+            )
         ]
+        if platform.name in ["limesdr_mini_v2"]:
+            self.specials += [
+                Instance("DELAYF",
+                    p_DEL_VALUE = 1,
+                    p_DEL_MODE  = "USER_DEFINED",
+                    i_A         = inst1_q,
+                    i_LOADN     = inst3_loadn,
+                    i_MOVE      = inst3_move,
+                    i_DIRECTION = inst3_direction,
+                    o_Z         = pads.FCLK1,
+                    o_CFLAG     = inst3_cflag,
+                ),
+                Instance("DELAYF",
+                    p_DEL_VALUE = 1,
+                    p_DEL_MODE  = "USER_DEFINED",
+                    i_A         = inst2_q,
+                    i_LOADN     = inst4_loadn,
+                    i_MOVE      = inst4_move,
+                    i_DIRECTION = inst4_direction,
+                    o_Z         = pads.FCLK2,
+                    o_CFLAG     = inst4_cflag,
+                ),
+            ]
+        else:
+            print("LMS7002CLK Missing Delay!")
