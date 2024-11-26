@@ -26,10 +26,9 @@ from litex.soc.interconnect.csr     import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder  import *
 
+from litex.soc.cores.clock          import Max10PLL
 from litex.soc.cores.bitbang        import I2CMaster
 from litex.soc.cores.spi.spi_master import SPIMaster
-
-from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
 
 from litespi.phy.generic import LiteSPIPHY
 
@@ -91,10 +90,11 @@ class _CRG(LiteXModule):
         self.comb += por_done.eq(Reduce("AND", por_count))
         self.sync.por += por_count.eq(Cat(Constant(1, 1), por_count[0:3]))
 
-        # FIXME.
-        self.comb += self.cd_sys.clk.eq(self.ft_clk)
-
-        self.specials += AsyncResetSynchronizer(self.cd_sys, ~por_done)
+        # PLL.
+        self.pll = pll = Max10PLL(speedgrade="-8")
+        self.comb += pll.reset.eq(self.rst | ~por_done)
+        pll.register_clkin(self.ft_clk, 100e6)
+        pll.create_clkout(self.cd_sys, sys_clk_freq)
 
         # FT601 Clk/Rst
         self.comb     += self.cd_ft601.clk.eq(self.ft_clk),
@@ -103,7 +103,7 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=40e6, toolchain="quartus",
+    def __init__(self, sys_clk_freq=80e6, toolchain="quartus",
         with_spi_flash  = False,
         with_litescope  = False,
         cpu_firmware    = None,
@@ -338,7 +338,7 @@ class BaseSoC(SoCCore):
 def main():
     from litex.build.parser import LiteXArgumentParser
     parser = LiteXArgumentParser(platform=limesdr_mini_v1.Platform, description="LiteX SoC on LimeSDR-Mini-V1.")
-    parser.add_target_argument("--sys-clk-freq",   default=40e6, type=float, help="System clock frequency.")
+    parser.add_target_argument("--sys-clk-freq",   default=80e6, type=float, help="System clock frequency.")
     parser.add_target_argument("--with-spi-flash", action="store_true",      help="Enable SPI Flash (MMAPed).")
     parser.add_target_argument("--with-litescope", action="store_true",      help="Enable LiteScope.")
     args = parser.parse_args()
