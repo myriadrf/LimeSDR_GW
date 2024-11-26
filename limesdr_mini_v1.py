@@ -214,18 +214,18 @@ class BaseSoC(SoCCore):
 #        # LMS7002 Top ------------------------------------------------------------------------------
 #        self.lms7002_top = LMS7002Top(platform, lms_pads, revision_pads.HW_VER, True, self.fpgacfg, LMS_DIQ_WIDTH)
 #
-#        # Tst Top / Clock Test ---------------------------------------------------------------------
-#        self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
-#        self.comb += [
-#            self.tst_top.Si5351C_clk_0.eq(0),
-#            self.tst_top.Si5351C_clk_1.eq(0),
-#            self.tst_top.Si5351C_clk_2.eq(0),
-#            self.tst_top.Si5351C_clk_3.eq(0),
-#            self.tst_top.Si5351C_clk_5.eq(0),
-#            self.tst_top.Si5351C_clk_6.eq(0),
-#            self.tst_top.Si5351C_clk_7.eq(0),
-#            self.tst_top.adf_muxout.eq(0),
-#        ]
+        # Tst Top / Clock Test ---------------------------------------------------------------------
+        self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
+        self.comb += [
+            self.tst_top.Si5351C_clk_0.eq(0),
+            self.tst_top.Si5351C_clk_1.eq(0),
+            self.tst_top.Si5351C_clk_2.eq(0),
+            self.tst_top.Si5351C_clk_3.eq(0),
+            self.tst_top.Si5351C_clk_5.eq(0),
+            self.tst_top.Si5351C_clk_6.eq(0),
+            self.tst_top.Si5351C_clk_7.eq(0),
+            self.tst_top.adf_muxout.eq(0),
+        ]
 
         # General Periph ---------------------------------------------------------------------------
         self.general_periph = GeneralPeriphTop(platform,
@@ -305,32 +305,32 @@ class BaseSoC(SoCCore):
         platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
         for file in lms7_trx_files:
             platform.add_source(file)
-#
-#        # Analyzer ---------------------------------------------------------------------------------
-#        if with_litescope:
-#            analyzer_signals = [
-#                self.fifo_ctrl.ctrl_fifo.rd,
-#                self.fifo_ctrl.ctrl_fifo.rdata,
-#                self.fifo_ctrl.ctrl_fifo.empty,
-#                self.fifo_ctrl.ctrl_fifo.wr,
-#                self.fifo_ctrl.ctrl_fifo.wdata,
-#                self.fifo_ctrl.ctrl_fifo.full,
-#                self.fifo_ctrl.fifo_reset,
-#
-#                self.ft601.ctrl_fifo.rd,
-#                self.ft601.ctrl_fifo.rdata,
-#                self.ft601.ctrl_fifo.empty,
-#                self.ft601.ctrl_fifo.wr,
-#                self.ft601.ctrl_fifo.wdata,
-#                self.ft601.ctrl_fifo.full,
-#                self.ft601.ctrl_fifo_fpga_pc_reset_n,
-#            ]
-#            self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-#                depth        = 1024,
-#                clock_domain = "sys",
-#                register     = True,
-#                csr_csv      = "analyzer.csv"
-#            )
+
+        # Analyzer ---------------------------------------------------------------------------------
+        if with_litescope:
+            analyzer_signals = [
+                self.fifo_ctrl.ctrl_fifo.rd,
+                self.fifo_ctrl.ctrl_fifo.rdata,
+                self.fifo_ctrl.ctrl_fifo.empty,
+                self.fifo_ctrl.ctrl_fifo.wr,
+                self.fifo_ctrl.ctrl_fifo.wdata,
+                self.fifo_ctrl.ctrl_fifo.full,
+                self.fifo_ctrl.fifo_reset,
+
+                self.ft601.ctrl_fifo.rd,
+                self.ft601.ctrl_fifo.rdata,
+                self.ft601.ctrl_fifo.empty,
+                self.ft601.ctrl_fifo.wr,
+                self.ft601.ctrl_fifo.wdata,
+                self.ft601.ctrl_fifo.full,
+                self.ft601.ctrl_fifo_fpga_pc_reset_n,
+            ]
+            self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+                depth        = 1024,
+                clock_domain = "sys",
+                register     = True,
+                csr_csv      = "analyzer.csv"
+            )
 
 # Build --------------------------------------------------------------------------------------------
 

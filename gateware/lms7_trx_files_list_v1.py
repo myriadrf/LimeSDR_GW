@@ -24,13 +24,13 @@ lms7_trx_files = [
 #    "gateware/hdl/general/bus_sync_reg.vhd",
 #    "gateware/hdl/general/busy_delay.vhd",
 #
-#    # Self-Test.
-#    # ----------
-#    "gateware/hdl/self_test/transition_count.vhd",
-#    "gateware/hdl/self_test/singl_clk_with_ref_test.vhd",
-#    "gateware/hdl/self_test/clk_with_ref_test.vhd",
-#    "gateware/hdl/self_test/clk_no_ref_test.vhd",
-#
+    # Self-Test.
+    # ----------
+    "gateware/hdl/self_test/transition_count.vhd",
+    "gateware/hdl/self_test/singl_clk_with_ref_test.vhd",
+    "gateware/hdl/self_test/clk_with_ref_test.vhd",
+    "gateware/hdl/self_test/clk_no_ref_test.vhd",
+
 #    # Altera-Inst.
 #    # ------------
 #    "gateware/hdl/altera_inst/lpm_cnt_inst.vhd",
