@@ -76,8 +76,6 @@ class _CRG(LiteXModule):
         self.cd_sys   = ClockDomain()
         self.cd_por   = ClockDomain()
         self.cd_ft601 = ClockDomain()
-        self.cd_lms_rx = ClockDomain() # FIXME: Fake for now.
-        self.cd_lms_tx = ClockDomain() # FIXME: Fake for now.
 
         # # #
 
@@ -115,8 +113,9 @@ class BaseSoC(SoCCore):
         platform      = limesdr_mini_v1.Platform(toolchain=toolchain)
         platform.name = "limesdr_mini_v1"
 
-        #lms_pads      = platform.request("LMS")
+        lms_pads      = platform.request("LMS")
         revision_pads = platform.request("revision")
+        revision_pads.BOM_VER = Cat(revision_pads.BOM_VER0, revision_pads.BOM_VER1, revision_pads.BOM_VER2)
         rfsw_pads     = platform.request("RFSW")
         tx_lb_pads    = platform.request("TX_LB")
         gpio_pads     = platform.request("FPGA_GPIO")
@@ -211,9 +210,9 @@ class BaseSoC(SoCCore):
             self.fifo_ctrl.ctrl_fifo.connect(self.ft601.ctrl_fifo),
         ]
 
-#        # LMS7002 Top ------------------------------------------------------------------------------
-#        self.lms7002_top = LMS7002Top(platform, lms_pads, revision_pads.HW_VER, True, self.fpgacfg, LMS_DIQ_WIDTH)
-#
+        # LMS7002 Top ------------------------------------------------------------------------------
+        self.lms7002_top = LMS7002Top(platform, lms_pads, revision_pads.HW_VER, True, self.fpgacfg, LMS_DIQ_WIDTH)
+
         # Tst Top / Clock Test ---------------------------------------------------------------------
         self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
         self.comb += [
@@ -344,7 +343,7 @@ def main():
     args.toolchain = "quartus"
 
     # Build SoC.
-    for run in [1]:
+    for run in range(2):
         prepare = (run == 0)
         build   = ((run == 1) & args.build)
         soc = BaseSoC(
@@ -352,10 +351,10 @@ def main():
             toolchain      = args.toolchain,
             with_spi_flash = args.with_spi_flash,
             with_litescope = args.with_litescope,
-            #cpu_firmware   = None if prepare else "firmware/firmware.bin",
+            cpu_firmware   = None if prepare else "firmware/firmware.bin",
             **parser.soc_argdict
         )
-        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        builder = Builder(soc, csr_csv="csr.csv")
         builder.build(run=build)
         if prepare:
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")

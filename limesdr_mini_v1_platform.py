@@ -21,10 +21,12 @@ _io = [
 
     # Revision.
     ("revision", 0,
-        Subsignal("HW_VER",  Pins("E3 E4 F4 G4")),
-        Subsignal("BOM_VER", Pins("K7 H3 C2")),
+        Subsignal("HW_VER",  Pins("E3 E4 F4 G4"), IOStandard("1.8 V")),
+        Subsignal("BOM_VER0", Pins("K7"), IOStandard("2.5 V")),
+        Subsignal("BOM_VER1", Pins("H3"), IOStandard("1.8 V")),
+        Subsignal("BOM_VER2", Pins("C2"), IOStandard("1.8 V")),
+        #Subsignal("BOM_VER", Pins("K7 H3 C2")),
         Misc("WEAK_PULL_UP_RESISTOR ON"),
-        IOStandard("1.8V"),
     ),
 
     # GPIO.
@@ -49,13 +51,13 @@ _io = [
 
     # SPI.
     ("FPGA_SPI", 0,
-        Subsignal("clk",  Pins("K5")),
-        #Subsignal("LMS_SS", Pins("K8")),
-        #Subsignal("DAC_SS", Pins("J5")),
-        Subsignal("cs_n", Pins("K8 J5")),
-        Subsignal("mosi", Pins("J7")),
+        Subsignal("clk",  Pins("K5"), IOStandard("2.5 V")),
+        #Subsignal("LMS_SS", Pins("K8"), IOStandard("2.5 V")),
+        #Subsignal("DAC_SS", Pins("J5"), IOStandard("2.5 V")),
+        Subsignal("cs_n", Pins("K8 J5"), IOStandard("2.5 V")),
+        Subsignal("mosi", Pins("J7"), IOStandard("2.5 V")),
         Subsignal("miso", Pins("J6")),
-        IOStandard("1.8 V")
+        IOStandard("2.5 V")
     ),
 
     # Temperature Sensor.
@@ -110,7 +112,7 @@ _io = [
     ("RFSW", 0,
         Subsignal("RX_V1", Pins("A10"), IOStandard("3.3-V LVCMOS")),
         Subsignal("RX_V2", Pins("C9"),  IOStandard("3.3-V LVCMOS")),
-        Subsignal("TX_V1", Pins("L11"), IOStandard("1.8 V")),
+        Subsignal("TX_V1", Pins("L11"), IOStandard("2.5 V")),
         Subsignal("TX_V2", Pins("C4"),  IOStandard("3.3-V LVCMOS")),
 
     ),
