@@ -340,10 +340,12 @@ class FT601(LiteXModule):
             EP83_fifo_rdusedw.eq(Cat(0, self.EP83_fifo.level)),
 
             self.stream_fifo.wr_active.eq(EP83_fifo_status.busy_out),
-            pads.RESETn.eq(~ResetSignal("ft601")),
-            pads.WAKEUPn.eq(Constant(1, 1)),
             self.stream_fifo.rd_active.eq(self.EP03_fifo_status.busy_out),
         ]
+        if hasattr(pads, "RESETn"):
+            self.comb += pads.RESETn.eq(~ResetSignal("ft601"))
+        if hasattr(pads, "WAKEUPn"):
+            self.comb += pads.WAKEUPn.eq(Constant(1, 1))
 
         self.sync.ft601 += [
             # FIXME: policy with lattice (and maybe altera) is to pop data before reading
