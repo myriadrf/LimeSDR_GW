@@ -102,9 +102,9 @@ class _CRG(LiteXModule):
 
 class BaseSoC(SoCCore):
     def __init__(self, sys_clk_freq=80e6, toolchain="quartus",
-        with_spi_flash  = False,
-        with_litescope  = False,
-        cpu_firmware    = None,
+        with_uartbone  = False,
+        with_spi_flash = False,
+        cpu_firmware   = None,
         **kwargs):
 
         # Platform ---------------------------------------------------------------------------------
@@ -120,10 +120,8 @@ class BaseSoC(SoCCore):
         #egpio_pads    = platform.request("FPGA_EGPIO")
 
         # SoCCore ----------------------------------------------------------------------------------
-        uart_name     = {True: "crossover", False:"serial"}[with_litescope]
-        with_uartbone = with_litescope
         SoCCore.__init__(self, platform, sys_clk_freq,
-            ident                    = "LiteX SoC on LimeSDR-Mini-V1",
+            ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
             cpu_type                 = "vexriscv",
             cpu_variant              = "minimal",
@@ -132,7 +130,7 @@ class BaseSoC(SoCCore):
             integrated_main_ram_size = 0x4000,
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
             with_uartbone            = with_uartbone,
-            uart_name                = uart_name,
+            uart_name                ={True: "crossover", False:"serial"}[with_uartbone],
         )
 
         # Avoid stalling CPU at startup.
@@ -297,31 +295,32 @@ class BaseSoC(SoCCore):
         for file in lms7_trx_files:
             platform.add_source(file)
 
-        # Analyzer ---------------------------------------------------------------------------------
-        if with_litescope:
-            analyzer_signals = [
-                self.fifo_ctrl.ctrl_fifo.rd,
-                self.fifo_ctrl.ctrl_fifo.rdata,
-                self.fifo_ctrl.ctrl_fifo.empty,
-                self.fifo_ctrl.ctrl_fifo.wr,
-                self.fifo_ctrl.ctrl_fifo.wdata,
-                self.fifo_ctrl.ctrl_fifo.full,
-                self.fifo_ctrl.fifo_reset,
+    # LiteScope Analyzer Probes --------------------------------------------------------------------
 
-                self.ft601.ctrl_fifo.rd,
-                self.ft601.ctrl_fifo.rdata,
-                self.ft601.ctrl_fifo.empty,
-                self.ft601.ctrl_fifo.wr,
-                self.ft601.ctrl_fifo.wdata,
-                self.ft601.ctrl_fifo.full,
-                self.ft601.ctrl_fifo_fpga_pc_reset_n,
-            ]
-            self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-                depth        = 1024,
-                clock_domain = "sys",
-                register     = True,
-                csr_csv      = "analyzer.csv"
-            )
+    def add_ft601_ctrl_probe(self):
+        analyzer_signals = [
+            self.fifo_ctrl.ctrl_fifo.rd,
+            self.fifo_ctrl.ctrl_fifo.rdata,
+            self.fifo_ctrl.ctrl_fifo.empty,
+            self.fifo_ctrl.ctrl_fifo.wr,
+            self.fifo_ctrl.ctrl_fifo.wdata,
+            self.fifo_ctrl.ctrl_fifo.full,
+            self.fifo_ctrl.fifo_reset,
+
+            self.ft601.ctrl_fifo.rd,
+            self.ft601.ctrl_fifo.rdata,
+            self.ft601.ctrl_fifo.empty,
+            self.ft601.ctrl_fifo.wr,
+            self.ft601.ctrl_fifo.wdata,
+            self.ft601.ctrl_fifo.full,
+            self.ft601.ctrl_fifo_fpga_pc_reset_n,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
 
 # Build --------------------------------------------------------------------------------------------
 
@@ -333,8 +332,12 @@ def main():
     parser.add_argument("--flash", action="store_true", help="Flash bitstream.")
 
     # SoC parameters.
+    parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
     parser.add_argument("--with-spi-flash", action="store_true", help="Enable SPI Flash (MMAPed).")
-    parser.add_argument("--with-litescope", action="store_true", help="Enable LiteScope.")
+
+    # Litescope Analyzer Probes.
+    probeopts = parser.add_mutually_exclusive_group()
+    probeopts.add_argument("--with-ft601-ctrl-probe",      action="store_true", help="Enable FT601 Ctrl Probe.")
 
     args = parser.parse_args()
 
@@ -342,15 +345,21 @@ def main():
     for run in range(2):
         prepare = (run == 0)
         build   = ((run == 1) & args.build)
+        # SoC.
         soc = BaseSoC(
             toolchain      = "quartus",
+            with_uartbone  = args.with_uartbone,
             with_spi_flash = args.with_spi_flash,
-            with_litescope = args.with_litescope,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
         )
+        # LiteScope Analyzer Probes.
+        if args.with_ft601_ctrl_probe:
+            assert args.with_uartbone
+            soc.add_ft601_ctrl_probe()
+        # Builder.
         builder = Builder(soc, csr_csv="csr.csv")
         builder.build(run=build)
-        # Build Firmware.
+        # Firmware build.
         if prepare:
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
 
