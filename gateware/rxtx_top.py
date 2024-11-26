@@ -157,4 +157,4 @@ class RXTXTop(LiteXModule):
         gen_fifo(vendor=vendor, input_width=128, output_width= 64,  depth=256,  with_buffer=True, disable_rd_delay=True)
 
         # Generate fifo_w128x512_r128_buffer.v
-        gen_fifo(vendor=vendor, input_width=128, output_width= 64,  depth=256,  with_buffer=True, disable_rd_delay=True)
+        gen_fifo(vendor=vendor, input_width=128, output_width=128,  depth=512,  with_buffer=True, disable_rd_delay=True)
