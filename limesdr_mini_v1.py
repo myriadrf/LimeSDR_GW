@@ -135,7 +135,7 @@ class BaseSoC(SoCCore):
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V1",
             ident_version            = True,
-            cpu_type                 = "vexriscv", # FIXME: Switch to VexRiscv.
+            cpu_type                 = "vexriscv",
             cpu_variant              = "minimal",
             integrated_rom_size      = 0xa000,
             integrated_sram_ram_size = 0x1000,
@@ -241,48 +241,48 @@ class BaseSoC(SoCCore):
             self.general_periph.ep83_active.eq(self.ft601.stream_fifo.wr_active),
         ]
 
-#        # RXTX Top ---------------------------------------------------------------------------------
-#        self.rxtx_top = RXTXTop(platform, self.fpgacfg,
-#            # TX parameters
-#            TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
-#            TX_N_BUFF              = TX_N_BUFF,
-#            TX_IN_PCT_SIZE         = TX_PCT_SIZE,
-#            TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
-#            TX_IN_PCT_DATA_W       = STRM0_FPGA_RX_RWIDTH,
-#            TX_IN_PCT_RDUSEDW_W    = C_EP03_RDUSEDW_WIDTH,
-#
-#            # RX parameters
-#            RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
-#            RX_INVERT_INPUT_CLOCKS = "ON",
-#            RX_PCT_BUFF_WRUSEDW_W  = C_EP83_WRUSEDW_WIDTH,
-#        )
-#
-#        self.comb += [
-#            # LMS7002 <-> TstTop.
-#            self.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
-#            self.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
-#            self.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
-#
-#            # LMS7002 <-> PLLCFG
-#            self.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
-#
-#            # LMS7002 <-> RXTX Top.
-#            self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
-#            self.lms7002_top.source.connect(     self.rxtx_top.rx_path.sink),
-#            self.rxtx_top.tx_path.source.connect(self.lms7002_top.sink),
-#
-#            # FT601 <-> RXTX Top.
-#            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
-#            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.rxtx_top.rx_en),
-#            self.rxtx_top.stream_fifo.connect(self.ft601.stream_fifo),
-#
-#            # General Periph <-> RXTX Top.
-#            self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_path.tx_txant_en),
-#
-#            # General Periph <-> LMS7002
-#            self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
-#        ]
-#
+        # RXTX Top ---------------------------------------------------------------------------------
+        self.rxtx_top = RXTXTop(platform, self.fpgacfg,
+            # TX parameters
+            TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
+            TX_N_BUFF              = TX_N_BUFF,
+            TX_IN_PCT_SIZE         = TX_PCT_SIZE,
+            TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
+            TX_IN_PCT_DATA_W       = STRM0_FPGA_RX_RWIDTH,
+            TX_IN_PCT_RDUSEDW_W    = C_EP03_RDUSEDW_WIDTH,
+
+            # RX parameters
+            RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
+            RX_INVERT_INPUT_CLOCKS = "ON",
+            RX_PCT_BUFF_WRUSEDW_W  = C_EP83_WRUSEDW_WIDTH,
+        )
+
+        self.comb += [
+            # LMS7002 <-> TstTop.
+            self.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
+            self.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
+            self.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
+
+            # LMS7002 <-> PLLCFG
+            self.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
+
+            # LMS7002 <-> RXTX Top.
+            self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
+            self.lms7002_top.source.connect(     self.rxtx_top.rx_path.sink),
+            self.rxtx_top.tx_path.source.connect(self.lms7002_top.sink),
+
+            # FT601 <-> RXTX Top.
+            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
+            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.rxtx_top.rx_en),
+            self.rxtx_top.stream_fifo.connect(self.ft601.stream_fifo),
+
+            # General Periph <-> RXTX Top.
+            self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_path.tx_txant_en),
+
+            # General Periph <-> LMS7002
+            self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
+        ]
+
         # RF Switches ------------------------------------------------------------------------------
         self.gpio = CSRStorage(16, reset=0b0001000101000100) # fpgacfg @23
         self.comb += [
@@ -354,7 +354,7 @@ def main():
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
             **parser.soc_argdict
         )
-        builder = Builder(soc, csr_csv="csr.csv")
+        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
         if prepare:
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
