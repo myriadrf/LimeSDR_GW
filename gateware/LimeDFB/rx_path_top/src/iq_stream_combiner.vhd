@@ -27,14 +27,11 @@ entity IQ_STREAM_COMBINER is
    port (
       CLK               : in    std_logic;
       RESET_N           : in    std_logic;
-      mimo_en           : in    std_logic;
-      ddr_en            : in    std_logic;
       S_AXIS_TVALID     : in    std_logic;
       S_AXIS_TREADY     : out   std_logic;
       S_AXIS_TDATA      : in    std_logic_vector(63 downto 0);
       S_AXIS_TKEEP      : in    std_logic_vector(7 downto 0);
       M_AXIS_TVALID     : out   std_logic;
-      M_AXIS_TREADY     : in    std_logic;
       M_AXIS_TDATA      : out   std_logic_vector(63 downto 0);
       M_AXIS_TKEEP      : out   std_logic_vector(7 downto 0)
    );
@@ -63,7 +60,7 @@ begin
       if (RESET_N = '0') then
          m_axis_tdata_reg <= (others => '0');
       elsif rising_edge(CLK) then
-         if ((S_AXIS_TVALID and M_AXIS_TREADY) = '1') then
+         if (S_AXIS_TVALID = '1') then
             if (S_AXIS_TKEEP = x"FF") then
                m_axis_tdata_reg(95 downto 32) <= S_AXIS_TDATA;
             elsif (S_AXIS_TKEEP = x"0F") then
@@ -91,12 +88,11 @@ begin
       if (RESET_N = '0') then
          m_axis_tvalid_reg <= (others => '0');
       elsif rising_edge(CLK) then
-         if ((S_AXIS_TVALID and M_AXIS_TREADY) = '1') then
+         if (S_AXIS_TVALID = '1') then
             if (S_AXIS_TKEEP = x"FF") then
                m_axis_tvalid_reg <= "111";
             elsif (S_AXIS_TKEEP = x"0F"  or  S_AXIS_TKEEP = x"F0") then
-               if ((m_axis_tvalid_reg = "111" and mimo_en = '0' and ddr_en = '0') or
-                   (m_axis_tvalid_reg = "011" and mimo_en = '0' and ddr_en = '1')) then
+               if (m_axis_tvalid_reg = "111") then
                   m_axis_tvalid_reg <= "00" & '1';
                else
                   m_axis_tvalid_reg <= m_axis_tvalid_reg(1 downto 0) & '1';
@@ -129,7 +125,7 @@ begin
    -- ----------------------------------------------------------------------------
    S_AXIS_TREADY <= s_axis_tready_reg;
 
-   M_AXIS_TVALID <= m_axis_tvalid_reg(1) when mimo_en = '0' and ddr_en = '1' else m_axis_tvalid_reg(2);
+   M_AXIS_TVALID <= m_axis_tvalid_reg(2);
    M_AXIS_TDATA  <= m_axis_tdata_reg(95 downto 32);
    M_AXIS_TKEEP  <= (others => '1');
 
