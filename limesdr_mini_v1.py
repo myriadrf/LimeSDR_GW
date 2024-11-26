@@ -111,14 +111,6 @@ class BaseSoC(SoCCore):
         platform      = limesdr_mini_v1.Platform(toolchain=toolchain)
         platform.name = "limesdr_mini_v1"
 
-        lms_pads      = platform.request("LMS")
-        revision_pads = platform.request("revision")
-        revision_pads.BOM_VER = Cat(revision_pads.BOM_VER0, revision_pads.BOM_VER1, revision_pads.BOM_VER2)
-        rfsw_pads     = platform.request("RFSW")
-        tx_lb_pads    = platform.request("TX_LB")
-        gpio_pads     = platform.request("FPGA_GPIO")
-        #egpio_pads    = platform.request("FPGA_EGPIO")
-
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
@@ -143,10 +135,10 @@ class BaseSoC(SoCCore):
         self.crg = _CRG(platform, sys_clk_freq)
 
         # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
-        self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C", 0))
+        self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C"))
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
-        self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI", 0), data_width=32, spi_clk_freq=10e6)
+        self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
 
         # SPI Flash --------------------------------------------------------------------------------
         if with_spi_flash:
@@ -167,6 +159,8 @@ class BaseSoC(SoCCore):
         self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.mico32_busy)
 
         # FPGA Cfg ---------------------------------------------------------------------------------
+        revision_pads = platform.request("revision")
+        revision_pads.BOM_VER = Cat(revision_pads.BOM_VER0, revision_pads.BOM_VER1, revision_pads.BOM_VER2)
         self.fpgacfg = FPGACfg(revision_pads)
         self.comb += self.fpgacfg.pwr_src.eq(0)
 
@@ -199,7 +193,14 @@ class BaseSoC(SoCCore):
         ]
 
         # LMS7002 Top ------------------------------------------------------------------------------
-        self.lms7002_top = LMS7002Top(platform, lms_pads, revision_pads.HW_VER, True, self.fpgacfg, LMS_DIQ_WIDTH)
+        self.lms7002_top = LMS7002Top(
+            platform        = platform,
+            pads            = platform.request("LMS"),
+            hw_ver          = revision_pads.HW_VER,
+            add_csr         = True,
+            fpgacfg_manager = self.fpgacfg,
+            diq_width       = LMS_DIQ_WIDTH,
+        )
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
         self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
@@ -215,6 +216,10 @@ class BaseSoC(SoCCore):
         ]
 
         # General Periph ---------------------------------------------------------------------------
+
+        gpio_pads     = platform.request("FPGA_GPIO")
+        #egpio_pads    = platform.request("FPGA_EGPIO")
+
         self.general_periph = GeneralPeriphTop(platform,
             revision_pads = revision_pads,
             gpio_pads     = gpio_pads,
@@ -274,6 +279,10 @@ class BaseSoC(SoCCore):
 #        ]
 
         # RF Switches ------------------------------------------------------------------------------
+
+        rfsw_pads  = platform.request("RFSW")
+        tx_lb_pads = platform.request("TX_LB")
+
         self.gpio = CSRStorage(16, reset=0b0001000101000100) # fpgacfg @23
         self.comb += [
             # RF Switch.
