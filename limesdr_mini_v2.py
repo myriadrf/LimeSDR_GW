@@ -109,7 +109,7 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=77.5e6, toolchain="diamond", with_rx_tx_top=True,
+    def __init__(self, sys_clk_freq=77.5e6, cpu_type="picorv32", toolchain="diamond", with_rx_tx_top=True,
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
@@ -120,11 +120,19 @@ class BaseSoC(SoCCore):
         platform.name = "limesdr_mini_v2"
 
         # SoCCore ----------------------------------------------------------------------------------
+        assert cpu_type in ["picorv32", "fazyrv", "firev"]
+
+        cpu_variant = {
+            "picorv32" : "minimal",
+            "fazyrv"   : "standard",
+            "firev"    : "standard",
+        }[cpu_type]
+
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
-            cpu_type                 = "picorv32", # FIXME: Switch to VexRiscv when working with Diamond.
-            cpu_variant              = "minimal",
+            cpu_type                 = cpu_type,
+            cpu_variant              = cpu_variant,
             integrated_rom_size      = 0x8000,
             integrated_sram_ram_size = 0x0200,
             integrated_main_ram_size = 0x3800,

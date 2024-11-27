@@ -69,8 +69,8 @@ C_EP83_WRUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_TX_SIZE / (STRM0_FPGA_
 class _CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
         self.rst      = Signal()
-        self.cd_sys   = ClockDomain()
         self.cd_por   = ClockDomain()
+        self.cd_sys   = ClockDomain()
         self.cd_ft601 = ClockDomain()
 
         # # #
@@ -78,7 +78,7 @@ class _CRG(LiteXModule):
         # Clk.
         self.ft_clk = platform.request("FT_CLK")
 
-        # Power on reset.
+        # Power-on-Clk/Rst.
         por_count = Signal(4, reset=2**4-1)
         por_done  = Signal()
         por_count.attr.add("keep")
@@ -87,20 +87,20 @@ class _CRG(LiteXModule):
         self.comb += por_done.eq(por_count == 0)
         self.sync.por += If(~por_done, por_count.eq(por_count - 1))
 
-        # PLL.
+        # Sys Clk/Rst.
         self.pll = pll = Max10PLL(speedgrade="-8")
         self.comb += pll.reset.eq(self.rst | ~por_done)
         pll.register_clkin(self.ft_clk, 100e6)
         pll.create_clkout(self.cd_sys, sys_clk_freq)
 
-        # FT601 Clk/Rst
+        # FT601 Clk/Rst.
         self.comb     += self.cd_ft601.clk.eq(self.ft_clk),
         self.specials += AsyncResetSynchronizer(self.cd_ft601, ~por_done)
 
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=80e6, toolchain="quartus", with_rx_tx_top=True,
+    def __init__(self, sys_clk_freq=80e6, cpu_type="picorv32", toolchain="quartus", with_rx_tx_top=True,
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
@@ -111,17 +111,25 @@ class BaseSoC(SoCCore):
         platform.name = "limesdr_mini_v1"
 
         # SoCCore ----------------------------------------------------------------------------------
+        assert cpu_type in ["picorv32", "fazyrv", "firev"]
+
+        cpu_variant = {
+            "picorv32" : "minimal",
+            "fazyrv"   : "standard",
+            "firev"    : "standard",
+        }[cpu_type]
+
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
-            cpu_type                 = "vexriscv",
-            cpu_variant              = "minimal",
+            cpu_type                 = cpu_type,
+            cpu_variant              = cpu_variant,
             integrated_rom_size      = 0x8000,
             integrated_sram_ram_size = 0x0200,
             integrated_main_ram_size = 0x3800,
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
             with_uartbone            = with_uartbone,
-            uart_name                ={True: "crossover", False:"serial"}[with_uartbone],
+            uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
         # Avoid stalling CPU at startup.
@@ -222,7 +230,6 @@ class BaseSoC(SoCCore):
             self.general_periph.ep03_active.eq(self.ft601.stream_fifo.rd_active),
             self.general_periph.ep83_active.eq(self.ft601.stream_fifo.wr_active),
         ]
-
 
         # RXTX Top ---------------------------------------------------------------------------------
         if with_rx_tx_top:
