@@ -98,12 +98,13 @@ class _CRG(LiteXModule):
             pll.create_clkout(self.cd_sys, sys_clk_freq)
         else:
             # Internal Oscillator
-            # DIV values: 2(~155MHz) - 128(~2.4MHz)
             self.specials += Instance("OSCG",
-                p_DIV = 4,
+                # DIV values: 2: ~155MHz to 128: ~2.4MHz.
+                p_DIV = 4, # ~77.5MHz.
                 o_OSC = self.cd_sys.clk,
             )
             self.specials += AsyncResetSynchronizer(self.cd_sys, ~por_done)
+        platform.add_period_constraint(self.cd_sys.clk, 1e9/sys_clk_freq)
 
         platform.add_platform_command("GSR_NET NET crg_por_done;")
 
@@ -295,10 +296,9 @@ class BaseSoC(SoCCore):
             tx_lb_pads.SH.eq(  self.gpio.storage[2]),
         ]
 
-        # Timings ----------------------------------------------------------------------------------
-        self.platform.add_sdc("gateware/FT601_timing.sdc")
-        self.platform.add_sdc("gateware/LMS7002_timing.sdc")
-        self.platform.add_sdc("gateware/Clock_groups.sdc")
+        # Timing Constraints -----------------------------------------------------------------------
+
+        # FIXME: Improve, minimal for now.
         self.platform.add_sdc("gateware/timing.sdc")
 
         # HDL Sources ------------------------------------------------------------------------------
