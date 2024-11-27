@@ -191,7 +191,6 @@ class BaseSoC(SoCCore):
             EP83_wrusedw_width = C_EP83_WRUSEDW_WIDTH,
             EP83_wwidth        = STRM0_FPGA_TX_WWIDTH,
             EP83_wsize         = 2048,
-            use_litex_fifo     = True,
         )
 
         self.comb += [
@@ -266,6 +265,7 @@ class BaseSoC(SoCCore):
                 self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
                 self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.rxtx_top.rx_en),
                 self.rxtx_top.stream_fifo.connect(self.ft601.stream_fifo),
+                self.rxtx_top.rx_path.source.connect(self.ft601.sink),
 
                 # General Periph <-> RXTX Top.
                 self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_path.tx_txant_en),
