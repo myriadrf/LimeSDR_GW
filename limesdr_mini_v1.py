@@ -297,10 +297,13 @@ class BaseSoC(SoCCore):
         ]
 
         # Timing Constraints -----------------------------------------------------------------------
-        # TODO: Add timing constraints.
+        # FIXME: Add timing constraints.
 
-        # Sources ----------------------------------------------------------------------------------
+        # HDL Sources ------------------------------------------------------------------------------
+        # Set VHDL standard to VHDL-2008.
         platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
+
+        # Add VHDL/Verilog files.
         for file in lms7_trx_files:
             platform.add_source(file)
 

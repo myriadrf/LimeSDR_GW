@@ -311,12 +311,11 @@ class BaseSoC(SoCCore):
         self.platform.add_sdc("gateware/Clock_groups.sdc")
         self.platform.add_sdc("gateware/timing.sdc")
 
-        # Strategy ---------------------------------------------------------------------------------
-        platform.toolchain.additional_ldf_commands += [
-            "prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True",
-        ]
+        # HDL Sources ------------------------------------------------------------------------------
+        # Set VHDL standard to VHDL-2008.
+        platform.toolchain.additional_ldf_commands += ["prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True"]
 
-        # Sources ----------------------------------------------------------------------------------
+        # Add VHDL/Verilog files.
         for file in lms7_trx_files:
             platform.add_source(file)
 
