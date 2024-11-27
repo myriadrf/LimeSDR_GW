@@ -117,9 +117,9 @@ class BaseSoC(SoCCore):
             ident_version            = True,
             cpu_type                 = "vexriscv",
             cpu_variant              = "minimal",
-            integrated_rom_size      = 0xa000,
-            integrated_sram_ram_size = 0x1000,
-            integrated_main_ram_size = 0x4000,
+            integrated_rom_size      = 0x8000,
+            integrated_sram_ram_size = 0x0200,
+            integrated_main_ram_size = 0x3800,
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
             with_uartbone            = with_uartbone,
             uart_name                ={True: "crossover", False:"serial"}[with_uartbone],
@@ -161,7 +161,7 @@ class BaseSoC(SoCCore):
         # FPGA Cfg ---------------------------------------------------------------------------------
         revision_pads = platform.request("revision")
         revision_pads.BOM_VER = Cat(revision_pads.BOM_VER0, revision_pads.BOM_VER1, revision_pads.BOM_VER2)
-        self.fpgacfg = FPGACfg(revision_pads)
+        self.fpgacfg  = FPGACfg(revision_pads)
         self.comb += self.fpgacfg.pwr_src.eq(0)
 
         # PLL Cfg ----------------------------------------------------------------------------------
