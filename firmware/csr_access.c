@@ -277,26 +277,15 @@ void tstcfg_read(uint16_t addr, uint8_t *rdata)
 	case 0x9:
 		value = tst_top_fx3_clk_cnt_read();
 		break;
+	/* SI5351C - No present on XTRX/LimeMSDR-Mini */
 	case 0xa:
-		value = tst_top_Si5351C_clk_0_cnt_read();
-		break;
 	case 0xb:
-		value = tst_top_Si5351C_clk_1_cnt_read();
-		break;
 	case 0xc:
-		value = tst_top_Si5351C_clk_2_cnt_read();
-		break;
 	case 0xd:
-		value = tst_top_Si5351C_clk_3_cnt_read();
-		break;
 	case 0xf:
-		value = tst_top_Si5351C_clk_5_cnt_read();
-		break;
 	case 0x10:
-		value = tst_top_Si5351C_clk_6_cnt_read();
-		break;
 	case 0x11:
-		value = tst_top_Si5351C_clk_7_cnt_read();
+		value = 0;
 		break;
 	case 0x12:
 		value = tst_top_lmk_clk_cnt0_read();
