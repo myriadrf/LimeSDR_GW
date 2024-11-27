@@ -152,5 +152,5 @@ class Platform(AlteraPlatform):
     def do_finalize(self, fragment):
         self.add_period_constraint(self.lookup_request("FT_CLK",    loose=True), 1e9/100e6)
         self.add_period_constraint(self.lookup_request("LMK_CLK",   loose=True), 1e9/40e6)
-        self.add_period_constraint(self.lookup_request("LMS_MCLK1", loose=True), 1e9/125e6)
-        self.add_period_constraint(self.lookup_request("LMS_MCLK2", loose=True), 1e9/125e6)
+        self.add_period_constraint(self.lookup_request("LMS:MCLK1", loose=True), 1e9/125e6)
+        self.add_period_constraint(self.lookup_request("LMS:MCLK2", loose=True), 1e9/125e6)
