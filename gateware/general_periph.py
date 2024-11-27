@@ -127,7 +127,6 @@ class GeneralPeriphTop(LiteXModule):
 
     def add_sources(self, platform):
         general_periph_files = [
-            "gateware/hdl/general_periph/synth/general_periph_top.vhd",
             "gateware/hdl/general/alive.vhd",
             "gateware/hdl/general/FPGA_LED_cntrl.vhd",
             "gateware/hdl/general/FPGA_LED2_ctrl.vhd",
@@ -135,7 +134,8 @@ class GeneralPeriphTop(LiteXModule):
             "gateware/hdl/general/gpio_ctrl_top.vhd",
             "gateware/hdl/general/gpio_ctrl.vhd",
             "gateware/hdl/general/general_pkg.vhd",
-            "gateware/general_periph_top_wrapper.vhd",
+            "gateware/hdl/general_periph/synth/general_periph_top.vhd",
+            "gateware/hdl/general_periph/synth/general_periph_top_wrapper.vhd",
         ]
 
         for file in general_periph_files:
