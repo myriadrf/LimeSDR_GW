@@ -178,7 +178,7 @@ class RXPath(LiteXModule):
 
                 # Mode settings.
                 i_CFG_SMPL_WIDTH          = fpgacfg_manager.smpl_width,  # "10"-12bit, "01"-14bit, "00"-16bit;
-                i_CFG_PKT_SIZE            = Constant(512, 16),           # 256 x 128b = 4096Bytes
+                i_CFG_PKT_SIZE            = Constant(4096, 16),          # 256 x 128b = 4096Bytes
                 i_ddr_en                  = ddr_en,                      # DDR: 1; SDR: 0
                 i_mimo_en                 = mimo_en,                     # Enabled: 1; Disabled: 0
                 i_CFG_CH_EN               = fpgacfg_manager.ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
