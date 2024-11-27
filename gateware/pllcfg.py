@@ -15,53 +15,15 @@ from litex.soc.interconnect.csr import *
 
 class PLLCfg(LiteXModule):
     def __init__(self):
-        self.auto_phcfg_smpls = Signal(16)
-
-        self.pll_lock  = CSRStatus(16,  reset=0)
-        self.cnt_phase = CSRStorage(16)
-        self.reg05     = CSRStorage(16, fields=[
-            CSRField("pllcfg_lf_cap", size=2, offset=0, reset=0),
-            CSRField("pllcfg_lf_res", size=5, offset=2, reset=0b11100),
-            CSRField("pllcfg_vcodiv", size=1, offset=7, reset=1),
-            CSRField("chp_curr",      size=3, offset=8, reset=1),
-        ])
-
-        self.reg06     = CSRStorage(16, fields=[
-            CSRField("n_byp",    size=1, offset=0, reset=0),
-            CSRField("n_odddiv", size=1, offset=1, reset=1),
-            CSRField("m_byp",    size=1, offset=2, reset=0),
-            CSRField("m_odddiv", size=1, offset=3, reset=1),
-        ], reset=0b1010)
-        self.reg07     = CSRStorage(16, fields=[
-            CSRField("c0_byp",    size=1, offset=0, reset=0),
-            CSRField("c0_odddiv", size=1, offset=1, reset=1),
-            CSRField("c1_byp",    size=1, offset=2, reset=0),
-            CSRField("c1_odddiv", size=1, offset=3, reset=1),
-            CSRField("c2_byp",    size=1, offset=4, reset=0),
-            CSRField("c2_odddiv", size=1, offset=5, reset=1),
-            CSRField("c3_byp",    size=1, offset=6, reset=0),
-            CSRField("c3_odddiv", size=1, offset=7, reset=1),
-            CSRField("c4_byp",    size=1, offset=8, reset=0),
-            CSRField("c4_odddiv", size=1, offset=9, reset=1),
-        ])
-        # unused
-        self.reg08     = CSRStorage(16, reset=0b1010101010101010)
-
-        self.n_cnt            = CSRStorage(16) # 10
-        self.m_cnt            = CSRStorage(16) # 11
-        self.c0_cnt           = CSRStorage(16) # 14
-        self.c1_cnt           = CSRStorage(16)
-        self.c2_cnt           = CSRStorage(16)
-        self.c3_cnt           = CSRStorage(16)
-        self.c4_cnt           = CSRStorage(16)
-        self._auto_phcfg_smpls = CSRStorage(16, reset=0x3FF) # 30
-        self.auto_phcfg_step  = CSRStorage(16, reset=0x002) # 31
+        self.auto_phcfg_smpls  = Signal(16)
+        self.pll_lock          = CSRStatus(16,  reset=0)
+        self._auto_phcfg_smpls = CSRStorage(16, reset=0x3FF)
+        self.auto_phcfg_step   = CSRStorage(16, reset=0x002)
 
         # # #
 
         # Logic.
         self.comb += [
             self.pll_lock.status.eq(    Constant(0, 16)),
-
             self.auto_phcfg_smpls.eq(self._auto_phcfg_smpls.storage),
         ]

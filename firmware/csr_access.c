@@ -170,41 +170,19 @@ void pllcfg_write(uint16_t addr, uint8_t *wdata)
 	case 0x3:
 		lms7002_top_reg03_write(value);
 		break;
+	/* 0x4-0x12 - No present on XTRX/LimeMSDR-Mini */
 	case 0x4:
-		pllcfg_cnt_phase_write(value);
-		break;
 	case 0x5:
-		pllcfg_reg05_write(value);
-		break;
 	case 0x6:
-		pllcfg_reg06_write(value);
-		break;
 	case 0x7:
-		pllcfg_reg07_write(value);
-		break;
-	case 0x8: // unused but written...
-		pllcfg_reg08_write(value);
-		break;
+	case 0x8:
 	case 0xa:
-		pllcfg_n_cnt_write(value);
-		break;
 	case 0xb:
-		pllcfg_m_cnt_write(value);
-		break;
 	case 0xe:
-		pllcfg_c0_cnt_write(value);
-		break;
 	case 0xf:
-		pllcfg_c1_cnt_write(value);
-		break;
 	case 0x10:
-		pllcfg_c2_cnt_write(value);
-		break;
 	case 0x11:
-		pllcfg_c3_cnt_write(value);
-		break;
 	case 0x12:
-		pllcfg_c4_cnt_write(value);
 		break;
 	case 0x1E:
 		pllcfg_auto_phcfg_smpls_write(value);
@@ -230,7 +208,7 @@ void pllcfg_read(uint16_t addr, uint8_t *rdata)
 		value = pllcfg_pll_lock_read();
 		break;
 	case 0x05:
-		value = pllcfg_reg05_read();
+		value = 0b110110000;
 		break;
 	default:
 		printf("Read error: unhandled register %d\n", addr);
@@ -277,7 +255,7 @@ void tstcfg_read(uint16_t addr, uint8_t *rdata)
 	case 0x9:
 		value = tst_top_fx3_clk_cnt_read();
 		break;
-	/* SI5351C - No present on XTRX/LimeMSDR-Mini */
+	/* 0xa-0x11 - No present on XTRX/LimeMSDR-Mini */
 	case 0xa:
 	case 0xb:
 	case 0xc:
