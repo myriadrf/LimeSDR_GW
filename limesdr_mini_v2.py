@@ -37,7 +37,6 @@ from gateware.busy_delay          import BusyDelay
 from gateware.fpgacfg             import FPGACfg
 from gateware.ft601               import FT601
 from gateware.lms7002.lms7002_top import LMS7002Top
-from gateware.lms7_trx_files_list import lms7_trx_files
 from gateware.tst_top             import TstTop
 from gateware.general_periph      import GeneralPeriphTop
 from gateware.pllcfg              import PLLCfg
@@ -306,7 +305,21 @@ class BaseSoC(SoCCore):
         platform.toolchain.additional_ldf_commands += ["prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True"]
 
         # Add VHDL/Verilog files.
-        for file in lms7_trx_files:
+        # FIXME: Move to LiteX modules using them.
+        vhd_files = [
+            # General.
+            # --------
+            "gateware/hdl/general/sync_reg.vhd",
+            "gateware/hdl/general/bus_sync_reg.vhd",
+            "gateware/hdl/general/busy_delay.vhd",
+
+            # SPI / CFG.
+            # ----------
+            "gateware/hdl/spi/mcfg_components.vhd",
+            "gateware/hdl/spi/periphcfg_pkg.vhd",
+            "gateware/hdl/spi/tstcfg_pkg.vhd",
+        ]
+        for file in vhd_files:
             platform.add_source(file)
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
