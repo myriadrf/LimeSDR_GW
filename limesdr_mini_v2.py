@@ -80,7 +80,7 @@ class _CRG(LiteXModule):
         self.ft_clk = platform.request("FT_CLK")
 
         # Power-on-Clk/Rst.
-        por_count = Signal(4, reset=2**4-1)
+        por_count = Signal(4)
         por_done  = Signal()
         por_count.attr.add("keep")
         por_done.attr.add("keep")
@@ -89,8 +89,9 @@ class _CRG(LiteXModule):
             p_DIV = 4, # ~77.5MHz.
             o_OSC = self.cd_por.clk,
         )
-        self.comb += por_done.eq(por_count == 0)
-        self.sync.por += If(~por_done, por_count.eq(por_count - 1))
+        self.comb += por_done.eq(Reduce("AND", por_count))
+        self.sync.por += por_count.eq(Cat(Constant(1, 1), por_count[0:3]))
+        platform.add_platform_command("GSR_NET NET crg_por_done;")
 
         # Sys Clk/Rst.
         if use_pll:
@@ -304,7 +305,7 @@ class BaseSoC(SoCCore):
 
         # FIXME: Improve, minimal for now.
 
-        timings_sdc_filename = "build/limesdr_mini_v2/gateware/timing.sdc"
+        timings_sdc_filename = "timing.sdc"
         with open(timings_sdc_filename, "w") as f:
             # Write timing constraints.
             f.write("# FT601 / 100MHz.\n")
