@@ -33,13 +33,9 @@ class RXPath(LiteXModule):
         self.platform              = platform
 
         self.sink                  = AXIStreamInterface(64, clock_domain="lms_rx")
+        self.source                = AXIStreamInterface(64, clock_domain="lms_rx")
 
         self.rx_pct_fifo_aclrn_req = Signal()
-
-        self.rx_pct_fifo_wusedw    = Signal(RX_PCT_BUFF_WRUSEDW_W)
-        self.rx_pct_fifo_wrreq     = Signal()
-        self.rx_pct_fifo_ready     = Signal()
-        self.rx_pct_fifo_wdata     = Signal(64)
 
         self.pct_hdr_cap           = Signal()
 
@@ -77,11 +73,9 @@ class RXPath(LiteXModule):
         self.iqsmpls_fifo = iqsmpls_fifo = ResetInserter()(ClockDomainsRenamer("lms_rx")(stream.SyncFIFO([("data", 128)], 16)))
 
         self.comb += [
-            fifo_conv.reset.eq(            ~inst5_reset_n),
-            iqsmpls_fifo.reset.eq(         ~inst5_reset_n),
-            self.rx_pct_fifo_wrreq.eq(     fifo_conv.source.valid),
-            self.rx_pct_fifo_wdata.eq(     fifo_conv.source.data),
-            self.fifo_conv.source.ready.eq(self.rx_pct_fifo_ready),
+            fifo_conv.reset.eq(           ~inst5_reset_n),
+            iqsmpls_fifo.reset.eq(        ~inst5_reset_n),
+            self.fifo_conv.source.connect(self.source),
 
             # Packet Header 0
             pct_hdr_0.eq(Cat(Constant(0, 16), 0x060504030201)) # FIXME: 0:15: isn't 0 and 16:63 differs for XTRX

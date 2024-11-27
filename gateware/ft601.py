@@ -19,7 +19,8 @@ from litex.build.vhd2v_converter import VHD2VConverter
 
 from litex.gen import *
 
-from litex.soc.interconnect import stream
+from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
+from litex.soc.interconnect                import stream
 
 from gateware.busy_delay import BusyDelay
 from gateware.common     import FIFOInterface
@@ -58,6 +59,7 @@ class FT601(LiteXModule):
 
         self.ctrl_fifo      = FIFOInterface(EP02_rwidth, EP82_wwidth)
         self.stream_fifo    = FIFOInterface(EP03_rwidth, EP83_wwidth, EP03_rdusedw_width, EP83_wrusedw_width)
+        self.sink           = AXIStreamInterface(64, clock_domain="lmx_rx")
 
         self.ctrl_fifo_fpga_pc_reset_n   = Signal()
         self.stream_fifo_fpga_pc_reset_n = Signal()
@@ -92,7 +94,6 @@ class FT601(LiteXModule):
 
         # EP83 fifo signals
         EP83_fifo_rdusedw = Signal(FIFORD_SIZE(EP83_wwidth, FT_data_width, EP83_wrusedw_width))
-        EP83_fifo_rdreq   = Signal()
         sync_reg0         = Signal(2)
 
         # arbiter signals
@@ -158,13 +159,13 @@ class FT601(LiteXModule):
             EP03_fifo_wusedw.eq(         self.EP03_fifo.level),
         ]
 
-        # Stream FPGA->PC
+        # Stream FPGA->PC.
+        # ----------------
         EP83_fifo_status = BusyDelay(platform, "ft601",
             clock_period = 10,  #  input clock period in ns
             delay_time   = 100, #  delay time in ms
         )
 
-        # Stream FPGA->PC
         self.EP83_sink = stream.Endpoint([("data", EP83_wwidth)])
         self.EP83_cdc  = stream.ClockDomainCrossing([("data", EP83_wwidth)],
             cd_from         = "lms_rx",
@@ -179,6 +180,7 @@ class FT601(LiteXModule):
             self.EP83_fifo,
             self.EP83_conv,
         )
+        self.comb += self.sink.connect(self.EP83_sink, omit=["keep", "id", "dest", "user"])
 
         # FTDI arbiter
         # ------------
@@ -312,10 +314,6 @@ class FT601(LiteXModule):
             self.EP83_fifo.reset.eq(~self.stream_fifo_fpga_pc_reset_n),
             self.EP83_conv.reset.eq(~self.stream_fifo_fpga_pc_reset_n),
             # Fifo Interface -> stream.Endpoint
-            self.EP83_sink.data.eq(self.stream_fifo.wdata),
-            self.EP83_sink.valid.eq(self.stream_fifo.wr),
-            self.stream_fifo.full.eq(~self.EP83_sink.ready),
-            self.stream_fifo.wrusedw.eq(self.EP83_fifo.level),
             EP83_fifo_rdusedw.eq(Cat(0, self.EP83_fifo.level)),
 
             self.stream_fifo.wr_active.eq(EP83_fifo_status.busy_out),

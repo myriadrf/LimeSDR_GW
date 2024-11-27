@@ -103,10 +103,6 @@ class RXTXTop(LiteXModule):
 
             # RX -> FIFO
             self.rx_pct_fifo_aclrn_req.eq(rx_path.rx_pct_fifo_aclrn_req),
-            rx_path.rx_pct_fifo_wusedw.eq(self.stream_fifo.wrusedw),
-            rx_path.rx_pct_fifo_ready.eq( ~self.stream_fifo.full),
-            self.stream_fifo.wr.eq(       rx_path.rx_pct_fifo_wrreq),
-            self.stream_fifo.wdata.eq(    rx_path.rx_pct_fifo_wdata),
         ]
 
     def do_finalize(self):
