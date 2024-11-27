@@ -37,7 +37,7 @@ def FIFORD_SIZE(wr_width, rd_width, wr_size):
 # FT601 --------------------------------------------------------------------------------------------
 
 class FT601(LiteXModule):
-    def __init__(self, platform, pads=None, use_ghdl=False, use_litex_fifo=False,
+    def __init__(self, platform, pads=None, use_ghdl=False,
         FT_data_width      = 32,
         FT_be_width        = 4,
         EP02_rdusedw_width = 11,
@@ -55,7 +55,6 @@ class FT601(LiteXModule):
         assert pads is not None
 
         self.platform       = platform
-        self.use_litex_fifo = use_litex_fifo
 
         self.ctrl_fifo      = FIFOInterface(EP02_rwidth, EP82_wwidth)
         self.stream_fifo    = FIFOInterface(EP03_rwidth, EP83_wwidth, EP03_rdusedw_width, EP83_wrusedw_width)
@@ -126,58 +125,38 @@ class FT601(LiteXModule):
             delay_time   = 100, #  delay time in ms
         )
 
-        if use_litex_fifo:
-            self.EP03_sink   = stream.Endpoint([("data", FT_data_width)])
-            self.EP03_fifo   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", FT_data_width)], 1024, True)))
-            self.EP03_conv   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(FT_data_width, EP03_rwidth)))
-            self.EP03_cdc    = stream.ClockDomainCrossing([("data", EP03_rwidth)],
-                cd_from         = "ft601",
-                cd_to           = "lms_tx",
-                with_common_rst = True,
-            )
-            self.EP03_source = stream.Endpoint([("data", EP03_rwidth)])
-            self.EP03_pipeline  = stream.Pipeline(
-                self.EP03_sink,
-                self.EP03_fifo,
-                self.EP03_conv,
-                self.EP03_cdc,
-                self.EP03_source,
-            )
+        self.EP03_sink   = stream.Endpoint([("data", FT_data_width)])
+        self.EP03_fifo   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", FT_data_width)], 1024, True)))
+        self.EP03_conv   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(FT_data_width, EP03_rwidth)))
+        self.EP03_cdc    = stream.ClockDomainCrossing([("data", EP03_rwidth)],
+            cd_from         = "ft601",
+            cd_to           = "lms_tx",
+            with_common_rst = True,
+        )
+        self.EP03_source = stream.Endpoint([("data", EP03_rwidth)])
+        self.EP03_pipeline  = stream.Pipeline(
+            self.EP03_sink,
+            self.EP03_fifo,
+            self.EP03_conv,
+            self.EP03_cdc,
+            self.EP03_source,
+        )
 
-            #self.sync.lms_tx += self.EP03_source.ready.eq(self.stream_fifo.rd)
-            self.comb += self.EP03_source.ready.eq(self.stream_fifo.rd)
+        self.sync.lms_tx += self.EP03_source.ready.eq(self.stream_fifo.rd)
 
-            self.comb += [
-                # Reset.
-                self.EP03_conv.reset.eq(     ~sync_reg0[1]),
-                self.EP03_fifo.reset.eq(     ~sync_reg0[1]),
+        self.comb += [
+            # Reset.
+            self.EP03_conv.reset.eq(     ~sync_reg0[1]),
+            self.EP03_fifo.reset.eq(     ~sync_reg0[1]),
 
-                self.stream_fifo.rdata.eq(   self.EP03_source.data),
-                self.stream_fifo.empty.eq(   ~self.EP03_source.valid),
-                self.stream_fifo.rdusedw.eq( self.EP03_fifo.level),
+            self.stream_fifo.rdata.eq(   self.EP03_source.data),
+            self.stream_fifo.empty.eq(   ~self.EP03_source.valid),
+            self.stream_fifo.rdusedw.eq( self.EP03_fifo.level),
 
-                self.EP03_sink.data.eq( EP03_wdata),
-                self.EP03_sink.valid.eq(self.EP03_fifo_status.busy_in),
-                EP03_fifo_wusedw.eq(         self.EP03_fifo.level),
-            ]
-        else:
-            self.fifo_params = dict()
-
-            # FIFO Signals.
-            self.fifo_params.update(
-                i_Data    = EP03_wdata,
-                i_WrClock = ClockSignal("ft601"),
-                i_RdClock = ClockSignal("lms_tx"),
-                i_WrEn    = self.EP03_fifo_status.busy_in,
-                i_RdEn    = self.stream_fifo.rd,
-                i_Reset   = ~sync_reg0[1],
-                i_RPReset = ~sync_reg0[1],
-                o_Q       = self.stream_fifo.rdata,
-                o_WCNT    = EP03_fifo_wusedw,
-                o_RCNT    = self.stream_fifo.rdusedw,
-                o_Empty   = self.stream_fifo.empty,
-                o_Full    = Open()
-            )
+            self.EP03_sink.data.eq( EP03_wdata),
+            self.EP03_sink.valid.eq(self.EP03_fifo_status.busy_in),
+            EP03_fifo_wusedw.eq(         self.EP03_fifo.level),
+        ]
 
         # Stream FPGA->PC
         EP83_fifo_status = BusyDelay(platform, "ft601",
@@ -377,21 +356,6 @@ class FT601(LiteXModule):
 
     def do_finalize(self):
         output_dir = self.platform.output_dir
-
-        if not self.use_litex_fifo:
-            from shutil import which
-            diamond_path = "/".join(which("pnmainc").split('/')[:-3])
-
-            self.fifo_converter = VHD2VConverter(self.platform,
-                top_entity    = "fifodc_w32x1024_r128",
-                build_dir     = os.path.abspath(output_dir),
-                work_package  = "work",
-                force_convert = False,
-                params        = self.fifo_params,
-                add_instance  = True,
-                libraries     = [("ecp5u", f"{diamond_path}/cae_library/synthesis/vhdl/ecp5u.vhd")]
-            )
-            self.fifo_converter.add_source("gateware/ip/fifodc_w32x1024_r128.vhd")
 
         self.ft601_arbiter_converter = VHD2VConverter(self.platform,
             top_entity    = "FT601_arb",
