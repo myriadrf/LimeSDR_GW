@@ -7,7 +7,6 @@ lms7_trx_files = [
 
     # SPI / CFG.
     # ----------
-    "gateware/hdl/spi/fpgacfg_pkg.vhd",
     "gateware/hdl/spi/mcfg_components.vhd",
     "gateware/hdl/spi/periphcfg_pkg.vhd",
     "gateware/hdl/spi/tstcfg_pkg.vhd",
