@@ -165,6 +165,9 @@ class TXPath(LiteXModule):
 
     def add_sources(self, platform):
         general_periph_files = [
+            "gateware/hdl/packages/synth/FIFO_PACK.vhd",
+            "gateware/hdl/altera_inst/fifo_inst.vhd",
+            "gateware/hdl/altera_inst/lpm_compare_inst.vhd",
             "gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd",
             "gateware/hdl/tx_path_top/fifo2diq/synth/edge_delay.vhd",
             "gateware/hdl/tx_path_top/fifo2diq/synth/fifo2diq.vhd",

@@ -202,6 +202,7 @@ class RXPath(LiteXModule):
 
     def add_sources(self, platform):
         general_periph_files = [
+            "gateware/hdl/packages/synth/FIFO_PACK.vhd",
             "gateware/LimeDFB/rx_path_top/iq_stream_combiner.vhd",
             "gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd",
             "gateware/LimeDFB/rx_path_top/src/bit_pack.vhd",

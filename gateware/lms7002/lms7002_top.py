@@ -422,6 +422,10 @@ class LMS7002Top(LiteXModule):
 
             # TX
             "gateware/LimeDFB/lms7002/src/lms7002_tx.vhd",
+
+            # TX-IQ-Mux.
+            "gateware/hdl/txiqmux/synth/txiq_tst_ptrn.vhd",
+            "gateware/hdl/txiqmux/synth/txiqmux.vhd",
         ]
 
         for file in lms7002_files:
