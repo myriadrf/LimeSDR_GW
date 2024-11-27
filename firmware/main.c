@@ -136,214 +136,186 @@ uint16_t dac_val = DAC_DEFF_VAL;
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
 
-static char* readstr(void)
-{
-	char c[2];
-	static char s[64];
-	static int ptr = 0;
+static char *readstr(void) {
+    char c[2];
+    static char s[64];
+    static int ptr = 0;
 
-	if (readchar_nonblock())
-	{
-		c[0] = getchar();
-		c[1] = 0;
-		switch (c[0])
-		{
-		case 0x7f:
-		case 0x08:
-			if (ptr > 0)
-			{
-				ptr--;
-				fputs("\x08 \x08", stdout);
-			}
-			break;
-		case 0x07:
-			break;
-		case '\r':
-		case '\n':
-			s[ptr] = 0x00;
-			fputs("\n", stdout);
-			ptr = 0;
-			return s;
-		default:
-			if (ptr >= (sizeof(s) - 1))
-				break;
-			fputs(c, stdout);
-			s[ptr] = c[0];
-			ptr++;
-			break;
-		}
-	}
+    if (readchar_nonblock()) {
+        c[0] = getchar();
+        c[1] = 0;
+        switch (c[0]) {
+            case 0x7f:
+            case 0x08:
+                if (ptr > 0) {
+                    ptr--;
+                    fputs("\x08 \x08", stdout);
+                }
+                break;
+            case 0x07:
+                break;
+            case '\r':
+            case '\n':
+                s[ptr] = 0x00;
+                fputs("\n", stdout);
+                ptr = 0;
+                return s;
+            default:
+                if (ptr >= (sizeof(s) - 1))
+                    break;
+                fputs(c, stdout);
+                s[ptr] = c[0];
+                ptr++;
+                break;
+        }
+    }
 
-	return NULL;
+    return NULL;
 }
 
-static char* get_token(char** str)
-{
-	char* c, * d;
+static char *get_token(char **str) {
+    char *c, *d;
 
-	c = (char*)strchr(*str, ' ');
-	if (c == NULL)
-	{
-		d = *str;
-		*str = *str + strlen(*str);
-		return d;
-	}
-	*c = 0;
-	d = *str;
-	*str = c + 1;
-	return d;
+    c = (char *) strchr(*str, ' ');
+    if (c == NULL) {
+        d = *str;
+        *str = *str + strlen(*str);
+        return d;
+    }
+    *c = 0;
+    d = *str;
+    *str = c + 1;
+    return d;
 }
 
-static void prompt(void)
-{
-	printf("\e[92;1mlimesdr-xtrx\e[0m> ");
+static void prompt(void) {
+    printf("\e[92;1mlimesdr-xtrx\e[0m> ");
 }
 
 /*-----------------------------------------------------------------------*/
 /* Help                                                                  */
 /*-----------------------------------------------------------------------*/
 
-static void help(void)
-{
-	puts("\nLimeSDR XTRX minimal demo app built "__DATE__" "__TIME__"\n");
-	puts("Available commands:");
-	puts("help               - Show this command");
-	puts("reboot             - Reboot CPU");
-	puts("i2c_test           - Test I2C Buses");
-	puts("init_pmic          - Initialize DC-DC switching regulators");
-	puts("dump_pmic          - Dump DC-DC switching regulator configuration");
+static void help(void) {
+    puts("\nLimeSDR XTRX minimal demo app built "__DATE__" "__TIME__"\n");
+    puts("Available commands:");
+    puts("help               - Show this command");
+    puts("reboot             - Reboot CPU");
+    puts("i2c_test           - Test I2C Buses");
+    puts("init_pmic          - Initialize DC-DC switching regulators");
+    puts("dump_pmic          - Dump DC-DC switching regulator configuration");
 #ifdef CSR_LEDS_BASE
-	puts("led                - Led demo");
+    puts("led                - Led demo");
 #endif
 #ifdef CSR_LIME_TOP_BASE
-	puts("gpioled            - GPIO override demo");
-	puts("mmap               - MMAP demo" );
+    puts("gpioled            - GPIO override demo");
+    puts("mmap               - MMAP demo");
 #endif
 #ifdef CSR_LIME_TOP_BASE
-	puts("lms                - lms7002_top module status");
+    puts("lms                - lms7002_top module status");
 #endif
-	puts("dac_test           - Test DAC");
-	puts("flash_test         - Test FPGA FLASH");
+    puts("dac_test           - Test DAC");
+    puts("flash_test         - Test FPGA FLASH");
 }
 
 /*-----------------------------------------------------------------------*/
 /* Commands                                                              */
 /*-----------------------------------------------------------------------*/
 
-static void reboot_cmd(void)
-{
-	ctrl_reset_write(1);
+static void reboot_cmd(void) {
+    ctrl_reset_write(1);
 }
 
 #ifdef CSR_LEDS_BASE
 
-static void led_cmd(void)
-{
-	int i;
-	printf("Led demo...\n");
+static void led_cmd(void) {
+    int i;
+    printf("Led demo...\n");
 
-	printf("Counter mode...\n");
-	for (i = 0; i < 32; i++)
-	{
-		leds_out_write(i);
-		busy_wait(100);
-	}
+    printf("Counter mode...\n");
+    for (i = 0; i < 32; i++) {
+        leds_out_write(i);
+        busy_wait(100);
+    }
 
-	printf("Shift mode...\n");
-	for (i = 0; i < 4; i++)
-	{
-		leds_out_write(1 << i);
-		busy_wait(200);
-	}
-	for (i = 0; i < 4; i++)
-	{
-		leds_out_write(1 << (3 - i));
-		busy_wait(200);
-	}
+    printf("Shift mode...\n");
+    for (i = 0; i < 4; i++) {
+        leds_out_write(1 << i);
+        busy_wait(200);
+    }
+    for (i = 0; i < 4; i++) {
+        leds_out_write(1 << (3 - i));
+        busy_wait(200);
+    }
 
-	printf("Dance mode...\n");
-	for (i = 0; i < 4; i++)
-	{
-		leds_out_write(0x55);
-		busy_wait(200);
-		leds_out_write(0xaa);
-		busy_wait(200);
-	}
+    printf("Dance mode...\n");
+    for (i = 0; i < 4; i++) {
+        leds_out_write(0x55);
+        busy_wait(200);
+        leds_out_write(0xaa);
+        busy_wait(200);
+    }
 }
 
 #endif
 
 #ifdef CSR_LIME_TOP_BASE
 
-static void gpioled_cmd(void)
-{
-	int i, j;
-	printf("GPIO Led override demo...\n");
-	lime_top_gpio_gpio_override_write(0x7);
-	lime_top_gpio_gpio_override_dir_write(0x0);
-	lime_top_gpio_gpio_override_val_write(0x0);
-	for (i = 0; i < 3; i++)
-	{
-		for (j = 0; j < 8; j++)
-		{
-			lime_top_gpio_gpio_override_val_write(0x0);
-			busy_wait(100);
-			lime_top_gpio_gpio_override_val_write(1 << i);
-			busy_wait(100);
-		}
-	}
+static void gpioled_cmd(void) {
+    int i, j;
+    printf("GPIO Led override demo...\n");
+    lime_top_gpio_gpio_override_write(0x7);
+    lime_top_gpio_gpio_override_dir_write(0x0);
+    lime_top_gpio_gpio_override_val_write(0x0);
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 8; j++) {
+            lime_top_gpio_gpio_override_val_write(0x0);
+            busy_wait(100);
+            lime_top_gpio_gpio_override_val_write(1 << i);
+            busy_wait(100);
+        }
+    }
 
-	lime_top_gpio_gpio_override_val_write(0x0);
-	printf("GPIO Led override demo...ended\n");
+    lime_top_gpio_gpio_override_val_write(0x0);
+    printf("GPIO Led override demo...ended\n");
 }
 
-static void mmap_cmd(void)
-{
-	int i;
+static void mmap_cmd(void) {
+    int i;
 
-	volatile uint32_t* mmap_ptr = (volatile uint32_t*)LIME_TOP_MMAP_BASE;
-	printf("MMAP demo...\n");
+    volatile uint32_t *mmap_ptr = (volatile uint32_t *) LIME_TOP_MMAP_BASE;
+    printf("MMAP demo...\n");
 
-	/* Write counter values to SRAM. */
+    /* Write counter values to SRAM. */
 
-	printf("Writing values to SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
-	for (i = 0; i < 8; i++)
-	{
-		mmap_ptr[i] = i;
-		printf("Wrote %d to address 0x%08X\n", i, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
-	}
+    printf("Writing values to SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
+    for (i = 0; i < 8; i++) {
+        mmap_ptr[i] = i;
+        printf("Wrote %d to address 0x%08X\n", i, (unsigned int) (LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
+    }
 
-	/* Read back values from SRAM. */
-	printf("Reading values from SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
-	for (i = 0; i < 8; i++)
-	{
-		uint32_t value = mmap_ptr[i];
-		printf("Read %ld from address 0x%08X\n", value, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
-	}
-	// *mmap_ptr = (volatile uint32_t *)CSR_BASE;
-	// printf("Reading values from SRAM at address 0x%08lX...\n", CSR_BASE);
-	// for (i = 0; i < 8; i++) {
-	// 	uint32_t value = mmap_ptr[i];
-	// 	printf("Read 0x%08X from address 0x%08X\n", value, (unsigned int)(CSR_BASE + i * sizeof(uint32_t)));
-	// }
-	uint32_t dest;
-	printf(" CNTRL: ");
-	for (int cnt = 0; cnt < 16; cnt++)
-	{
-		dest = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
-		printf("%x ", dest);
-	}
-	printf(" \n");
+    /* Read back values from SRAM. */
+    printf("Reading values from SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
+    for (i = 0; i < 8; i++) {
+        uint32_t value = mmap_ptr[i];
+        printf("Read %ld from address 0x%08X\n", value, (unsigned int) (LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
+    }
+    // *mmap_ptr = (volatile uint32_t *)CSR_BASE;
+    // printf("Reading values from SRAM at address 0x%08lX...\n", CSR_BASE);
+    // for (i = 0; i < 8; i++) {
+    // 	uint32_t value = mmap_ptr[i];
+    // 	printf("Read 0x%08X from address 0x%08X\n", value, (unsigned int)(CSR_BASE + i * sizeof(uint32_t)));
+    // }
+    uint32_t dest;
+    printf(" CNTRL: ");
+    for (int cnt = 0; cnt < 16; cnt++) {
+        dest = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
+        printf("%x ", dest);
+    }
+    printf(" \n");
 
-
-	printf(" CNTRL wr: \n");
-	csr_write_simple(CSR_CNTRL_CNTRL_ADDR, 5);
-	// for (int cnt = 0; cnt < 16 ; cnt++)
-	// {
-	// dest = csr_read_simple((CSR_CNTRL_KOPUSTAS_ADDR + cnt*4));
-	// printf("%x ", dest);
-	// }
-	// printf(" \n");
+    printf(" CNTRL wr: \n");
+    csr_write_simple(CSR_CNTRL_CNTRL_ADDR, 5);
 }
 
 #endif
@@ -352,15 +324,14 @@ static void mmap_cmd(void)
 /* I2C                                                                   */
 /*-----------------------------------------------------------------------*/
 
-static void i2c_test(void)
-{
-	printf("I2C0 Scan...\n");
-	i2c0_scan();
+static void i2c_test(void) {
+    printf("I2C0 Scan...\n");
+    i2c0_scan();
 
-	printf("\n");
+    printf("\n");
 
-	printf("I2C1 Scan...\n");
-	i2c1_scan();
+    printf("I2C1 Scan...\n");
+    i2c1_scan();
 }
 
 static void dac_test(void) {
@@ -368,22 +339,22 @@ static void dac_test(void) {
 
     unsigned char adr = 0;
 
-	i2c0_read(I2C_DAC_ADDR, adr, &dat, 2, true);
-	printf("Read DAC val...\n");
-	printf("0x%02x: 0x%02x\n", dat[0], dat[1]);
-	//i2c0_scan();
+    i2c0_read(I2C_DAC_ADDR, adr, &dat, 2, true);
+    printf("Read DAC val...\n");
+    printf("0x%02x: 0x%02x\n", dat[0], dat[1]);
+    //i2c0_scan();
 
-	printf("\n");
+    printf("\n");
 
-	printf("Write DAC val...\n");
-	adr=0x30;
-	dat[0] = 0xaa;
-	dat[1] = 0x55;
-	i2c0_write(I2C_DAC_ADDR, adr, &dat, 2);
-	//i2c1_scan();
-	i2c0_read(I2C_DAC_ADDR, adr, &dat, 2, true);
-	printf("Read DAC val...\n");
-	printf("0x%02x: 0x%02x\n", dat[0], dat[1]);
+    printf("Write DAC val...\n");
+    adr = 0x30;
+    dat[0] = 0xaa;
+    dat[1] = 0x55;
+    i2c0_write(I2C_DAC_ADDR, adr, &dat, 2);
+    //i2c1_scan();
+    i2c0_read(I2C_DAC_ADDR, adr, &dat, 2, true);
+    printf("Read DAC val...\n");
+    printf("0x%02x: 0x%02x\n", dat[0], dat[1]);
 }
 
 static void flash_test(void) {
@@ -407,177 +378,165 @@ static void flash_test(void) {
     FlashQspi_CMD_WREN();
     FlashQspi_CMD_PageProgramByte(myAddress, &myByte);
 
-	FlashQspi_CMD_ReadDataByte(0x4fff5, data_bytes);
-
+    FlashQspi_CMD_ReadDataByte(0x4fff5, data_bytes);
 }
 
-static void dump_pmic(void)
-{
-	unsigned char adr;
-	unsigned char dat;
-	printf("FPGA_I2C1 PMIC Dump...\n");
-	for (adr = 0; adr < 32; adr++)
-	{
-		i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
-		printf("0x%02x: 0x%02x\n", adr, dat);
-	}
-	printf("FPGA_I2C2 PMIC Dump...\n");
-	for (adr = 0; adr < 32; adr++)
-	{
-		i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
-		printf("0x%02x: 0x%02x\n", adr, dat);
-	}
+static void dump_pmic(void) {
+    unsigned char adr;
+    unsigned char dat;
+    printf("FPGA_I2C1 PMIC Dump...\n");
+    for (adr = 0; adr < 32; adr++) {
+        i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+        printf("0x%02x: 0x%02x\n", adr, dat);
+    }
+    printf("FPGA_I2C2 PMIC Dump...\n");
+    for (adr = 0; adr < 32; adr++) {
+        i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+        printf("0x%02x: 0x%02x\n", adr, dat);
+    }
 }
 
-static void init_pmic(void)
-{
-	printf("Initializing DC-DC switching regulators...\n");
+static void init_pmic(void) {
+    printf("Initializing DC-DC switching regulators...\n");
 
-	unsigned char adr;
-	unsigned char dat;
+    unsigned char adr;
+    unsigned char dat;
 
-	printf("PMICs Initialization...\n");
-	printf("-----------------------\n");
+    printf("PMICs Initialization...\n");
+    printf("-----------------------\n");
 
-	printf("FPGA_I2C1 PMIC: Check ID ");
-	adr = 0x01;
-	i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
-	if (dat != 0xe0)
-	{
-		printf("KO, exiting.\n");
-	}
-	else
-	{
-		printf("OK.\n");
+    printf("FPGA_I2C1 PMIC: Check ID ");
+    adr = 0x01;
+    i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+    if (dat != 0xe0) {
+        printf("KO, exiting.\n");
+    } else {
+        printf("OK.\n");
 
-		printf("PMIC: Enable Buck0.\n");
-		adr = 0x02;
-		dat = 0x88;
-		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Enable Buck0.\n");
+        adr = 0x02;
+        dat = 0x88;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
-		adr = 0x03;
-		dat = 0xD2;
-		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
+        adr = 0x03;
+        dat = 0xD2;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Enable Buck1.\n");
-		adr = 0x04;
-		dat = 0x88;
-		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Enable Buck1.\n");
+        adr = 0x04;
+        dat = 0x88;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
-		adr = 0x05;
-		dat = 0xD2;
-		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
+        adr = 0x05;
+        dat = 0xD2;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Enable Buck2.\n");
-		adr = 0x06;
-		dat = 0x88;
-		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Enable Buck2.\n");
+        adr = 0x06;
+        dat = 0x88;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
-		adr = 0x07;
-		dat = 0xD2;
-		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
+        adr = 0x07;
+        dat = 0xD2;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Enable Buck3.\n");
-		adr = 0x08;
-		dat = 0x88;
-		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Enable Buck3.\n");
+        adr = 0x08;
+        dat = 0x88;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
-		adr = 0x09;
-		dat = 0xD2;
-		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
+        adr = 0x09;
+        dat = 0xD2;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Set Buck1 to 3.3V.\n");
-		adr = 0x0C;
-		dat = 0xFC;
-		i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Set Buck1 to 3.3V.\n");
+        adr = 0x0C;
+        dat = 0xFC;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		busy_wait(1);
-	}
+        busy_wait(1);
+    }
 
 
-	printf("FPGA_I2C2 PMIC: Check ID ");
-	adr = 0x01;
-	i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
-	if (dat != 0xe0)
-	{
-		printf("KO, exiting.\n");
-	}
-	else
-	{
-		printf("OK.\n");
+    printf("FPGA_I2C2 PMIC: Check ID ");
+    adr = 0x01;
+    i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+    if (dat != 0xe0) {
+        printf("KO, exiting.\n");
+    } else {
+        printf("OK.\n");
 
-		printf("PMIC: Enable Buck0.\n");
-		adr = 0x02;
-		dat = 0x88;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Enable Buck0.\n");
+        adr = 0x02;
+        dat = 0x88;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
-		adr = 0x03;
-		dat = 0xD2;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
+        adr = 0x03;
+        dat = 0xD2;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Enable Buck1.\n");
-		adr = 0x04;
-		dat = 0x88;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Enable Buck1.\n");
+        adr = 0x04;
+        dat = 0x88;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
-		adr = 0x05;
-		dat = 0xD2;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
+        adr = 0x05;
+        dat = 0xD2;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Enable Buck2.\n");
-		adr = 0x06;
-		dat = 0x88;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Enable Buck2.\n");
+        adr = 0x06;
+        dat = 0x88;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
-		adr = 0x07;
-		dat = 0xD2;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
+        adr = 0x07;
+        dat = 0xD2;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Enable Buck3.\n");
-		adr = 0x08;
-		dat = 0x88;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Enable Buck3.\n");
+        adr = 0x08;
+        dat = 0x88;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
-		adr = 0x09;
-		dat = 0xD2;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
+        adr = 0x09;
+        dat = 0xD2;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Set Buck0 to 1.5V.\n");
-		adr = 0x0A;
-		dat = 0xA2;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Set Buck0 to 1.5V.\n");
+        adr = 0x0A;
+        dat = 0xA2;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Set Buck1 to 3.3V.\n");
-		adr = 0x0C;
-		dat = 0xFC;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Set Buck1 to 3.3V.\n");
+        adr = 0x0C;
+        dat = 0xFC;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Set Buck2 to 1.75V.\n");
-		adr = 0x0E;
-		dat = 0xAF;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Set Buck2 to 1.75V.\n");
+        adr = 0x0E;
+        dat = 0xAF;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Set Buck3 to 2.05V.\n");
-		adr = 0x10;
-		dat = 0xBE;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Set Buck3 to 2.05V.\n");
+        adr = 0x10;
+        dat = 0xBE;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		printf("PMIC: Clear INT_BUCK_2_3 Status.\n");
-		adr = 0x1A;
-		dat = 0xFF;
-		i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
+        printf("PMIC: Clear INT_BUCK_2_3 Status.\n");
+        adr = 0x1A;
+        dat = 0xFF;
+        i2c1_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
-		busy_wait(1);
-	}
-
+        busy_wait(1);
+    }
 }
 
 static void init_vctcxo_dac(void) {
@@ -585,36 +544,34 @@ static void init_vctcxo_dac(void) {
     uint8_t i2c_buf[3];
     // uint8_t page_buffer[5] = {0};
 
-	//TODO: FIX this, first FLASH read returns 0xFF. Workaround to read two times...
-	FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
-	FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
-	FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &page_buffer[1]);
-	printf("FLASH value: 0x%02x: 0x%02x\n", page_buffer[0], page_buffer[1]);
+    //TODO: FIX this, first FLASH read returns 0xFF. Workaround to read two times...
+    FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
+    FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
+    FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &page_buffer[1]);
+    printf("FLASH value: 0x%02x: 0x%02x\n", page_buffer[0], page_buffer[1]);
 
-	// Write DAC value stored in flash storage only if it isn't empty (0xFFFF)
-	if ((page_buffer[1] == 0xFF) && (page_buffer[0] == 0xFF)) {
-		// Write Default value
-		dac_val = DAC_DEFF_VAL;
-		i2c_buf[0] = 0x30; // cmd
-		i2c_buf[1] = (dac_val >> 8) & 0xFF;
-		i2c_buf[2] = dac_val & 0xFF;
-		printf("Default value\n");
-	} else {
-		// Write DAC value from FLASH
-		dac_val = ((uint16_t)page_buffer[1])<<8 | ((uint16_t)page_buffer[0]);
-		i2c_buf[0] = 0x30; // cmd
-		i2c_buf[1] = page_buffer[1];
-		i2c_buf[2] = page_buffer[0];
-		printf("Value from FLASH\n");
-	}
+    // Write DAC value stored in flash storage only if it isn't empty (0xFFFF)
+    if ((page_buffer[1] == 0xFF) && (page_buffer[0] == 0xFF)) {
+        // Write Default value
+        dac_val = DAC_DEFF_VAL;
+        i2c_buf[0] = 0x30; // cmd
+        i2c_buf[1] = (dac_val >> 8) & 0xFF;
+        i2c_buf[2] = dac_val & 0xFF;
+        printf("Default value\n");
+    } else {
+        // Write DAC value from FLASH
+        dac_val = ((uint16_t) page_buffer[1]) << 8 | ((uint16_t) page_buffer[0]);
+        i2c_buf[0] = 0x30; // cmd
+        i2c_buf[1] = page_buffer[1];
+        i2c_buf[2] = page_buffer[0];
+        printf("Value from FLASH\n");
+    }
 
-	//TODO: implement value read from non volatile Mem
-	//i2c_buf[0] = 0x30; // cmd
-	//i2c_buf[1] = (dac_val >> 8) & 0xFF;
+    //TODO: implement value read from non volatile Mem
+    //i2c_buf[0] = 0x30; // cmd
+    //i2c_buf[1] = (dac_val >> 8) & 0xFF;
     //i2c_buf[2] = dac_val & 0xFF;
-	i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
-
-
+    i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
 }
 
 
@@ -622,82 +579,74 @@ static void init_vctcxo_dac(void) {
 /* LMS7002m status                                                       */
 /*-----------------------------------------------------------------------*/
 
-static void lms7002_status(void)
-{
-	printf("TX PLL Lock status = %x \n", csr_read_simple(pll0_tx_addrs.locked));
-	printf("\n");
-	printf("RX PLL Lock status = %x \n", csr_read_simple(pll1_rx_addrs.locked));
+static void lms7002_status(void) {
+    printf("TX PLL Lock status = %x \n", csr_read_simple(pll0_tx_addrs.locked));
+    printf("\n");
+    printf("RX PLL Lock status = %x \n", csr_read_simple(pll1_rx_addrs.locked));
 }
 
 /*-----------------------------------------------------------------------*/
 /* Console service / Main                                                */
 /*-----------------------------------------------------------------------*/
 
-static void console_service(void)
-{
-	char* str;
-	char* token;
+static void console_service(void) {
+    char *str;
+    char *token;
 
-	str = readstr();
-	if (str == NULL) return;
-	token = get_token(&str);
-	if (strcmp(token, "help") == 0)
-		help();
-	else if (strcmp(token, "reboot") == 0)
-		reboot_cmd();
-	else if (strcmp(token, "i2c_test") == 0)
-		i2c_test();
-	else if (strcmp(token, "init_pmic") == 0)
-		init_pmic();
-	else if (strcmp(token, "dump_pmic") == 0)
-		dump_pmic();
+    str = readstr();
+    if (str == NULL) return;
+    token = get_token(&str);
+    if (strcmp(token, "help") == 0)
+        help();
+    else if (strcmp(token, "reboot") == 0)
+        reboot_cmd();
+    else if (strcmp(token, "i2c_test") == 0)
+        i2c_test();
+    else if (strcmp(token, "init_pmic") == 0)
+        init_pmic();
+    else if (strcmp(token, "dump_pmic") == 0)
+        dump_pmic();
 #ifdef CSR_LEDS_BASE
-	else if (strcmp(token, "led") == 0)
-		led_cmd();
+    else if (strcmp(token, "led") == 0)
+        led_cmd();
 #endif
 #ifdef CSR_LIME_TOP_BASE
-	else if (strcmp(token, "gpioled") == 0)
-		gpioled_cmd();
-	else if (strcmp(token, "mmap") == 0)
-		mmap_cmd();
+    else if (strcmp(token, "gpioled") == 0)
+        gpioled_cmd();
+    else if (strcmp(token, "mmap") == 0)
+        mmap_cmd();
 #endif
 #ifdef CSR_LIME_TOP_BASE
-	else if (strcmp(token, "lms") == 0)
-		lms7002_status();
+    else if (strcmp(token, "lms") == 0)
+        lms7002_status();
 #endif
-	else if (strcmp(token, "dac_test") == 0)
-		dac_test();
-	else if (strcmp(token, "flash_test") == 0)
-		flash_test();
+    else if (strcmp(token, "dac_test") == 0)
+        dac_test();
+    else if (strcmp(token, "flash_test") == 0)
+        flash_test();
 
-	prompt();
+    prompt();
 }
 
 
 /** Checks if peripheral ID is valid.
  Returns 1 if valid, else 0. */
-unsigned char Check_Periph_ID(unsigned char max_periph_id, unsigned char Periph_ID)
-{
-	if (LMS_Ctrl_Packet_Rx->Header.Periph_ID > max_periph_id)
-	{
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_INVALID_PERIPH_ID_CMD;
-		return 0;
-	}
-	else
-		return 1;
+unsigned char Check_Periph_ID(unsigned char max_periph_id, unsigned char Periph_ID) {
+    if (LMS_Ctrl_Packet_Rx->Header.Periph_ID > max_periph_id) {
+        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_INVALID_PERIPH_ID_CMD;
+        return 0;
+    } else
+        return 1;
 }
 
 /**	This function checks if all blocks could fit in data field.
  *	If blocks will not fit, function returns TRUE. */
-unsigned char Check_many_blocks(unsigned char block_size)
-{
-	if (LMS_Ctrl_Packet_Rx->Header.Data_blocks > (sizeof(LMS_Ctrl_Packet_Tx->Data_field) / block_size))
-	{
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
-		return 1;
-	}
-	else
-		return 0;
+unsigned char Check_many_blocks(unsigned char block_size) {
+    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks > (sizeof(LMS_Ctrl_Packet_Tx->Data_field) / block_size)) {
+        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
+        return 1;
+    } else
+        return 0;
 }
 
 /**
@@ -716,33 +665,27 @@ void getLMS64Packet(uint8_t *buf, uint8_t k)
 
 }*/
 
-void getLMS64Packet(uint8_t *buf, uint8_t k)
-{
+void getLMS64Packet(uint8_t *buf, uint8_t k) {
     uint8_t cnt = 0;
-    uint32_t *dest = (uint32_t *)buf;
+    uint32_t *dest = (uint32_t *) buf;
     uint32_t temp_buffer[k / sizeof(uint32_t)];
     uint8_t is_stable = 0;
 
-    while (!is_stable)
-    {
+    while (!is_stable) {
         // Read the first buffer into temp_buffer
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++)
-        {
+        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
             temp_buffer[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
         }
 
         // Read again into dest buffer
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++)
-        {
+        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
             dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
         }
 
         // Compare the two buffers
         is_stable = 1;
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++)
-        {
-            if (temp_buffer[cnt] != dest[cnt])
-            {
+        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
+            if (temp_buffer[cnt] != dest[cnt]) {
                 is_stable = 0;
                 break;
             }
@@ -852,143 +795,136 @@ int main(void) {
             // }
             // printf("\n");
 
-	memset(glEp0Buffer_Tx, 0, sizeof(glEp0Buffer_Tx)); // fill whole tx buffer with zeros
-	cmd_errors = 0;
+            memset(glEp0Buffer_Tx, 0, sizeof(glEp0Buffer_Tx)); // fill whole tx buffer with zeros
+            cmd_errors = 0;
 
-	LMS_Ctrl_Packet_Tx->Header.Command = LMS_Ctrl_Packet_Rx->Header.Command;
-	LMS_Ctrl_Packet_Tx->Header.Data_blocks = LMS_Ctrl_Packet_Rx->Header.Data_blocks;
-	LMS_Ctrl_Packet_Tx->Header.Periph_ID = LMS_Ctrl_Packet_Rx->Header.Periph_ID;
-	LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BUSY_CMD;
+            LMS_Ctrl_Packet_Tx->Header.Command = LMS_Ctrl_Packet_Rx->Header.Command;
+            LMS_Ctrl_Packet_Tx->Header.Data_blocks = LMS_Ctrl_Packet_Rx->Header.Data_blocks;
+            LMS_Ctrl_Packet_Tx->Header.Periph_ID = LMS_Ctrl_Packet_Rx->Header.Periph_ID;
+            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BUSY_CMD;
 
-	switch (LMS_Ctrl_Packet_Rx->Header.Command)
-	{
-	case CMD_GET_INFO:
+            switch (LMS_Ctrl_Packet_Rx->Header.Command) {
+                case CMD_GET_INFO:
 
-		LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
-		LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
-		LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
-		LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
-		LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
+                    LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
+                    LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
+                    LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
+                    LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
 
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-		break;
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
 
-	case CMD_LMS_RST:
+                case CMD_LMS_RST:
 
-		if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
-			break;
+                    if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
+                        break;
 
-		switch (LMS_Ctrl_Packet_Rx->Data_field[0])
-		{
-		case LMS_RST_DEACTIVATE:
-			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
-			//printf("LMS RESET deactivate...\n");
-			break;
-		case LMS_RST_ACTIVATE:
-			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
-			//printf("LMS RESET activate...\n");
-			break;
+                    switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
+                        case LMS_RST_DEACTIVATE:
+                            //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
+                            //printf("LMS RESET deactivate...\n");
+                            break;
+                        case LMS_RST_ACTIVATE:
+                            //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
+                            //printf("LMS RESET activate...\n");
+                            break;
 
-		case LMS_RST_PULSE:
-			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
-			//Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
-			lime_top_lms7002_lms1_resetn_write(0x0);
-			lime_top_lms7002_lms1_resetn_write(0x1);
-			//printf("LMS RST pulse...\n");
-			break;
-		default:
-			cmd_errors++;
-			break;
-		}
+                        case LMS_RST_PULSE:
+                            //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
+                            //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
+                            lime_top_lms7002_lms1_resetn_write(0x0);
+                            lime_top_lms7002_lms1_resetn_write(0x1);
+                        //printf("LMS RST pulse...\n");
+                            break;
+                        default:
+                            cmd_errors++;
+                            break;
+                    }
 
-	case CMD_BRDSPI16_WR:
-		if (Check_many_blocks(4))
-			break;
+                case CMD_BRDSPI16_WR:
+                    if (Check_many_blocks(4))
+                        break;
 
-		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-		{
-			// write reg addr
-			//sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
-			// Clearing write bit in address field because we are not using SPI registers in LiteX implementation
-			cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        // write reg addr
+                        //sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
+                        // Clearing write bit in address field because we are not using SPI registers in LiteX implementation
+                        cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
 
-			writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
-					&LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
-		}
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-		break;
+                        writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
+                                 &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+                    }
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
 
-	case CMD_BRDSPI16_RD:
-		if (Check_many_blocks(4))
-			break;
+                case CMD_BRDSPI16_RD:
+                    if (Check_many_blocks(4))
+                        break;
 
-		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-		{
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        // write reg addr
+                        cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
 
-			// write reg addr
-			cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
+                        readCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], reg_array);
+                        LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = reg_array[1];
+                        LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = reg_array[0];
 
-			readCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], reg_array);
-			LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = reg_array[1];
-			LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = reg_array[0];
+                        //			printf("value: 0x%X\n", reg_array[0]);
+                        //			printf("value: 0x%X\n", reg_array[1]);
+                    }
 
-//			printf("value: 0x%X\n", reg_array[0]);
-//			printf("value: 0x%X\n", reg_array[1]);
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
 
-		}
+                // COMMAND LMS WRITE
 
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-		break;
-
-		// COMMAND LMS WRITE
-
-	case CMD_LMS7002_WR:
-		if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
-			break;
-		if (Check_many_blocks(4))
-			break;
+                case CMD_LMS7002_WR:
+                    if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
+                        break;
+                    if (Check_many_blocks(4))
+                        break;
 
 
-		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-		{
-			sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
-			// Parse address
-			addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-			addr = (addr << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
-			// Parse value
-			val = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
-			val = (val << 8) | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
-			// Write
-			lms_spi_write(addr, val);
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
+                        // Parse address
+                        addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
+                        addr = (addr << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
+                        // Parse value
+                        val = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
+                        val = (val << 8) | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
+                        // Write
+                        lms_spi_write(addr, val);
+                    }
 
-		}
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
 
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-		break;
+                // COMMAND LMS READ
 
-		// COMMAND LMS READ
+                case CMD_LMS7002_RD:
+                    if (Check_many_blocks(4))
+                        break;
 
-	case CMD_LMS7002_RD:
-		if (Check_many_blocks(4))
-			break;
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
+                        // Parse address
+                        addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
+                        addr = (addr << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
+                        // Read
+                        val = lms_spi_read(addr);
+                        // Return value and address
+                        LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[
+                            0 + (block * 2)];
+                        LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[
+                            1 + (block * 2)];
+                        LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (val >> 8) & 0xFF;
+                        LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = val & 0xFF;
+                    }
 
-		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-		{
-			cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
-			// Parse address
-			addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
-			addr = (addr << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-			// Read
-			val = lms_spi_read(addr);
-			// Return value and address
-			LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
-			LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-			LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (val >> 8) & 0xFF;
-			LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = val & 0xFF;
-		}
-
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-		break;
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
 
                 case CMD_ALTERA_FPGA_GW_WR: // FPGA active serial
 
@@ -1112,100 +1048,100 @@ int main(void) {
                             // Storing volatile DAC value
                                 dac_val = ((uint16_t) i2c_buf[0]) << 8 | ((uint16_t) i2c_buf[1]);
 
-				break;
+                                break;
 
-			case 1: // temperature
-//						i2c_buf[0] = 1;
-//						i2c_buf[1] = 0x60;
-//						i2c_buf[2] = 0xA0;
-				// TMP1075 sensor performs periodical temperature readings by default
-				// we only need to read the most recent value
-				i2c_buf[0]=0;
-				//XIic_Send(XPAR_I2C_CORES_I2C1_BASEADDR,I2C_TERMO_ADDR,i2c_buf,1,XIIC_REPEATED_START);
-				//XIic_Recv(XPAR_I2C_CORES_I2C1_BASEADDR,I2C_TERMO_ADDR,i2c_buf,2,XIIC_STOP);
-				i2c0_read(I2C_TERMO_ADDR, i2c_buf[0], &i2c_buf[0], 2, false);
+                            case 1: // temperature
+                                //						i2c_buf[0] = 1;
+                                //						i2c_buf[1] = 0x60;
+                                //						i2c_buf[2] = 0xA0;
+                                // TMP1075 sensor performs periodical temperature readings by default
+                                // we only need to read the most recent value
+                                i2c_buf[0] = 0;
+                            //XIic_Send(XPAR_I2C_CORES_I2C1_BASEADDR,I2C_TERMO_ADDR,i2c_buf,1,XIIC_REPEATED_START);
+                            //XIic_Recv(XPAR_I2C_CORES_I2C1_BASEADDR,I2C_TERMO_ADDR,i2c_buf,2,XIIC_STOP);
+                                i2c0_read(I2C_TERMO_ADDR, i2c_buf[0], &i2c_buf[0], 2, false);
 
 
-				LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block]; //ch
-				LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x50; //0.1C //unit, power
+                                LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block];
+                            //ch
+                                LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x50; //0.1C //unit, power
 
-				int16_t converted_value = i2c_buf[1] | (i2c_buf[0] << 8);
+                                int16_t converted_value = i2c_buf[1] | (i2c_buf[0] << 8);
 
-				converted_value = converted_value >> 4;
-				converted_value = converted_value * 10;
-				converted_value = converted_value >> 4;
+                                converted_value = converted_value >> 4;
+                                converted_value = converted_value * 10;
+                                converted_value = converted_value >> 4;
 
-				LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (uint8_t)((converted_value >> 8) & 0xFF);//signed val, MSB byte
-				LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (uint8_t)(converted_value & 0xFF);//signed val, LSB byte
+                                LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (uint8_t) (
+                                    (converted_value >> 8) & 0xFF); //signed val, MSB byte
+                                LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (uint8_t) (converted_value & 0xFF);
+                            //signed val, LSB byte
 
-				break;
-			default:
-				cmd_errors++;
-				break;
-			}
-		}
+                                break;
+                            default:
+                                cmd_errors++;
+                                break;
+                        }
+                    }
 
-		if (cmd_errors)
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-		else
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-		break;
+                    if (cmd_errors)
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    else
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
 
-		// COMMAND ANALOG VALUE WRITE
-		break;
+                // COMMAND ANALOG VALUE WRITE
+                    break;
 
-	case CMD_ANALOG_VAL_WR:
-		if (Check_many_blocks(4))
-			break;
+                case CMD_ANALOG_VAL_WR:
+                    if (Check_many_blocks(4))
+                        break;
 
-		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-		{
-			switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)]) // do something according to channel
-			{
-			case 0:														  // TCXO DAC
-				if (LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)] == 0) // RAW units?
-				{
-					i2c_buf[0] = 0x30;											  // addr
-					i2c_buf[1] = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]; // MSB
-					i2c_buf[2] = LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]; // LSB
-					// Storing volatile DAC value
-					dac_val = ((uint16_t)i2c_buf[1])<<8 | ((uint16_t)i2c_buf[2]);
-					// Writing to DAC
-					//XIic_Send(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 3, XIIC_STOP);
-					i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
-				}
-				else
-					cmd_errors++;
-				break;
-			default:
-				cmd_errors++;
-				break;
-			}
-		}
-		if (cmd_errors)
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-		else
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-		break;
-		break;
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)]) // do something according to channel
+                        {
+                            case 0: // TCXO DAC
+                                if (LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)] == 0) // RAW units?
+                                {
+                                    i2c_buf[0] = 0x30; // addr
+                                    i2c_buf[1] = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]; // MSB
+                                    i2c_buf[2] = LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]; // LSB
+                                    // Storing volatile DAC value
+                                    dac_val = ((uint16_t) i2c_buf[1]) << 8 | ((uint16_t) i2c_buf[2]);
+                                    // Writing to DAC
+                                    //XIic_Send(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 3, XIIC_STOP);
+                                    i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
+                                } else
+                                    cmd_errors++;
+                                break;
+                            default:
+                                cmd_errors++;
+                                break;
+                        }
+                    }
+                    if (cmd_errors)
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    else
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
+                    break;
 
-	case CMD_MEMORY_WR:
-		// Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
-		// a workaround is implemented that uses a sufficiently high address in the configuration flash
-		// to store the DAC value
-		// Since to write data to a flash, a whole sector needs to be erased, additional checks are included
-		// to make sure this function is used ONLY to store VCTCXO DAC value
-		// Reset spirez
-		spirez = 0;
-		data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+                case CMD_MEMORY_WR:
+                    // Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
+                    // a workaround is implemented that uses a sufficiently high address in the configuration flash
+                    // to store the DAC value
+                    // Since to write data to a flash, a whole sector needs to be erased, additional checks are included
+                    // to make sure this function is used ONLY to store VCTCXO DAC value
+                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
 
-		if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) // TARGET = 3 (EEPROM)
-		{
-			// Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
-			// a workaround is implemented that uses a sufficiently high address in the configuration flash
-			// to store the DAC value
-			// Since to write data to a flash, a whole sector needs to be erased, additional checks are included
-			// to make sure this function is used ONLY to store VCTCXO DAC value
+                    if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3))
+                    // TARGET = 3 (EEPROM)
+                    {
+                        // Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
+                        // a workaround is implemented that uses a sufficiently high address in the configuration flash
+                        // to store the DAC value
+                        // Since to write data to a flash, a whole sector needs to be erased, additional checks are included
+                        // to make sure this function is used ONLY to store VCTCXO DAC value
 
                         // Check if the user is trying to store VCTCXO DAC value, return error otherwise
                         if (data_cnt == 2 && LMS_Ctrl_Packet_Rx->Data_field[8] == 0 && LMS_Ctrl_Packet_Rx->Data_field[9]
@@ -1244,7 +1180,7 @@ int main(void) {
                         // printf("N \n");
                     }
 
-		break;
+                    break;
 
                 case CMD_MEMORY_RD:
                     // Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
@@ -1283,22 +1219,21 @@ int main(void) {
                     } else
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
 
-		break;
+                    break;
 
 
-	default:
-		/* This is unknown request. */
-		// isHandled = CyFalse;
-		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_UNKNOWN_CMD;
-		break;
-	}
+                default:
+                    /* This is unknown request. */
+                    // isHandled = CyFalse;
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_UNKNOWN_CMD;
+                    break;
+            }
 
-	// Send response to the command
-	//for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
-	for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i)
-	{
-		csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
-	}
+            // Send response to the command
+            // for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
+             for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i) {
+                 csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
+             }
 
 
             // printf("TX: ");
@@ -1346,32 +1281,26 @@ int main(void) {
                     rez = AUTO_PH_MMCM_CFG_SUCCESS;
                 }
 
-				if (rez == AUTO_PH_MMCM_CFG_SUCCESS)
-				{
-					csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
-					csr_write_simple(1, clk_ctrl_addrs.phcfg_done);
-				}
-				else
-				{
-					csr_write_simple(1, clk_ctrl_addrs.pllcfg_error);
-					csr_write_simple(1, clk_ctrl_addrs.phcfg_err);
-				}
-
-			}
-			// PLL CONFIG
-			if (var_pllcfg_start > 0)
-			{
-				var_pllcfg_start = 0;
-				csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
-			}
-			// PLL RESET
-			if (var_pllrst_start > 0)
-			{
-				var_pllrst_start = 0;
-				csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
-			}
-			// Reenable all previously enabled interrupts
-			irq_setmask(irq_mask);
-		}
-	}
+                if (rez == AUTO_PH_MMCM_CFG_SUCCESS) {
+                    csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
+                    csr_write_simple(1, clk_ctrl_addrs.phcfg_done);
+                } else {
+                    csr_write_simple(1, clk_ctrl_addrs.pllcfg_error);
+                    csr_write_simple(1, clk_ctrl_addrs.phcfg_err);
+                }
+            }
+            // PLL CONFIG
+            if (var_pllcfg_start > 0) {
+                var_pllcfg_start = 0;
+                csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
+            }
+            // PLL RESET
+            if (var_pllrst_start > 0) {
+                var_pllrst_start = 0;
+                csr_write_simple(1, clk_ctrl_addrs.pllcfg_done);
+            }
+            // Reenable all previously enabled interrupts
+            irq_setmask(irq_mask);
+        }
+    }
 }
