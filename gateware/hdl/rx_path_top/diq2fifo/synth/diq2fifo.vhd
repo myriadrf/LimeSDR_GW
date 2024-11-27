@@ -77,21 +77,6 @@ begin
 
 inst0_reset_n <= reset_n when smpl_cmp_start = '0' else '1';
 
---inst0_lms7002_ddin : entity work.lms7002_ddin
---   generic map( 
---      dev_family           => dev_family,
---      iq_width             => iq_width,
---      invert_input_clocks  => invert_input_clocks
---   )
---   port map (
---      clk         => clk,
---      reset_n     => inst0_reset_n, 
---      rxiq        => DIQ, 
---      rxiqsel     => fsync, 
---      data_out_h  => inst0_diq_out_h, 
---      data_out_l  => inst0_diq_out_l 
---        );
-
    inst0_diq_out_h <= rx_diq2_h;
    inst0_diq_out_l <= rx_diq2_l;
         
