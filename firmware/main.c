@@ -463,8 +463,10 @@ int main(void)
     uint32_t * p_spi_wrdata32;
     int cnt = 0;
 
+#ifdef CONFIG_CPU_HAS_INTERRUPT
 	irq_setmask(0);
 	irq_setie(1);
+#endif
 	uart_init();
 
 #if 0
