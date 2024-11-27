@@ -303,7 +303,23 @@ class BaseSoC(SoCCore):
         # Timing Constraints -----------------------------------------------------------------------
 
         # FIXME: Improve, minimal for now.
-        self.platform.add_sdc("gateware/timing.sdc")
+
+        timings_sdc_filename = "build/limesdr_mini_v2/gateware/timing.sdc"
+        with open(timings_sdc_filename, "w") as f:
+            # Write timing constraints.
+            f.write("# FT601 / 100MHz.\n")
+            f.write("create_clock -name FT_CLK  -period 10.000 [get_ports FT_CLK]\n\n")
+
+            # Sys Clk / 77.5MHz.
+            f.write("# Sys Clk / 77.5MHz.\n")
+            f.write("create_clock -name SYS_CLK -period 12.903 [get_pins {OSCG.OSC}]\n\n")
+
+            # LMS7002M / 40MHz & 125MHz.
+            f.write("# LMS7002M / 40MHz & 125MHz.\n")
+            f.write("create_clock -name LMK_CLK   -period 25.000 [get_ports LMK_CLK]\n")
+            f.write("create_clock -name LMS_MCLK1 -period 8.000  [get_ports LMS_MCLK1]\n")
+            f.write("create_clock -name LMS_MCLK2 -period 8.000  [get_ports LMS_MCLK2]\n")
+        self.platform.add_sdc(timings_sdc_filename)
 
         # HDL Sources ------------------------------------------------------------------------------
         # Set VHDL standard to VHDL-2008.
