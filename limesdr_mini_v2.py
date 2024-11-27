@@ -124,7 +124,7 @@ class BaseSoC(SoCCore):
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
             cpu_type                 = "picorv32", # FIXME: Switch to VexRiscv when working with Diamond.
-            cpu_variant              = "standard",
+            cpu_variant              = "minimal",
             integrated_rom_size      = 0x8000,
             integrated_sram_ram_size = 0x0200,
             integrated_main_ram_size = 0x3800,
