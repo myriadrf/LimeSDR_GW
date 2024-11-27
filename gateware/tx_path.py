@@ -5,6 +5,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import math
+
 from migen import *
 
 from migen.genlib.cdc import MultiReg
@@ -12,7 +14,7 @@ from migen.genlib.cdc import MultiReg
 from litex.gen import *
 
 from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
-from litex.soc.interconnect.csr            import CSRStatus, CSRStorage, CSRField
+from litex.soc.interconnect                import stream
 
 from gateware.common import *
 
@@ -50,155 +52,213 @@ class TXPath(LiteXModule):
         # Signals.
         reset_n = Signal()
 
-        # AXI TX Path -> FIFO2DIQ
-        tpf_axi_data   = Signal(128)
-        tpf_axi_valid  = Signal()
-        tpf_axi_ready  = Signal()
-        tpf_axi_last   = Signal()
+        # Synchro
+        rx_sample_nr     = Signal(64)
+        trxiqpulse       = Signal()
+        ddr_en           = Signal()
+        mimo_en          = Signal()
+        ch_en            = Signal(2)
 
-        pct_buff_rdy   = Signal()
-        pct_sync_pulse = Signal()
+        pct_loss_flg_clr = Signal()
 
-        trxiqpulse     = Signal()
-        ddr_en         = Signal()
-        mimo_en        = Signal()
-        ch_en          = Signal(2)
+        p2d_wr_tvalid    = Signal(BUFF_COUNT)
+        p2d_wr_tdata     = Signal(128)
+        p2d_wr_tready    = Signal(BUFF_COUNT)
+        p2d_wr_tlast     = Signal(BUFF_COUNT)
+
+        p2d_rd_tvalid    = Signal(BUFF_COUNT)
+        p2d_rd_tdata     = Signal(128)
+        p2d_rd_tready    = Signal(BUFF_COUNT)
+        p2d_rd_tlast     = Signal(BUFF_COUNT)
+        p2d_rd_resetn    = Signal(BUFF_COUNT)
+
+        curr_buf_index   = Signal(math.ceil(math.log2(BUFF_COUNT)))
+
+        p2d_wr_buf_empty = Signal(BUFF_COUNT)
+
+        data_pad_tvalid  = Signal()
+        data_pad_tdata   = Signal(128)
+        data_pad_tready  = Signal()
+        data_pad_tlast   = Signal()
+
+        # AXI Slave 64 -> 128 (must uses s_axis_domain)
+        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.Converter(64, 128)))
+        self.conv_64_to_128 = conv_64_to_128
+
+        # FIFO before unpacker
+        fifo_smpl_buff      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.SyncFIFO([("data", 128)], 16)))
+        self.fifo_smpl_buff = fifo_smpl_buff
+
+        unpack_bypass       = Signal()
+
+        # Sample NR FIFO (must be async with sink in RX_CLK, source iqsample, areset_n with iqpacket_areset_n)
+        smpl_nr_fifo      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.SyncFIFO([("data", 64)], 128)))
+        self.smpl_nr_fifo = smpl_nr_fifo
+
+        self.comb += [
+            conv_64_to_128.reset.eq(     ~reset_n),
+            conv_64_to_128.sink.data.eq( self.stream_fifo_data),
+            conv_64_to_128.sink.valid.eq(~self.stream_fifo_empty),
+            conv_64_to_128.sink.last.eq( 0), # FIXME: something else?
+            self.stream_fifo_rd.eq(      conv_64_to_128.sink.ready),
+
+            # smpl_nr_fifo
+            smpl_nr_fifo.reset.eq(       reset_n),
+            smpl_nr_fifo.sink.data.eq(   self.rx_sample_nr),
+            smpl_nr_fifo.sink.ready.eq(  smpl_nr_fifo.sink.valid),
+            rx_sample_nr.eq(             smpl_nr_fifo.source.data),
+            smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid),
+        ]
 
         self.specials += [
-            Instance("tx_path_top",
-                p_g_IQ_WIDTH       = IQ_WIDTH,
-                p_g_PCT_MAX_SIZE   = PCT_MAX_SIZE,
-                p_g_PCT_HDR_SIZE   = PCT_HDR_SIZE,
-                p_g_BUFF_COUNT     = BUFF_COUNT,
-                p_g_FIFO_DATA_W    = FIFO_DATA_W,
-
-                # Clk/Reset.
-                i_pct_wrclk        = ClockSignal("lms_tx"),
-                i_iq_rdclk         = ClockSignal("lms_tx"),
-                i_reset_n          = reset_n,
-                i_en               = reset_n,
-
-                i_rx_sample_clk    = ClockSignal("lms_rx"),
-                i_rx_sample_nr     = self.rx_sample_nr,
-
-                i_pct_sync_dis     = fpgacfg_manager.synch_dis,
-                i_pct_sync_size    = fpgacfg_manager.sync_size, # valid in external pulse mode only
-
-                o_pct_loss_flg     = self.pct_loss_flg,
-                i_pct_loss_flg_clr = self.pct_loss_flg_clr,
-
-                o_pct_buff_rdy     = pct_buff_rdy,
-
-                # Mode settings.
-                i_mode             = fpgacfg_manager.mode,        # JESD207: 1; TRXIQ: 0
-                i_trxiqpulse       = fpgacfg_manager.trxiq_pulse, # trxiqpulse on: 1; trxiqpulse off: 0
-                i_ddr_en           = fpgacfg_manager.ddr_en,      # DDR: 1; SDR: 0
-                i_mimo_en          = fpgacfg_manager.mimo_int_en, # SISO: 1; MIMO: 0
-                i_ch_en            = fpgacfg_manager.ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
-                i_fidm             = Constant(0, 1),
-                i_sample_width     = fpgacfg_manager.smpl_width,  # "10"-12bit, "01"-14bit, "00"-16bit;
-
-                # AXI Stream Master Interface.
-                o_axis_m_tdata     = tpf_axi_data,
-                o_axis_m_tvalid    = tpf_axi_valid,
-                i_axis_m_tready    = tpf_axi_ready,
-                o_axis_m_tlast     = tpf_axi_last,
-
-                # Packet ports
-                o_fifo_rdreq       = self.stream_fifo_rd,
-                i_fifo_data        = self.stream_fifo_data,
-                i_fifo_rdempty     = self.stream_fifo_empty,
-            ),
-            # FIFO 2 DIQ
-            Instance("fifo2diq",
+            Instance("PCT2DATA_BUF_WR",
                 # Parameters.
-                p_iq_width            = IQ_WIDTH,
+                p_G_BUFF_COUNT    = BUFF_COUNT,
 
                 # Clk/Reset.
-                i_clk                 = ClockSignal("lms_tx"),
-                i_reset_n             = reset_n,
+                i_AXIS_ACLK       = ClockSignal("lms_tx"),        # s_axis_domain
+                i_S_AXIS_ARESET_N = reset_n,                      # s_axis_domain.a_reset_n
 
-                # Mode settings.
-                #i_mode                = tx_mode,
-                i_trxiqpulse          = trxiqpulse,
-                i_ddr_en              = ddr_en,
-                i_mimo_en             = mimo_en,
-                i_ch_en               = ch_en,
-                #i_fidm                = Constant(0, 1),
-                i_pct_sync_mode       = fpgacfg_manager.synch_mode,
-                i_pct_sync_pulse      = pct_sync_pulse,
-                i_pct_sync_size       = fpgacfg_manager.sync_size,
-                i_pct_buff_rdy        = pct_buff_rdy,
+                # AXI Stream Slave
+                i_S_AXIS_TVALID   = conv_64_to_128.source.valid,
+                i_S_AXIS_TDATA    = conv_64_to_128.source.data,
+                o_S_AXIS_TREADY   = conv_64_to_128.source.ready,
+                i_S_AXIS_TLAST    = conv_64_to_128.source.last,
 
-                # txant
-                i_txant_cyc_before_en = fpgacfg_manager.txant_pre,
-                i_txant_cyc_after_en  = fpgacfg_manager.txant_post,
-                o_txant_en            = self.tx_txant_en,
+                # AXI Stream Master
+                i_M_AXIS_ARESET_N = reset_n,                      # s_axis_domain.a_reset_n
+                o_M_AXIS_TVALID   = p2d_wr_tvalid,
+                o_M_AXIS_TDATA    = p2d_wr_tdata,
+                i_M_AXIS_TREADY   = p2d_wr_tready,
+                o_M_AXIS_TLAST    = p2d_wr_tlast,
 
-                # AXI Stream Slave Interface.
-                i_axis_s_tdata        = tpf_axi_data,
-                i_axis_s_tvalid       = tpf_axi_valid,
-                o_axis_s_tready       = tpf_axi_ready,
-                i_axis_s_tlast        = tpf_axi_last,
+                i_BUF_EMPTY       = p2d_wr_buf_empty,
+                i_RESET_N         = reset_n,                      # Unconnected for XTRX
+            )
+        ]
 
-                # AXIStream Master Interface (to lms7002_tx).
-                o_m_axis_tdata        = self.source.data,
-                o_m_axis_tvalid       = self.source.valid,
-                i_m_axis_tready       = self.source.ready,
-                o_m_axis_tlast        = self.source.last,
+        cases = {}
+        for i in range(BUFF_COUNT):
+            # FIXME: write: s_axis_domain, read: m_axis_domain. Must check PACKET_FIFO mean
+            smpl_fifo = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.SyncFIFO([("data", 128)], 256)))
+            self.comb += [
+                smpl_fifo.reset.eq(       reset_n & p2d_rd_resetn[i]),
+
+                # pct2data_buf_wr -> FIFO
+                smpl_fifo.sink.valid.eq(  p2d_wr_tvalid[i]),
+                p2d_wr_tready[i].eq(      smpl_fifo.sink.ready),
+                smpl_fifo.sink.last.eq(   p2d_wr_tlast[i]),
+                smpl_fifo.sink.data.eq(   p2d_wr_tdata),
+
+                # FIFO -> pct2data_buf_rd
+                p2d_rd_tvalid[i].eq(      smpl_fifo.source.valid),
+                p2d_rd_tlast[i].eq(       smpl_fifo.source.last),
+                smpl_fifo.source.ready.eq(p2d_rd_tready[i]),
+            ]
+
+            cases[i] = p2d_rd_tdata.eq(smpl_fifo.source.data)
+
+        self.comb += Case(curr_buf_index, cases)
+
+        self.specials += Instance("PCT2DATA_BUF_RD",
+            # Parameters.
+            p_G_BUFF_COUNT       = BUFF_COUNT,
+
+            # Clk/Reset.
+            i_AXIS_ACLK          = ClockSignal("lms_tx"), #m_axis_domain
+
+            # AXI Stream Slave.
+            i_S_AXIS_ARESET_N    = reset_n,               # m_axis_domain.a_reset_n (iqsample)
+            o_S_AXIS_BUF_RESET_N = p2d_rd_resetn,
+            i_S_AXIS_TVALID      = p2d_rd_tvalid,
+            i_S_AXIS_TDATA       = p2d_rd_tdata,
+            o_S_AXIS_TREADY      = p2d_rd_tready,
+            i_S_AXIS_TLAST       = p2d_rd_tlast,
+
+            # AXI Stream Master.
+            i_M_AXIS_ARESET_N    = reset_n,               # m_axis_domain.a_reset_n (iqsample)
+            o_M_AXIS_TVALID      = data_pad_tvalid,
+            o_M_AXIS_TDATA       = data_pad_tdata,
+            i_M_AXIS_TREADY      = data_pad_tready,
+            o_M_AXIS_TLAST       = data_pad_tlast,
+
+            o_CURR_BUF_INDEX     = curr_buf_index,
+
+            i_RESET_N            = reset_n,                   # Unconnected for XTRX
+            i_SYNCH_DIS          = fpgacfg_manager.synch_dis, # Disable timestamp sync
+            i_SAMPLE_NR          = rx_sample_nr,
+            o_PCT_LOSS_FLG       = self.pct_loss_flg,         # Goes high when a packet is dropped due to outdated timestamp, stays high until PCT_LOSS_FLG_CLR is set
+            i_PCT_LOSS_FLG_CLR   = pct_loss_flg_clr,          # Clears PCT_LOSS_FLG
+        )
+
+        self.specials += [
+            # Pad 12 bit samples to 16 bit samples, bypass logic if no padding is needed
+            Instance("sample_padder",
+                # Clk/Reset.
+                i_clk           = ClockSignal("lms_tx"), # m_axis_domain
+                i_reset_n       = reset_n,               # Unconnected for XTRX
+
+                # AXI Stream Slave.
+                i_S_AXIS_TVALID = data_pad_tvalid,
+                i_S_AXIS_TDATA  = data_pad_tdata,
+                o_S_AXIS_TREADY = data_pad_tready,
+                i_S_AXIS_TLAST  = data_pad_tlast,
+
+                # AXI Stream Master.
+                o_M_AXIS_TDATA  = fifo_smpl_buff.sink.data,
+                o_M_AXIS_TVALID = fifo_smpl_buff.sink.valid,
+                o_M_AXIS_TREADY = fifo_smpl_buff.sink.ready,
+                o_M_AXIS_TLAST  = fifo_smpl_buff.sink.last,
+
+                # Control.
+                i_BYPASS        = unpack_bypass,
             ),
-            # pulse_gen instance instance.
-            Instance("pulse_gen",
-                i_clk         = ClockSignal("lms_tx"),
-                i_reset_n     = reset_n,
-                i_wait_cycles = fpgacfg_manager.sync_pulse_period,
-                o_pulse       = pct_sync_pulse
+            Instance("sample_unpack",
+                # Clk/Reset.
+                i_RESET_N       = reset_n,                  # Unconnected for XTRX
+                i_AXIS_ACLK     = ClockSignal("lms_tx"),    # m_axis_domain
+                i_AXIS_ARESET_N = reset_n,                  # m_axis_domain.a_reset_n
+
+                # AXI Stream Master
+                i_S_AXIS_TDATA  = fifo_smpl_buff.source.data,
+                o_S_AXIS_TREADY = fifo_smpl_buff.source.ready,
+                i_S_AXIS_TVALID = fifo_smpl_buff.source.valid,
+                i_S_AXIS_TLAST  = fifo_smpl_buff.source.last,
+
+                # AXI Stream Master
+                o_M_AXIS_TDATA  = self.source.data,
+                i_M_AXIS_TREADY = self.source.ready,
+                o_M_AXIS_TVALID = self.source.valid,
+
+                # Mode Settings.
+                i_CH_EN         = ch_en,
             ),
-            MultiReg(fpgacfg_manager.rx_en,       reset_n,    odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.trxiq_pulse, trxiqpulse, odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.ddr_en,      ddr_en,     odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,    odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.ch_en,       ch_en,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.tx_en,       reset_n,          odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.trxiq_pulse, trxiqpulse,       odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.ddr_en,      ddr_en,           odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,          odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.ch_en,       ch_en,            odomain="lms_tx"),
+            MultiReg(self.pct_loss_flg_clr,       pct_loss_flg_clr, odomain="lms_tx"),
+        ]
+
+        self.comb += [
+            self.source.last.eq(0),
+            If(fpgacfg_manager.smpl_width == 0b00,
+               unpack_bypass.eq(1),
+            ).Else(
+               unpack_bypass.eq(0),
+            ),
         ]
 
         self.add_sources(platform)
 
     def add_sources(self, platform):
         general_periph_files = [
-            "gateware/hdl/packages/synth/FIFO_PACK.vhd",
-            "gateware/hdl/altera_inst/fifo_inst.vhd",
-            "gateware/hdl/altera_inst/lpm_compare_inst.vhd",
+            "gateware/LimeDFB/tx_path_top/src/pct2data_buf_rd.vhd",
+            "gateware/LimeDFB/tx_path_top/src/pct2data_buf_wr.vhd",
+            "gateware/LimeDFB/tx_path_top/src/sample_padder.vhd",
             "gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd",
-            "gateware/hdl/tx_path_top/fifo2diq/synth/edge_delay.vhd",
-            "gateware/hdl/tx_path_top/fifo2diq/synth/fifo2diq.vhd",
-            "gateware/hdl/tx_path_top/fifo2diq/synth/txiq_ctrl.vhd",
-            "gateware/hdl/tx_path_top/tx_path/synth/sync_fifo_rw.vhd",
-            "gateware/hdl/tx_path_top/tx_path/synth/tx_path_top.vhd",
-            "gateware/hdl/tx_path_top/pulse_gen/synth/pulse_gen.vhd",
-            "gateware/hdl/tx_path_top/pct_separate/synth/one_pct_fifo.vhd",
-            "gateware/hdl/tx_path_top/pct_separate/synth/pct_separate_fsm.vhd",
-            "gateware/hdl/tx_path_top/packets2data/synth/p2d_rd.vhd",
-            "gateware/hdl/tx_path_top/packets2data/synth/p2d_rd_fsm.vhd",
-            "gateware/hdl/tx_path_top/packets2data/synth/p2d_sync_fsm.vhd",
-            "gateware/hdl/tx_path_top/packets2data/synth/p2d_wr_fsm.vhd",
-            "gateware/hdl/tx_path_top/packets2data/synth/packets2data.vhd",
-            "gateware/hdl/tx_path_top/packets2data/synth/packets2data_top.vhd",
-            "gateware/hdl/tx_path_top/handshake_sync/synth/handshake_sync.vhd",
         ]
-
-        if platform.name in ["limesdr_mini_v2"]:
-            general_periph_files += [
-                # Lattice FIFOs.
-                # --------------
-                "gateware/ip/fifodc_w128x256_r128.vhd", # one_pct_fifo.vhd.
-                "gateware/ip/fifodc_w128x256_r64.vhd",  # packets2data.vhd.
-            ]
-        else:
-            general_periph_files += [
-                "gateware/ip/fifodc_w128x256_r128_stub.vhd", # one_pct_fifo.vhd.
-                "gateware/ip/fifodc_w128x256_r64_stub.vhd",  # packets2data.vhd.
-            ]
-            print("RXPath Missing FIFOs!")
 
         for file in general_periph_files:
             platform.add_source(file)
