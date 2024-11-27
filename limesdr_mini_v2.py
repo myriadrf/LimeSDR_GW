@@ -215,16 +215,6 @@ class BaseSoC(SoCCore):
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
         self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
-        self.comb += [
-            self.tst_top.Si5351C_clk_0.eq(0),
-            self.tst_top.Si5351C_clk_1.eq(0),
-            self.tst_top.Si5351C_clk_2.eq(0),
-            self.tst_top.Si5351C_clk_3.eq(0),
-            self.tst_top.Si5351C_clk_5.eq(0),
-            self.tst_top.Si5351C_clk_6.eq(0),
-            self.tst_top.Si5351C_clk_7.eq(0),
-            self.tst_top.adf_muxout.eq(0),
-        ]
 
         # General Periph ---------------------------------------------------------------------------
 
