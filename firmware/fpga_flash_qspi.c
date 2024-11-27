@@ -101,12 +101,9 @@ int FlashQspi_CMD(XSpi *InstancePtr, u8 cmd)
 */
 
 
-int FlashQspi_CMD_ReadRDSR(uint8_t* Data)
-{
-	uint8_t sendbuf[5]={0};
-	uint8_t recvbuf[5]={0};
-    int retval = 0;
-
+void FlashQspi_CMD_ReadRDSR(uint8_t *Data) {
+    uint8_t sendbuf[5] = {0};
+    uint8_t recvbuf[5] = {0};
 
     sendbuf[0] = RDSR;
 
@@ -115,65 +112,54 @@ int FlashQspi_CMD_ReadRDSR(uint8_t* Data)
     Spi_Transfer(sendbuf, recvbuf, 3);
     //Flash memory repeats status register two times
     *Data = recvbuf[1];
-
-    return retval;
 }
 
- int FlashQspi_CMD_ReadRDCR(uint8_t* Data)
- {
- 	uint8_t sendbuf[5]={0};
- 	uint8_t recvbuf[5]={0};
-     int retval;
+void FlashQspi_CMD_ReadRDCR(uint8_t *Data) {
+    uint8_t sendbuf[5] = {0};
+    uint8_t recvbuf[5] = {0};
 
+    sendbuf[0] = RDCR;
 
-     sendbuf[0] = RDCR;
+    while ((lms_spi_status_read() & 0x1) == 0);
+    //retval = XSpi_Transfer(InstancePtr, sendbuf, recvbuf, 3);
+    Spi_Transfer(sendbuf, recvbuf, 3);
+    //Flash memory repeats status register two times
+    *Data = recvbuf[1];
+}
 
-     while ((lms_spi_status_read() & 0x1) == 0);
-     //retval = XSpi_Transfer(InstancePtr, sendbuf, recvbuf, 3);
-     Spi_Transfer(sendbuf, recvbuf, 3);
-     //Flash memory repeats status register two times
-     *Data = recvbuf[1];
-
-     return retval;
- }
-
-void Spi_Transfer(uint8_t * sendbuff, uint8_t * recvbuff, unsigned int ByteCount) {
-
+void Spi_Transfer(uint8_t *sendbuff, uint8_t *recvbuff, unsigned int ByteCount) {
     if (ByteCount > SPI_MAX_TRANSFER_SIZE) {
         // Handle error: ByteCount exceeds maximum transfer size
-    	printf("FPGA_FLASH_ERROR: 1");
+        // printf("FPGA_FLASH_ERROR: 1");
         return;
     }
 
-	uint64_t send_data = 0;
-	uint64_t rec_data = 0;
-	// Convert array of uint8_t to uint64_t type variable end also reverse byte order
-	for (int i =0; i < ByteCount; i++){
-		send_data |= ((uint64_t)sendbuff[i]) << (8*(SPI_MAX_TRANSFER_SIZE-1-i));
-	}
+    uint64_t send_data = 0;
+    uint64_t rec_data = 0;
+    // Convert array of uint8_t to uint64_t type variable end also reverse byte order
+    for (int i = 0; i < ByteCount; i++) {
+        send_data |= ((uint64_t) sendbuff[i]) << (8 * (SPI_MAX_TRANSFER_SIZE - 1 - i));
+    }
 
-	while ((flash_spi_status_read() & 0x1) == 0);
-	flash_spi_mosi_write(send_data);
-	flash_spi_control_write(ByteCount*8*SPI_LENGTH | SPI_START);
-	while ((flash_spi_status_read() & 0x1) == 0);
+    while ((flash_spi_status_read() & 0x1) == 0);
+    flash_spi_mosi_write(send_data);
+    flash_spi_control_write(ByteCount * 8 * SPI_LENGTH | SPI_START);
+    while ((flash_spi_status_read() & 0x1) == 0);
 
 
-	if (recvbuff != NULL) {
-		rec_data = flash_spi_miso_read();
-		// Convert rec_data back to recvbuff array and reverse byte order
-		for (unsigned int i = 0; i < ByteCount; i++) {
-			recvbuff[i] = (rec_data >> (8 * (ByteCount - 1 - i))) & 0xFF;
-			printf("0x%02x\n", recvbuff[i]);
-		}
-	}
-
+    if (recvbuff != NULL) {
+        rec_data = flash_spi_miso_read();
+        // Convert rec_data back to recvbuff array and reverse byte order
+        for (unsigned int i = 0; i < ByteCount; i++) {
+            recvbuff[i] = (rec_data >> (8 * (ByteCount - 1 - i))) & 0xFF;
+            // printf("0x%02x\n", recvbuff[i]);
+        }
+    }
 }
 
 
-
-void FlashQspi_CMD_WREN(void)
-{
-    uint8_t sendbuf[1]={0};
+void FlashQspi_CMD_WREN(void) {
+    uint8_t sendbuf[1] = {0};
     //Write enable command
     sendbuf[0] = WREN;
     //return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
@@ -181,10 +167,8 @@ void FlashQspi_CMD_WREN(void)
 }
 
 
-
-void FlashQspi_CMD_WRDI(void)
-{
-    uint8_t sendbuf[1]={0};
+void FlashQspi_CMD_WRDI(void) {
+    uint8_t sendbuf[1] = {0};
     //Write disable command
     sendbuf[0] = WRDI;
 
@@ -269,16 +253,15 @@ int FlashQspi_CMD_ReadDataPage(XSpi *InstancePtr, u32 address, u8* buffer)
 }
 */
 
-void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t* buffer)
-{
-	uint8_t sendbuf[5]={0};
-	uint8_t recvbuf[5]={0};
+void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t *buffer) {
+    uint8_t sendbuf[5] = {0};
+    uint8_t recvbuf[5] = {0};
     int retval;
 
     sendbuf[0] = 0x03;
     sendbuf[1] = (address >> 16) & 0xff;
-    sendbuf[2] = (address >>  8) & 0xff;
-    sendbuf[3] = (address      ) & 0xff;
+    sendbuf[2] = (address >> 8) & 0xff;
+    sendbuf[3] = (address) & 0xff;
 
     //retval = XSpi_Transfer(InstancePtr, recvbuf, recvbuf, 260);
     Spi_Transfer(sendbuf, recvbuf, 5);
@@ -340,31 +323,26 @@ int FlashQspi_CMD_ReadOTPData(XSpi *InstancePtr, u32 address, u8 bytes, u8* buff
 
 */
 
-/*
-int FlashQspi_CMD_WriteDataPage(XSpi *InstancePtr, u32 address, u8* buffer)
-{
+
+void FlashQspi_CMD_WriteDataPage(uint32_t address, uint8_t *buffer) {
     // 256 bytes in a page, 1 byte command, 3 byte address
-    u8 sendbuf[260] = {0};
-//    u8 recvbuf[260] = {0};
-    int retval;
+    uint8_t sendbuf[260] = {0};
 
     sendbuf[0] = 0x02;
-    sendbuf[1] = (address >> 16)&0xff;
-    sendbuf[2] = (address >> 8)&0xff;
-    sendbuf[3] = 0;//(address)&0xff;
+    sendbuf[1] = (address >> 16) & 0xff;
+    sendbuf[2] = (address >> 8) & 0xff;
+    sendbuf[3] = 0; //(address)&0xff;
 
-    for(int i=4; i<260; i++)
-    {
-        sendbuf[i] = buffer[i-4];
+    for (int i = 0; i < 256; i++) {
+        FlashQspi_CMD_WREN();
+        FlashQspi_CMD_PageProgramByte(address+i, &buffer[i]);
     }
-
-    retval = XSpi_Transfer(InstancePtr, sendbuf, NULL, 260);
-
-
-    
-    return retval;
+    // for (int i = 4; i < 260; i++) {
+    //     sendbuf[i] = buffer[i - 4];
+    // }
+    // Spi_Transfer(sendbuf, NULL, 260);
 }
-*/
+
 
 /*
 int FlashQspi_CMD_PageProgram(XSpi *InstancePtr, u32 address, u8 bytes, u8* buffer)
@@ -395,88 +373,65 @@ int FlashQspi_CMD_PageProgram(XSpi *InstancePtr, u32 address, u8 bytes, u8* buff
 }
 */
 
-int FlashQspi_CMD_PageProgramByte(uint32_t address, uint8_t* byte)
-{
-	// One byte can be sent to the device to be programmed
+void FlashQspi_CMD_PageProgramByte(uint32_t address, uint8_t *byte) {
+    // One byte can be sent to the device to be programmed
     uint8_t sendbuf[5] = {0};
     uint8_t status = 0;
 
-    int retval;
-
     sendbuf[0] = PP;
-    sendbuf[1] = (address >> 16)&0xff;
-    sendbuf[2] = (address >> 8)&0xff;
-    sendbuf[3] = (address)&0xff;
+    sendbuf[1] = (address >> 16) & 0xff;
+    sendbuf[2] = (address >> 8) & 0xff;
+    sendbuf[3] = (address) & 0xff;
     sendbuf[4] = *byte;
 
     Spi_Transfer(sendbuf, NULL, 5);
-    retval = FlashQspi_CMD_ReadRDSR(&status);
-    printf("Erase Status: 0x%02x\n", status);
+    FlashQspi_CMD_ReadRDSR(&status);
+    // printf("Erase Status: 0x%02x\n", status);
     // Wait for program to complete
-    while(status & 0x1) {
-    	retval = FlashQspi_CMD_ReadRDSR(&status);
-    	printf("Programm Status: 0x%02x\n", status);
+    while (status & 0x1) {
+        FlashQspi_CMD_ReadRDSR(&status);
+        // printf("Programm Status: 0x%02x\n", status);
     }
-
-
-
-
-    return retval;
 }
 
 
-int FlashQspi_CMD_SectorErase(uint32_t address)
-{
+void FlashQspi_CMD_SectorErase(uint32_t address) {
     uint8_t sendbuf[5] = {0};
     uint8_t status = 0;
-    int retval;
 
     sendbuf[0] = 0x20;
     sendbuf[1] = (address >> 16) & 0xff;
-    sendbuf[2] = (address >> 8)  & 0xff;
-    sendbuf[3] = 0;//(address)&0xff;
+    sendbuf[2] = (address >> 8) & 0xff;
+    sendbuf[3] = 0; //(address)&0xff;
 
     Spi_Transfer(sendbuf, NULL, 4);
 
-    retval = FlashQspi_CMD_ReadRDSR(&status);
-    printf("Erase Status: 0x%02x\n", status);
+    FlashQspi_CMD_ReadRDSR(&status);
+    // printf("Erase Status: 0x%02x\n", status);
     // Wait for erase to complete
-    while(status & 0x1) {
-    	retval = FlashQspi_CMD_ReadRDSR(&status);
-    	printf("Erase Status: 0x%02x\n", status);
+    while (status & 0x1) {
+        FlashQspi_CMD_ReadRDSR(&status);
+        // printf("Erase Status: 0x%02x\n", status);
     }
-    return retval;
-
 }
 
 
-
-/*
-int FlashQspi_ProgramPage(XSpi *InstancePtr, u32 address, u8* data)
-{
-    u8 status_reg = 0;
+void FlashQspi_ProgramPage(uint32_t address, uint8_t *data) {
+    uint8_t status_reg = 0;
     int retval;
     //Set Write enable
-    do
-    {
-        retval = FlashQspi_CMD_WREN(InstancePtr);
-        if(retval != XST_SUCCESS) return retval;
-        retval = FlashQspi_CMD_ReadRDSR(InstancePtr,&status_reg); 
-        if(retval != XST_SUCCESS) return retval;       
-    } while((status_reg&2) == 0); //Check write enable
+    do {
+        FlashQspi_CMD_WREN();
+        FlashQspi_CMD_ReadRDSR(&status_reg);
+    } while ((status_reg & 2) == 0); //Check write enable
     //Perform write
-    retval = FlashQspi_CMD_WriteDataPage(InstancePtr,address,data);
-    if(retval != XST_SUCCESS) return retval;   
+    FlashQspi_CMD_WriteDataPage(address, data);
     //Check if flash is busy
-    do
-    {
-        retval = FlashQspi_CMD_ReadRDSR(InstancePtr,&status_reg); 
-        if(retval != XST_SUCCESS) return retval;  
-    } while((status_reg&1) == 1);
-    //Return success if no problems
-    return XST_SUCCESS;
+    do {
+        FlashQspi_CMD_ReadRDSR(&status_reg);
+    } while ((status_reg & 1) == 1);
 }
-*/
+
 
 /*
 int FlashQspi_ProgramOTP(XSpi *InstancePtr, u32 address, u8 bytes, u8* data)
@@ -513,32 +468,23 @@ int FlashQspi_ProgramOTP(XSpi *InstancePtr, u32 address, u8 bytes, u8* data)
 }
 */
 
-/*
-int FlashQspi_EraseSector(XSpi *InstancePtr, u32 address)
-{
-    u8 status_reg = 0;
+
+void FlashQspi_EraseSector(uint32_t address) {
+    uint8_t status_reg = 0;
     int retval;
     //Set Write enable
-    do
-    {
-        retval = FlashQspi_CMD_WREN(InstancePtr);
-        if(retval != XST_SUCCESS) return retval;
-        retval = FlashQspi_CMD_ReadRDSR(InstancePtr,&status_reg); 
-        if(retval != XST_SUCCESS) return retval;       
-    } while((status_reg&2) == 0); //Check write enable
+    do {
+        FlashQspi_CMD_WREN();
+        FlashQspi_CMD_ReadRDSR(&status_reg);
+    } while ((status_reg & 2) == 0); //Check write enable
     // Perform erase
-    retval = FlashQspi_CMD_SectorErase(InstancePtr,address);
-    if(retval != XST_SUCCESS) return retval;   
+    FlashQspi_CMD_SectorErase(address);
     // Check if flash is busy
-    do
-    {
-        retval = FlashQspi_CMD_ReadRDSR(InstancePtr,&status_reg); 
-        if(retval != XST_SUCCESS) return retval;  
-    } while((status_reg&1) == 1);
-    //Return success if no problems
-    return XST_SUCCESS;
+    do {
+        FlashQspi_CMD_ReadRDSR(&status_reg);
+    } while ((status_reg & 1) == 1);
 }
-*/
+
 
 /*
 int FlashQspi_ReadPage(XSpi *InstancePtr, u32 address, u8* data)
@@ -547,5 +493,3 @@ int FlashQspi_ReadPage(XSpi *InstancePtr, u32 address, u8* data)
     return FlashQspi_CMD_ReadDataPage(InstancePtr,address,data);
 }
 */
-
-

@@ -31,9 +31,10 @@
 #define LP8758_I2C_ADDR  0x60
 
 /************************** Variable Definitions *****************************/
-uint8_t block, cmd_errors, glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
-tLMS_Ctrl_Packet* LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet*)glEp0Buffer_Tx;
-tLMS_Ctrl_Packet* LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet*)glEp0Buffer_Rx;
+uint8_t block, cmd_errors;
+uint8_t glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
+tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet *) glEp0Buffer_Tx;
+tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *) glEp0Buffer_Rx;
 
 // If an error points here, most likely some of the macros are invalid.
 PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_PLL1_RX_MMCM);
@@ -42,14 +43,28 @@ SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIME_TOP_LMS7002);
 // clk_ctrl_addrs is declared in regremap.h
 CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIME_TOP_LMS7002_CLK_CTRL);
 
-uint8_t lms64_packet_pending;
-volatile uint8_t clk_cfg_pending = 0;
+volatile uint8_t lms64_packet_pending;
 
+//Flash programming variables
+volatile uint8_t flash_prog_pending = 0;
+
+uint8_t page_buffer[256]; // page buffer
+int data_cnt = 0;
+unsigned long int current_portion;
+int address;
+uint16_t page_buffer_cnt; // how many bytes are present in buffer
+uint64_t total_data = 0; // how much data has been transferred in total (debug value)
+uint8_t inc_data_count;
+int PAGE_SIZE = 256;
+uint8_t data_to_copy; // how much data to copy to page buffer (incase of overflow)
+uint8_t data_leftover;
+
+//Clock config variables
+volatile uint8_t clk_cfg_pending = 0;
 volatile uint8_t var_phcfg_start;
 volatile uint8_t var_pllcfg_start;
 volatile uint8_t var_pllrst_start;
 
-int data_cnt = 0;
 
 unsigned int irq_mask;
 
@@ -58,7 +73,6 @@ uint16_t dac_val = DAC_DEFF_VAL;
 // Since there is no eeprom on the XTRX board and the flash is too large for the gw
 // we use the top of the flash instead of eeprom, thus the offset to last sector
 #define mem_write_offset 0x01FF0000
-
 
 
 //#define FW_VER 1 // Initial version
@@ -349,12 +363,10 @@ static void i2c_test(void)
 	i2c1_scan();
 }
 
-static void dac_test(void)
-{
-	unsigned char adr;
-	unsigned char dat[2];
+static void dac_test(void) {
+    unsigned char dat[2];
 
-	adr=0;
+    unsigned char adr = 0;
 
 	i2c0_read(I2C_DAC_ADDR, adr, &dat, 2, true);
 	printf("Read DAC val...\n");
@@ -374,27 +386,26 @@ static void dac_test(void)
 	printf("0x%02x: 0x%02x\n", dat[0], dat[1]);
 }
 
-static void flash_test(void)
-{	uint8_t regvals2[2];
+static void flash_test(void) {
+    uint8_t regvals2[2];
     uint8_t data_bytes[2];
-    int retval = 0;
-	printf("FPGA FLASH test...\n");
-	FlashQspi_CMD_ReadRDSR(&regvals2[0]);
-	FlashQspi_CMD_ReadRDCR(&regvals2[1]);
-	printf("FPGA FLASH test end...\n");
-	FlashQspi_CMD_WREN();
-	FlashQspi_CMD_WRDI();
-	FlashQspi_CMD_ReadDataByte(0x4fff5, data_bytes);
+    printf("FPGA FLASH test...\n");
+    FlashQspi_CMD_ReadRDSR(&regvals2[0]);
+    FlashQspi_CMD_ReadRDCR(&regvals2[1]);
+    printf("FPGA FLASH test end...\n");
+    FlashQspi_CMD_WREN();
+    FlashQspi_CMD_WRDI();
+    FlashQspi_CMD_ReadDataByte(0x4fff5, data_bytes);
 
-	// Erase sector
-	FlashQspi_CMD_WREN();
-	retval = FlashQspi_CMD_SectorErase(0x4fff5);
+    // Erase sector
+    FlashQspi_CMD_WREN();
+    FlashQspi_CMD_SectorErase(0x4fff5);
 
-	uint8_t myByte = 0x55;
-	uint32_t myAddress = 0x4fff5;
-	// Write Byte
-	FlashQspi_CMD_WREN();
-	int result = FlashQspi_CMD_PageProgramByte(myAddress, &myByte);
+    uint8_t myByte = 0x55;
+    uint32_t myAddress = 0x4fff5;
+    // Write Byte
+    FlashQspi_CMD_WREN();
+    FlashQspi_CMD_PageProgramByte(myAddress, &myByte);
 
 	FlashQspi_CMD_ReadDataByte(0x4fff5, data_bytes);
 
@@ -569,11 +580,10 @@ static void init_pmic(void)
 
 }
 
-static void init_vctcxo_dac(void)
-{
-	// Write initial VCTCXO DAC value on firmware boot
-	uint8_t i2c_buf[3];
-	uint8_t page_buffer[5] = {0};
+static void init_vctcxo_dac(void) {
+    // Write initial VCTCXO DAC value on firmware boot
+    uint8_t i2c_buf[3];
+    // uint8_t page_buffer[5] = {0};
 
 	//TODO: FIX this, first FLASH read returns 0xFF. Workaround to read two times...
 	FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
@@ -741,25 +751,106 @@ void getLMS64Packet(uint8_t *buf, uint8_t k)
 }
 
 
-static void lms64c_isr(void)
-{
-	// printf("CNTRL IRQ!\n");
-	uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
-	uint32_t read_value;
+static void lms64c_isr(void) {
+    lms64_packet_pending = 1;
+    CNTRL_ev_pending_write(CNTRL_ev_pending_read()); // Clear interrupt
+    CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET); // re-enable the event handler
+}
 
-	uint8_t reg_array[4];
-	uint16_t addr;
-	uint16_t val;
-	uint8_t i2c_buf[3];
 
-	uint8_t page_buffer[5]; // page buffer
+static void lms64c_init(void) {
+    printf("CNTRL IRQ initialization \n");
 
-	int spirez;
+    /* Clear all pending interrupts. */
+    CNTRL_ev_pending_write(CNTRL_ev_pending_read());
 
-	//printf("ISR: LMS64C Entry\n");
+    /* Enable CNTRL irq */
+    CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
 
-	lms64_packet_pending = 1;
-	getLMS64Packet(glEp0Buffer_Rx, 64);
+    /* Attach isr to interrupt */
+    irq_attach(CNTRL_INTERRUPT, lms64c_isr);
+
+    /* Enable interrupt */
+
+    irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
+}
+
+static void clk_ctrl_isr(void) {
+    // Reset relevant CSR's
+    csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
+    csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
+    csr_write_simple(0, clk_ctrl_addrs.pllcfg_error);
+    csr_write_simple(0, clk_ctrl_addrs.phcfg_err);
+
+    var_phcfg_start = csr_read_simple(clk_ctrl_addrs.phcfg_start);
+    var_pllcfg_start = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
+    var_pllrst_start = csr_read_simple(clk_ctrl_addrs.pllrst_start);
+
+    if (var_phcfg_start || var_pllcfg_start || var_pllrst_start)
+        clk_cfg_pending = 1;
+
+    lime_top_ev_pending_write(lime_top_ev_pending_read()); //Clear interrupt
+    lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
+}
+
+static void clk_cfg_irq_init(void) {
+    printf("CLK config irq initialization \n");
+
+    /* Clear all pending interrupts. */
+    lime_top_ev_pending_write(lime_top_ev_pending_read());
+
+    /* Enable CLK CTRL irq */
+    lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET);
+
+    /* Attach isr to interrupt */
+    irq_attach(LIME_TOP_INTERRUPT, clk_ctrl_isr);
+
+    /* Enable interrupt */
+
+    irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
+}
+
+
+int main(void) {
+#ifdef CONFIG_CPU_HAS_INTERRUPT
+    irq_setmask(0);
+    irq_setie(1);
+#endif
+    uart_init();
+    init_pmic();
+    printf("CSR_CNTRL_BASE 0x%lx ", CSR_CNTRL_BASE);
+    // irq_example_init();
+    lms64c_init();
+    clk_cfg_irq_init();
+    init_pmic();
+    init_vctcxo_dac();
+    help();
+    prompt();
+
+    while (1) {
+        console_service();
+
+        // Process received packet
+        if (lms64_packet_pending) {
+            /* Disable CNTRL irq while processing packet */
+            CNTRL_ev_enable_write(CNTRL_ev_enable_read() & ~(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET));
+            irq_setmask(irq_getmask() & ~(1 << CNTRL_INTERRUPT));
+
+            lms64_packet_pending = 0;
+            // printf("CNTRL PCT GOT!\n");
+            uint32_t *dest = (uint32_t *) glEp0Buffer_Tx;
+
+            uint8_t reg_array[4];
+            uint16_t addr;
+            uint16_t val;
+            uint8_t i2c_buf[3];
+
+            getLMS64Packet(glEp0Buffer_Rx, 64);
+            // printf("RX: ");
+            // for (int i = 0; i < 64; i++) {
+            //     printf("%02x ", glEp0Buffer_Rx[i]);
+            // }
+            // printf("\n");
 
 	memset(glEp0Buffer_Tx, 0, sizeof(glEp0Buffer_Tx)); // fill whole tx buffer with zeros
 	cmd_errors = 0;
@@ -899,23 +990,127 @@ static void lms64c_isr(void)
 		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 		break;
 
+                case CMD_ALTERA_FPGA_GW_WR: // FPGA active serial
 
-	case CMD_ANALOG_VAL_RD:
-		// TODO: CMD_ANALOG_VAL_RD
-		for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-		{
-			switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block)]) // ch
-			{
-			case 0:				   // dac val
-				//XIic_Recv(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 2, XIIC_STOP);
-				//i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
-				i2c0_read(I2C_DAC_ADDR, 0x0, &i2c_buf, 2, true);
-				LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block]; // ch
-				LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x00;									 // RAW //unit, power
-				LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = i2c_buf[0];							 // unsigned val, MSB byte
-				LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = i2c_buf[1];							 // unsigned val, LSB byte
-				// Storing volatile DAC value
-				dac_val = ((uint16_t)i2c_buf[0])<<8 | ((uint16_t)i2c_buf[1]);
+				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16)
+                                  | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
+				data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+				switch (LMS_Ctrl_Packet_Rx->Data_field[0]) // prog_mode
+				{
+					/*
+					Programming mode:
+					0 - Bitstream to FPGA
+					1 - Bitstream to Flash
+					2 - Bitstream from FLASH
+					3 - Golden image to Flash
+					4 - User image to Flash
+					*/
+				case 1:
+				case 3:
+				case 4:
+				// write data to Flash from PC
+					// Start of programming? reset variables
+					if (current_portion == 0)
+					{	// Gold image must be written at address 0x0
+						if (LMS_Ctrl_Packet_Rx->Data_field[0] == 3)
+						{
+							address = 0;
+						    printf("g\n");
+						}
+						else
+						{ // User image must be written at offset
+							address = 0x220000;
+						    printf("u\n");
+						}
+
+						page_buffer_cnt = 0;
+						total_data = 0;
+						// Erase first sector
+						FlashQspi_EraseSector(address);
+					}
+
+					inc_data_count = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+					// Check if final packet
+					if (inc_data_count == 0)
+					{ // Flush leftover data, if any
+						if (page_buffer_cnt > 0)
+						{
+							// Fill unused page data with 1 (no write)
+							memset(&page_buffer[page_buffer_cnt], 0xFF, PAGE_SIZE - page_buffer_cnt);
+							FlashQspi_ProgramPage(address, page_buffer);
+						}
+					}
+					else
+					{
+						if (PAGE_SIZE < (inc_data_count + page_buffer_cnt))
+						{ // Incoming data would overflow the page buffer
+							// Calculate ammount of data to copy
+							data_to_copy = PAGE_SIZE - page_buffer_cnt;
+							data_leftover = page_buffer_cnt - data_to_copy;
+							memcpy(&page_buffer[page_buffer_cnt], &LMS_Ctrl_Packet_Rx->Data_field[24], data_to_copy);
+							// We already know the page is full because of overflowing input
+							FlashQspi_ProgramPage(address, page_buffer);
+							address += 256;
+							total_data += 256;
+							// Check if new address is bottom of sector, erase if needed
+							if ((address & 0xFFF) == 0)
+								FlashQspi_EraseSector(address);
+							memcpy(&page_buffer[0], &LMS_Ctrl_Packet_Rx->Data_field[24 + data_to_copy], data_leftover);
+							page_buffer_cnt = data_leftover;
+						}
+						else
+						{ // Incoming data would not overflow the page buffer
+							memcpy(&page_buffer[page_buffer_cnt], &LMS_Ctrl_Packet_Rx->Data_field[24], inc_data_count);
+							page_buffer_cnt += inc_data_count;
+							if (page_buffer_cnt == PAGE_SIZE)
+							{
+								FlashQspi_ProgramPage(address, page_buffer);
+								page_buffer_cnt = 0;
+								address += 256;
+								total_data += 256;
+								// Check if new address is bottom of sector, erase if needed
+								if ((address & 0xFFF) == 0)
+									FlashQspi_EraseSector(address);
+							}
+						}
+					}
+				    // No error conditions present in code
+					// if (spirez == XST_SUCCESS)
+					if (true)
+					{
+						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+					}
+					else
+					{
+						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+					}
+					break;
+
+				default:
+					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+					break;
+				}
+
+				break;
+
+                // COMMAND ANALOG VALUE READ
+                case CMD_ANALOG_VAL_RD:
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block)]) // ch
+                        {
+                            case 0: // dac val
+                                //XIic_Recv(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 2, XIIC_STOP);
+                                //i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+                                i2c0_read(I2C_DAC_ADDR, 0x0, &i2c_buf, 2, true);
+                                LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block];
+                            // ch
+                                LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x00; // RAW //unit, power
+                                LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = i2c_buf[0]; // unsigned val, MSB byte
+                                LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = i2c_buf[1]; // unsigned val, LSB byte
+                            // Storing volatile DAC value
+                                dac_val = ((uint16_t) i2c_buf[0]) << 8 | ((uint16_t) i2c_buf[1]);
 
 				break;
 
@@ -1012,88 +1207,81 @@ static void lms64c_isr(void)
 			// Since to write data to a flash, a whole sector needs to be erased, additional checks are included
 			// to make sure this function is used ONLY to store VCTCXO DAC value
 
-			// Check if the user is trying to store VCTCXO DAC value, return error otherwise
-			if (data_cnt == 2 && LMS_Ctrl_Packet_Rx->Data_field[8] == 0 && LMS_Ctrl_Packet_Rx->Data_field[9] == 16)
-			{
-				if (LMS_Ctrl_Packet_Rx->Data_field[0] == 0) // write data to EEPROM #1
-				{
-					LMS_Ctrl_Packet_Rx->Data_field[22] = LMS_Ctrl_Packet_Rx->Data_field[8];
-					LMS_Ctrl_Packet_Rx->Data_field[23] = LMS_Ctrl_Packet_Rx->Data_field[9];
-					FlashQspi_CMD_WREN();
-					spirez = spirez || FlashQspi_CMD_SectorErase(mem_write_offset);
-					page_buffer[0] = LMS_Ctrl_Packet_Rx->Data_field[24];
-					page_buffer[1] = LMS_Ctrl_Packet_Rx->Data_field[25];
-					//spirez = spirez || FlashQspi_ProgramPage(&CFG_QSPI, mem_write_offset, page_buffer);
-					//cmd_errors = cmd_errors + spirez;
-					FlashQspi_CMD_WREN();
-					spirez = FlashQspi_CMD_PageProgramByte(mem_write_offset, &page_buffer[0]);
-					FlashQspi_CMD_WREN();
-					spirez = FlashQspi_CMD_PageProgramByte(mem_write_offset+1, &page_buffer[1]);
+                        // Check if the user is trying to store VCTCXO DAC value, return error otherwise
+                        if (data_cnt == 2 && LMS_Ctrl_Packet_Rx->Data_field[8] == 0 && LMS_Ctrl_Packet_Rx->Data_field[9]
+                            == 16) {
+                            if (LMS_Ctrl_Packet_Rx->Data_field[0] == 0) // write data to EEPROM #1
+                            {
+                                LMS_Ctrl_Packet_Rx->Data_field[22] = LMS_Ctrl_Packet_Rx->Data_field[8];
+                                LMS_Ctrl_Packet_Rx->Data_field[23] = LMS_Ctrl_Packet_Rx->Data_field[9];
+                                FlashQspi_CMD_WREN();
+                                FlashQspi_CMD_SectorErase(mem_write_offset);
+                                page_buffer[0] = LMS_Ctrl_Packet_Rx->Data_field[24];
+                                page_buffer[1] = LMS_Ctrl_Packet_Rx->Data_field[25];
+                                //spirez = spirez || FlashQspi_ProgramPage(&CFG_QSPI, mem_write_offset, page_buffer);
+                                //cmd_errors = cmd_errors + spirez;
+                                FlashQspi_CMD_WREN();
+                                FlashQspi_CMD_PageProgramByte(mem_write_offset, &page_buffer[0]);
+                                FlashQspi_CMD_WREN();
+                                FlashQspi_CMD_PageProgramByte(mem_write_offset + 1, &page_buffer[1]);
 
-					cmd_errors = 0;
-					if (cmd_errors)
-						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-					else
-						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-				}
-				else
-					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-			}
-			else
-				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-
-		}
-		else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 2)) // TARGET = 2 (FPGA FLASH)
-		{
-			printf("F \n");
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-		}
-		else {
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-			printf("N \n");
-		}
+                                cmd_errors = 0;
+                                if (cmd_errors)
+                                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                else
+                                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                            } else
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                        } else
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    } else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 2))
+                    // TARGET = 2 (FPGA FLASH)
+                    {
+                        // printf("F \n");
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    } else {
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                        // printf("N \n");
+                    }
 
 		break;
 
-	case CMD_MEMORY_RD:
-		// Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
-		// a workaround is implemented that uses a sufficiently high address in the configuration flash
-		// to store the DAC value
-		// Since to write data to a flash, a whole sector needs to be erased, additional checks are included
-		// to make sure this function is used ONLY to store VCTCXO DAC value
-		// Reset spirez
-		spirez = 0;
-		data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+                case CMD_MEMORY_RD:
+                    // Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
+                    // a workaround is implemented that uses a sufficiently high address in the configuration flash
+                    // to store the DAC value
+                    // Since to write data to a flash, a whole sector needs to be erased, additional checks are included
+                    // to make sure this function is used ONLY to store VCTCXO DAC value
+                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
 
-		if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) /// TARGET = 3 (EEPROM)
-		{
-			if (data_cnt == 2 || LMS_Ctrl_Packet_Rx->Data_field[8] == 0 || LMS_Ctrl_Packet_Rx->Data_field[9] == 16)
-			{
-				if (LMS_Ctrl_Packet_Rx->Data_field[0] == 0) // read data from EEPROM #1
-				{
-					//spirez = spirez || FlashQspi_ReadPage(&CFG_QSPI, mem_write_offset, page_buffer);
-					FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
-					FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &page_buffer[1]);
-					glEp0Buffer_Tx[32] = page_buffer[0];
-					glEp0Buffer_Tx[33] = page_buffer[1];
+                    if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3))
+                    /// TARGET = 3 (EEPROM)
+                    {
+                        if (data_cnt == 2 || LMS_Ctrl_Packet_Rx->Data_field[8] == 0 || LMS_Ctrl_Packet_Rx->Data_field[9]
+                            == 16) {
+                            if (LMS_Ctrl_Packet_Rx->Data_field[0] == 0) // read data from EEPROM #1
+                            {
+                                //spirez = spirez || FlashQspi_ReadPage(&CFG_QSPI, mem_write_offset, page_buffer);
+                                FlashQspi_CMD_ReadDataByte(mem_write_offset, &page_buffer[0]);
+                                FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &page_buffer[1]);
+                                glEp0Buffer_Tx[32] = page_buffer[0];
+                                glEp0Buffer_Tx[33] = page_buffer[1];
 
-					if (spirez)
-						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-					else
-						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-				}
-				else
-					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-			}
-			else
-				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-		}
-		else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 2)) // TARGET = 1 (FPGA FLASH)
-		{
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-		}
-		else
-			LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                // No error conditions in code
+                                // if (spirez)
+                                // 	LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                // else
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                            } else
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                        } else
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    } else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 2))
+                    // TARGET = 1 (FPGA FLASH)
+                    {
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    } else
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
 
 		break;
 
@@ -1112,131 +1300,51 @@ static void lms64c_isr(void)
 		csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
 	}
 
-	CNTRL_ev_pending_write(CNTRL_ev_pending_read()); // Clear interrupt
-	CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);   // re-enable the event handler
-	//printf("ISR: LMS64C exit\n");
 
-}
+            // printf("TX: ");
+            // for (int i = 0; i < 64; i++) {
+            //     printf("%02x ", dest[i]);
+            // }
+            // printf("\n");
 
+            /* Clear all pending interrupts. */
+            CNTRL_ev_pending_write(CNTRL_ev_pending_read());
+            /* Reenable CNTRL irq */
+            CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
+            irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
 
-static void lms64c_init(void)
-{
-	uint32_t irq_mask;
-	printf("CNTRL IRQ initialization \n");
+        }
 
-	/* Clear all pending interrupts. */
-	CNTRL_ev_pending_write(CNTRL_ev_pending_read());
+        if (clk_cfg_pending) {
+            irq_mask = irq_getmask(); // save irq mask
+            irq_setmask(0); // disable all interrupts until clock cfg is completed
 
-	/* Enable CNTRL irq */
-	CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
+            clk_cfg_pending = 0;
+            PLL_ADDRS *pll_addrs_pointer;
+            uint8_t rez;
 
-	/* Attach isr to interrupt */
-	irq_attach(CNTRL_INTERRUPT, lms64c_isr);
+            // PHASE CONFIG
+            if (var_phcfg_start > 0) {
+                var_phcfg_start = 0;
+                uint8_t phcfgmode = csr_read_simple(clk_ctrl_addrs.phcfg_mode);
+                uint8_t pll_ind = csr_read_simple(clk_ctrl_addrs.pll_ind);
 
-	/* Enable interrupt */
-
-	irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
-}
-
-static void clk_ctrl_isr(void)
-{
-	// Reset relevant CSR's
-	csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
-	csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
-	csr_write_simple(0, clk_ctrl_addrs.pllcfg_error);
-	csr_write_simple(0, clk_ctrl_addrs.phcfg_err);
-
-	var_phcfg_start = csr_read_simple(clk_ctrl_addrs.phcfg_start);
-	var_pllcfg_start = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
-	var_pllrst_start = csr_read_simple(clk_ctrl_addrs.pllrst_start);
-
-	if (var_phcfg_start || var_pllcfg_start || var_pllrst_start)
-		clk_cfg_pending = 1;
-
-	lime_top_ev_pending_write(lime_top_ev_pending_read()); //Clear interrupt
-	lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
-}
-
-static void clk_cfg_irq_init(void)
-{
-	printf("CLK config irq initialization \n");
-
-	/* Clear all pending interrupts. */
-	lime_top_ev_pending_write(lime_top_ev_pending_read());
-
-	/* Enable CLK CTRL irq */
-	lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET);
-
-	/* Attach isr to interrupt */
-	irq_attach(LIME_TOP_INTERRUPT, clk_ctrl_isr);
-
-	/* Enable interrupt */
-
-	irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
-}
-
-
-int main(void)
-{
-
-
-#ifdef CONFIG_CPU_HAS_INTERRUPT
-	irq_setmask(0);
-	irq_setie(1);
-#endif
-	uart_init();
-	init_pmic();
-	printf("CSR_CNTRL_BASE 0x%lx ", CSR_CNTRL_BASE);
-	printf("sveiki visi  :) \n");
-	// irq_example_init();
-	lms64c_init();
-	clk_cfg_irq_init();
-	init_pmic();
-	init_vctcxo_dac();
-	help();
-	prompt();
-
-	while (1)
-	{
-		console_service();
-
-		// Clock config
-		if (clk_cfg_pending)
-		{
-			irq_mask = irq_getmask(); // save irq mask
-			irq_setmask(0); // disable all interrupts until clock cfg is completed
-
-			clk_cfg_pending = 0;
-			PLL_ADDRS* pll_addrs_pointer;
-			uint8_t rez;
-
-			// PHASE CONFIG
-			if (var_phcfg_start > 0)
-			{
-				var_phcfg_start = 0;
-				uint8_t phcfgmode = csr_read_simple(clk_ctrl_addrs.phcfg_mode);
-				uint8_t pll_ind = csr_read_simple(clk_ctrl_addrs.pll_ind);
-
-				// Set pll_addrs pointer according to pll_ind value
-				if (pll_ind == 0)
-				{
-					pll_addrs_pointer = &pll0_tx_addrs;
-				}
-				else if (pll_ind == 1)
-				{
-					pll_addrs_pointer = &pll1_rx_addrs;
-				}
-				// CHECK PHASE MODE
-				if (phcfgmode == 1)
-				{ // Automatic phase search
-					rez = AutoPH_MMCM_CFG(pll_addrs_pointer, &clk_ctrl_addrs, &smpl_cmp_addrs);
-				}
-				else
-				{ // Manual phase set
-					Update_MMCM_CFG(pll_addrs_pointer, &clk_ctrl_addrs);
-					// There is no fail condition for manual phase yet
-					rez = AUTO_PH_MMCM_CFG_SUCCESS;
-				}
+                // Set pll_addrs pointer according to pll_ind value
+                if (pll_ind == 0) {
+                    pll_addrs_pointer = &pll0_tx_addrs;
+                } else if (pll_ind == 1) {
+                    pll_addrs_pointer = &pll1_rx_addrs;
+                }
+                // CHECK PHASE MODE
+                if (phcfgmode == 1) {
+                    // Automatic phase search
+                    rez = AutoPH_MMCM_CFG(pll_addrs_pointer, &clk_ctrl_addrs, &smpl_cmp_addrs);
+                } else {
+                    // Manual phase set
+                    Update_MMCM_CFG(pll_addrs_pointer, &clk_ctrl_addrs);
+                    // There is no fail condition for manual phase yet
+                    rez = AUTO_PH_MMCM_CFG_SUCCESS;
+                }
 
 				if (rez == AUTO_PH_MMCM_CFG_SUCCESS)
 				{

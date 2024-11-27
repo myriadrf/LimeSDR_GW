@@ -194,7 +194,7 @@ class BaseSoC(SoCCore):
             cpu_variant              = "standard",
             integrated_rom_size      = 0x8000 if with_cpu else 0,
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
-            integrated_main_ram_size = 0x4200 if with_cpu else 0,
+            integrated_main_ram_size = 0x4300 if with_cpu else 0,
             integrated_main_ram_init = [] if cpu_firmware is None or flash_boot else get_mem_data(cpu_firmware, endianness="little"),
             uart_name                = "gpio_serial",#"crossover",
         )
@@ -248,6 +248,7 @@ class BaseSoC(SoCCore):
             # Automatically jump to pre-initialized firmware.
             self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
             #self.flash_cs_n = GPIOOut(platform.request("flash_cs_n"))
+            # TODO: change this to add_spi_flash in the future
             self.flash      = S7SPIFlash(platform.request("spiflash"), sys_clk_freq, 4e6)
 
         # XADC -------------------------------------------------------------------------------------
