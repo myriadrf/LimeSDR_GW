@@ -1,12 +1,11 @@
-/**
+/*
 -- ----------------------------------------------------------------------------	
--- FILE:	LMS64C_protocol.h
--- DESCRIPTION:	LMS64C - fixed lenght (64 bytes) lenght control protocol incuding 8 bytes header
--- DATE:	2016.04.04
--- AUTHOR(s):	Lime Microsystems
--- REVISION: v0r26
--- ----------------------------------------------------------------------------	
-
+-- FILE        : LMS64C_protocol.h
+-- DESCRIPTION : LMS64C - fixed lenght (64 bytes) lenght control protocol incuding 8 bytes header
+-- DATE        : 2015-2024.
+-- AUTHOR(s)   : Lime Microsystems
+-- REVISION    : -
+-- ----------------------------------------------------------------------------
 */
 
 #ifndef _LMS64C_PROTOCOL_H_

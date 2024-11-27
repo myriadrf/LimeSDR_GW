@@ -1,3 +1,13 @@
+/*
+-- ----------------------------------------------------------------------------
+-- FILE        : csr_access.c
+-- DESCRIPTION : CSR Write/Read Accesses Translation.
+-- DATE        : 2015-2024
+-- AUTHOR(s)   : Lime Microsystems
+-- REVISION    : -
+-- ----------------------------------------------------------------------------
+*/
+
 #include <stdint.h>
 #include <stdio.h>
 

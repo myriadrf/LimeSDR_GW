@@ -1,19 +1,19 @@
-/**
+/*
 -- ----------------------------------------------------------------------------	
--- FILE:	sodera_pcie_brd.h
--- DESCRIPTION:	Stream v2r2
--- DATE:	2015.06.29
--- AUTHOR(s):	Lime Microsystems
--- REVISION: v0r2
+-- FILE        : LIMESDR_MINI_brd_v1r0.h
+-- DESCRIPTION : LimeSDR Mini Board Header.
+-- DATE        : 2015-2024
+-- AUTHOR(s)   : Lime Microsystems
+-- REVISION    : -
 -- ----------------------------------------------------------------------------	
-
 */
-#ifndef _SODERA_PCIE_BRD_V1R0_H_
-#define _SODERA_PCIE_BRD_V1R0_H_
+
+#ifndef _LIMESDR_MINI_BRD_V1R0_H_
+#define _LIMESDR_MINI_BRD_V1R0_H_
 
 #include "LMS64C_protocol.h"
 
-#pragma message ("**** sodera_pcie_brd_v1r0 ****")
+#pragma message ("**** limesdr_mini_brd_v1r0 ****")
 
 //I2C devices
 #define   LM75_I2C_ADDR		0x48 //0x90

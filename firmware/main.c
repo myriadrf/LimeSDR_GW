@@ -1,30 +1,19 @@
-/**************************************************************
- * This example exercises LEDs on LatticeMico32 Development   *
- * board.                                                     *
- *                                                            *
- *                                                            *
- *                                                            *
- *------------------------------------------------------------*
- * PREREQUISITES:                                             *
- *                                                            *                                                                                                    
- * - GPIO with 8-bit output named LED connected to the        *
- *   board's LED pins.                                        *
- **************************************************************/
-//#include "DDStructs.h"
-//#include "LookupServices.h"
+/*
+-- ----------------------------------------------------------------------------
+-- FILE        : main.c
+-- DESCRIPTION : LimeSDR XTRX/Mini firmware main.
+-- DATE        : 2015-2024
+-- AUTHOR(s)   : Lime Microsystems
+-- REVISION    : -
+-- ----------------------------------------------------------------------------
+*/
+
 #include "stdint.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-//#include "MicoUtils.h"
-#include "system_conf.h"
-//#include "MicoGPIO.h"
-//#include "MicoSPIService.h"
-//#include "MicoSPIFlash.h"
-//#include "OpenCoresI2CMaster.h"
 #include "i2c0.h"
 
-//#include "LMS64C_protocol.h"
 #include "LimeSDR_MINI_brd_v1r0.h"
 #include "csr_access.h"
 #include "spiflash.h"

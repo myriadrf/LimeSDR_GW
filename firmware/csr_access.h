@@ -1,3 +1,13 @@
+/*
+-- ----------------------------------------------------------------------------
+-- FILE        : csr_access.h
+-- DESCRIPTION : CSR Write/Read Accesses Translation.
+-- DATE        : 2015-2024
+-- AUTHOR(s)   : Lime Microsystems
+-- REVISION    : -
+-- ----------------------------------------------------------------------------
+*/
+
 #ifndef __CSR_ACCESS_H
 #define __CSR_ACCESS_H
 

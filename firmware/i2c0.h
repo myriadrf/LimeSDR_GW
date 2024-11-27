@@ -1,3 +1,5 @@
+// This file is Copyright (c) 2020 Antmicro <www.antmicro.com>
+
 #ifndef __I2C0_H
 #define __I2C0_H
 

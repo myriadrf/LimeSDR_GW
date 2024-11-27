@@ -1,3 +1,6 @@
+// This file is Copyright (c) 2020 Antmicro <www.antmicro.com>
+// License: BSD
+
 #ifndef __LITESPI_FLASH_H
 #define __LITESPI_FLASH_H
 
