@@ -60,7 +60,7 @@ class LMS7002TXIQ(LiteXModule):
                 ]
             else:
                 print("LMS7002TXIQ Missing Delay!")
-
+                self.comb += delay_z[i].eq(oddr_q)
 
         # Connect outputs.
         # ----------------

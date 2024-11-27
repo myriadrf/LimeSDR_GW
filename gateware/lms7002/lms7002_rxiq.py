@@ -63,6 +63,7 @@ class LMS7002RXIQ(LiteXModule):
                 ]
             else:
                 print("LMS7002RXIQ Missing Delay!")
+                self.comb += delay_datain.eq(datain[i])
 
             self.specials += [
                 # IDDR components.

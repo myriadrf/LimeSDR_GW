@@ -113,3 +113,5 @@ class LMS7002CLK(LiteXModule):
             ]
         else:
             print("LMS7002CLK Missing Delay!")
+            self.comb += pads.FCLK1.eq(inst1_q)
+            self.comb += pads.FCLK2.eq(inst2_q)
