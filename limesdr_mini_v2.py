@@ -70,8 +70,8 @@ C_EP83_WRUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_TX_SIZE / (STRM0_FPGA_
 class _CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq, use_pll=False):
         self.rst      = Signal()
-        self.cd_sys   = ClockDomain()
         self.cd_por   = ClockDomain()
+        self.cd_sys   = ClockDomain()
         self.cd_ft601 = ClockDomain()
 
         # # #
@@ -79,35 +79,30 @@ class _CRG(LiteXModule):
         # Clk.
         self.ft_clk = platform.request("FT_CLK")
 
-        # Power on reset.
+        # Power-on-Clk/Rst.
         por_count = Signal(4, reset=2**4-1)
         por_done  = Signal()
         por_count.attr.add("keep")
         por_done.attr.add("keep")
-        self.comb += self.cd_por.clk.eq(self.cd_sys.clk)
+        self.specials += Instance("OSCG",
+            # DIV values: 2: ~155MHz to 128: ~2.4MHz.
+            p_DIV = 4, # ~77.5MHz.
+            o_OSC = self.cd_por.clk,
+        )
         self.comb += por_done.eq(por_count == 0)
         self.sync.por += If(~por_done, por_count.eq(por_count - 1))
 
-        # PLL / Internal Oscillator.
+        # Sys Clk/Rst.
         if use_pll:
-            # PLL.
             self.pll = pll = ECP5PLL()
             self.comb += pll.reset.eq(self.rst | ~por_done)
             pll.register_clkin(self.ft_clk, 100e6)
             pll.create_clkout(self.cd_sys, sys_clk_freq)
         else:
-            # Internal Oscillator
-            self.specials += Instance("OSCG",
-                # DIV values: 2: ~155MHz to 128: ~2.4MHz.
-                p_DIV = 4, # ~77.5MHz.
-                o_OSC = self.cd_sys.clk,
-            )
+            self.comb += self.cd_sys.clk.eq(self.cd_por.clk)
             self.specials += AsyncResetSynchronizer(self.cd_sys, ~por_done)
-        platform.add_period_constraint(self.cd_sys.clk, 1e9/sys_clk_freq)
 
-        platform.add_platform_command("GSR_NET NET crg_por_done;")
-
-        # FT601 Clk/Rst
+        # FT601 Clk/Rst.
         self.comb     += self.cd_ft601.clk.eq(self.ft_clk),
         self.specials += AsyncResetSynchronizer(self.cd_ft601, ~por_done)
 
@@ -135,7 +130,7 @@ class BaseSoC(SoCCore):
             integrated_main_ram_size = 0x3800,
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
             with_uartbone            = with_uartbone,
-            uart_name                ={True: "crossover", False:"serial"}[with_uartbone],
+            uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
         # Avoid stalling CPU at startup.
