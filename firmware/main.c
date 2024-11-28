@@ -1263,8 +1263,8 @@ int main(void)
 
 
 			default:
-				/* This is unknown request. */
-				printf("Errpr: Unknown request\n");
+				/* This is unknown command. */
+				printf("Error: Unknown Command: 0x%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_UNKNOWN_CMD;
 				break;
 			}
