@@ -111,7 +111,7 @@ class BaseSoC(SoCCore):
         # Platform ---------------------------------------------------------------------------------
         platform      = limesdr_mini_v1.Platform(toolchain=toolchain)
         platform.name = "limesdr_mini_v1"
-        platform.vhd2v_force = True
+        platform.vhd2v_force = False
 
         # SoCCore ----------------------------------------------------------------------------------
         assert cpu_type in ["vexriscv", "picorv32", "fazyrv", "firev"]
@@ -319,7 +319,36 @@ class BaseSoC(SoCCore):
         ]
 
         # Timing Constraints -----------------------------------------------------------------------
+
         # FIXME: Add timing constraints.
+
+        # FT601 constraints.
+        platform.toolchain.additional_sdc_commands.append("set_input_delay -max 7.0 -clock [get_clocks FT_CLK] [get_ports {FT_RXFn FT_TXEn}]")
+        platform.toolchain.additional_sdc_commands.append("set_input_delay -max 7.0 -clock [get_clocks FT_CLK] [get_ports {FT_BE[*] FT_D[*]}]")
+        platform.toolchain.additional_sdc_commands.append("set_input_delay -min 4.0 -clock [get_clocks FT_CLK] [get_ports {FT_RXFn FT_TXEn}] -add_delay")
+        platform.toolchain.additional_sdc_commands.append("set_input_delay -min 4.0 -clock [get_clocks FT_CLK] [get_ports {FT_BE[*] FT_D[*]}] -add_delay")
+
+        platform.toolchain.additional_sdc_commands.append("set_output_delay -max 0.5 -clock [get_clocks FT_CLK] [get_ports FT_WRn] -add_delay")
+        platform.toolchain.additional_sdc_commands.append("set_output_delay -min 0.5 -clock [get_clocks FT_CLK] [get_ports FT_WRn] -add_delay")
+        platform.toolchain.additional_sdc_commands.append("set_output_delay -max 0.5 -clock [get_clocks FT_CLK] [get_ports {FT_BE[*] FT_D[*]}] -add_delay")
+        platform.toolchain.additional_sdc_commands.append("set_output_delay -min 0.5 -clock [get_clocks FT_CLK] [get_ports {FT_BE[*] FT_D[*]}] -add_delay")
+
+        # Clock groups.
+        platform.toolchain.additional_sdc_commands.append(
+            "set_clock_groups -asynchronous "
+            "-group {LMK_CLK FPGA_SPI_SCLK FPGA_SPI_SCLK_out DUAL_BOOT_CLK ONCHIP_FLASH_CLK FPGA_SPI_SCLK_FPGA} "
+            "-group {FT_CLK} "
+            "-group {LMS_MCLK2} "
+            "-group {TX_C0} "
+            "-group {TX_C1 LMS_FCLK1} "
+            "-group {RX_C2} "
+            "-group {RX_C3 LMS_FCLK2}"
+        )
+
+        # False path constraints.
+        platform.toolchain.additional_sdc_commands.append("set_false_path -from [get_clocks LMS_MCLK1]")
+        platform.toolchain.additional_sdc_commands.append("set_false_path -from [get_clocks LMS_MCLK2] -to [get_clocks LMS_MCLK2]")
+        platform.toolchain.additional_sdc_commands.append("set_false_path -from [get_clocks LMS_MCLK2_VIRT] -to [get_clocks LMS_MCLK2]")
 
         # HDL Sources ------------------------------------------------------------------------------
         # Set VHDL standard to VHDL-2008.
