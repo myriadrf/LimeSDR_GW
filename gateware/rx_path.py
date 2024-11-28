@@ -206,7 +206,7 @@ class RXPath(LiteXModule):
             "gateware/LimeDFB/rx_path_top/src/rx_path_top.py",
             "gateware/LimeDFB/rx_path_top/src/rx_path_top.vhd",
 
-            "gateware/hdl/spi/axis_pkg.vhd",
+            "gateware/LimeDFB/axis/src/axis_pkg.vhd",
         ]
 
         for file in general_periph_files:
