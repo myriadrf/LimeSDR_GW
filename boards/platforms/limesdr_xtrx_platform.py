@@ -238,6 +238,7 @@ class Platform(Xilinx7SeriesPlatform):
 
         self.toolchain.bitstream_commands = [
             "set_property BITSTREAM.CONFIG.UNUSEDPIN Pulldown [current_design]",
+            "set_property CONFIG_MODE SPIx4 [current_design]",
             "set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]",
             "set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN Disable [current_design]",
             "set_property BITSTREAM.CONFIG.CONFIGRATE 66 [current_design]",
@@ -246,20 +247,43 @@ class Platform(Xilinx7SeriesPlatform):
             "set_property CFGBVS VCCO [current_design]",
             "set_property CONFIG_VOLTAGE 3.3 [current_design]",
         ]
-        self.toolchain.additional_commands = [
-            # Non-Multiboot SPI-Flash bitstream generation.
-            "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}.bit\" -file {build_name}.bin",
+        # TODO: set multiboot adress as a variable somewhere else instead of hardcoding it here
+        self.gold_img_commands = [
+            # Multiboot SPI-Flash Golden bitstream generation.
+            "set_property BITSTREAM.CONFIG.CONFIGFALLBACK ENABLE [current_design]",
+            "set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 32'h00220000 [current_design]",
+            "set_property BITSTREAM.CONFIG.TIMER_CFG 0x493E0 [current_design]",
+            # USR_ACCESS Field at 00007C-00007F binfile For Bitstream identification:
+            #[32:24] - DEVICE ID
+            #[23:20] - HW_VER
+            #[19:16] - Image identifier ( 0 - Gold image, 1- User image)
+            #[15: 0] - Reserved
+            "set_property BITSTREAM.CONFIG.USR_ACCESS 0X1B200000 [current_design]",
+            # "set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 0x00400000 [current_design]",
+            "write_bitstream -force {build_name}_golden.bit ",
+            "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}_golden.bit\" -file ../../../bitstream/{build_name}/{build_name}_golden.bin"
+        ]
+        self.user_img_commands = [
 
-            # Multiboot SPI-Flash Operational bitstream generation.
-            "set_property BITSTREAM.CONFIG.TIMER_CFG 0x0001fbd0 [current_design]",
+            # Multiboot SPI-Flash user bitstream generation.
+            "set_property BITSTREAM.CONFIG.TIMER_CFG 0x493E0 [current_design]",
             "set_property BITSTREAM.CONFIG.CONFIGFALLBACK Enable [current_design]",
-            "write_bitstream -force {build_name}_operational.bit ",
-            "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}_operational.bit\" -file {build_name}_operational.bin",
+            # USR_ACCESS Field at 00007C-00007F binfile For Bitstream identification:
+            #[32:24] - DEVICE ID
+            #[23:20] - HW_VER
+            #[19:16] - Image identifier ( 0 - Gold image, 1- User image)
+            #[15: 0] - Reserved
+            "set_property BITSTREAM.CONFIG.USR_ACCESS 0X1B210000 [current_design]",
+            "write_bitstream -force {build_name}_user.bit ",
+            "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}_user.bit\" -file ../../../bitstream/{build_name}/{build_name}_user.bin",
+        ]
 
-            # Multiboot SPI-Flash Fallback bitstream generation.
-            "set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 0x00400000 [current_design]",
-            "write_bitstream -force {build_name}_fallback.bit ",
-            "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}_fallback.bit\" -file {build_name}_fallback.bin"
+        # soc.get_build_name()
+        # self.toolchain.
+        self.toolchain.additional_commands = [
+            # non-multiboot flash images should not be used, so we don't generate them
+            # Non-Multiboot SPI-Flash bitstream generation.
+            # "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}.bit\" -file ../../../bitstream/{build_name}/{build_name}.bin",
         ]
 
         self.add_source("./gateware/limesdr_xtrx_constrs.xdc")

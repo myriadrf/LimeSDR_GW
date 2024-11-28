@@ -93,14 +93,20 @@ class CNTRL_CSR(LiteXModule):
 
 # fpgacfg
 class fpgacfg_csr(LiteXModule):
-    def __init__(self):
+    def __init__(self,gold=False):
+        # TODO: implement some sort of version increment mechanism
+        #       or redo version storage entirely (maybe move to firmware)
         self.board_id       = CSRStatus(16, reset=27)
-        self.major_rev      = CSRStatus(16, reset=2)
-        self.compile_rev    = CSRStatus(16, reset=18)
         self.reserved_03    = CSRStorage(16, reset=0)
         self.reserved_04    = CSRStorage(16, reset=0)
         self.reserved_05    = CSRStorage(16, reset=0)
         self.reserved_06    = CSRStorage(16, reset=0)
+        if gold:
+            self.major_rev      = CSRStatus(16, reset=0xDEAD)
+            self.compile_rev    = CSRStatus(16, reset=0xDEAD)
+        else:
+            self.major_rev      = CSRStatus(16, reset=2)
+            self.compile_rev    = CSRStatus(16, reset=19)
         self.channel_cntrl  = CSRStorage(fields=[
             CSRField("ch_en", size=2, offset=0, values=[
                 ("``2b01", "Channel A"),
@@ -169,6 +175,7 @@ class BaseSoC(SoCCore):
         with_jtagbone         = True,
         with_bscan            = False,
         flash_boot            = False,
+        gold_img              = False,
         firmware_flash_offset = 0x220000,
     ):
 
@@ -178,6 +185,11 @@ class BaseSoC(SoCCore):
             "fairwaves_pro" : fairwaves_xtrx_platform.Platform(variant="xc7a50t"),
             "limesdr"       : limesdr_xtrx_platform.Platform()
         }[board]
+
+        if gold_img:
+            platform.toolchain.additional_commands += platform.gold_img_commands
+        else:
+            platform.toolchain.additional_commands += platform.user_img_commands
 
         # Enable Compressed Instructions.
         VexRiscvSMP.with_rvc = True
@@ -201,7 +213,7 @@ class BaseSoC(SoCCore):
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
-        self.fpgacfg = fpgacfg_csr()
+        self.fpgacfg = fpgacfg_csr(gold=gold_img)
         self.periphcfg = periphcfg_csr()
         self.CNTRL = CNTRL_CSR(1,2)
         self.irq.add("CNTRL")
@@ -220,10 +232,22 @@ class BaseSoC(SoCCore):
             self.add_jtag_cpu_debug()
 
         # Leds -------------------------------------------------------------------------------------
-        self.leds = LedChaser(
-            pads         = platform.request_all("user_led"),
-            sys_clk_freq = sys_clk_freq
-        )
+        # self.led_pads = platform.request_all("user_led")
+        self.led_placeholder = Signal()
+        if gold_img:
+            self.leds = LedChaser(
+                pads         = self.led_placeholder,
+                period       = 2,
+                sys_clk_freq = sys_clk_freq
+            )
+            self.comb += platform.request("user_led",0).eq(self.led_placeholder)
+            self.comb += platform.request("user_led",1).eq(self.led_placeholder)
+        else:
+            self.leds = LedChaser(
+                pads         = platform.request_all("user_led"),
+                period       = 1,
+                sys_clk_freq = sys_clk_freq
+            )
 
         # ICAP -------------------------------------------------------------------------------------
         self.icap = ICAP()
@@ -436,6 +460,7 @@ def main():
     parser.add_argument("--driver",                action="store_true",     help="Generate PCIe driver from LitePCIe (override local version).")
     parser.add_argument("--flash-boot",            action="store_true",     help="Write Firmware in Flash instead of RAM.")
     parser.add_argument("--firmware-flash-offset", default=0x220000,        help="Firmware SPI Flash offset.")
+    parser.add_argument("--gold",                  action="store_true",     help="Build/Flash golden image instead of user")
     args = parser.parse_args()
 
     # Build SoC.
@@ -448,12 +473,17 @@ def main():
             with_jtagbone         = not args.with_bscan,
             with_bscan            = args.with_bscan,
             flash_boot            = args.flash_boot,
+            gold_img              = args.gold,
             firmware_flash_offset = args.firmware_flash_offset,
         )
         builder = Builder(soc, csr_csv="csr.csv")
         builder.build(run=build)
         if prepare:
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
+            bistream_output_dir = "bitstream/{}".format(soc.get_build_name())
+            if not os.path.exists(bistream_output_dir):
+                os.makedirs(bistream_output_dir)
+
 
     # Generate LitePCIe Driver.
     generate_litepcie_software(soc, "software", use_litepcie_software=args.driver)
@@ -465,8 +495,13 @@ def main():
 
     # Flash Bitstream.
     if args.flash:
-        prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(0, os.path.join(builder.gateware_dir, soc.build_name + ".bin"))
+        if args.gold:
+            prog = soc.platform.create_programmer(cable=args.cable)
+            prog.flash(0, os.path.join(bistream_output_dir, soc.build_name + "_golden" + ".bin"))
+        else: #user img
+            # TODO: move user img address to a global variable somewhere instead of hardcoding
+            prog = soc.platform.create_programmer(cable=args.cable)
+            prog.flash(0X00220000, os.path.join(bistream_output_dir, soc.build_name + "_user" + ".bin"))
 
     # Flash Firmware.
     if args.flash_boot and args.flash:
