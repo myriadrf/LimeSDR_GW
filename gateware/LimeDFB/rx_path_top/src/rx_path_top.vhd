@@ -124,9 +124,13 @@ end entity RX_PATH_TOP;
 architecture ARCH of RX_PATH_TOP is
 
    -- declare signals,  components here
-   signal axis_iqsmpls_fifo            : t_AXI_STREAM(tdata(127 downto 0), tkeep(15 downto 0));
-   signal axis_iqpacket_fifo           : t_AXI_STREAM(tdata(127 downto 0), tkeep(15 downto 0));
-   signal axis_iqpacket                : t_AXI_STREAM(tdata(127 downto 0), tkeep(15 downto 0));
+
+   -- CHECKME: Unconstrainted Records do not seems supported by Quartus...
+
+   signal axis_iqsmpls_fifo  : t_AXI_STREAM_128b;
+   signal axis_iqpacket_fifo : t_AXI_STREAM_128b;
+   signal axis_iqpacket      : t_AXI_STREAM_128b;
+
    signal axis_iqpacket_wr_data_count  : std_logic_vector(8 downto 0);
 
    signal sample_nr_counter            : unsigned(63 downto 0);
@@ -331,8 +335,8 @@ begin
    -- Convert packet size from bytes to 128b words
    process(all)
    begin
-        cfg_pkt_size_mul8   <= CFG_PKT_SIZE sll 3;
-        cfg_pkt_size_div128 <= cfg_pkt_size_mul8 srl 7;
+        cfg_pkt_size_mul8   <= std_logic_vector(unsigned(CFG_PKT_SIZE)      sll 3);
+        cfg_pkt_size_div128 <= std_logic_vector(unsigned(cfg_pkt_size_mul8) srl 7);
         pkt_size <= cfg_pkt_size_div128;
    end process;
 
@@ -412,7 +416,7 @@ begin
    WITHOUT_M_AXIS_IQPACKET_BUFFER : if G_M_AXIS_IQPACKET_BUFFER_WORDS = 0 generate
       axis_iqpacket.tvalid      <= axis_iqpacket_fifo.tvalid;
       axis_iqpacket_fifo.tready <= axis_iqpacket.tready;
-      axis_iqpacket.tda6ta       <= axis_iqpacket_fifo.tdata;
+      axis_iqpacket.tdata       <= axis_iqpacket_fifo.tdata;
       axis_iqpacket.tlast       <= axis_iqpacket_fifo.tlast;
    end generate WITHOUT_M_AXIS_IQPACKET_BUFFER;
    

@@ -23,12 +23,22 @@ package axis_pkg is
    -- tdata and tkeep must be constrained when declaring signal for e.g:
    -- signal axis_my_bus   : t_AXI_STREAM(tdata(127 downto 0), tkeep(15 downto 0));
    
-   type t_AXI_STREAM is record
-      tdata  : std_logic_vector;    -- Data
-      tkeep  : std_logic_vector;    -- Byte enables (optional)
-      tlast  : std_logic;           -- End of frame
-      tvalid : std_logic;           -- Valid signal
-      tready : std_logic;           -- Ready signal
-   end record; 
+--   type t_AXI_STREAM is record
+--      tdata  : std_logic_vector;    -- Data
+--      tkeep  : std_logic_vector;    -- Byte enables (optional)
+--      tlast  : std_logic;           -- End of frame
+--      tvalid : std_logic;           -- Valid signal
+--      tready : std_logic;           -- Ready signal
+--   end record;
+
+   -- CHECKME: Unconstrainted Records do not seems supported by Quartus...
+
+   type t_AXI_STREAM_128b is record
+      tdata  : std_logic_vector(127 downto 0); -- Data
+      tkeep  : std_logic_vector(15  downto 0); -- Byte enables (optional)
+      tlast  : std_logic;                      -- End of frame
+      tvalid : std_logic;                      -- Valid signal
+      tready : std_logic;                      -- Ready signal
+   end record;
    
 end package axis_pkg;
