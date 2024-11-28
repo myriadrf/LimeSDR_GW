@@ -5,7 +5,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import os
+
 from migen import *
+
+from litex.build.vhd2v_converter import VHD2VConverter
 
 from litex.gen import *
 
@@ -59,3 +63,17 @@ from_fpgacfg_layout = [
 
 def FromFPGACfg():
     return Record(from_fpgacfg_layout)
+
+# VHD2VConverter Wrapper ---------------------------------------------------------------------------
+def add_vhd2v_converter(platform, top, params={}, files=[], force_convert=None):
+    force_convert = {True: LiteXContext.platform.vhd2v_force, False: force_convert}[force_convert is None]
+    instance = VHD2VConverter(platform,
+        top_entity    = top,
+        build_dir     = os.path.join(os.path.abspath(platform.output_dir), "vhd2v"),
+        work_package  = "work",
+        force_convert = force_convert,
+        params        = params,
+        add_instance  = True,
+        files         = files,
+    )
+    return instance
