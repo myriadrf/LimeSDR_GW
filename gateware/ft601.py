@@ -58,12 +58,15 @@ class FT601(LiteXModule):
         self.platform       = platform
 
         self.ctrl_fifo      = FIFOInterface(EP02_rwidth, EP82_wwidth)
-        self.stream_fifo    = FIFOInterface(EP03_rwidth, EP83_wwidth, EP03_rdusedw_width, EP83_wrusedw_width)
-        self.sink           = AXIStreamInterface(64, clock_domain="lmx_rx")
+        self.sink           = AXIStreamInterface(EP83_wwidth, clock_domain="lmx_rx")
+        self.source         = AXIStreamInterface(EP03_rwidth, clock_domain="lmx_tx")
 
         self.ctrl_fifo_fpga_pc_reset_n   = Signal()
         self.stream_fifo_fpga_pc_reset_n = Signal()
         self.stream_fifo_pc_fpga_reset_n = Signal()
+
+        self.wr_active       = Signal()
+        self.rd_active       = Signal()
 
         # # #
 
@@ -134,29 +137,22 @@ class FT601(LiteXModule):
             cd_to           = "lms_tx",
             with_common_rst = True,
         )
-        self.EP03_source = stream.Endpoint([("data", EP03_rwidth)])
         self.EP03_pipeline  = stream.Pipeline(
             self.EP03_sink,
             self.EP03_fifo,
             self.EP03_conv,
             self.EP03_cdc,
-            self.EP03_source,
+            self.source,
         )
-
-        self.sync.lms_tx += self.EP03_source.ready.eq(self.stream_fifo.rd)
 
         self.comb += [
             # Reset.
-            self.EP03_conv.reset.eq(     ~sync_reg0[1]),
-            self.EP03_fifo.reset.eq(     ~sync_reg0[1]),
-
-            self.stream_fifo.rdata.eq(   self.EP03_source.data),
-            self.stream_fifo.empty.eq(   ~self.EP03_source.valid),
-            self.stream_fifo.rdusedw.eq( self.EP03_fifo.level),
+            self.EP03_conv.reset.eq(~sync_reg0[1]),
+            self.EP03_fifo.reset.eq(~sync_reg0[1]),
 
             self.EP03_sink.data.eq( EP03_wdata),
             self.EP03_sink.valid.eq(self.EP03_fifo_status.busy_in),
-            EP03_fifo_wusedw.eq(         self.EP03_fifo.level),
+            EP03_fifo_wusedw.eq(    self.EP03_fifo.level),
         ]
 
         # Stream FPGA->PC.
@@ -316,8 +312,8 @@ class FT601(LiteXModule):
             # Fifo Interface -> stream.Endpoint
             EP83_fifo_rdusedw.eq(Cat(0, self.EP83_fifo.level)),
 
-            self.stream_fifo.wr_active.eq(EP83_fifo_status.busy_out),
-            self.stream_fifo.rd_active.eq(self.EP03_fifo_status.busy_out),
+            self.wr_active.eq(EP83_fifo_status.busy_out),
+            self.rd_active.eq(self.EP03_fifo_status.busy_out),
         ]
         if hasattr(pads, "RESETn"):
             self.comb += pads.RESETn.eq(~ResetSignal("ft601"))
@@ -345,7 +341,7 @@ class FT601(LiteXModule):
             ).Else(
                 EP03_wr_cnt.eq(0),
             ),
-            If((self.stream_fifo.empty == 0b0) | (EP03_fifo_wusedw > 0),
+            If((~self.source.valid == 0b0) | (EP03_fifo_wusedw > 0),
                 EP03_rdy.eq(0),
             ).Else(
                 EP03_rdy.eq(1),
