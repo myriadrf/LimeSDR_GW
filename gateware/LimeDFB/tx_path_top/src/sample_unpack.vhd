@@ -50,12 +50,14 @@ architecture RTL of SAMPLE_UNPACK is
    signal int_rst_n           : std_logic;
    signal s_axis_tready_skip  : std_logic;
    signal packet_end          : std_logic;
+   signal s_axi_data32        : std_logic_vector(31 downto 0);
+   signal s_axi_data64        : std_logic_vector(63 downto 0);
 
 begin
 
    int_rst_n <= RESET_N and AXIS_ARESET_N;
 
-   TDATA_BUF_PROC : process (AXIS_ACLK, int_rst_n) is
+   TDATA_BUF_PROC : process (AXIS_ACLK, int_rst_n)
    begin
 
       if (int_rst_n = '0') then
@@ -68,7 +70,7 @@ begin
 
    end process TDATA_BUF_PROC;
 
-   FSM_PROC : process (AXIS_ACLK, int_rst_n) is
+   FSM_PROC : process (AXIS_ACLK, int_rst_n)
    begin
 
       if (int_rst_n = '0') then
@@ -181,6 +183,25 @@ begin
 
    end process FSM_PROC;
 
+   process(all)
+   begin
+     if data_counter = 0 then
+        s_axi_data32 <= S_AXIS_TDATA(15 downto 0) & S_AXIS_TDATA(31 downto 16);
+        s_axi_data64 <=
+               S_AXIS_TDATA(15 downto  0) & -- AI
+               S_AXIS_TDATA(31 downto 16) & -- AQ
+               S_AXIS_TDATA(47 downto 32) & -- BI
+               S_AXIS_TDATA(63 downto 48);  -- BQ
+     else
+        s_axi_data32 <= S_AXIS_TDATA(47 downto 32) & S_AXIS_TDATA(63 downto 48);
+        s_axi_data64 <=
+               S_AXIS_TDATA( 79 downto  64) & -- AI
+               S_AXIS_TDATA( 95 downto  80) & -- AQ
+               S_AXIS_TDATA(111 downto  96) & -- BI
+               S_AXIS_TDATA(127 downto 112);  -- BQ
+     end if;
+   end process;
+
    fsm_async : process(all)
    begin
       s_axis_tready_skip <= '0';
@@ -190,10 +211,17 @@ begin
          when SISO_16BIT =>
          -- Just in case - avoid invalid values
             if (data_counter <= 3) then
-               M_AXIS_TDATA(63 - offset downto 48 - offset) <= 16x"0";                                                                
-               M_AXIS_TDATA(47 - offset downto 32 - offset) <= 16x"0";                                                                
-               M_AXIS_TDATA(31 + offset downto 16 + offset) <= S_AXIS_TDATA(15 + (32 * data_counter) downto 0 + (32 * data_counter)); 
-               M_AXIS_TDATA(15 + offset downto 0  + offset) <= S_AXIS_TDATA(31 + (32 * data_counter) downto 16 + (32 * data_counter));
+               if offset = 32 then
+                  M_AXIS_TDATA(31 downto 16) <= (others => '0');
+                  M_AXIS_TDATA(15 downto  0) <= (others => '0');
+                  M_AXIS_TDATA(63 downto 48) <= s_axi_data32(15 downto  0);
+                  M_AXIS_TDATA(47 downto 32) <= s_axi_data32(31 downto 16);
+               else
+                  M_AXIS_TDATA(63 downto 48) <= (others => '0');
+                  M_AXIS_TDATA(47 downto 32) <= (others => '0');
+                  M_AXIS_TDATA(31 downto 16) <= s_axi_data32(15 downto  0);
+                  M_AXIS_TDATA(15 downto 0 ) <= s_axi_data32(31 downto 16);
+               end if;
                if data_counter = 3 then
                   s_axis_tready_skip <= '0';
                else
@@ -206,10 +234,7 @@ begin
          when MIMO_16BIT =>
          -- Just in case - avoid invalid values
             if (data_counter <= 1) then
-               M_AXIS_TDATA(63 downto 48) <= S_AXIS_TDATA(15 + (64 * data_counter)  downto 0  + (64 * data_counter) );                                                                    -- AI
-               M_AXIS_TDATA(47 downto 32) <= S_AXIS_TDATA(31 + (64 * data_counter)  downto 16 + (64 * data_counter) );                                                                    -- AQ
-               M_AXIS_TDATA(31 downto 16) <= S_AXIS_TDATA(47 + (64 * data_counter)  downto 32 + (64 * data_counter) );                                                                    -- BI
-               M_AXIS_TDATA(15 downto 0)  <= S_AXIS_TDATA(63 + (64 * data_counter)  downto 48 + (64 * data_counter) );                                                                    -- BQ
+               M_AXIS_TDATA <= s_axi_data64;
                if data_counter = 1 then
                   s_axis_tready_skip <= '0';
                else
