@@ -34,12 +34,8 @@ class TXPath(LiteXModule):
 
         self.platform          = platform
 
-        self.source            = AXIStreamInterface(64, clock_domain="lms_rx")
-
-        # FIFO
-        self.stream_fifo_rd    = Signal()
-        self.stream_fifo_data  = Signal(FIFO_DATA_W)
-        self.stream_fifo_empty = Signal()
+        self.source            = AXIStreamInterface(64,          clock_domain="lms_tx")
+        self.sink              = AXIStreamInterface(FIFO_DATA_W, clock_domain="lms_tx")
 
         self.rx_sample_nr      = Signal(64)
         self.pct_loss_flg      = Signal()
@@ -97,10 +93,11 @@ class TXPath(LiteXModule):
 
         self.comb += [
             conv_64_to_128.reset.eq(     ~reset_n),
-            conv_64_to_128.sink.data.eq( self.stream_fifo_data),
-            conv_64_to_128.sink.valid.eq(~self.stream_fifo_empty),
             conv_64_to_128.sink.last.eq( 0), # FIXME: something else?
-            self.stream_fifo_rd.eq(      conv_64_to_128.sink.ready),
+
+            conv_64_to_128.sink.data.eq( self.sink.data),
+            conv_64_to_128.sink.valid.eq(self.sink.valid),
+            self.sink.ready.eq(          conv_64_to_128.sink.ready),
 
             # smpl_nr_fifo
             smpl_nr_fifo.reset.eq(       reset_n),

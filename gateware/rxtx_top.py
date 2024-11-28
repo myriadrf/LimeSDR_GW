@@ -97,9 +97,9 @@ class RXTXTop(LiteXModule):
             rx_path.tx_pct_loss_flg.eq(  tx_path.pct_loss_flg),
 
             # FIFO -> TX
-            self.stream_fifo.rd.eq(      tx_path.stream_fifo_rd),
-            tx_path.stream_fifo_data.eq( self.stream_fifo.rdata),
-            tx_path.stream_fifo_empty.eq(self.stream_fifo.empty),
+            self.stream_fifo.rd.eq(      tx_path.sink.ready),
+            tx_path.sink.data.eq( self.stream_fifo.rdata),
+            tx_path.sink.valid.eq(~self.stream_fifo.empty),
 
             # RX -> FIFO
             self.rx_pct_fifo_aclrn_req.eq(rx_path.rx_pct_fifo_aclrn_req),
