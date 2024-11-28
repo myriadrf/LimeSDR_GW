@@ -41,6 +41,7 @@
 //#define DEBUG_FIFO
 //#define DEBUG_CSR_ACCESS
 //#define DEBUG_LMS_SPI
+//#define DEBUG_CMD
 
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
@@ -1268,6 +1269,10 @@ int main(void)
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_UNKNOWN_CMD;
 				break;
 			}
+
+#ifdef DEBUG_CMD
+			printf("Command: 0x%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
+#endif
 
 			//Send response to the command
 			for(cnt=0; cnt<64/sizeof(uint32_t); ++cnt)
