@@ -86,6 +86,9 @@ class LMS7002Top(LiteXModule):
         rx_data_loadn       = Signal()
         rx_data_move        = Signal()
 
+        rx_test_data_h      = Signal(diq_width + 1)
+        rx_test_data_l      = Signal(diq_width + 1)
+
         rx_ptrn_en          = Signal()
 
         rx_mode             = Signal()
@@ -105,6 +108,8 @@ class LMS7002Top(LiteXModule):
         tx_ch_en            = Signal(2)
         tx_diq_h            = Signal(diq_width + 1)
         tx_diq_l            = Signal(diq_width + 1)
+        tx_test_data_h      = Signal(diq_width + 1)
+        tx_test_data_l      = Signal(diq_width + 1)
 
         smpl_cmp_en         = Signal()
         smpl_cmp_done       = Signal()
@@ -129,59 +134,75 @@ class LMS7002Top(LiteXModule):
         # ------------------------------------------------------------------------------------------
         self.lms7002_txiq = ClockDomainsRenamer("lms_tx")(LMS7002TXIQ(platform, 12, pads))
 
-        self.specials += [
-            Instance("LMS7002_TX",
-                # Parameters.
-                p_G_IQ_WIDTH      = diq_width,
+        self.lms7002_tx_params = dict()
+        self.lms7002_tx_params.update(
+            # Parameters.
+            p_G_IQ_WIDTH      = diq_width,
 
-                # Clk/Reset.
-                i_CLK             = ClockSignal("lms_tx"),
-                i_RESET_N         = tx_reset_n,
+            # Clk/Reset.
+            i_CLK             = ClockSignal("lms_tx"),
+            i_RESET_N         = tx_reset_n,
 
-                # Mode settings
-                i_MODE            = tx_mode,
-                i_TRXIQPULSE      = tx_trxiqpulse,
-                i_DDR_EN          = tx_ddr_en,
-                i_MIMO_EN         = tx_mimo_en,
-                i_CH_EN           = tx_ch_en,
-                i_FIDM            = Constant(0, 1),
+            # Mode settings
+            i_MODE            = tx_mode,
+            i_TRXIQPULSE      = tx_trxiqpulse,
+            i_DDR_EN          = tx_ddr_en,
+            i_MIMO_EN         = tx_mimo_en,
+            i_CH_EN           = tx_ch_en,
+            i_FIDM            = Constant(0, 1),
 
-                # Tx interface data.
-                o_DIQ_H             = tx_diq_h,
-                o_DIQ_L             = tx_diq_l,
+            # Tx interface data.
+            o_DIQ_H             = tx_diq_h,
+            o_DIQ_L             = tx_diq_l,
 
-                # AXI Stream Slave Interface.
-                i_S_AXIS_ARESET_N = Constant(0, 1), # Unused
-                i_S_AXIS_ACLK     = Constant(0, 1), # Unused
-                i_S_AXIS_TVALID   = self.sink.valid,
-                i_S_AXIS_TDATA    = self.sink.data,
-                o_S_AXIS_TREADY   = self.sink.ready,
-                i_S_AXIS_TLAST    = self.sink.last,
-            ),
-            # txiqmux instance.
-            # -----------------
-            Instance("txiqmux",
-                p_diq_width   = diq_width,
-                i_clk               = ClockSignal("lms_tx"),
-                i_reset_n           = ~ResetSignal("sys"),
-                i_test_ptrn_en      = tx_ptrn_en,                # Enables test pattern
-                i_test_ptrn_fidm    = Constant(0, 1),            # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
-                i_test_ptrn_I       = self.from_tstcfg_tx_tst_i,
-                i_test_ptrn_Q       = self.from_tstcfg_tx_tst_q,
-                i_test_data_en      = fpgacfg_manager.tx_cnt_en,
-                i_test_data_mimo_en = Constant(1, 1),
-                i_mux_sel           = fpgacfg_manager.wfm_play,  # Mux select: 0 - tx, 1 - wfm
-                i_tx_diq_h          = tx_diq_h,
-                i_tx_diq_l          = tx_diq_l,
-                i_wfm_diq_h         = Constant(0, diq_width + 1),
-                i_wfm_diq_l         = Constant(0, diq_width + 1),
-                o_diq_h             = self.lms7002_txiq.tx_diq1_h,
-                o_diq_l             = self.lms7002_txiq.tx_diq1_l,
-            ),
-        ]
+            # AXI Stream Slave Interface.
+            i_S_AXIS_ARESET_N = Constant(0, 1), # Unused
+            i_S_AXIS_ACLK     = Constant(0, 1), # Unused
+            i_S_AXIS_TVALID   = self.sink.valid,
+            i_S_AXIS_TDATA    = self.sink.data,
+            o_S_AXIS_TREADY   = self.sink.ready,
+            i_S_AXIS_TLAST    = self.sink.last,
+        )
 
+        # test_data_dd.
+        # -------------
+        self.tx_test_data_dd_params = dict()
+        self.tx_test_data_dd_params.update(
+            # Clk/Reset.
+            i_clk       = ClockSignal("lms_tx"),
+            i_reset_n   = ~ResetSignal("lms_tx"),
+            # Mode Settings.
+            i_fr_start  = Constant(0, 1), # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+            i_mimo_en   = tx_mimo_en,     # SISO: 1; MIMO: 0
 
+            # Output.
+            o_data_h    = tx_test_data_h,
+            o_data_l    = tx_test_data_l,
+        )
 
+        # txiqmux instance.
+        # -----------------
+        self.txiqmux_params = dict()
+        self.txiqmux_params.update(
+            p_diq_width         = diq_width,
+            i_clk               = ClockSignal("lms_tx"),
+            i_reset_n           = ~ResetSignal("sys"),
+            i_test_ptrn_en      = tx_ptrn_en,                # Enables test pattern
+            i_test_ptrn_fidm    = Constant(0, 1),            # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+            i_test_ptrn_I       = self.from_tstcfg_tx_tst_i,
+            i_test_ptrn_Q       = self.from_tstcfg_tx_tst_q,
+            i_test_data_en      = fpgacfg_manager.tx_cnt_en,
+            i_test_data_mimo_en = Constant(1, 1),
+            i_mux_sel           = fpgacfg_manager.wfm_play,  # Mux select: 0 - tx, 1 - wfm
+            i_tx_diq_h          = tx_diq_h,
+            i_tx_diq_l          = tx_diq_l,
+            i_test_data_h       = tx_test_data_h,
+            i_test_data_l       = tx_test_data_l,
+            i_wfm_diq_h         = Constant(0, diq_width + 1),
+            i_wfm_diq_l         = Constant(0, diq_width + 1),
+            o_diq_h             = self.lms7002_txiq.tx_diq1_h,
+            o_diq_l             = self.lms7002_txiq.tx_diq1_l,
+        )
 
         self.comb += [
             # Delay control
@@ -245,6 +266,22 @@ class LMS7002Top(LiteXModule):
             i_diq_l         = self.lms7002_rxiq.rx_diq2_l,
         )
 
+        # test_data_dd.
+        # -------------
+        self.rx_test_data_dd_params = dict()
+        self.rx_test_data_dd_params.update(
+            # Clk/Reset.
+            i_clk       = ClockSignal("lms_rx"),
+            i_reset_n   = rx_reset_n,
+            # Mode Settings.
+            i_fr_start  = Constant(0, 1), # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+            i_mimo_en   = rx_mimo_en,     # SISO: 1; MIMO: 0
+
+            # Output.
+            o_data_h    = rx_test_data_h,
+            o_data_l    = rx_test_data_l,
+        )
+
         self.diq2fifo_params = dict()
         self.diq2fifo_params.update(
             # Parameters.
@@ -264,6 +301,10 @@ class LMS7002Top(LiteXModule):
             # Rx interface data
             i_rx_diq2_h      = self.lms7002_rxiq.rx_diq2_h,
             i_rx_diq2_l      = self.lms7002_rxiq.rx_diq2_l,
+
+            # Test interface data
+            i_test_data_h    = rx_test_data_h,
+            i_test_data_l    = rx_test_data_l,
 
             # AXI Stream Master Interface.
             o_m_axis_tdata   = self.source.data,
@@ -350,8 +391,6 @@ class LMS7002Top(LiteXModule):
         self.specials += AsyncResetSynchronizer(self.cd_lms_rx, ResetSignal("sys"))
         self.specials += AsyncResetSynchronizer(self.cd_lms_tx, ResetSignal("sys"))
 
-        self.add_source(platform)
-
         if add_csr:
             self.add_csr(platform)
 
@@ -413,22 +452,47 @@ class LMS7002Top(LiteXModule):
 
         ]
 
-    def add_source(self, platform):
-        lms7002_files = [
-            # TX
-            "gateware/LimeDFB/lms7002/src/lms7002_tx.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd",
-
-            # TX-IQ-Mux.
-            "gateware/hdl/txiqmux/synth/txiq_tst_ptrn.vhd",
-            "gateware/hdl/txiqmux/synth/txiqmux.vhd",
-        ]
-
-        for file in lms7002_files:
-            platform.add_source(file)
-
     def do_finalize(self):
         output_dir = self.platform.output_dir
+
+        # TX.
+        # ---
+
+        # LMS7002_TX
+        self.lms7002_tx = VHD2VConverter(self.platform,
+            top_entity    = "LMS7002_TX",
+            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
+            work_package  = "work",
+            force_convert = LiteXContext.platform.vhd2v_force,
+            params        = self.lms7002_tx_params,
+            add_instance  = True,
+        )
+        self.lms7002_tx.add_source("gateware/LimeDFB/lms7002/src/lms7002_tx.vhd")
+
+        # TX test_data_dd.
+        self.tx_test_data_dd = VHD2VConverter(self.platform,
+            top_entity    = "test_data_dd",
+            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
+            work_package  = "work",
+            force_convert = LiteXContext.platform.vhd2v_force,
+            params        = self.tx_test_data_dd_params,
+            add_instance  = True,
+        )
+        self.tx_test_data_dd.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd")
+
+        # txiqmux
+        self.txiqmux = VHD2VConverter(self.platform,
+            top_entity    = "txiqmux",
+            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
+            work_package  = "work",
+            force_convert = LiteXContext.platform.vhd2v_force,
+            params        = self.txiqmux_params,
+            add_instance  = True,
+        )
+        self.txiqmux.add_source("gateware/hdl/txiqmux/synth/txiq_tst_ptrn.vhd")
+        self.txiqmux.add_source("gateware/hdl/txiqmux/synth/txiqmux.vhd")
+        self.txiqmux.add_source("gateware/hdl/general/sync_reg.vhd")
+        self.txiqmux.add_source("gateware/hdl/general/bus_sync_reg.vhd")
 
         # RX.
         # ---
@@ -444,6 +508,17 @@ class LMS7002Top(LiteXModule):
             files         = ["gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd"],
         )
 
+        # RX test_data_dd.
+        self.rx_test_data_dd = VHD2VConverter(self.platform,
+            top_entity    = "test_data_dd",
+            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
+            work_package  = "work",
+            force_convert = LiteXContext.platform.vhd2v_force,
+            params        = self.rx_test_data_dd_params,
+            add_instance  = True,
+        )
+        self.rx_test_data_dd.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd")
+
         # DIQ2FIFO.
         self.diq2fifo = VHD2VConverter(self.platform,
             top_entity    = "diq2fifo",
@@ -455,7 +530,6 @@ class LMS7002Top(LiteXModule):
         )
         self.diq2fifo.add_source("gateware/LimeDFB/lms7002/src/lms7002_rx.vhd")
         self.diq2fifo.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd")
-        self.diq2fifo.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd")
 
         # Delay Ctrl.
         self.delay_ctrl_top = VHD2VConverter(self.platform,

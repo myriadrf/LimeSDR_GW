@@ -32,6 +32,9 @@ entity diq2fifo is
       --Rx interface data 
       rx_diq2_h      : in std_logic_vector(iq_width downto 0);
       rx_diq2_l      : in std_logic_vector(iq_width downto 0);
+      -- Test interface data
+      test_data_h    : in std_logic_vector (iq_width downto 0);
+      test_data_l    : in std_logic_vector (iq_width downto 0);
       -- AXI Stream master port.
       m_axis_tdata   : out std_logic_vector(63 downto 0);
       m_axis_tkeep   : out std_logic_vector(7 downto 0);
@@ -54,9 +57,6 @@ architecture arch of diq2fifo is
 signal inst0_diq_out_h  : std_logic_vector (iq_width downto 0); 
 signal inst0_diq_out_l  : std_logic_vector (iq_width downto 0);
 signal inst0_reset_n    : std_logic; 
-
-signal inst2_data_h     : std_logic_vector (iq_width downto 0);
-signal inst2_data_l     : std_logic_vector (iq_width downto 0);
 
 signal mux0_diq_h       : std_logic_vector (iq_width downto 0); 
 signal mux0_diq_l       : std_logic_vector (iq_width downto 0);
@@ -145,21 +145,8 @@ inst0_reset_n <= reset_n when smpl_cmp_start = '0' else '1';
    m_axis_tkeep  <= tkeep;
    m_axis_tlast  <= tlast;
   
-int2_test_data_dd : entity work.test_data_dd
-port map(
-
-   clk            => clk,
-   reset_n        => reset_n,
-   fr_start       => fidm,
-   mimo_en        => mimo_en,  
-   data_h         => inst2_data_h,
-   data_l         => inst2_data_l
-
-);
-
-
-mux0_diq_h <= inst0_diq_out_h when test_ptrn_en = '0' else inst2_data_h;
-mux0_diq_l <= inst0_diq_out_l when test_ptrn_en = '0' else inst2_data_l;	
+mux0_diq_h <= inst0_diq_out_h when test_ptrn_en = '0' else test_data_h;
+mux0_diq_l <= inst0_diq_out_l when test_ptrn_en = '0' else test_data_l;
 
 
 process(clk, reset_n)
