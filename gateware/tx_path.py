@@ -107,32 +107,31 @@ class TXPath(LiteXModule):
             smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid),
         ]
 
-        self.specials += [
-            Instance("PCT2DATA_BUF_WR",
-                # Parameters.
-                p_G_BUFF_COUNT    = BUFF_COUNT,
+        self.pct2data_buf_wr_params = dict()
+        self.pct2data_buf_wr_params.update(
+            # Parameters.
+            p_G_BUFF_COUNT    = BUFF_COUNT,
 
-                # Clk/Reset.
-                i_AXIS_ACLK       = ClockSignal("lms_tx"),        # s_axis_domain
-                i_S_AXIS_ARESET_N = reset_n,                      # s_axis_domain.a_reset_n
+            # Clk/Reset.
+            i_AXIS_ACLK       = ClockSignal("lms_tx"),        # s_axis_domain
+            i_S_AXIS_ARESET_N = reset_n,                      # s_axis_domain.a_reset_n
 
-                # AXI Stream Slave
-                i_S_AXIS_TVALID   = conv_64_to_128.source.valid,
-                i_S_AXIS_TDATA    = conv_64_to_128.source.data,
-                o_S_AXIS_TREADY   = conv_64_to_128.source.ready,
-                i_S_AXIS_TLAST    = conv_64_to_128.source.last,
+            # AXI Stream Slave
+            i_S_AXIS_TVALID   = conv_64_to_128.source.valid,
+            i_S_AXIS_TDATA    = conv_64_to_128.source.data,
+            o_S_AXIS_TREADY   = conv_64_to_128.source.ready,
+            i_S_AXIS_TLAST    = conv_64_to_128.source.last,
 
-                # AXI Stream Master
-                i_M_AXIS_ARESET_N = reset_n,                      # s_axis_domain.a_reset_n
-                o_M_AXIS_TVALID   = p2d_wr_tvalid,
-                o_M_AXIS_TDATA    = p2d_wr_tdata,
-                i_M_AXIS_TREADY   = p2d_wr_tready,
-                o_M_AXIS_TLAST    = p2d_wr_tlast,
+            # AXI Stream Master
+            i_M_AXIS_ARESET_N = reset_n,                      # s_axis_domain.a_reset_n
+            o_M_AXIS_TVALID   = p2d_wr_tvalid,
+            o_M_AXIS_TDATA    = p2d_wr_tdata,
+            i_M_AXIS_TREADY   = p2d_wr_tready,
+            o_M_AXIS_TLAST    = p2d_wr_tlast,
 
-                i_BUF_EMPTY       = p2d_wr_buf_empty,
-                i_RESET_N         = reset_n,                      # Unconnected for XTRX
-            )
-        ]
+            i_BUF_EMPTY       = p2d_wr_buf_empty,
+            i_RESET_N         = reset_n,                      # Unconnected for XTRX
+        )
 
         cases = {}
         for i in range(BUFF_COUNT):
@@ -157,7 +156,8 @@ class TXPath(LiteXModule):
 
         self.comb += Case(curr_buf_index, cases)
 
-        self.specials += Instance("PCT2DATA_BUF_RD",
+        self.pct2data_buf_rd_params = dict()
+        self.pct2data_buf_rd_params.update(
             # Parameters.
             p_G_BUFF_COUNT       = BUFF_COUNT,
 
@@ -188,48 +188,52 @@ class TXPath(LiteXModule):
             i_PCT_LOSS_FLG_CLR   = pct_loss_flg_clr,          # Clears PCT_LOSS_FLG
         )
 
+        # Pad 12 bit samples to 16 bit samples, bypass logic if no padding is needed
+        self.sample_padder_params = dict()
+        self.sample_padder_params.update(
+            # Clk/Reset.
+            i_CLK           = ClockSignal("lms_tx"), # m_axis_domain
+            i_RESET_N       = reset_n,               # Unconnected for XTRX
+
+            # AXI Stream Slave.
+            i_S_AXIS_TVALID = data_pad_tvalid,
+            i_S_AXIS_TDATA  = data_pad_tdata,
+            o_S_AXIS_TREADY = data_pad_tready,
+            i_S_AXIS_TLAST  = data_pad_tlast,
+
+            # AXI Stream Master.
+            o_M_AXIS_TDATA  = fifo_smpl_buff.sink.data,
+            o_M_AXIS_TVALID = fifo_smpl_buff.sink.valid,
+            o_M_AXIS_TREADY = fifo_smpl_buff.sink.ready,
+            o_M_AXIS_TLAST  = fifo_smpl_buff.sink.last,
+
+            # Control.
+            i_BYPASS        = unpack_bypass,
+        )
+
+        self.sample_unpack_params = dict()
+        self.sample_unpack_params.update(
+            # Clk/Reset.
+            i_RESET_N       = reset_n,                  # Unconnected for XTRX
+            i_AXIS_ACLK     = ClockSignal("lms_tx"),    # m_axis_domain
+            i_AXIS_ARESET_N = reset_n,                  # m_axis_domain.a_reset_n
+
+            # AXI Stream Master
+            i_S_AXIS_TDATA  = fifo_smpl_buff.source.data,
+            o_S_AXIS_TREADY = fifo_smpl_buff.source.ready,
+            i_S_AXIS_TVALID = fifo_smpl_buff.source.valid,
+            i_S_AXIS_TLAST  = fifo_smpl_buff.source.last,
+
+            # AXI Stream Master
+            o_M_AXIS_TDATA  = self.source.data,
+            i_M_AXIS_TREADY = self.source.ready,
+            o_M_AXIS_TVALID = self.source.valid,
+
+            # Mode Settings.
+            i_CH_EN         = ch_en,
+        )
+
         self.specials += [
-            # Pad 12 bit samples to 16 bit samples, bypass logic if no padding is needed
-            Instance("sample_padder",
-                # Clk/Reset.
-                i_clk           = ClockSignal("lms_tx"), # m_axis_domain
-                i_reset_n       = reset_n,               # Unconnected for XTRX
-
-                # AXI Stream Slave.
-                i_S_AXIS_TVALID = data_pad_tvalid,
-                i_S_AXIS_TDATA  = data_pad_tdata,
-                o_S_AXIS_TREADY = data_pad_tready,
-                i_S_AXIS_TLAST  = data_pad_tlast,
-
-                # AXI Stream Master.
-                o_M_AXIS_TDATA  = fifo_smpl_buff.sink.data,
-                o_M_AXIS_TVALID = fifo_smpl_buff.sink.valid,
-                o_M_AXIS_TREADY = fifo_smpl_buff.sink.ready,
-                o_M_AXIS_TLAST  = fifo_smpl_buff.sink.last,
-
-                # Control.
-                i_BYPASS        = unpack_bypass,
-            ),
-            Instance("sample_unpack",
-                # Clk/Reset.
-                i_RESET_N       = reset_n,                  # Unconnected for XTRX
-                i_AXIS_ACLK     = ClockSignal("lms_tx"),    # m_axis_domain
-                i_AXIS_ARESET_N = reset_n,                  # m_axis_domain.a_reset_n
-
-                # AXI Stream Master
-                i_S_AXIS_TDATA  = fifo_smpl_buff.source.data,
-                o_S_AXIS_TREADY = fifo_smpl_buff.source.ready,
-                i_S_AXIS_TVALID = fifo_smpl_buff.source.valid,
-                i_S_AXIS_TLAST  = fifo_smpl_buff.source.last,
-
-                # AXI Stream Master
-                o_M_AXIS_TDATA  = self.source.data,
-                i_M_AXIS_TREADY = self.source.ready,
-                o_M_AXIS_TVALID = self.source.valid,
-
-                # Mode Settings.
-                i_CH_EN         = ch_en,
-            ),
             MultiReg(fpgacfg_manager.tx_en,       reset_n,          odomain="lms_tx"),
             MultiReg(fpgacfg_manager.trxiq_pulse, trxiqpulse,       odomain="lms_tx"),
             MultiReg(fpgacfg_manager.ddr_en,      ddr_en,           odomain="lms_tx"),
@@ -247,15 +251,27 @@ class TXPath(LiteXModule):
             ),
         ]
 
-        self.add_sources(platform)
+    def do_finalize(self):
+        self.pct2data_buf_wr = add_vhd2v_converter(self.platform,
+            top    = "PCT2DATA_BUF_WR",
+            params = self.pct2data_buf_wr_params,
+            files  = ["gateware/LimeDFB/tx_path_top/src/pct2data_buf_wr.vhd"],
+        )
 
-    def add_sources(self, platform):
-        general_periph_files = [
-            "gateware/LimeDFB/tx_path_top/src/pct2data_buf_rd.vhd",
-            "gateware/LimeDFB/tx_path_top/src/pct2data_buf_wr.vhd",
-            "gateware/LimeDFB/tx_path_top/src/sample_padder.vhd",
-            "gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd",
-        ]
+        self.pct2data_buf_rd = add_vhd2v_converter(self.platform,
+            top    = "PCT2DATA_BUF_RD",
+            params = self.pct2data_buf_rd_params,
+            files  = ["gateware/LimeDFB/tx_path_top/src/pct2data_buf_rd.vhd"],
+        )
 
-        for file in general_periph_files:
-            platform.add_source(file)
+        self.sample_padder = add_vhd2v_converter(self.platform,
+            top    = "sample_padder",
+            params = self.sample_padder_params,
+            files  = ["gateware/LimeDFB/tx_path_top/src/sample_padder.vhd"],
+        )
+
+        self.sample_unpack = add_vhd2v_converter(self.platform,
+            top    = "SAMPLE_UNPACK",
+            params = self.sample_unpack_params,
+            files  = ["gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd"],
+        )
