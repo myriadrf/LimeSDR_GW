@@ -121,6 +121,7 @@ class BaseSoC(SoCCore):
         # Platform ---------------------------------------------------------------------------------
         platform      = limesdr_mini_v2.Platform(toolchain=toolchain)
         platform.name = "limesdr_mini_v2"
+        platform.vhd2v_force = True
 
         # SoCCore ----------------------------------------------------------------------------------
         assert cpu_type in ["picorv32", "fazyrv", "firev"]

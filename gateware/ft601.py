@@ -355,7 +355,7 @@ class FT601(LiteXModule):
             top_entity    = "FT601_arb",
             build_dir     = os.path.abspath(output_dir),
             work_package  = "work",
-            force_convert = True,
+            force_convert = LiteXContext.platform.vhd2v_force,
             params        = self.ft601_arbiter_params,
             add_instance  = True,
         )
@@ -365,7 +365,7 @@ class FT601(LiteXModule):
             top_entity    = "FT601",
             build_dir     = os.path.abspath(output_dir),
             work_package  = "work",
-            force_convert = True,
+            force_convert = LiteXContext.platform.vhd2v_force,
             params        = self.ft601_params,
             add_instance  = True,
         )

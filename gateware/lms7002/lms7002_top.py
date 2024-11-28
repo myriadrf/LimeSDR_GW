@@ -436,7 +436,7 @@ class LMS7002Top(LiteXModule):
             top_entity    = "delay_ctrl_top",
             build_dir     = os.path.abspath(self.platform.output_dir),
             work_package  = "work",
-            force_convert = True,
+            force_convert = LiteXContext.platform.vhd2v_force,
             params        = self.delay_ctrl_top_params,
             add_instance  = True,
         )
