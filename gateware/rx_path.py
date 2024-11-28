@@ -202,7 +202,9 @@ class RXPath(LiteXModule):
 
         if M_AXIS_IQPACKET_BUFFER_WORDS > 0:
             # FIFO before Converter
-            fifo_iqpacket      = ResetInserter()(ClockDomainsRenamer("lms_rx")(stream.SyncFIFO([("data", 128)], M_AXIS_IQPACKET_BUFFER_WORDS)))
+            fifo_iqpacket      = ResetInserter()(ClockDomainsRenamer("lms_rx")(stream.SyncFIFO([("data", 128)],
+                depth    = M_AXIS_IQPACKET_BUFFER_WORDS,
+                buffered = True)))
             self.fifo_iqpacket = fifo_iqpacket
 
             self.comb += [
