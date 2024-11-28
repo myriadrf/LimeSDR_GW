@@ -164,7 +164,6 @@ class RXPath(LiteXModule):
                 i_S_AXIS_IQSMPLS_ARESETN  = inst5_reset_n,
                 i_S_AXIS_IQSMPLS_TVALID   = iqsmpls_fifo.source.valid,
                 i_S_AXIS_IQSMPLS_TREADY   = iqsmpls_fifo.source.ready,
-                i_S_AXIS_IQSMPLS_TDATA    = iqsmpls_fifo.source.data,
                 i_S_AXIS_IQSMPLS_TLAST    = iqsmpls_fifo.source.last,
 
                 # Mode settings.
@@ -235,8 +234,6 @@ class RXPath(LiteXModule):
             "gateware/LimeDFB/rx_path_top/src/pack_56_to_64.vhd",
             "gateware/LimeDFB/rx_path_top/src/rx_path_top.py",
             "gateware/LimeDFB/rx_path_top/src/rx_path_top.vhd",
-
-            "gateware/LimeDFB/axis/src/axis_pkg.vhd",
         ]
 
         for file in general_periph_files:

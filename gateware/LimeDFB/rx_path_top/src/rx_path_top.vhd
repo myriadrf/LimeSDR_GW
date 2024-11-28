@@ -65,7 +65,6 @@
 library ieee;
    use ieee.std_logic_1164.all;
    use ieee.numeric_std.all;
-   use work.axis_pkg.all;
 
 -- ----------------------------------------------------------------------------
 -- Entity declaration
@@ -84,7 +83,6 @@ entity RX_PATH_TOP is
       S_AXIS_IQSMPLS_ARESETN  : in    std_logic;                     --!
       S_AXIS_IQSMPLS_TVALID   : in    std_logic;                     --!
       S_AXIS_IQSMPLS_TREADY   : in    std_logic;                     --! Indicates when FIFO comes out of reset. Slave can allways accept data
-      S_AXIS_IQSMPLS_TDATA    : in    std_logic_vector(127 downto 0); --!
       S_AXIS_IQSMPLS_TLAST    : in    std_logic;                     --! @end
       -- Configuration ports
       --! @virtualbus CFG @dir in Configuration signals
@@ -109,8 +107,6 @@ architecture ARCH of RX_PATH_TOP is
    -- declare signals,  components here
 
    -- CHECKME: Unconstrainted Records do not seems supported by Quartus...
-
-   signal axis_iqsmpls_fifo  : t_AXI_STREAM_128b;
 
    signal sample_nr_counter            : unsigned(63 downto 0);
    signal bitpacked_sample_nr_counter  : unsigned(63 downto 0);
@@ -138,13 +134,6 @@ begin
 
    end process SAMPLE_CNT_PROC;
 
-   axis_iqsmpls_fifo.tvalid <= S_AXIS_IQSMPLS_TVALID;
-   axis_iqsmpls_fifo.tready <= S_AXIS_IQSMPLS_TREADY;
-   axis_iqsmpls_fifo.tdata  <= S_AXIS_IQSMPLS_TDATA;
-   axis_iqsmpls_fifo.tkeep  <= (others => '1');
-   axis_iqsmpls_fifo.tlast  <= S_AXIS_IQSMPLS_TLAST;
-
-
    -- ----------------------------------------------------------------------------
    -- Sample counter dedicated for forming RX packets
    -- ----------------------------------------------------------------------------
@@ -158,10 +147,10 @@ begin
             bitpacked_sample_nr_counter <= (others => '0');
          elsif (SMPL_NR_LD='1') then
             bitpacked_sample_nr_counter <= unsigned(SMPL_NR_IN);
-         -- elsif (axis_iqsmpls_fifo.tvalid='1' and axis_iqsmpls_fifo.tlast='1' and axis_iqsmpls_fifo.tready ='1') then
-         elsif (axis_iqsmpls_fifo.tvalid='1' and axis_iqsmpls_fifo.tready ='1') then
+         -- elsif (S_AXIS_IQSMPLS_TVALID='1' and S_AXIS_IQSMPLS_TLAST='1' and S_AXIS_IQSMPLS_TREADY ='1') then
+         elsif (S_AXIS_IQSMPLS_TVALID='1' and S_AXIS_IQSMPLS_TREADY ='1') then
             if (CFG_SMPL_WIDTH = "10") then -- 12 bit format
-               if (axis_iqsmpls_fifo.tlast='1') then -- 12 bit format needs tlatst signal for correct count
+               if (S_AXIS_IQSMPLS_TLAST='1') then -- 12 bit format needs tlatst signal for correct count
                   -- If both channels are enabled in one frame we have packed 8 samples for each A and B channel
                   if (CFG_CH_EN = "11") then
                      bitpacked_sample_nr_counter <= bitpacked_sample_nr_counter + 8;
