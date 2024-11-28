@@ -43,8 +43,6 @@ class RXTXTop(LiteXModule):
 
         self.platform              = platform
 
-        self.stream_fifo           = FIFOInterface(TX_IN_PCT_DATA_W, 64, TX_IN_PCT_RDUSEDW_W, RX_PCT_BUFF_WRUSEDW_W)
-
         self.rx_pct_fifo_aclrn_req = Signal()
         self.rx_en                 = Signal()
 
@@ -95,11 +93,6 @@ class RXTXTop(LiteXModule):
             tx_path.pct_loss_flg_clr.eq( rx_path.pct_hdr_cap),
             tx_path.rx_sample_nr.eq(     rx_path.smpl_nr_cnt),
             rx_path.tx_pct_loss_flg.eq(  tx_path.pct_loss_flg),
-
-            # FIFO -> TX
-            self.stream_fifo.rd.eq(      tx_path.sink.ready),
-            tx_path.sink.data.eq( self.stream_fifo.rdata),
-            tx_path.sink.valid.eq(~self.stream_fifo.empty),
 
             # RX -> FIFO
             self.rx_pct_fifo_aclrn_req.eq(rx_path.rx_pct_fifo_aclrn_req),
