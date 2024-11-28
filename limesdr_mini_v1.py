@@ -100,7 +100,7 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=80e6, cpu_type="vexriscv", toolchain="quartus", with_rx_tx_top=False,
+    def __init__(self, sys_clk_freq=80e6, cpu_type="vexriscv", toolchain="quartus", with_rx_tx_top=True,
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
@@ -125,7 +125,7 @@ class BaseSoC(SoCCore):
             ident_version            = True,
             cpu_type                 = cpu_type,
             cpu_variant              = cpu_variant,
-            integrated_rom_size      = 0x8000,
+            integrated_rom_size      = 0x6800,
             integrated_sram_ram_size = 0x0200,
             #integrated_main_ram_size = 0x3800,
             #integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
@@ -380,7 +380,7 @@ def main():
             assert args.with_uartbone
             soc.add_ft601_ctrl_probe()
         # Builder.
-        builder = Builder(soc, csr_csv="csr.csv")
+        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
         # Firmware build.
         #if prepare:
