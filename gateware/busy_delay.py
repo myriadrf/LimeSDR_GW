@@ -5,13 +5,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import os
-
 from migen import *
 
 from litex.gen import *
 
-from litex.build.vhd2v_converter import VHD2VConverter
+from gateware.common import add_vhd2v_converter
 
 # Busy Delay ---------------------------------------------------------------------------------------
 
@@ -47,12 +45,5 @@ class BusyDelay(LiteXModule):
         )
 
     def do_finalize(self):
-        self.busy_delay = VHD2VConverter(self.platform,
-            top_entity    = "busy_delay",
-            build_dir     = os.path.join(os.path.abspath(self.platform.output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.busy_delay_params,
-            add_instance  = True,
-        )
-        self.busy_delay.add_source("gateware/hdl/general/busy_delay.vhd")
+        files           = ["gateware/hdl/general/busy_delay.vhd"]
+        self.busy_delay = add_vhd2v_converter(self.platform, "busy_delay", self.busy_delay_params, files)
