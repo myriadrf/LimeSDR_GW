@@ -81,7 +81,7 @@ _io = [
             "B12  H8  E9  B2  D9  J9  A9  H9",
             " A7  F8  A6 E10  A5  F9  E8  A8",
             "K11 K12 J12 G12 L13 G13 J13 H13"
-        )),
+        ), Misc("FAST_OUTPUT_REGISTER ON")),
         Subsignal("BE", Pins("B11 C12 A12 B13")),
         Subsignal("RXFn", Pins("C11")),
         Subsignal("TXEn", Pins("C13")),
@@ -112,6 +112,7 @@ _io = [
         Subsignal("FCLK2",         Pins("M3")),
 
         # IOStandard/Slew Rate.
+        Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\""),
         IOStandard("2.5 V")
     ),
 
@@ -144,6 +145,15 @@ class Platform(AlteraPlatform):
         self.add_platform_command("set_global_assignment -name AUTO_RESTART_CONFIGURATION ON")
         self.add_platform_command("set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF")
         self.add_platform_command("set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF")
+        self.add_platform_command("set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0")
+        self.add_platform_command("set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85")
+        self.add_platform_command("set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256")
+        self.add_platform_command("set_global_assignment -name ENABLE_OCT_DONE OFF")
+        self.add_platform_command("set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF")
+        self.add_platform_command("set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF")
+        self.add_platform_command("set_global_assignment -name USE_CONFIGURATION_DEVICE OFF")
+        self.add_platform_command("set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF")
+        self.add_platform_command("set_global_assignment -name RESERVE_ALL_UNUSED_PINS_WEAK_PULLUP \"AS INPUT TRI-STATED\"")
         self.add_platform_command("set_global_assignment -name INTERNAL_FLASH_UPDATE_MODE \"SINGLE IMAGE WITH ERAM\"") # CHECKME/Adapt.
 
     def create_programmer(self):
