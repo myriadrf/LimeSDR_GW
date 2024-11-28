@@ -212,70 +212,72 @@ class LMS7002Top(LiteXModule):
 
         # lms7002_rx.
         # -----------
-        self.specials += [
-            Instance("smpl_cmp",
-                # Parameters.
-                p_smpl_width    = diq_width,
+        self.smpl_cmp_params = dict()
+        self.smpl_cmp_params.update(
+            # Parameters.
+            p_smpl_width    = diq_width,
 
-                # Clk/Reset.
-                i_clk           = ClockSignal("lms_rx"),
-                i_reset_n       = smpl_cmp_en,
+            # Clk/Reset.
+            i_clk           = ClockSignal("lms_rx"),
+            i_reset_n       = smpl_cmp_en,
 
-                # Mode settings
-                i_mode          = rx_mode,
-                i_trxiqpulse    = rx_trxiqpulse,
-                i_ddr_en        = rx_ddr_en,
-                i_mimo_en       = rx_mimo_en,
-                i_ch_en         = rx_ch_en,
-                i_fidm          = Constant(0, 1),
+            # Mode settings
+            i_mode          = rx_mode,
+            i_trxiqpulse    = rx_trxiqpulse,
+            i_ddr_en        = rx_ddr_en,
+            i_mimo_en       = rx_mimo_en,
+            i_ch_en         = rx_ch_en,
+            i_fidm          = Constant(0, 1),
 
-                # Control signals
-                i_cmp_start     = smpl_cmp_en,
-                i_cmp_length    = smpl_cmp_length,
-                i_cmp_AI        = Constant(0xAAA, diq_width),
-                i_cmp_AQ        = Constant(0x555, diq_width),
-                i_cmp_BI        = Constant(0xAAA, diq_width),
-                i_cmp_BQ        = Constant(0x555, diq_width),
-                o_cmp_done      = smpl_cmp_done,
-                o_cmp_error     = smpl_cmp_error,
-                o_cmp_error_cnt = Open(16),
+            # Control signals
+            i_cmp_start     = smpl_cmp_en,
+            i_cmp_length    = smpl_cmp_length,
+            i_cmp_AI        = Constant(0xAAA, diq_width),
+            i_cmp_AQ        = Constant(0x555, diq_width),
+            i_cmp_BI        = Constant(0xAAA, diq_width),
+            i_cmp_BQ        = Constant(0x555, diq_width),
+            o_cmp_done      = smpl_cmp_done,
+            o_cmp_error     = smpl_cmp_error,
+            o_cmp_error_cnt = Open(16),
 
-                # DIQ bus.
-                i_diq_h         = self.lms7002_rxiq.rx_diq2_h,
-                i_diq_l         = self.lms7002_rxiq.rx_diq2_l,
-            ),
-            Instance("diq2fifo",
-                # Parameters.
-                p_iq_width       = diq_width,
-                p_invert_input_clocks = "OFF",
-                # Clk/Reset.
-                i_clk            = ClockSignal("lms_rx"),
-                i_reset_n        = rx_reset_n,
-                # Mode settings
-                i_test_ptrn_en   = rx_ptrn_en,
-                i_mode           = rx_mode,        # JESD207: 1; TRXIQ: 0
-                i_trxiqpulse     = rx_trxiqpulse,  # trxiqpulse on: 1; trxiqpulse off: 0
-                i_ddr_en         = rx_ddr_en,      # DDR: 1; SDR: 0
-                i_mimo_en        = rx_mimo_en,     # SISO: 1; MIMO: 0
-                i_ch_en          = rx_ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
-                i_fidm           = Constant(0, 1), # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
-                # Rx interface data
-                i_rx_diq2_h      = self.lms7002_rxiq.rx_diq2_h,
-                i_rx_diq2_l      = self.lms7002_rxiq.rx_diq2_l,
+            # DIQ bus.
+            i_diq_h         = self.lms7002_rxiq.rx_diq2_h,
+            i_diq_l         = self.lms7002_rxiq.rx_diq2_l,
+        )
 
-                # AXI Stream Master Interface.
-                o_m_axis_tdata   = self.source.data,
-                o_m_axis_tkeep   = self.source.keep,
-                o_m_axis_tvalid  = self.source.valid,
-                o_m_axis_tlast   = self.source.last,
-                i_m_axis_tready  = self.source.ready,
+        self.diq2fifo_params = dict()
+        self.diq2fifo_params.update(
+            # Parameters.
+            p_iq_width       = diq_width,
+            p_invert_input_clocks = "OFF",
+            # Clk/Reset.
+            i_clk            = ClockSignal("lms_rx"),
+            i_reset_n        = rx_reset_n,
+            # Mode settings
+            i_test_ptrn_en   = rx_ptrn_en,
+            i_mode           = rx_mode,        # JESD207: 1; TRXIQ: 0
+            i_trxiqpulse     = rx_trxiqpulse,  # trxiqpulse on: 1; trxiqpulse off: 0
+            i_ddr_en         = rx_ddr_en,      # DDR: 1; SDR: 0
+            i_mimo_en        = rx_mimo_en,     # SISO: 1; MIMO: 0
+            i_ch_en          = rx_ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
+            i_fidm           = Constant(0, 1), # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+            # Rx interface data
+            i_rx_diq2_h      = self.lms7002_rxiq.rx_diq2_h,
+            i_rx_diq2_l      = self.lms7002_rxiq.rx_diq2_l,
 
-                # sample compare
-                i_smpl_cmp_start  = smpl_cmp_en,
-                ## sample counter enable
-                o_smpl_cnt_en     = self.smpl_cnt_en,
-            )
-        ]
+            # AXI Stream Master Interface.
+            o_m_axis_tdata   = self.source.data,
+            o_m_axis_tkeep   = self.source.keep,
+            o_m_axis_tvalid  = self.source.valid,
+            o_m_axis_tlast   = self.source.last,
+            i_m_axis_tready  = self.source.ready,
+
+            # sample compare
+            i_smpl_cmp_start = smpl_cmp_en,
+            ## sample counter enable
+            o_smpl_cnt_en    = self.smpl_cnt_en,
+        )
+
         self.specials += [
             MultiReg(fpgacfg_manager.rx_en,       rx_reset_n,      odomain="lms_rx"),
             MultiReg(fpgacfg_manager.rx_ptrn_en,  rx_ptrn_en,      odomain="lms_rx"),
@@ -413,15 +415,9 @@ class LMS7002Top(LiteXModule):
 
     def add_source(self, platform):
         lms7002_files = [
-            # RX
-            "gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd",
-            "gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd",
-            #"gateware/LimeDFB/lms7002/src/smpl_cmp.vhd",
-            "gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd",
-            "gateware/LimeDFB/lms7002/src/lms7002_rx.vhd",
-
             # TX
             "gateware/LimeDFB/lms7002/src/lms7002_tx.vhd",
+            "gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd",
 
             # TX-IQ-Mux.
             "gateware/hdl/txiqmux/synth/txiq_tst_ptrn.vhd",
@@ -434,6 +430,34 @@ class LMS7002Top(LiteXModule):
     def do_finalize(self):
         output_dir = self.platform.output_dir
 
+        # RX.
+        # ---
+
+        # Smpl CMP.
+        self.smpl_cmp = VHD2VConverter(self.platform,
+            top_entity    = "smpl_cmp",
+            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
+            work_package  = "work",
+            force_convert = LiteXContext.platform.vhd2v_force,
+            params        = self.smpl_cmp_params,
+            add_instance  = True,
+            files         = ["gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd"],
+        )
+
+        # DIQ2FIFO.
+        self.diq2fifo = VHD2VConverter(self.platform,
+            top_entity    = "diq2fifo",
+            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
+            work_package  = "work",
+            force_convert = LiteXContext.platform.vhd2v_force,
+            params        = self.diq2fifo_params,
+            add_instance  = True,
+        )
+        self.diq2fifo.add_source("gateware/LimeDFB/lms7002/src/lms7002_rx.vhd")
+        self.diq2fifo.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd")
+        self.diq2fifo.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd")
+
+        # Delay Ctrl.
         self.delay_ctrl_top = VHD2VConverter(self.platform,
             top_entity    = "delay_ctrl_top",
             build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
