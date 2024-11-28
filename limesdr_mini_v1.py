@@ -241,8 +241,8 @@ class BaseSoC(SoCCore):
 
         self.comb += [
             self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
-            self.general_periph.ep03_active.eq(self.ft601.stream_fifo.rd_active),
-            self.general_periph.ep83_active.eq(self.ft601.stream_fifo.wr_active),
+            self.general_periph.ep03_active.eq(self.ft601.rd_active),
+            self.general_periph.ep83_active.eq(self.ft601.wr_active),
         ]
 
         # RXTX Top ---------------------------------------------------------------------------------
@@ -273,14 +273,10 @@ class BaseSoC(SoCCore):
 
                 # LMS7002 <-> RXTX Top.
                 self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
-                self.lms7002_top.source.connect(     self.rxtx_top.rx_path.sink),
-                self.rxtx_top.tx_path.source.connect(self.lms7002_top.sink),
 
                 # FT601 <-> RXTX Top.
                 self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
                 self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.rxtx_top.rx_en),
-                self.rxtx_top.stream_fifo.connect(self.ft601.stream_fifo),
-                self.rxtx_top.rx_path.source.connect(self.ft601.sink),
 
                 # General Periph <-> RXTX Top.
                 self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_path.tx_txant_en),
@@ -288,6 +284,20 @@ class BaseSoC(SoCCore):
                 # General Periph <-> LMS7002
                 self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
             ]
+
+            # LMS7002 -> RX Path -> FT601 Pipeline.
+            self.rx_pipeline = stream.Pipeline(
+                self.lms7002_top.source,
+                self.rxtx_top.rx_path,
+                self.ft601.sink,
+            )
+
+            # FT601 -> TX Path -> LMS7002 Pipeline.
+            self.tx_pipeline = stream.Pipeline(
+                self.ft601.source,
+                self.rxtx_top.tx_path,
+                self.lms7002_top.sink,
+            )
 
         # RF Switches ------------------------------------------------------------------------------
 
