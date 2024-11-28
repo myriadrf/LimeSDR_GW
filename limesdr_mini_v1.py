@@ -100,7 +100,7 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=80e6, cpu_type="picorv32", toolchain="quartus", with_rx_tx_top=True,
+    def __init__(self, sys_clk_freq=80e6, cpu_type="vexriscv", toolchain="quartus", with_rx_tx_top=False,
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
@@ -111,9 +111,10 @@ class BaseSoC(SoCCore):
         platform.name = "limesdr_mini_v1"
 
         # SoCCore ----------------------------------------------------------------------------------
-        assert cpu_type in ["picorv32", "fazyrv", "firev"]
+        assert cpu_type in ["vexriscv", "picorv32", "fazyrv", "firev"]
 
         cpu_variant = {
+            "vexriscv" : "minimal",
             "picorv32" : "minimal",
             "fazyrv"   : "standard",
             "firev"    : "standard",
@@ -126,8 +127,8 @@ class BaseSoC(SoCCore):
             cpu_variant              = cpu_variant,
             integrated_rom_size      = 0x8000,
             integrated_sram_ram_size = 0x0200,
-            integrated_main_ram_size = 0x3800,
-            integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
+            #integrated_main_ram_size = 0x3800,
+            #integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
             with_uartbone            = with_uartbone,
             uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
@@ -372,7 +373,7 @@ def main():
             toolchain      = "quartus",
             with_uartbone  = args.with_uartbone,
             with_spi_flash = args.with_spi_flash,
-            cpu_firmware   = None if prepare else "firmware/firmware.bin",
+            #cpu_firmware   = None if prepare else "firmware/firmware.bin",
         )
         # LiteScope Analyzer Probes.
         if args.with_ft601_ctrl_probe:
@@ -382,8 +383,8 @@ def main():
         builder = Builder(soc, csr_csv="csr.csv")
         builder.build(run=build)
         # Firmware build.
-        if prepare:
-            os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
+        #if prepare:
+        #    os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
 
     # Load Bistream.
     if args.load:
