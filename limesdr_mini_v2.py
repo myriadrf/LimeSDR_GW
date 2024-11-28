@@ -110,7 +110,9 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=77.5e6, cpu_type="picorv32", toolchain="diamond", with_rx_tx_top=True,
+    def __init__(self, sys_clk_freq=77.5e6, cpu_type="picorv32", toolchain="diamond",
+        with_bios      = False,
+        with_rx_tx_top = True,
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
@@ -129,15 +131,27 @@ class BaseSoC(SoCCore):
             "firev"    : "standard",
         }[cpu_type]
 
+        if with_bios:
+            integrated_rom_size      = 0x6800
+            integrated_rom_init      = []
+            integrated_main_ram_size = 0x3800
+            integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+        else:
+            integrated_rom_size      = 0x3800
+            integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+            integrated_main_ram_size = 0
+            integrated_main_ram_init = []
+
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
             ident_version            = True,
             cpu_type                 = cpu_type,
             cpu_variant              = cpu_variant,
-            integrated_rom_size      = 0x6800,
+            integrated_rom_size      = integrated_rom_size,
+            integrated_rom_init      = integrated_rom_init,
             integrated_sram_ram_size = 0x0200,
-            integrated_main_ram_size = 0x3800,
-            integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little"),
+            integrated_main_ram_size = integrated_main_ram_size,
+            integrated_main_ram_init = integrated_main_ram_init,
             with_uartbone            = with_uartbone,
             uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
@@ -381,6 +395,7 @@ def main():
     parser.add_argument("--flash", action="store_true", help="Flash bitstream.")
 
     # SoC parameters.
+    parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
     parser.add_argument("--with-spi-flash", action="store_true", help="Enable SPI Flash (MMAPed).")
 
@@ -397,6 +412,7 @@ def main():
         # SoC.
         soc = BaseSoC(
             toolchain      = "diamond",
+            with_bios      = args.with_bios,
             with_uartbone  = args.with_uartbone,
             with_spi_flash = args.with_spi_flash,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
@@ -410,7 +426,11 @@ def main():
         builder.build(run=build)
         # Firmware build.
         if prepare:
-            os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} clean all")
+            linker = {
+                True  : "linker_main_ram.ld",
+                False : "linker_rom.ld",
+            }[args.with_bios]
+            os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} LINKER={linker} clean all")
 
     # Load Bistream.
     if args.load:

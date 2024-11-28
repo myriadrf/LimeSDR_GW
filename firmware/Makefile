@@ -1,4 +1,5 @@
-BUILD_DIR?=../build/limesdr_mini_v2
+BUILD_DIR ?=../build/limesdr_mini_v2
+LINKER    ?= linker_main_ram.ld
 
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
@@ -21,7 +22,7 @@ endif
 vpath %.a $(PACKAGES:%=../%)
 
 firmware.elf: $(OBJECTS)
-	$(CC) $(LDFLAGS) -T linker.ld -N -o $@ \
+	$(CC) $(LDFLAGS) -T $(LINKER) -N -o $@ \
 		$(OBJECTS) \
 		$(PACKAGES:%=-L$(BUILD_DIR)/software/%) \
 		-Wl,--whole-archive \
