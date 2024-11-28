@@ -234,21 +234,6 @@ class RXPath(LiteXModule):
                 fifo_conv,
                 self.source,
             )
-        #self.add_sources(platform)
-
-    #def add_sources(self, platform):
-    #    general_periph_files = [
-    #        #"gateware/LimeDFB/rx_path_top/src/iq_stream_combiner.vhd",
-    #        #"gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd",
-    #        #"gateware/LimeDFB/rx_path_top/src/bit_pack.vhd",
-    #        "gateware/LimeDFB/rx_path_top/src/data2packets_fsm.vhd",
-    #        #"gateware/LimeDFB/rx_path_top/src/pack_48_to_64.vhd",
-    #        #"gateware/LimeDFB/rx_path_top/src/pack_56_to_64.vhd",
-    #        "gateware/LimeDFB/rx_path_top/src/rx_path_top.vhd",
-    #    ]
-
-    #    for file in general_periph_files:
-    #        platform.add_source(file)
 
     def do_finalize(self):
         self.iq_stream_combiner = add_vhd2v_converter(self.platform,
