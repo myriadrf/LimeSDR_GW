@@ -353,7 +353,7 @@ class FT601(LiteXModule):
 
         self.ft601_arbiter_converter = VHD2VConverter(self.platform,
             top_entity    = "FT601_arb",
-            build_dir     = os.path.abspath(output_dir),
+            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
             work_package  = "work",
             force_convert = LiteXContext.platform.vhd2v_force,
             params        = self.ft601_arbiter_params,
@@ -363,7 +363,7 @@ class FT601(LiteXModule):
 
         self.ft601_converter = VHD2VConverter(self.platform,
             top_entity    = "FT601",
-            build_dir     = os.path.abspath(output_dir),
+            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
             work_package  = "work",
             force_convert = LiteXContext.platform.vhd2v_force,
             params        = self.ft601_params,

@@ -432,9 +432,11 @@ class LMS7002Top(LiteXModule):
             platform.add_source(file)
 
     def do_finalize(self):
+        output_dir = self.platform.output_dir
+
         self.delay_ctrl_top = VHD2VConverter(self.platform,
             top_entity    = "delay_ctrl_top",
-            build_dir     = os.path.abspath(self.platform.output_dir),
+            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
             work_package  = "work",
             force_convert = LiteXContext.platform.vhd2v_force,
             params        = self.delay_ctrl_top_params,
