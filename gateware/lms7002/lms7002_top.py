@@ -81,13 +81,7 @@ class LMS7002Top(LiteXModule):
         inst1_delayf_loadn  = Signal()
         inst1_delayf_move   = Signal()
 
-        tx_data_loadn       = Signal()
-        tx_data_move        = Signal()
-
         rx_reset_n          = Signal()
-
-        rx_data_loadn       = Signal()
-        rx_data_move        = Signal()
 
         rx_test_data_h      = Signal(diq_width + 1)
         rx_test_data_l      = Signal(diq_width + 1)
@@ -208,13 +202,6 @@ class LMS7002Top(LiteXModule):
             o_diq_l             = self.lms7002_txiq.tx_diq1_l,
         )
 
-        self.comb += [
-            # Delay control
-            self.lms7002_txiq.data_loadn.eq(    tx_data_loadn),
-            self.lms7002_txiq.data_move.eq(     tx_data_move),
-            self.lms7002_txiq.data_direction.eq(0),
-        ]
-
         self.specials += [
             MultiReg(fpgacfg_manager.rx_en,       tx_reset_n,      odomain="lms_tx"),
             MultiReg(fpgacfg_manager.tx_ptrn_en,  tx_ptrn_en,      odomain="lms_tx"),
@@ -229,11 +216,6 @@ class LMS7002Top(LiteXModule):
         # RX path (DIQ2). --------------------------------------------------------------------------
 
         self.lms7002_rxiq = ClockDomainsRenamer("lms_rx")(LMS7002RXIQ(platform, 12, pads))
-        self.comb += [
-            self.lms7002_rxiq.data_loadn.eq(    rx_data_loadn),
-            self.lms7002_rxiq.data_move.eq(     rx_data_move),
-            self.lms7002_rxiq.data_direction.eq(Constant(0, 1)),
-        ]
 
         self.rx_cdc = stream.ClockDomainCrossing([("data", 64), ("keep", 64 // 8)],
             cd_from = "lms_rx",
@@ -382,21 +364,23 @@ class LMS7002Top(LiteXModule):
             ),
             # lms7002_tx
             self.sink.connect(self.tx_cdc.sink, keep=["data", "ready", "last", "valid"]),
+            self.lms7002_txiq.data_direction.eq(0),
             If(self.delay_ctrl_sel == 0b01,
-                tx_data_loadn.eq(inst1_delayf_loadn),
-                tx_data_move.eq (inst1_delayf_move),
+                self.lms7002_txiq.data_loadn.eq(inst1_delayf_loadn),
+                self.lms7002_txiq.data_move.eq (inst1_delayf_move),
             ).Else(
-                tx_data_loadn.eq(1),
-                tx_data_move.eq (0),
+                self.lms7002_txiq.data_loadn.eq(1),
+                self.lms7002_txiq.data_move.eq (0),
             ),
             # lms7002_rx
             self.rx_cdc.source.connect(self.source),
+            self.lms7002_rxiq.data_direction.eq(Constant(0, 1)),
             If(self.delay_ctrl_sel == 0b11,
-                rx_data_loadn.eq(inst1_delayf_loadn),
-                rx_data_move.eq (inst1_delayf_move),
+                self.lms7002_rxiq.data_loadn.eq(inst1_delayf_loadn),
+                self.lms7002_rxiq.data_move.eq (inst1_delayf_move),
             ).Else(
-                rx_data_loadn.eq(1),
-                rx_data_move.eq (0),
+                self.lms7002_rxiq.data_loadn.eq(1),
+                self.lms7002_rxiq.data_move.eq (0),
             ),
         ]
 
