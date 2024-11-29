@@ -166,13 +166,13 @@ int FIFO_loopback_test(int base_addr)
 
 	//Reset FIFO
 	//printf("FIFO reset \n\n");
-	fifo_ctrl_fifo_control_write(1);
-	fifo_ctrl_fifo_control_write(0);
+	ft601_fifo_control_write(1);
+	ft601_fifo_control_write(0);
 	busy_wait(100);
 
-	while ((fifo_ctrl_fifo_status_read() & 0x2) != 0x2)
+	while ((ft601_fifo_status_read() & 0x2) != 0x2)
 	{
-		fifo_ctrl_fifo_wdata_write(fifo_wr_data);
+		ft601_fifo_wdata_write(fifo_wr_data);
 		//printf("FIFO Write: %#x \n", fifo_wr_data);
 		fifo_wr_data_array[fifo_wrcnt]=fifo_wr_data;
 		fifo_wrcnt++;
@@ -183,9 +183,9 @@ int FIFO_loopback_test(int base_addr)
 	//printf("FIFO Write counter: %d \n", fifo_wrcnt);
 
 	fifo_rd_cnt=0;
-	while (!(fifo_ctrl_fifo_status_read() & 0x1))
+	while (!(ft601_fifo_status_read() & 0x1))
 	{
-		fifo_val = fifo_ctrl_fifo_rdata_read();
+		fifo_val = ft601_fifo_rdata_read();
 		fifo_rd_data_array[fifo_rd_cnt] = fifo_val;
 		//busy_wait(100);
 		//printf("FIFO Read: %#x \n", fifo_val);
@@ -227,7 +227,7 @@ void getFifoData(uint8_t *buf, uint8_t k)
 #endif
 	for(cnt=0; cnt<k/sizeof(uint32_t); ++cnt)
 	{
-		fifo_val = fifo_ctrl_fifo_rdata_read();
+		fifo_val = ft601_fifo_rdata_read();
 #ifdef DEBUG_FIFO
 		printf("X%08lx ", fifo_val);
 #endif
@@ -570,8 +570,8 @@ int main(void)
     }
 #endif
     // RESET FIFO once on power-up
-	fifo_ctrl_fifo_control_write(1);
-	fifo_ctrl_fifo_control_write(0);
+	ft601_fifo_control_write(1);
+	ft601_fifo_control_write(0);
 
     //Reset LMS7
 	lms7002_top_lms_ctr_gpio_write(0x0);
@@ -634,7 +634,7 @@ int main(void)
 
 	while(1) {
 
-		spirez = fifo_ctrl_fifo_status_read();	// Read FIFO Status
+		spirez = ft601_fifo_status_read();	// Read FIFO Status
 
 		if(!(spirez & 0x01))
 		{
@@ -1279,8 +1279,8 @@ int main(void)
 			{
 				//dest_byte_reordered = ((dest[cnt] & 0x000000FF) <<24) | ((dest[cnt] & 0x0000FF00) <<8) | ((dest[cnt] & 0x00FF0000) >>8) | ((dest[cnt] & 0xFF000000) >>24);
 				dest_byte_reordered = dest[cnt];
-				fifo_ctrl_fifo_wdata_write(dest_byte_reordered);
-				//printf("%ld\n", fifo_ctrl_fifo_status_read());
+				ft601_fifo_wdata_write(dest_byte_reordered);
+				//printf("%ld\n", ft601_fifo_status_read());
 			};
 
 			//gpo_val = 0x0;

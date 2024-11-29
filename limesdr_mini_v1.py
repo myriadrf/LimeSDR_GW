@@ -40,7 +40,6 @@ from gateware.tst_top             import TstTop
 from gateware.general_periph      import GeneralPeriphTop
 from gateware.pllcfg              import PLLCfg
 from gateware.rxtx_top            import RXTXTop
-from gateware.fifo_ctrl_to_csr    import FIFOCtrlToCSR
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -191,9 +190,6 @@ class BaseSoC(SoCCore):
         # PLL Cfg ----------------------------------------------------------------------------------
         self.pllcfg = PLLCfg()
 
-        # FIFO Control -----------------------------------------------------------------------------
-        self.fifo_ctrl = FIFOCtrlToCSR(CTRL0_FPGA_RX_RWIDTH, CTRL0_FPGA_TX_WWIDTH)
-
         # FT601 ------------------------------------------------------------------------------------
         self.ft601 = FT601(self.platform, platform.request("FT"),
             FT_data_width      = FTDI_DQ_WIDTH,
@@ -209,11 +205,6 @@ class BaseSoC(SoCCore):
             EP83_wwidth        = STRM0_FPGA_TX_WWIDTH,
             EP83_wsize         = 2048,
         )
-
-        self.comb += [
-            self.ft601.ctrl_fifo_fpga_pc_reset_n.eq(~self.fifo_ctrl.fifo_reset),
-            self.fifo_ctrl.ctrl_fifo.connect(self.ft601.ctrl_fifo),
-        ]
 
         # LMS7002 Top ------------------------------------------------------------------------------
         self.lms7002_top = LMS7002Top(

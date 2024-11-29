@@ -21,6 +21,7 @@ from litex.gen import *
 
 from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect                import stream
+from litex.soc.interconnect.csr            import *
 
 from gateware.busy_delay import BusyDelay
 from gateware.common     import FIFOInterface
@@ -57,16 +58,34 @@ class FT601(LiteXModule):
 
         self.platform       = platform
 
-        self.ctrl_fifo      = FIFOInterface(EP02_rwidth, EP82_wwidth)
         self.sink           = AXIStreamInterface(EP83_wwidth, clock_domain="lmx_rx")
         self.source         = AXIStreamInterface(EP03_rwidth, clock_domain="lmx_tx")
 
-        self.ctrl_fifo_fpga_pc_reset_n   = Signal()
         self.stream_fifo_fpga_pc_reset_n = Signal()
         self.stream_fifo_pc_fpga_reset_n = Signal()
 
         self.wr_active       = Signal()
         self.rd_active       = Signal()
+
+        # Write FIFO.
+        self._fifo_wdata = CSRStorage(EP82_wwidth, description="FIFO Write Register.")
+
+        # Read FIFO.
+        self._fifo_rdata = CSRStatus(EP02_rwidth, description="FIFO Read Register.")
+
+        # Read/Write FIFO Status.
+        self._fifo_status  = CSRStatus(description="FIFO Status Register.", fields=[
+            CSRField("is_rdempty", size=1, offset=0, description="Read FIFO is empty."),
+            CSRField("is_wrfull",  size=1, offset=1, description="Write FIFO is full."),
+        ])
+
+        # FIFO Control.
+        self._fifo_control = CSRStorage(description="FIFO Control Register.", fields=[
+            CSRField("reset", size=1, offset=0, description="Reset Control (Active High).", values=[
+                ("``0b0``", "Normal Mode."),
+                ("``0b1``", "Reset Mode."),
+            ]),
+        ])
 
         # # #
 
@@ -81,19 +100,16 @@ class FT601(LiteXModule):
         be_i              = Signal(FT_be_width)
         be_oe             = Signal()
 
-        # EP02 fifo signals
-        EP02_empty        = Signal()
-
         # EP82 fifo signals
         EP82_fifo_rdreq   = Signal()
 
         # EP03 fifo signals
-        EP03_empty        = Signal()
-        EP03_wr           = Signal()
-        EP03_wdata        = Signal(FT_data_width)
+        #EP03_empty        = Signal()
+        #EP03_wr           = Signal()
+        #EP03_wdata        = Signal(FT_data_width)
         EP03_rdy          = Signal()
-        EP03_wr_cnt       = Signal(16)
-        EP03_fifo_wusedw  = Signal(11)
+        #EP03_wr_cnt       = Signal(16)
+        #EP03_fifo_wusedw  = Signal(11)
 
         # EP83 fifo signals
         EP83_fifo_rdusedw = Signal(FIFORD_SIZE(EP83_wwidth, FT_data_width, EP83_wrusedw_width))
@@ -150,9 +166,8 @@ class FT601(LiteXModule):
             self.EP03_conv.reset.eq(~sync_reg0[1]),
             self.EP03_fifo.reset.eq(~sync_reg0[1]),
 
-            self.EP03_sink.data.eq( EP03_wdata),
             self.EP03_sink.valid.eq(self.EP03_fifo_status.busy_in),
-            EP03_fifo_wusedw.eq(    self.EP03_fifo.level),
+            #EP03_fifo_wusedw.eq(    self.EP03_fifo.level),
         ]
 
         # Stream FPGA->PC.
@@ -210,7 +225,7 @@ class FT601(LiteXModule):
             i_EP82_fifo_rdusedw = self.EP82_fifo.level,
 
             # Stream EP PC->FPGA.
-            o_EP03_fifo_data    = EP03_wdata,
+            o_EP03_fifo_data    = self.EP03_sink.data,
             o_EP03_fifo_wr      = self.EP03_fifo_status.busy_in,
             i_EP03_fifo_wrempty = EP03_rdy,
 
@@ -287,18 +302,19 @@ class FT601(LiteXModule):
         self.comb += [
             # EP02 EP.
             # --------
-            self.EP02_fifo.re.eq(         self.ctrl_fifo.rd),
-            self.ctrl_fifo.rdata.eq(      self.EP02_fifo.dout),
-            self.ctrl_fifo.empty.eq(      ~self.EP02_fifo.readable),
+            self.EP02_fifo.re.eq(                  self._fifo_rdata.we),
+            self._fifo_rdata.status.eq(            self.EP02_fifo.dout),
+            self._fifo_status.fields.is_rdempty.eq(~self.EP02_fifo.readable),
 
             # EP82 EP.
             # --------
             # Reset
-            self.EP82_fifo.reset.eq(      ~self.ctrl_fifo_fpga_pc_reset_n),
+            self.EP82_fifo.reset.eq(              self._fifo_control.fields.reset),
             # Control -> AsyncFIFO
-            self.EP82_async_fifo.din.eq(   self.ctrl_fifo.wdata),
-            self.EP82_async_fifo.we.eq(    self.ctrl_fifo.wr),
-            self.ctrl_fifo.full.eq(        ~self.EP82_async_fifo.writable),
+            self.EP82_async_fifo.din.eq(          self._fifo_wdata.storage),
+            self.EP82_async_fifo.we.eq(           self._fifo_wdata.re),
+            self._fifo_status.fields.is_wrfull.eq(~self.EP82_async_fifo.writable),
+
             # AsyncFIFO -> SyncFIFO
             self.EP82_fifo.din.eq(         self.EP82_async_fifo.dout),
             self.EP82_fifo.we.eq(          self.EP82_async_fifo.readable),
@@ -336,12 +352,12 @@ class FT601(LiteXModule):
             ).Else(
                 sync_reg0.eq(Cat(1, sync_reg0[0]))
             ),
-            If(self.EP03_fifo_status.busy_in == 0b1,
-                EP03_wr_cnt.eq(EP03_wr_cnt+1),
-            ).Else(
-                EP03_wr_cnt.eq(0),
-            ),
-            If((~self.source.valid == 0b0) | (EP03_fifo_wusedw > 0),
+            #If(self.EP03_fifo_status.busy_in == 0b1,
+            #    EP03_wr_cnt.eq(EP03_wr_cnt+1),
+            #).Else(
+            #    EP03_wr_cnt.eq(0),
+            #),
+            If((~self.source.valid == 0b0) | (self.EP03_fifo.level > 0),
                 EP03_rdy.eq(0),
             ).Else(
                 EP03_rdy.eq(1),
