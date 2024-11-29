@@ -354,23 +354,6 @@ class BaseSoC(SoCCore):
         # Set VHDL standard to VHDL-2008.
         platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
 
-        # Add VHDL/Verilog files.
-        # FIXME: Move to LiteX modules using them.
-        vhd_files = [
-            # General.
-            # --------
-            "gateware/hdl/general/sync_reg.vhd",
-            "gateware/hdl/general/bus_sync_reg.vhd",
-            "gateware/hdl/general/busy_delay.vhd",
-
-            # SPI / CFG.
-            # ----------
-            "gateware/hdl/spi/mcfg_components.vhd",
-            "gateware/hdl/spi/tstcfg_pkg.vhd",
-        ]
-        for file in vhd_files:
-            platform.add_source(file)
-
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
     def add_ft601_ctrl_probe(self):
