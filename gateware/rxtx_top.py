@@ -31,18 +31,18 @@ class RXTXTop(LiteXModule):
         TX_IN_PCT_DATA_W       = 128,
         TX_IN_PCT_RDUSEDW_W    = 11,
         TX_OUT_PCT_DATA_W      = 64,
-        tx_s_clk_domain        = "tx_clk",
-        tx_int_clk_domain      = "tx_clk",
-        tx_m_clk_domain        = "tx_clk",
+        tx_s_clk_domain        = "lms_tx",
+        tx_int_clk_domain      = "lms_tx",
+        tx_m_clk_domain        = "lms_tx",
 
         # RX parameters
         RX_IQ_WIDTH            = 12,
         RX_INVERT_INPUT_CLOCKS = "OFF",
         RX_SMPL_BUFF_RDUSEDW_W = 11,
         RX_PCT_BUFF_WRUSEDW_W  = 12,
-        rx_s_clk_domain        = "rx_clk",
-        rx_int_clk_domain      = "rx_clk",
-        rx_m_clk_domain        = "rx_clk",
+        rx_s_clk_domain        = "lms_rx",
+        rx_int_clk_domain      = "lms_rx",
+        rx_m_clk_domain        = "lms_rx",
         ):
 
         assert fpgacfg_manager is not None
