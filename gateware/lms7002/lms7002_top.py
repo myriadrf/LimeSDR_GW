@@ -138,8 +138,6 @@ class LMS7002Top(LiteXModule):
         self.lms7002_txiq = ClockDomainsRenamer("lms_tx")(LMS7002TXIQ(platform, 12, pads))
         self.tx_cdc       = stream.ClockDomainCrossing([("data", 64)], cd_from=s_clk_domain, cd_to="lms_tx", depth=s_axis_tx_fifo_words)
 
-        self.comb += self.sink.connect(self.tx_cdc.sink, keep=["data", "ready", "last", "valid"])
-
         self.lms7002_tx_params = dict()
         self.lms7002_tx_params.update(
             # Parameters.
@@ -237,6 +235,12 @@ class LMS7002Top(LiteXModule):
             self.lms7002_rxiq.data_direction.eq(Constant(0, 1)),
         ]
 
+        self.rx_cdc = stream.ClockDomainCrossing([("data", 64), ("keep", 64 // 8)],
+            cd_from = "lms_rx",
+            cd_to   = m_clk_domain,
+            depth   = m_axis_rx_fifo_words,
+        )
+
         # lms7002_rx.
         # -----------
         self.smpl_cmp_params = dict()
@@ -313,11 +317,11 @@ class LMS7002Top(LiteXModule):
             i_test_data_l    = rx_test_data_l,
 
             # AXI Stream Master Interface.
-            o_m_axis_tdata   = self.source.data,
-            o_m_axis_tkeep   = self.source.keep,
-            o_m_axis_tvalid  = self.source.valid,
-            o_m_axis_tlast   = self.source.last,
-            i_m_axis_tready  = self.source.ready,
+            o_m_axis_tdata   = self.rx_cdc.sink.data,
+            o_m_axis_tkeep   = self.rx_cdc.sink.keep,
+            o_m_axis_tvalid  = self.rx_cdc.sink.valid,
+            o_m_axis_tlast   = self.rx_cdc.sink.last,
+            i_m_axis_tready  = self.rx_cdc.sink.ready,
 
             # sample compare
             i_smpl_cmp_start = smpl_cmp_en,
@@ -377,6 +381,7 @@ class LMS7002Top(LiteXModule):
                 inst0_move.eq (0),
             ),
             # lms7002_tx
+            self.sink.connect(self.tx_cdc.sink, keep=["data", "ready", "last", "valid"]),
             If(self.delay_ctrl_sel == 0b01,
                 tx_data_loadn.eq(inst1_delayf_loadn),
                 tx_data_move.eq (inst1_delayf_move),
@@ -385,6 +390,7 @@ class LMS7002Top(LiteXModule):
                 tx_data_move.eq (0),
             ),
             # lms7002_rx
+            self.rx_cdc.source.connect(self.source),
             If(self.delay_ctrl_sel == 0b11,
                 rx_data_loadn.eq(inst1_delayf_loadn),
                 rx_data_move.eq (inst1_delayf_move),
