@@ -106,7 +106,7 @@ class fpgacfg_csr(LiteXModule):
             self.compile_rev    = CSRStatus(16, reset=0xDEAD)
         else:
             self.major_rev      = CSRStatus(16, reset=2)
-            self.compile_rev    = CSRStatus(16, reset=19)
+            self.compile_rev    = CSRStatus(16, reset=20)
         self.channel_cntrl  = CSRStorage(fields=[
             CSRField("ch_en", size=2, offset=0, values=[
                 ("``2b01", "Channel A"),
@@ -289,14 +289,21 @@ class BaseSoC(SoCCore):
             cd          = "sys",
         )
         self.pcie_phy.update_config({
+            "pcie_id_if"               : "false",  #check this
+            "Bar0_64bit"               : "true",
+            "Bar0_Prefetchable"        : "false",
             "Base_Class_Menu"          : "Wireless_controller",
             "Sub_Class_Interface_Menu" : "RF_controller",
             "Class_Code_Base"          : "0D",
             "Class_Code_Sub"           : "10",
             "Revision_ID"              : "0001",
+            "MSI_64b"                  : "true",
+            "MSIx_Table_BIR"           : "BAR_1:0",
+            "MSIx_PBA_BIR"             : "BAR_1:0"
+
             }
         )
-        self.add_pcie(phy=self.pcie_phy, address_width=32, ndmas=1,
+        self.add_pcie(phy=self.pcie_phy, address_width=64, ndmas=1,
             with_dma_buffering    = True, dma_buffering_depth=8192,
             with_dma_loopback     = False,
             with_dma_synchronizer = False,
