@@ -52,14 +52,16 @@ class FT601(LiteXModule):
         EP83_wrusedw_width = 12,
         EP83_wwidth        = 64,
         EP83_wsize         = 2048, # packet size in bytes, has to be multiple of 4 bytes
+        m_clk_domain       = "lms_tx",
+        s_clk_domain       = "lms_rx"
         ):
 
         assert pads is not None
 
         self.platform       = platform
 
-        self.sink           = AXIStreamInterface(EP83_wwidth, clock_domain="lmx_rx")
-        self.source         = AXIStreamInterface(EP03_rwidth, clock_domain="lmx_tx")
+        self.sink           = AXIStreamInterface(EP83_wwidth, clock_domain=s_clk_domain)
+        self.source         = AXIStreamInterface(EP03_rwidth, clock_domain=m_clk_domain)
 
         self.stream_fifo_fpga_pc_reset_n = Signal()
         self.stream_fifo_pc_fpga_reset_n = Signal()
@@ -150,7 +152,7 @@ class FT601(LiteXModule):
         self.EP03_conv   = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(FT_data_width, EP03_rwidth)))
         self.EP03_cdc    = stream.ClockDomainCrossing([("data", EP03_rwidth)],
             cd_from         = "ft601",
-            cd_to           = "lms_tx",
+            cd_to           = m_clk_domain,
             with_common_rst = True,
         )
         self.EP03_pipeline  = stream.Pipeline(
@@ -179,7 +181,7 @@ class FT601(LiteXModule):
 
         self.EP83_sink = stream.Endpoint([("data", EP83_wwidth)])
         self.EP83_cdc  = stream.ClockDomainCrossing([("data", EP83_wwidth)],
-            cd_from         = "lms_rx",
+            cd_from         = s_clk_domain,
             cd_to           = "ft601",
             with_common_rst = True,
         )
@@ -352,11 +354,6 @@ class FT601(LiteXModule):
             ).Else(
                 sync_reg0.eq(Cat(1, sync_reg0[0]))
             ),
-            #If(self.EP03_fifo_status.busy_in == 0b1,
-            #    EP03_wr_cnt.eq(EP03_wr_cnt+1),
-            #).Else(
-            #    EP03_wr_cnt.eq(0),
-            #),
             If((~self.source.valid == 0b0) | (self.EP03_fifo.level > 0),
                 EP03_rdy.eq(0),
             ).Else(
