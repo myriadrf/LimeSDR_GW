@@ -109,9 +109,10 @@ class BaseSoC(SoCCore):
         **kwargs):
 
         # Platform ---------------------------------------------------------------------------------
-        platform      = limesdr_mini_v1.Platform(toolchain=toolchain)
-        platform.name = "limesdr_mini_v1"
+        platform             = limesdr_mini_v1.Platform(toolchain=toolchain)
+        platform.name        = "limesdr_mini_v1"
         platform.vhd2v_force = False
+        platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008") # Enable VHDL-2008 support.
 
         # SoCCore ----------------------------------------------------------------------------------
         assert cpu_type in ["vexriscv", "picorv32", "fazyrv", "firev"]
@@ -350,10 +351,6 @@ class BaseSoC(SoCCore):
         platform.toolchain.additional_sdc_commands.append("set_false_path -from [get_clocks LMS_MCLK2] -to [get_clocks LMS_MCLK2]")
         platform.toolchain.additional_sdc_commands.append("set_false_path -from [get_clocks LMS_MCLK2_VIRT] -to [get_clocks LMS_MCLK2]")
 
-        # HDL Sources ------------------------------------------------------------------------------
-        # Set VHDL standard to VHDL-2008.
-        platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
-
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
     def add_ft601_ctrl_probe(self):
@@ -384,11 +381,13 @@ class BaseSoC(SoCCore):
 # Build --------------------------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="LimeSDR-Mini-V1 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="LimeSDR-Mini-V2 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
     # Build/Load/Utilities.
-    parser.add_argument("--build", action="store_true", help="Build bitstream.")
-    parser.add_argument("--load",  action="store_true", help="Load bitstream.")
-    parser.add_argument("--flash", action="store_true", help="Flash bitstream.")
+    parser.add_argument("--build",     action="store_true", help="Build bitstream.")
+    parser.add_argument("--toolchain", default="quartus",   help="FPGA toolchain.", choices=["quartus"])
+    parser.add_argument("--load",      action="store_true", help="Load bitstream.")
+    parser.add_argument("--flash",     action="store_true", help="Flash bitstream.")
 
     # SoC parameters.
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
@@ -407,7 +406,7 @@ def main():
         build   = ((run == 1) & args.build)
         # SoC.
         soc = BaseSoC(
-            toolchain      = "quartus",
+            toolchain      = args.toolchain,
             with_bios      = args.with_bios,
             with_uartbone  = args.with_uartbone,
             with_spi_flash = args.with_spi_flash,

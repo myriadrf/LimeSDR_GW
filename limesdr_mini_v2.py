@@ -119,9 +119,11 @@ class BaseSoC(SoCCore):
         **kwargs):
 
         # Platform ---------------------------------------------------------------------------------
-        platform      = limesdr_mini_v2.Platform(toolchain=toolchain)
-        platform.name = "limesdr_mini_v2"
+        platform             = limesdr_mini_v2.Platform(toolchain=toolchain)
+        platform.name        = "limesdr_mini_v2"
         platform.vhd2v_force = True
+        if toolchain == "diamond":
+            platform.toolchain.additional_ldf_commands += ["prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True"] # Enable VHDL-2008 support.
 
         # SoCCore ----------------------------------------------------------------------------------
         assert cpu_type in ["vexriscv", "picorv32", "fazyrv", "firev"]
@@ -350,10 +352,6 @@ class BaseSoC(SoCCore):
             f.write("create_clock -name LMS_MCLK2 -period 8.000  [get_ports LMS_MCLK2]\n")
         self.platform.add_sdc(timings_sdc_filename)
 
-        # Set VHDL standard to VHDL-2008. ----------------------------------------------------------
-        if toolchain == "diamond" and not platform.vhd2v_force:
-            platform.toolchain.additional_ldf_commands += ["prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True"]
-
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
     def add_ft601_ctrl_probe(self):
@@ -385,14 +383,12 @@ class BaseSoC(SoCCore):
 
 def main():
     parser = argparse.ArgumentParser(description="LimeSDR-Mini-V2 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--toolchain", default="diamond", help="FPGA toolchain (trellis or diamond).", choices=[
-        "diamond",
-        "trellis",
-    ])
+
     # Build/Load/Utilities.
-    parser.add_argument("--build", action="store_true", help="Build bitstream.")
-    parser.add_argument("--load",  action="store_true", help="Load bitstream.")
-    parser.add_argument("--flash", action="store_true", help="Flash bitstream.")
+    parser.add_argument("--build",     action="store_true", help="Build bitstream.")
+    parser.add_argument("--toolchain", default="diamond",   help="Build toolchain.", choices=["diamond", "trellis"])
+    parser.add_argument("--load",      action="store_true", help="Load bitstream.")
+    parser.add_argument("--flash",     action="store_true", help="Flash bitstream.")
 
     # SoC parameters.
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
