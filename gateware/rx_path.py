@@ -28,14 +28,17 @@ class RXPath(LiteXModule):
         RX_PCT_BUFF_WRUSEDW_W        = 12,
         S_AXIS_IQSMPLS_BUFFER_WORDS  = 16,
         M_AXIS_IQPACKET_BUFFER_WORDS = 512,
+        int_clk_domain               = "lms_rx",
+        m_clk_domain                 = "lms_rx",
+        s_clk_domain                 = "lms_rx"
         ):
 
         assert fpgacfg_manager is not None
 
         self.platform              = platform
 
-        self.sink                  = AXIStreamInterface(64, clock_domain="lms_rx")
-        self.source                = AXIStreamInterface(64, clock_domain="lms_rx")
+        self.sink                  = AXIStreamInterface(64, clock_domain=s_clk_domain)
+        self.source                = AXIStreamInterface(64, clock_domain=m_clk_domain)
 
         self.rx_pct_fifo_aclrn_req = Signal()
 
@@ -56,7 +59,9 @@ class RXPath(LiteXModule):
         # --------
 
         # sync.
-        inst5_reset_n          = Signal()
+        s_clk_rst_n            = Signal()
+        m_clk_rst_n            = Signal()
+        int_clk_rst_n          = Signal()
         mimo_en                = Signal()
         ddr_en                 = Signal()
 
@@ -77,22 +82,15 @@ class RXPath(LiteXModule):
         bp_sample_nr_counter    = Signal(64)
         pkt_size                = Signal(15)
 
-        self.fifo_conv    = fifo_conv    = ResetInserter()(ClockDomainsRenamer("lms_rx")(stream.Converter(128, 64)))
-        self.iqsmpls_fifo = iqsmpls_fifo = ResetInserter()(ClockDomainsRenamer("lms_rx")(stream.SyncFIFO([("data", 128)], 16)))
+        self.fifo_conv    = fifo_conv    = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.Converter(128, 64)))
+        self.iqsmpls_fifo = iqsmpls_fifo = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.SyncFIFO([("data", 128)], 16)))
 
         self.comb += [
-            fifo_conv.reset.eq(           ~inst5_reset_n),
-            iqsmpls_fifo.reset.eq(        ~inst5_reset_n),
+            fifo_conv.reset.eq(           ~m_clk_rst_n),
+            iqsmpls_fifo.reset.eq(        ~s_clk_rst_n),
 
             # Packet Header 0
             pct_hdr_0.eq(Cat(Constant(0, 16), 0x060504030201)) # FIXME: 0:15: isn't 0 and 16:63 differs for XTRX
-        ]
-
-        self.specials += [
-            MultiReg(fpgacfg_manager.rx_en,       inst5_reset_n,              "lms_rx", reset=1),
-            MultiReg(inst5_reset_n,               self.rx_pct_fifo_aclrn_req, "lms_rx", reset=1),
-            MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,                    "lms_rx"),
-            MultiReg(fpgacfg_manager.ddr_en,      ddr_en,                     "lms_rx"),
         ]
 
         # AXI Stream packager (removes null bytes from axi stream)
@@ -102,8 +100,8 @@ class RXPath(LiteXModule):
         self.iq_stream_combiner_params = dict()
         self.iq_stream_combiner_params.update(
             # Clk/Reset.
-            i_CLK               = ClockSignal("lms_rx"), # S_AXIS_IQSMPLS_ACLK
-            i_RESET_N           = inst5_reset_n,         # S_AXIS_IQSMPLS_ARESETN
+            i_CLK               = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK
+            i_RESET_N           = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN
             # Mode Settings.
             i_ddr_en            = ddr_en,
             i_mimo_en           = mimo_en,
@@ -126,8 +124,8 @@ class RXPath(LiteXModule):
             p_G_PORT_WIDTH  = 64,
             #p_G_DISABLE_14BIT = false
             # Clk/Reset.
-            i_clk            = ClockSignal("lms_rx"), # S_AXIS_IQSMPLS_ACLK,
-            i_reset_n        = inst5_reset_n,         # S_AXIS_IQSMPLS_ARESETN,
+            i_clk            = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK,
+            i_reset_n        = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN,
             # AXI Stream Slave interface.
             i_data_in        = iq_to_bit_pack_tdata,
             i_data_in_valid  = iq_to_bit_pack_tvalid,
@@ -145,8 +143,8 @@ class RXPath(LiteXModule):
             p_G_DATA_WIDTH = 64,
 
             # Clk/Reset.
-            i_ACLK           = ClockSignal("lms_rx"), # S_AXIS_IQSMPLS_ACLK,
-            i_ARESET_N       = inst5_reset_n,         # S_AXIS_IQSMPLS_ARESETN,
+            i_ACLK           = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK,
+            i_ARESET_N       = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN,
             # AXIS Slave
             i_S_AXIS_TVALID = bit_pack_to_nto1_tvalid,
             o_S_AXIS_TREADY = Open(),
@@ -165,12 +163,12 @@ class RXPath(LiteXModule):
             p_G_M_AXIS_IQPACKET_BUFFER_WORDS = M_AXIS_IQPACKET_BUFFER_WORDS,
 
             # Clk/Reset.
-            i_CLK                     = ClockSignal("lms_rx"),
-            i_RESET_N                 = inst5_reset_n,
+            i_CLK                     = ClockSignal(int_clk_domain),
+            i_RESET_N                 = int_clk_rst_n,
 
             # AXI Stream Slave bus for IQ samples
-            i_S_AXIS_IQSMPLS_ACLK     = ClockSignal("lms_rx"),
-            i_S_AXIS_IQSMPLS_ARESETN  = inst5_reset_n,
+            i_S_AXIS_IQSMPLS_ACLK     = ClockSignal(s_clk_domain),
+            i_S_AXIS_IQSMPLS_ARESETN  = s_clk_rst_n,
             i_S_AXIS_IQSMPLS_TVALID   = iqsmpls_fifo.source.valid,
             i_S_AXIS_IQSMPLS_TREADY   = iqsmpls_fifo.source.ready,
             i_S_AXIS_IQSMPLS_TLAST    = iqsmpls_fifo.source.last,
@@ -191,8 +189,8 @@ class RXPath(LiteXModule):
         self.data2packets_fsm_params = dict()
         self.data2packets_fsm_params.update(
             # Clk/Reset.
-            i_ACLK               = ClockSignal("lms_rx"),
-            i_ARESET_N           = inst5_reset_n,
+            i_ACLK               = ClockSignal(int_clk_domain),
+            i_ARESET_N           = int_clk_rst_n,
             i_PCT_SIZE           = Constant(4096 // 16, 16), # 256 * 128b = 4096Bytes
             # PCT_HDR_0          = x"7766554433221100",
             i_PCT_HDR_0          = pct_hdr_0,
@@ -212,18 +210,24 @@ class RXPath(LiteXModule):
 
         if M_AXIS_IQPACKET_BUFFER_WORDS > 0:
             # FIFO before Converter
-            fifo_iqpacket      = ResetInserter()(ClockDomainsRenamer("lms_rx")(stream.SyncFIFO([("data", 128)],
+            fifo_iqpacket = ResetInserter()(ClockDomainsRenamer(int_clk_domain)(stream.SyncFIFO([("data", 128)],
                 depth    = M_AXIS_IQPACKET_BUFFER_WORDS,
                 buffered = True)))
             self.fifo_iqpacket = fifo_iqpacket
 
+            self.iqpacket_cdc = stream.ClockDomainCrossing([("data", 128)],
+                cd_from = int_clk_domain,
+                cd_to   = m_clk_domain,
+            )
+
             self.comb += [
-                fifo_iqpacket.reset.eq(~inst5_reset_n), # axis_iqmpls_areset_n
+                fifo_iqpacket.reset.eq(~int_clk_rst_n), # axis_iqmpls_areset_n
                 iqpacket_wr_data_count.eq(fifo_iqpacket.level),
             ]
             self.iqpacket_pipeline = stream.Pipeline(
                 iqpacket_axis,
                 fifo_iqpacket,
+                self.iqpacket_cdc,
                 fifo_conv,
                 self.source,
             )
@@ -234,6 +238,31 @@ class RXPath(LiteXModule):
                 fifo_conv,
                 self.source,
             )
+
+        # CDC. -------------------------------------------------------------------------------------
+        if s_clk_domain == "sys":
+            self.comb += [
+                s_clk_reset_n.eq(             fpgacfg_manager.rx_en),
+                self.rx_pct_fifo_aclrn_req.eq(s_clk_reset_n),
+                mimo_en.eq(                   fpgacfg_manager.mimo_int_en),
+                ddr_en.eq(                    fpgacfg_manager.ddr_en),
+            ]
+        else:
+            self.specials += [
+                MultiReg(fpgacfg_manager.rx_en,       s_clk_rst_n,                s_clk_domain, reset=1),
+                MultiReg(s_clk_rst_n,                 self.rx_pct_fifo_aclrn_req, s_clk_domain, reset=1),
+                MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,                    s_clk_domain),
+                MultiReg(fpgacfg_manager.ddr_en,      ddr_en,                     s_clk_domain),
+            ]
+        if int_clk_domain == "sys":
+            self.comb += int_clk_rst_n.eq(fpgacfg_manager.rx_en)
+        else:
+            self.specials += MultiReg(fpgacfg_manager.rx_en, int_clk_rst_n, int_clk_domain, reset=1),
+        if m_clk_domain == "sys":
+            self.comb += m_clk_rst_n.eq(fpgacfg_manager.rx_en)
+        else:
+            self.specials += MultiReg(fpgacfg_manager.rx_en, m_clk_rst_n, m_clk_domain, reset=1),
+
 
     def do_finalize(self):
         self.iq_stream_combiner = add_vhd2v_converter(self.platform,
