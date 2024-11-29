@@ -9,7 +9,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-LIBRARY altera; 
+--LIBRARY altera; 
 --USE altera.altera_primitives_components.all;
 
 -- ----------------------------------------------------------------------------

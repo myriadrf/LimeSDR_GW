@@ -363,7 +363,6 @@ class BaseSoC(SoCCore):
             # SPI / CFG.
             # ----------
             "gateware/hdl/spi/mcfg_components.vhd",
-            "gateware/hdl/spi/periphcfg_pkg.vhd",
             "gateware/hdl/spi/tstcfg_pkg.vhd",
         ]
         for file in vhd_files:

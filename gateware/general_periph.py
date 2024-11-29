@@ -11,6 +11,8 @@ from litex.gen import *
 
 from litex.soc.interconnect.csr import *
 
+from gateware.common            import add_vhd2v_converter
+
 # General Periph Top -------------------------------------------------------------------------------
 
 class GeneralPeriphTop(LiteXModule):
@@ -20,6 +22,8 @@ class GeneralPeriphTop(LiteXModule):
         egpio_pads    = None, egpio_len=2,
         add_csr       = True,
         ):
+
+        self.platform              = platform
 
         # to_periphcfg
         self.board_gpio_rd         = Signal(16)
@@ -63,7 +67,8 @@ class GeneralPeriphTop(LiteXModule):
 
         # General_periph_top wrapper (required due to record).
         # ----------------------------------------------------
-        self.specials += Instance("general_periph_top_wrapper",
+        self.general_periph_params = dict()
+        self.general_periph_params.update(
             # Parameters
             p_N_GPIO               = N_GPIO,
 
@@ -120,26 +125,8 @@ class GeneralPeriphTop(LiteXModule):
             o_fan_ctrl_out         = platform.request("FAN_CTRL"),
         )
 
-        self.add_sources(platform)
-
         if add_csr:
             self.add_csr()
-
-    def add_sources(self, platform):
-        general_periph_files = [
-            "gateware/hdl/general/alive.vhd",
-            "gateware/hdl/general/FPGA_LED_cntrl.vhd",
-            "gateware/hdl/general/FPGA_LED2_ctrl.vhd",
-            "gateware/hdl/general/FX3_LED_ctrl.vhd",
-            "gateware/hdl/general/gpio_ctrl_top.vhd",
-            "gateware/hdl/general/gpio_ctrl.vhd",
-            "gateware/hdl/general/general_pkg.vhd",
-            "gateware/hdl/general_periph/synth/general_periph_top.vhd",
-            "gateware/hdl/general_periph/synth/general_periph_top_wrapper.vhd",
-        ]
-
-        for file in general_periph_files:
-            platform.add_source(file)
 
     def add_csr(self):
         self._board_gpio_OVRD      = CSRStorage(16, reset=0xf) # 0
@@ -178,3 +165,22 @@ class GeneralPeriphTop(LiteXModule):
             self.fx3_led_ctrl.eq(             self._FX3_LED_CTRL.storage),
         ]
 
+    def do_finalize(self):
+        general_periph_files = [
+            "gateware/hdl/general/alive.vhd",
+            "gateware/hdl/general/FPGA_LED_cntrl.vhd",
+            "gateware/hdl/general/FPGA_LED2_ctrl.vhd",
+            "gateware/hdl/general/FX3_LED_ctrl.vhd",
+            "gateware/hdl/general/gpio_ctrl_top.vhd",
+            "gateware/hdl/general/gpio_ctrl.vhd",
+            "gateware/hdl/general/general_pkg.vhd",
+            "gateware/hdl/general_periph/synth/general_periph_top.vhd",
+            "gateware/hdl/general_periph/synth/general_periph_top_wrapper.vhd",
+            "gateware/hdl/spi/periphcfg_pkg.vhd",
+        ]
+
+        self.general_periph = add_vhd2v_converter(self.platform,
+            top    = "general_periph_top_wrapper",
+            params = self.general_periph_params,
+            files  = general_periph_files,
+        )
