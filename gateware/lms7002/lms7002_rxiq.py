@@ -14,7 +14,7 @@ from litex.build.io import DDRInput
 # LMS7002 RXIQ -------------------------------------------------------------------------------------
 
 class LMS7002RXIQ(LiteXModule):
-    def __init__(self, platform, iq_width=12, pads=None):
+    def __init__(self, platform, iq_width=12, pads=None, invert_input_clock=False):
         # Delay control
         self.data_loadn     = Signal()
         self.data_move      = Signal()
@@ -35,6 +35,9 @@ class LMS7002RXIQ(LiteXModule):
         datain_reg_l         = Signal(iq_width + 1)
         datain_reg_l_delayed = Signal(iq_width + 1)
         gen_delay_cflag      = Signal(iq_width + 1)
+
+        rx_diq2_h            = Signal(iq_width + 1)
+        rx_diq2_l            = Signal(iq_width + 1)
 
         for i in range(iq_width + 1):
             buf_datain   = Signal()
@@ -80,13 +83,30 @@ class LMS7002RXIQ(LiteXModule):
             # ------
             self.comb += datain.eq(Cat(pads.DIQ2_D, pads.ENABLE_IQSEL2))
 
-            # Internal registers
-            # Resync both on rising edge
-            self.sync.lms_rx += [
-                self.rx_diq2_h.eq(datain_h),
-                datain_reg_l.eq(  datain_l),
-                #- We need to delay data captured on falling edge, in order to allign samples
-                self.rx_diq2_l.eq(     datain_reg_l),
-            ]
+            if platform.name in ["limesdr_mini_v2"]:
+                # Internal registers
+                # Resync both on rising edge
+                self.sync.lms_rx += [
+                    rx_diq2_h.eq(   datain_h),
+                    datain_reg_l.eq(datain_l),
+                    #- We need to delay data captured on falling edge, in order to allign samples
+                    rx_diq2_l.eq(   datain_reg_l),
+                ]
+            else:
+                self.comb += [
+                    rx_diq2_h.eq(datain_h),
+                    rx_diq2_l.eq(datain_l),
+                ]
 
             self.comb += self.data_cflag.eq(Reduce("OR", gen_delay_cflag)) # OR all vector bits
+
+            if invert_input_clock:
+                self.comb += [
+                    self.rx_diq2_l.eq(rx_diq2_h),
+                    self.rx_diq2_h.eq(rx_diq2_l),
+                ]
+            else:
+                self.comb += [
+                    self.rx_diq2_h.eq(rx_diq2_h),
+                    self.rx_diq2_l.eq(rx_diq2_l),
+                ]
