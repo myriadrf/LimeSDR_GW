@@ -124,9 +124,12 @@ class BaseSoC(SoCCore):
         platform.vhd2v_force = True
 
         # SoCCore ----------------------------------------------------------------------------------
-        assert cpu_type in ["picorv32", "fazyrv", "firev"]
+        assert cpu_type in ["vexriscv", "picorv32", "fazyrv", "firev"]
+        if (cpu_type == "vexriscv") and (toolchain == "diamond"):
+            raise ValueError("VexRiscv is not supported with the Diamond toolchain (HDL implementation issues).")
 
         cpu_variant = {
+            "vexriscv" : "minimal",
             "picorv32" : "minimal",
             "fazyrv"   : "standard",
             "firev"    : "standard",
