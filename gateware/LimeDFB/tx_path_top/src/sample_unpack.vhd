@@ -185,15 +185,23 @@ begin
 
    process(all)
    begin
+     case data_counter is
+        when 0 =>
+           s_axi_data32 <= S_AXIS_TDATA(31 + (32 * 0) downto 0 + (32 * 0));
+        when 1 =>
+           s_axi_data32 <= S_AXIS_TDATA(31 + (32 * 1) downto 0 + (32 * 1));
+        when 2 =>
+           s_axi_data32 <= S_AXIS_TDATA(31 + (32 * 2) downto 0 + (32 * 2));
+        when others =>
+           s_axi_data32 <= S_AXIS_TDATA(31 + (32 * 3) downto 0 + (32 * 3));
+     end case;
      if data_counter = 0 then
-        s_axi_data32 <= S_AXIS_TDATA(15 downto 0) & S_AXIS_TDATA(31 downto 16);
         s_axi_data64 <=
                S_AXIS_TDATA(15 downto  0) & -- AI
                S_AXIS_TDATA(31 downto 16) & -- AQ
                S_AXIS_TDATA(47 downto 32) & -- BI
                S_AXIS_TDATA(63 downto 48);  -- BQ
      else
-        s_axi_data32 <= S_AXIS_TDATA(47 downto 32) & S_AXIS_TDATA(63 downto 48);
         s_axi_data64 <=
                S_AXIS_TDATA( 79 downto  64) & -- AI
                S_AXIS_TDATA( 95 downto  80) & -- AQ
