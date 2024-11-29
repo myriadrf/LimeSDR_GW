@@ -242,8 +242,8 @@ class RXPath(LiteXModule):
         # CDC. -------------------------------------------------------------------------------------
         if s_clk_domain == "sys":
             self.comb += [
-                s_clk_reset_n.eq(             fpgacfg_manager.rx_en),
-                self.rx_pct_fifo_aclrn_req.eq(s_clk_reset_n),
+                s_clk_rst_n.eq(               fpgacfg_manager.rx_en),
+                self.rx_pct_fifo_aclrn_req.eq(s_clk_rst_n),
                 mimo_en.eq(                   fpgacfg_manager.mimo_int_en),
                 ddr_en.eq(                    fpgacfg_manager.ddr_en),
             ]
