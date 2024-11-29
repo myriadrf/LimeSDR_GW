@@ -11,10 +11,15 @@ from litex.gen import *
 
 from litex.soc.interconnect.csr import *
 
+from gateware.common            import add_vhd2v_converter
+
 # TST Top ------------------------------------------------------------------------------------------
 
 class TstTop(LiteXModule):
     def __init__(self, platform, fx3_clk, lmk_clk, add_csr=True):
+
+        self.platform          = platform
+
         self.test_en           = Signal(6)
         self.test_frc_err      = Signal(6)
         self.test_cmplt        = Signal(4)
@@ -34,7 +39,8 @@ class TstTop(LiteXModule):
         # Tst Clock Test (tst_top is a wrapper with specials records).
         # ------------------------------------------------------------
 
-        self.specials += Instance("clock_test",
+        self.clock_test_params = dict()
+        self.clock_test_params.update(
             # input ports
             i_FX3_clk            = fx3_clk,
             i_reset_n            = ~ResetSignal("sys"),
@@ -65,23 +71,8 @@ class TstTop(LiteXModule):
             o_ADF_MUXOUT_cnt     = self.adf_muxout_cnt,
         )
 
-        self.add_sources(platform)
-
         if add_csr:
             self.add_csr()
-
-    def add_sources(self, platform):
-        tst_top_files = [
-            "gateware/hdl/self_test/transition_count.vhd",
-            "gateware/hdl/self_test/singl_clk_with_ref_test.vhd",
-            "gateware/hdl/self_test/clk_with_ref_test.vhd",
-            "gateware/hdl/self_test/clk_no_ref_test.vhd",
-            "gateware/hdl/self_test/tst_top.vhd",
-            "gateware/hdl/self_test/clock_test.vhd",
-        ]
-
-        for file in tst_top_files:
-            platform.add_source(file)
 
     def add_csr(self):
         self._test_en          = CSRStorage(fields=[
@@ -121,3 +112,19 @@ class TstTop(LiteXModule):
             self.tx_tst_i.eq(                 self._tx_tst_i.storage),
             self.tx_tst_q.eq(                 self._tx_tst_q.storage),
         ]
+
+    def do_finalize(self):
+        clock_test_files = [
+            "gateware/hdl/self_test/transition_count.vhd",
+            "gateware/hdl/self_test/singl_clk_with_ref_test.vhd",
+            "gateware/hdl/self_test/clk_with_ref_test.vhd",
+            "gateware/hdl/self_test/clk_no_ref_test.vhd",
+            "gateware/hdl/self_test/tst_top.vhd",
+            "gateware/hdl/self_test/clock_test.vhd",
+        ]
+
+        self.clock_test = add_vhd2v_converter(self.platform,
+            top    = "clock_test",
+            params = self.clock_test_params,
+            files  = clock_test_files,
+        )
