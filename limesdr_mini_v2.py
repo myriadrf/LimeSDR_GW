@@ -382,6 +382,10 @@ class BaseSoC(SoCCore):
 
 def main():
     parser = argparse.ArgumentParser(description="LimeSDR-Mini-V2 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--toolchain", default="diamond", help="FPGA toolchain (trellis or diamond).", choices=[
+        "diamond",
+        "trellis",
+    ])
     # Build/Load/Utilities.
     parser.add_argument("--build", action="store_true", help="Build bitstream.")
     parser.add_argument("--load",  action="store_true", help="Load bitstream.")
@@ -404,7 +408,7 @@ def main():
         build   = ((run == 1) & args.build)
         # SoC.
         soc = BaseSoC(
-            toolchain      = "diamond",
+            toolchain      = args.toolchain,
             with_bios      = args.with_bios,
             with_uartbone  = args.with_uartbone,
             with_spi_flash = args.with_spi_flash,
