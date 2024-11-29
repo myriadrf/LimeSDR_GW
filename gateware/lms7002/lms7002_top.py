@@ -15,6 +15,7 @@ from litex.build.vhd2v_converter import VHD2VConverter
 
 from litex.gen import *
 
+from litex.soc.interconnect                import stream
 from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect.csr            import *
 
@@ -25,14 +26,21 @@ from gateware.lms7002.lms7002_clk  import LMS7002CLK
 # LMS7002 Top --------------------------------------------------------------------------------------
 
 class LMS7002Top(LiteXModule):
-    def __init__(self, platform, pads=None, hw_ver=None, add_csr=True, fpgacfg_manager=None, diq_width=12):
+    def __init__(self, platform, pads=None, hw_ver=None, add_csr=True,
+        fpgacfg_manager      = None,
+        diq_width            = 12,
+        s_clk_domain         = "lms_tx",
+        s_axis_tx_fifo_words = 16,
+        m_clk_domain         = "lms_rx",
+        m_axis_rx_fifo_words = 16,
+        ):
 
         assert pads            is not None
         assert hw_ver          is not None
         assert fpgacfg_manager is not None
 
-        self.source            = AXIStreamInterface(64, clock_domain="lms_rx")
-        self.sink              = AXIStreamInterface(64, clock_domain="lms_tx")
+        self.source            = AXIStreamInterface(64, clock_domain=m_clk_domain)
+        self.sink              = AXIStreamInterface(64, clock_domain=s_clk_domain)
 
         self.platform          = platform
         assert platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]
@@ -40,14 +48,9 @@ class LMS7002Top(LiteXModule):
         self.pads                = pads
         self.periph_output_val_1 = Signal(16)
 
-        #self.pct_sync_pulse      = Signal() # From RXTX
-        #self.pct_buff_rdy        = Signal() # From RXTX
-
         self.from_tstcfg_test_en      = Signal(6)
         self.from_tstcfg_tx_tst_i     = Signal(16)
         self.from_tstcfg_tx_tst_q     = Signal(16)
-
-        #self.tx_txant_en      = Signal()
 
         self.delay_ctrl_en    = Signal()
         self.delay_ctrl_sel   = Signal(2)
@@ -133,6 +136,9 @@ class LMS7002Top(LiteXModule):
         # TX Path (DIQ1).
         # ------------------------------------------------------------------------------------------
         self.lms7002_txiq = ClockDomainsRenamer("lms_tx")(LMS7002TXIQ(platform, 12, pads))
+        self.tx_cdc       = stream.ClockDomainCrossing([("data", 64)], cd_from=s_clk_domain, cd_to="lms_tx", depth=s_axis_tx_fifo_words)
+
+        self.comb += self.sink.connect(self.tx_cdc.sink, keep=["data", "ready", "last", "valid"])
 
         self.lms7002_tx_params = dict()
         self.lms7002_tx_params.update(
@@ -158,10 +164,10 @@ class LMS7002Top(LiteXModule):
             # AXI Stream Slave Interface.
             i_S_AXIS_ARESET_N = Constant(0, 1), # Unused
             i_S_AXIS_ACLK     = Constant(0, 1), # Unused
-            i_S_AXIS_TVALID   = self.sink.valid,
-            i_S_AXIS_TDATA    = self.sink.data,
-            o_S_AXIS_TREADY   = self.sink.ready,
-            i_S_AXIS_TLAST    = self.sink.last,
+            i_S_AXIS_TVALID   = self.tx_cdc.source.valid,
+            i_S_AXIS_TDATA    = self.tx_cdc.source.data,
+            o_S_AXIS_TREADY   = self.tx_cdc.source.ready,
+            i_S_AXIS_TLAST    = self.tx_cdc.source.last,
         )
 
         # test_data_dd.
