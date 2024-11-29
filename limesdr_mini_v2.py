@@ -347,9 +347,9 @@ class BaseSoC(SoCCore):
             f.write("create_clock -name LMS_MCLK2 -period 8.000  [get_ports LMS_MCLK2]\n")
         self.platform.add_sdc(timings_sdc_filename)
 
-        # HDL Sources ------------------------------------------------------------------------------
-        # Set VHDL standard to VHDL-2008.
-        platform.toolchain.additional_ldf_commands += ["prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True"]
+        # Set VHDL standard to VHDL-2008. ----------------------------------------------------------
+        if toolchain == "diamond" and not platform.vhd2v_force:
+            platform.toolchain.additional_ldf_commands += ["prj_strgy set_value -strategy Strategy1 syn_vhdl2008=True"]
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
