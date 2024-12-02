@@ -216,6 +216,7 @@ class BaseSoC(SoCCore):
             EP83_wrusedw_width = C_EP83_WRUSEDW_WIDTH,
             EP83_wwidth        = STRM0_FPGA_TX_WWIDTH,
             EP83_wsize         = 2048,
+            s_clk_domain       = "sys",
         )
 
         # LMS7002 Top ------------------------------------------------------------------------------
@@ -265,6 +266,8 @@ class BaseSoC(SoCCore):
                 RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
                 RX_INVERT_INPUT_CLOCKS = "ON",
                 RX_PCT_BUFF_WRUSEDW_W  = C_EP83_WRUSEDW_WIDTH,
+                rx_int_clk_domain      = "sys",
+                rx_m_clk_domain        = "sys",
             )
 
             self.comb += [
