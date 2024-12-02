@@ -43,7 +43,6 @@ class LMS7002Top(LiteXModule):
         self.sink              = AXIStreamInterface(64, clock_domain=s_clk_domain)
 
         self.platform          = platform
-        assert platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]
 
         self.pads                = pads
         self.periph_output_val_1 = Signal(16)
