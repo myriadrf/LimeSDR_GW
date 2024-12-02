@@ -50,6 +50,10 @@ class RXPath(LiteXModule):
         # Sample Compare.
         self.smpl_cnt_en           = Signal()
 
+        self.pkt_size = CSRStorage(16, reset=253,
+            description="Packet Size in bytes, "
+        )
+
         # # #
 
         # Signals.
