@@ -22,6 +22,9 @@ class LMS7002CLK(LiteXModule):
         self.loadn     = Signal()
         self.move      = Signal()
 
+        self.rx_clk    = Signal()
+        self.tx_clk    = Signal()
+
         # # #
 
         # Signals.
@@ -69,25 +72,30 @@ class LMS7002CLK(LiteXModule):
             inst4_direction.eq(self.direction),
         ]
 
-        self.specials += [
-            # Forwarded clock fclk1.
-            # ----------------------
-            DDROutput(
-                clk = pads.MCLK1,
-                i1  = 0,
-                i2  = 1,
-                o   = inst1_q
-            ),
+        if platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]:
+            self.specials += [
+                # Forwarded clock fclk1.
+                # ----------------------
+                DDROutput(
+                    clk = pads.MCLK1,
+                    i1  = 0,
+                    i2  = 1,
+                    o   = inst1_q
+                ),
 
-            # Forwarded clock fclk2.
-            # ----------------------
-            DDROutput(
-                clk = pads.MCLK2,
-                i1  = 0,
-                i2  = 1,
-                o   = inst2_q
-            )
-        ]
+                # Forwarded clock fclk2.
+                # ----------------------
+                DDROutput(
+                    clk = pads.MCLK2,
+                    i1  = 0,
+                    i2  = 1,
+                    o   = inst2_q
+                )
+            ]
+            self.comb += [
+                self.tx_clk.eq(pads.MCLK1),
+                self.rx_clk.eq(pads.MCLK2),
+            ]
         if platform.name in ["limesdr_mini_v2"]:
             self.specials += [
                 Instance("DELAYF",
@@ -111,6 +119,25 @@ class LMS7002CLK(LiteXModule):
                     o_CFLAG     = inst4_cflag,
                 ),
             ]
+        elif platform.name not in ["limesdr_mini_v1", "limesdr_mini_v2"]:
+            from gateware.LimeDFB.lms7002.src.lms7002_pll import XilinxLmsMMCM
+            # Clocking control registers
+            # TX PLL.
+            self.txclk = ClockDomain()
+            self.PLL0_TX = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
+                mclk     = pads.MCLK1,
+                fclk     = pads.FCLK1,
+                logic_cd = self.txclk)
+            self.comb += self.tx_clk.eq(self.txclk.clk)
+            # RX PLL.
+            self.rxclk = ClockDomain()
+            self.PLL1_RX = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
+                mclk     = pads.MCLK2,
+                fclk     = pads.MCLK2,
+                logic_cd = self.rxclk)
+            self.comb += self.rx_clk.eq(self.rxclk.clk)
+
+
         else:
             print("LMS7002CLK Missing Delay!")
             self.comb += pads.FCLK1.eq(inst1_q)
