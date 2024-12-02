@@ -928,108 +928,102 @@ int main(void) {
 
                 case CMD_ALTERA_FPGA_GW_WR: // FPGA active serial
 
-				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16)
-                                  | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
-				data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (
+                                          LMS_Ctrl_Packet_Rx->Data_field[2] << 16)
+                                      | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
+                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
 
-				switch (LMS_Ctrl_Packet_Rx->Data_field[0]) // prog_mode
-				{
-					/*
-					Programming mode:
-					0 - Bitstream to FPGA
-					1 - Bitstream to Flash
-					2 - Bitstream from FLASH
-					3 - Golden image to Flash
-					4 - User image to Flash
-					*/
-				case 1:
-				case 3:
-				case 4:
-				// write data to Flash from PC
-					// Start of programming? reset variables
-					if (current_portion == 0)
-					{	// Gold image must be written at address 0x0
-						if (LMS_Ctrl_Packet_Rx->Data_field[0] == 3)
-						{
-							address = 0;
-						    printf("g\n");
-						}
-						else
-						{ // User image must be written at offset
-							address = 0x220000;
-						    printf("u\n");
-						}
+                    switch (LMS_Ctrl_Packet_Rx->Data_field[0]) // prog_mode
+                    {
+                        /*
+                        Programming mode:
+                        0 - Bitstream to FPGA
+                        1 - Bitstream to Flash
+                        2 - Bitstream from FLASH
+                        3 - Golden image to Flash
+                        4 - User image to Flash
+                        */
+                        case 1:
+                        case 3:
+                        case 4:
+                            // write data to Flash from PC
+                            // Start of programming? reset variables
+                            if (current_portion == 0) {
+                                // Gold image must be written at address 0x0
+                                if (LMS_Ctrl_Packet_Rx->Data_field[0] == 3) {
+                                    address = 0;
+                                    printf("g\n");
+                                } else {
+                                    // User image must be written at offset
+                                    address = 0x220000;
+                                    printf("u\n");
+                                }
 
-						page_buffer_cnt = 0;
-						total_data = 0;
-						// Erase first sector
-						FlashQspi_EraseSector(address);
-					}
+                                page_buffer_cnt = 0;
+                                total_data = 0;
+                                // Erase first sector
+                                FlashQspi_EraseSector(address);
+                            }
 
-					inc_data_count = LMS_Ctrl_Packet_Rx->Data_field[5];
+                            inc_data_count = LMS_Ctrl_Packet_Rx->Data_field[5];
 
-					// Check if final packet
-					if (inc_data_count == 0)
-					{ // Flush leftover data, if any
-						if (page_buffer_cnt > 0)
-						{
-							// Fill unused page data with 1 (no write)
-							memset(&page_buffer[page_buffer_cnt], 0xFF, PAGE_SIZE - page_buffer_cnt);
-							FlashQspi_ProgramPage(address, page_buffer);
-						}
-					}
-					else
-					{
-						if (PAGE_SIZE < (inc_data_count + page_buffer_cnt))
-						{ // Incoming data would overflow the page buffer
-							// Calculate ammount of data to copy
-							data_to_copy = PAGE_SIZE - page_buffer_cnt;
-							data_leftover = page_buffer_cnt - data_to_copy;
-							memcpy(&page_buffer[page_buffer_cnt], &LMS_Ctrl_Packet_Rx->Data_field[24], data_to_copy);
-							// We already know the page is full because of overflowing input
-							FlashQspi_ProgramPage(address, page_buffer);
-							address += 256;
-							total_data += 256;
-							// Check if new address is bottom of sector, erase if needed
-							if ((address & 0xFFF) == 0)
-								FlashQspi_EraseSector(address);
-							memcpy(&page_buffer[0], &LMS_Ctrl_Packet_Rx->Data_field[24 + data_to_copy], data_leftover);
-							page_buffer_cnt = data_leftover;
-						}
-						else
-						{ // Incoming data would not overflow the page buffer
-							memcpy(&page_buffer[page_buffer_cnt], &LMS_Ctrl_Packet_Rx->Data_field[24], inc_data_count);
-							page_buffer_cnt += inc_data_count;
-							if (page_buffer_cnt == PAGE_SIZE)
-							{
-								FlashQspi_ProgramPage(address, page_buffer);
-								page_buffer_cnt = 0;
-								address += 256;
-								total_data += 256;
-								// Check if new address is bottom of sector, erase if needed
-								if ((address & 0xFFF) == 0)
-									FlashQspi_EraseSector(address);
-							}
-						}
-					}
-				    // No error conditions present in code
-					// if (spirez == XST_SUCCESS)
-					if (true)
-					{
-						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-					}
-					else
-					{
-						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-					}
-					break;
+                        // Check if final packet
+                            if (inc_data_count == 0) {
+                                // Flush leftover data, if any
+                                if (page_buffer_cnt > 0) {
+                                    // Fill unused page data with 1 (no write)
+                                    memset(&page_buffer[page_buffer_cnt], 0xFF, PAGE_SIZE - page_buffer_cnt);
+                                    FlashQspi_ProgramPage(address, page_buffer);
+                                }
+                            } else {
+                                if (PAGE_SIZE < (inc_data_count + page_buffer_cnt)) {
+                                    // Incoming data would overflow the page buffer
+                                    // Calculate ammount of data to copy
+                                    data_to_copy = PAGE_SIZE - page_buffer_cnt;
+                                    data_leftover = page_buffer_cnt - data_to_copy;
+                                    memcpy(&page_buffer[page_buffer_cnt], &LMS_Ctrl_Packet_Rx->Data_field[24],
+                                           data_to_copy);
+                                    // We already know the page is full because of overflowing input
+                                    FlashQspi_ProgramPage(address, page_buffer);
+                                    address += 256;
+                                    total_data += 256;
+                                    // Check if new address is bottom of sector, erase if needed
+                                    if ((address & 0xFFF) == 0)
+                                        FlashQspi_EraseSector(address);
+                                    memcpy(&page_buffer[0], &LMS_Ctrl_Packet_Rx->Data_field[24 + data_to_copy],
+                                           data_leftover);
+                                    page_buffer_cnt = data_leftover;
+                                } else {
+                                    // Incoming data would not overflow the page buffer
+                                    memcpy(&page_buffer[page_buffer_cnt], &LMS_Ctrl_Packet_Rx->Data_field[24],
+                                           inc_data_count);
+                                    page_buffer_cnt += inc_data_count;
+                                    if (page_buffer_cnt == PAGE_SIZE) {
+                                        FlashQspi_ProgramPage(address, page_buffer);
+                                        page_buffer_cnt = 0;
+                                        address += 256;
+                                        total_data += 256;
+                                        // Check if new address is bottom of sector, erase if needed
+                                        if ((address & 0xFFF) == 0)
+                                            FlashQspi_EraseSector(address);
+                                    }
+                                }
+                            }
+                        // No error conditions present in code
+                        // if (spirez == XST_SUCCESS)
+                            if (true) {
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                            } else {
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            }
+                            break;
 
-				default:
-					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-					break;
-				}
+                        default:
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            break;
+                    }
 
-				break;
+                    break;
 
                 // COMMAND ANALOG VALUE READ
                 case CMD_ANALOG_VAL_RD:
@@ -1231,9 +1225,9 @@ int main(void) {
 
             // Send response to the command
             // for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
-             for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i) {
-                 csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
-             }
+            for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i) {
+                csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
+            }
 
 
             // printf("TX: ");
@@ -1247,7 +1241,6 @@ int main(void) {
             /* Reenable CNTRL irq */
             CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
             irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
-
         }
 
         if (clk_cfg_pending) {
