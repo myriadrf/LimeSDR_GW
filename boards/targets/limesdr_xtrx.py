@@ -42,8 +42,6 @@ from litescope import LiteScopeAnalyzer
 from gateware.aux import AUX
 from gateware.xtrx_rfsw import xtrx_rfsw
 
-from software import generate_litepcie_software
-
 # CRG ----------------------------------------------------------------------------------------------
 
 class CRG(LiteXModule):
@@ -490,10 +488,6 @@ def main():
             bistream_output_dir = "bitstream/{}".format(soc.get_build_name())
             if not os.path.exists(bistream_output_dir):
                 os.makedirs(bistream_output_dir)
-
-
-    # Generate LitePCIe Driver.
-    generate_litepcie_software(soc, "software", use_litepcie_software=args.driver)
 
     # Load Bistream.
     if args.load:
