@@ -82,12 +82,13 @@ class RXPath(LiteXModule):
         bp_sample_nr_counter    = Signal(64)
         pkt_size                = Signal(15)
 
-        self.fifo_conv    = fifo_conv    = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.Converter(128, 64)))
-        self.iqsmpls_fifo = iqsmpls_fifo = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.SyncFIFO([("data", 128)], 16)))
+        self.fifo_conv    = fifo_conv = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.Converter(128, 64)))
+        iqsmpls_fifo      = stream.AsyncFIFO([("data", 128)], 16)
+        iqsmpls_fifo      = ClockDomainsRenamer({"write": s_clk_domain, "read": int_clk_domain})(iqsmpls_fifo)
+        self.iqsmpls_fifo = iqsmpls_fifo
 
         self.comb += [
-            fifo_conv.reset.eq(           ~m_clk_rst_n),
-            iqsmpls_fifo.reset.eq(        ~s_clk_rst_n),
+            fifo_conv.reset.eq(~m_clk_rst_n),
 
             # Packet Header 0
             pct_hdr_0.eq(Cat(Constant(0, 16), 0x060504030201)) # FIXME: 0:15: isn't 0 and 16:63 differs for XTRX
@@ -257,11 +258,11 @@ class RXPath(LiteXModule):
         if int_clk_domain == "sys":
             self.comb += int_clk_rst_n.eq(fpgacfg_manager.rx_en)
         else:
-            self.specials += MultiReg(fpgacfg_manager.rx_en, int_clk_rst_n, int_clk_domain, reset=1),
+            self.specials += MultiReg(fpgacfg_manager.rx_en, int_clk_rst_n, int_clk_domain, reset=1)
         if m_clk_domain == "sys":
             self.comb += m_clk_rst_n.eq(fpgacfg_manager.rx_en)
         else:
-            self.specials += MultiReg(fpgacfg_manager.rx_en, m_clk_rst_n, m_clk_domain, reset=1),
+            self.specials += MultiReg(fpgacfg_manager.rx_en, m_clk_rst_n, m_clk_domain, reset=1)
 
 
     def do_finalize(self):
