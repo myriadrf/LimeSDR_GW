@@ -120,18 +120,21 @@ class LMS7002CLK(LiteXModule):
                 ),
             ]
         elif platform.name not in ["limesdr_mini_v1", "limesdr_mini_v2"]:
+            from gateware.LimeDFB.lms7002.src.lms7002_pll import ClkCfgRegs
             from gateware.LimeDFB.lms7002.src.lms7002_pll import XilinxLmsMMCM
+
             # Clocking control registers
+            self.CLK_CTRL = ClkCfgRegs()
             # TX PLL.
-            self.txclk = ClockDomain()
-            self.PLL0_TX = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
+            self.txclk    = ClockDomain()
+            self.PLL0_TX  = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
                 mclk     = pads.MCLK1,
                 fclk     = pads.FCLK1,
                 logic_cd = self.txclk)
             self.comb += self.tx_clk.eq(self.txclk.clk)
             # RX PLL.
-            self.rxclk = ClockDomain()
-            self.PLL1_RX = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
+            self.rxclk    = ClockDomain()
+            self.PLL1_RX  = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
                 mclk     = pads.MCLK2,
                 fclk     = pads.MCLK2,
                 logic_cd = self.rxclk)

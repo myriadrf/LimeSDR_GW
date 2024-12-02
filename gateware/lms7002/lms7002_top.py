@@ -88,6 +88,20 @@ class LMS7002Top(LiteXModule):
             CSRField("phcfg_tst",    size=1, offset=15),
         ], reset=0)
 
+        if platform.name not in ["limesdr_mini_v1", "limesdr_mini_v2"]:
+            self.cmp_start = CSRStorage(1, reset=0,
+                description="Start sample compare: 0: idle, 1 transition: start configuration"
+            )
+            self.cmp_length = CSRStorage(16, reset=0xEFFF,
+                description="Sample compare length"
+            )
+            self.cmp_done = CSRStatus(1,
+                description="Sample compare done: 0: Not done, 1: Done"
+            )
+            self.cmp_error = CSRStatus(1,
+                description="Sample compare error: 0: No error, 1: Error"
+            )
+
         # # #
 
         # Clock Domains.
@@ -348,32 +362,39 @@ class LMS7002Top(LiteXModule):
 
         # Delay control module.
         # ---------------------
-        self.delay_ctrl_top_params = dict()
+        if platform.name in ["limesdr_mini_v2"]:
+            self.delay_ctrl_top_params = dict()
+            # Delay Ctrl Top Signals
+            self.delay_ctrl_top_params.update(
+                # Clk/Reset.
+                i_clk              = ClockSignal("lms_rx"),
+                i_reset_n          = ~ResetSignal("lms_rx"),
 
-        # Delay Ctrl Top Signals
-        self.delay_ctrl_top_params.update(
-            # Clk/Reset.
-            i_clk              = ClockSignal("lms_rx"),
-            i_reset_n          = ~ResetSignal("lms_rx"),
+                #
+                i_delay_en         = self.reg03.fields.phcfg_start,
+                i_delay_sel        = self.delay_ctrl_sel,
+                i_delay_dir        = self.reg03.fields.phcfg_updn,
+                i_delay_mode       = self.reg03.fields.phcfg_mode,
+                o_delay_done       = self.delay_ctrl_done,
+                o_delay_error      = self.delay_ctrl_error,
 
-            #
-            i_delay_en         = self.reg03.fields.phcfg_start,
-            i_delay_sel        = self.delay_ctrl_sel,
-            i_delay_dir        = self.reg03.fields.phcfg_updn,
-            i_delay_mode       = self.reg03.fields.phcfg_mode,
-            o_delay_done       = self.delay_ctrl_done,
-            o_delay_error      = self.delay_ctrl_error,
+                # signals from sample compare module (required for automatic phase searching)
+                o_smpl_cmp_en      = smpl_cmp_en,
+                i_smpl_cmp_done    = smpl_cmp_done,
+                i_smpl_cmp_error   = smpl_cmp_error,
+                o_smpl_cmp_cnt     = self.smpl_cmp_cnt,
 
-            # signals from sample compare module (required for automatic phase searching)
-            o_smpl_cmp_en      = smpl_cmp_en,
-            i_smpl_cmp_done    = smpl_cmp_done,
-            i_smpl_cmp_error   = smpl_cmp_error,
-            o_smpl_cmp_cnt     = self.smpl_cmp_cnt,
-
-            o_delayf_loadn     = inst1_delayf_loadn,
-            o_delayf_move      = inst1_delayf_move,
-            o_delayf_direction = Open(),
-        )
+                o_delayf_loadn     = inst1_delayf_loadn,
+                o_delayf_move      = inst1_delayf_move,
+                o_delayf_direction = Open(),
+            )
+        else:
+            self.comb += [
+                smpl_cmp_en.eq(self.cmp_start.storage),
+                self.smpl_cmp_cnt.eq(self.cmp_length.storage),
+                self.cmp_done.status.eq(smpl_cmp_done),
+                self.cmp_error.status.eq(smpl_cmp_error),
+            ]
 
         # Logic.
         # ------
@@ -516,15 +537,16 @@ class LMS7002Top(LiteXModule):
         self.diq2fifo.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd")
 
         # Delay Ctrl.
-        self.delay_ctrl_top = VHD2VConverter(self.platform,
-            top_entity    = "delay_ctrl_top",
-            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.delay_ctrl_top_params,
-            add_instance  = True,
-        )
-        self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delay_ctrl_fsm.vhd")
-        self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delay_ctrl_top.vhd")
-        self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delayf_ctrl.vhd")
+        if hasattr(self, "delay_ctrl_top_params"):
+            self.delay_ctrl_top = VHD2VConverter(self.platform,
+                top_entity    = "delay_ctrl_top",
+                build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
+                work_package  = "work",
+                force_convert = LiteXContext.platform.vhd2v_force,
+                params        = self.delay_ctrl_top_params,
+                add_instance  = True,
+            )
+            self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delay_ctrl_fsm.vhd")
+            self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delay_ctrl_top.vhd")
+            self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delayf_ctrl.vhd")
 
