@@ -29,7 +29,7 @@ BOARD_ID            = 0x0011 # LimeSDR-MINI
 # FPGA Cfg -----------------------------------------------------------------------------------------
 
 class FPGACfg(LiteXModule):
-    def __init__(self, pads):
+    def __init__(self, platform, pads=None):
         self.from_fpgacfg      = FromFPGACfg()
         self.pwr_src           = Signal()
 
@@ -64,17 +64,25 @@ class FPGACfg(LiteXModule):
         self.board_id          = CSRStatus(16,  reset=BOARD_ID)
         self.major_rev         = CSRStatus(16,  reset=MAJOR_REV)
         self.compile_rev       = CSRStatus(16,  reset=COMPILE_REV)
-        self.bom_hw_ver        = CSRStatus(16,  reset=0)
 
-        # FPGA direct clocking (4-6)
-        self.phase_reg_sel     = CSRStorage(16, reset=0)
-        self.drct_clk_en       = CSRStorage(16, reset=0)
-        # load_phase, cnt_int[4:0], clk_ind[4:0]
-        self.load_phase        = CSRStorage(fields=[
-            CSRField("clk_int",        size=5, offset=0),
-            CSRField("cnt_int",        size=5, offset=5),
-            CSRField("load_phase_reg", size=1, offset=10),
-        ])
+        # limesdr_mini only
+        if platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]:
+            self.bom_hw_ver    = CSRStatus(16,  reset=0)
+
+            # FPGA direct clocking (4-6)
+            self.phase_reg_sel = CSRStorage(16, reset=0)
+            self.drct_clk_en   = CSRStorage(16, reset=0)
+            # load_phase, cnt_int[4:0], clk_ind[4:0]
+            self.load_phase    = CSRStorage(fields=[
+                CSRField("clk_int",        size=5, offset=0),
+                CSRField("cnt_int",        size=5, offset=5),
+                CSRField("load_phase_reg", size=1, offset=10),
+            ])
+        else:
+            self.reserved_03 = CSRStorage(16, reset=0)
+            self.reserved_04 = CSRStorage(16, reset=0)
+            self.reserved_05 = CSRStorage(16, reset=0)
+            self.reserved_06 = CSRStorage(16, reset=0)
 
         # Interface config (7-15)
         self._ch_en            = CSRStorage(2,  reset=0b11,
@@ -122,14 +130,30 @@ class FPGACfg(LiteXModule):
         _hw_ver  = Signal(4)
 
         # Logic.
+        if platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]:
+            self.comb += [
+                self.bom_hw_ver.status.eq(          Cat(_hw_ver, _bom_ver, self.pwr_src, Constant(0, 8))),
+                # FPGA direct clocking
+                self.from_fpgacfg.phase_reg_sel.eq( self.phase_reg_sel.storage),
+                self.from_fpgacfg.drct_clk_en.eq(   self.drct_clk_en.storage),
+                self.from_fpgacfg.load_phase_reg.eq(self.load_phase.fields.load_phase_reg),
+                self.from_fpgacfg.clk_ind.eq(       self.load_phase.fields.clk_int),
+                self.from_fpgacfg.cnt_ind.eq(       self.load_phase.fields.cnt_int),
+            ]
+            self.sync += [
+                If((pads.HW_VER == 0),
+                    _bom_ver.eq(Cat(pads.BOM_VER[0:2], Constant(0,2))),
+                    If(pads.BOM_VER[2] == 0b1,
+                        _hw_ver.eq(Constant(2, 4)),
+                    ).Else(
+                        _hw_ver.eq(Constant(1, 4)),
+                    ),
+                ).Else(
+                    _hw_ver.eq(pads.HW_VER),
+                    _bom_ver.eq(pads.BOM_VER),
+                ),
+            ]
         self.comb += [
-            self.bom_hw_ver.status.eq(             Cat(_hw_ver, _bom_ver, self.pwr_src, Constant(0, 8))),
-            # FPGA direct clocking
-            self.from_fpgacfg.phase_reg_sel.eq(    self.phase_reg_sel.storage),
-            self.from_fpgacfg.drct_clk_en.eq(      self.drct_clk_en.storage),
-            self.from_fpgacfg.load_phase_reg.eq(   self.load_phase.fields.load_phase_reg),
-            self.from_fpgacfg.clk_ind.eq(          self.load_phase.fields.clk_int),
-            self.from_fpgacfg.cnt_ind.eq(          self.load_phase.fields.cnt_int),
 
             self.from_fpgacfg.wfm_ch_en.eq(        self.wfm_ch_en.storage),
             self.from_fpgacfg.wfm_smpl_width.eq(   self.wfm_smpl_width.storage),
@@ -163,17 +187,4 @@ class FPGACfg(LiteXModule):
             self.txant_pre.eq(        self._txant_pre.storage),
             self.txant_post.eq(       self._txant_post.storage),
 
-        ]
-        self.sync += [
-            If((pads.HW_VER == 0),
-                _bom_ver.eq(Cat(pads.BOM_VER[0:2], Constant(0,2))),
-                If(pads.BOM_VER[2] == 0b1,
-                    _hw_ver.eq(Constant(2, 4)),
-                ).Else(
-                    _hw_ver.eq(Constant(1, 4)),
-                ),
-            ).Else(
-                _hw_ver.eq(pads.HW_VER),
-                _bom_ver.eq(pads.BOM_VER),
-            ),
         ]
