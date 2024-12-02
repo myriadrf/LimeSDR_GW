@@ -29,7 +29,6 @@ class RXTXTop(LiteXModule):
         TX_IN_PCT_SIZE         = 4096,
         TX_IN_PCT_HDR_SIZE     = 16,
         TX_IN_PCT_DATA_W       = 128,
-        TX_IN_PCT_RDUSEDW_W    = 11,
         TX_OUT_PCT_DATA_W      = 64,
         tx_s_clk_domain        = "lms_tx",
         tx_int_clk_domain      = "lms_tx",
@@ -37,9 +36,6 @@ class RXTXTop(LiteXModule):
 
         # RX parameters
         RX_IQ_WIDTH            = 12,
-        RX_INVERT_INPUT_CLOCKS = "OFF",
-        RX_SMPL_BUFF_RDUSEDW_W = 11,
-        RX_PCT_BUFF_WRUSEDW_W  = 12,
         rx_s_clk_domain        = "lms_rx",
         rx_int_clk_domain      = "lms_rx",
         rx_m_clk_domain        = "lms_rx",
@@ -81,8 +77,6 @@ class RXTXTop(LiteXModule):
         self.rx_path = rx_path = RXPath(platform, fpgacfg_manager,
             ## RX parameters
             RX_IQ_WIDTH            = RX_IQ_WIDTH,
-            RX_SMPL_BUFF_RDUSEDW_W = RX_SMPL_BUFF_RDUSEDW_W,
-            RX_PCT_BUFF_WRUSEDW_W  = RX_PCT_BUFF_WRUSEDW_W,
             m_clk_domain           = rx_m_clk_domain,
             int_clk_domain         = rx_int_clk_domain,
             s_clk_domain           = rx_s_clk_domain,

@@ -260,12 +260,9 @@ class BaseSoC(SoCCore):
                 TX_IN_PCT_SIZE         = TX_PCT_SIZE,
                 TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
                 TX_IN_PCT_DATA_W       = STRM0_FPGA_RX_RWIDTH,
-                TX_IN_PCT_RDUSEDW_W    = C_EP03_RDUSEDW_WIDTH,
 
                 # RX parameters
                 RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
-                RX_INVERT_INPUT_CLOCKS = "ON",
-                RX_PCT_BUFF_WRUSEDW_W  = C_EP83_WRUSEDW_WIDTH,
                 rx_int_clk_domain      = "sys",
                 rx_m_clk_domain        = "sys",
             )

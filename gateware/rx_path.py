@@ -23,9 +23,6 @@ class RXPath(LiteXModule):
     def __init__(self, platform, fpgacfg_manager=None,
         # RX parameters
         RX_IQ_WIDTH                  = 12,
-        RX_INVERT_INPUT_CLOCKS       = "OFF",
-        RX_SMPL_BUFF_RDUSEDW_W       = 11,
-        RX_PCT_BUFF_WRUSEDW_W        = 12,
         S_AXIS_IQSMPLS_BUFFER_WORDS  = 16,
         M_AXIS_IQPACKET_BUFFER_WORDS = 512,
         int_clk_domain               = "lms_rx",
