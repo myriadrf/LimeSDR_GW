@@ -117,6 +117,9 @@ class BaseSoC(SoCCore):
         cpu_firmware   = None,
         **kwargs):
 
+        # SPI Flash is only working with trellis
+        assert not (with_spi_flash and toolchain == "diamond")
+
         # Platform ---------------------------------------------------------------------------------
         platform             = limesdr_mini_v2.Platform(toolchain=toolchain)
         platform.name        = "limesdr_mini_v2"
