@@ -47,7 +47,7 @@ from gateware.rxtx_top                        import RXTXTop
 
 from gateware.LimeDFB.tdd_control.tdd_control import TDDControl
 
-#from software import generate_litepcie_software
+from litepcie.software import generate_litepcie_software, generate_litepcie_software_headers
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -97,25 +97,6 @@ class CNTRL_CSR(LiteXModule):
 
         # Trigger interrupt when cntrl register is written
         self.comb += self.ev.cntrl_isr.trigger.eq(self.cntrl.re)
-
-# fpgacfg
-class fpgacfg_csr(LiteXModule):
-    def __init__(self):
-        self.board_id       = CSRStatus(16, reset=27)
-        self.major_rev      = CSRStatus(16, reset=1)
-        self.compile_rev    = CSRStatus(16, reset=18)
-        self.reserved_03    = CSRStorage(16, reset=0)
-        self.reserved_04    = CSRStorage(16, reset=0)
-        self.reserved_05    = CSRStorage(16, reset=0)
-        self.reserved_06    = CSRStorage(16, reset=0)
-        self.channel_cntrl  = CSRStorage(fields=[
-            CSRField("ch_en", size=2, offset=0, values=[
-                ("``2b01", "Channel A"),
-                ("``2b10", "Channel B"),
-                ("``2b11", "Channels A and B")
-            ], reset=0)
-        ])
-
 
 # BaseSoC -----------------------------------------------------------------------------------------
 
@@ -208,7 +189,6 @@ class BaseSoC(SoCCore):
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
-        #self.fpgacfg = fpgacfg_csr()
         self.CNTRL = CNTRL_CSR(1)
         self.irq.add("CNTRL")
 
@@ -329,7 +309,7 @@ class BaseSoC(SoCCore):
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       icap_clk] -asynchronous")
 
         # FPGA Cfg ---------------------------------------------------------------------------------
-        self.fpgacfg  = FPGACfg(platform)
+        self.fpgacfg  = FPGACfg(platform, board_id=27, major_rev=1, compile_rev=18)
 
         # PLL Cfg ----------------------------------------------------------------------------------
         #self.pllcfg = PLLCfg()
@@ -520,7 +500,10 @@ def main():
             os.system(f"cd firmware_xtrx && make BUILD_DIR={builder.output_dir} LINKER={linker} clean all")
 
     # Generate LitePCIe Driver.
-    #generate_litepcie_software(soc, "software", use_litepcie_software=args.driver)
+    if args.driver:
+        generate_litepcie_software(soc, "software", use_litepcie_software=args.driver)
+    else:
+        generate_litepcie_software_headers(soc, os.path.join("software", "kernel"))
 
     # Load Bistream.
     if args.load:
