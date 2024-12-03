@@ -43,6 +43,8 @@ class TXPath(LiteXModule):
 
         self.tx_txant_en       = Signal()
 
+        self.ext_reset_n       = Signal(reset=1)
+
         # # #
 
         # Signals.
@@ -92,7 +94,7 @@ class TXPath(LiteXModule):
         self.smpl_nr_fifo = smpl_nr_fifo
 
         self.comb += [
-            conv_64_to_128.reset.eq(     ~reset_n),
+            conv_64_to_128.reset.eq(     ~(reset_n & self.ext_reset_n)),
             conv_64_to_128.sink.last.eq( 0), # FIXME: something else?
 
             conv_64_to_128.sink.data.eq( self.sink.data),
@@ -130,7 +132,7 @@ class TXPath(LiteXModule):
             o_M_AXIS_TLAST    = p2d_wr_tlast,
 
             i_BUF_EMPTY       = p2d_wr_buf_empty,
-            i_RESET_N         = reset_n,                      # Unconnected for XTRX
+            i_RESET_N         = {True: reset_n, False: self.ext_reset_n}[platform.name.startswith("limesdr_mini")],
         )
 
         cases = {}

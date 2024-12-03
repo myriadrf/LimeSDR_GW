@@ -404,7 +404,7 @@ class BaseSoC(SoCCore):
         )
 
         # FIXME: Not connected
-        #self.comb += self.lime_top.tx_path.RESET_N.eq(self.pcie_dma0.reader.enable)
+        self.comb += self.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
 
         # LMS SPI -----------------------------------------------------------------------------------
         self.add_spi_master(name="spimaster", pads=platform.request("lms7002m_spi"), data_width=32, spi_clk_freq=1e6)
