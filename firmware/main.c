@@ -591,12 +591,14 @@ int main(void)
 	*/
 
 #if defined(CSR_SPIFLASH_CORE_BASE)
+	uint16_t preamble;
 	uint32_t spi_rdata[10];
-	uint8_t spi_rdatab[10];
-	int i;
 	spiFlash_read(0x0, 10, spi_rdata);
-	for (i = 0; i < 10; i++)
-		printf("%02lx\n", spi_rdata[i]);
+	preamble = (spi_rdata[0] >> 24) | (spi_rdata[1] << 8);
+	if (preamble != 0xb3bd)
+		printf("SPI Flash access: Error\n");
+	else
+		printf("SPI Flash access: OK\n");
 #endif
 
 	/*if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+DAC_VAL_ADDR_IN_FLASH, 0x2, rdata)!= 0) {
