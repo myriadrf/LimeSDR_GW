@@ -67,13 +67,17 @@ class LMS7002Top(LiteXModule):
 
         # fpgacfg
         self.lms1              = CSRStorage(fields=[         # 19
-            CSRField("ss",          size=1, offset=0, reset=1),
-            CSRField("reset",       size=1, offset=1, reset=1),
-            CSRField("core_ldo_en", size=1, offset=2, reset=0),
-            CSRField("txnrx1",      size=1, offset=3, reset=1),
-            CSRField("txnrx2",      size=1, offset=4, reset=0),
-            CSRField("txen",        size=1, offset=5, reset=1),
-            CSRField("rxen",        size=1, offset=6, reset=1),
+            CSRField("ss",             size=1, offset=0, reset=1),
+            CSRField("reset",          size=1, offset=1, reset=1),
+            CSRField("core_ldo_en",    size=1, offset=2, reset=0),
+            CSRField("txnrx1",         size=1, offset=3, reset=1),
+            CSRField("txnrx2",         size=1, offset=4, reset=0),
+            CSRField("txen",           size=1, offset=5, reset=1),
+            CSRField("rxen",           size=1, offset=6, reset=1),
+            # FIXME: not sure
+            CSRField("txrxen_mux_sel", size=1, offset=7, reset=0),
+            CSRField("txrxen_inv",     size=1, offset=8, reset=0),
+
         ])
 
         # pllcfg
@@ -273,29 +277,35 @@ class LMS7002Top(LiteXModule):
             i_clk           = ClockSignal("lms_rx"),
             i_reset_n       = smpl_cmp_en,
 
-            # Mode settings
-            i_mode          = rx_mode,
-            i_trxiqpulse    = rx_trxiqpulse,
-            i_ddr_en        = rx_ddr_en,
-            i_mimo_en       = rx_mimo_en,
-            i_ch_en         = rx_ch_en,
-            i_fidm          = Constant(0, 1),
+            # DIQ bus.
+            i_diq_h         = self.lms7002_rxiq.rx_diq2_h,
+            i_diq_l         = self.lms7002_rxiq.rx_diq2_l,
 
             # Control signals
             i_cmp_start     = smpl_cmp_en,
             i_cmp_length    = smpl_cmp_length,
-            i_cmp_AI        = Constant(0xAAA, diq_width),
-            i_cmp_AQ        = Constant(0x555, diq_width),
-            i_cmp_BI        = Constant(0xAAA, diq_width),
-            i_cmp_BQ        = Constant(0x555, diq_width),
             o_cmp_done      = smpl_cmp_done,
             o_cmp_error     = smpl_cmp_error,
-            o_cmp_error_cnt = Open(16),
-
-            # DIQ bus.
-            i_diq_h         = self.lms7002_rxiq.rx_diq2_h,
-            i_diq_l         = self.lms7002_rxiq.rx_diq2_l,
         )
+
+        if platform.name.startswith("limesdr_mini"):
+            self.smpl_cmp_params.update(
+                # Mode settings
+                i_mode          = rx_mode,
+                i_trxiqpulse    = rx_trxiqpulse,
+                i_ddr_en        = rx_ddr_en,
+                i_mimo_en       = rx_mimo_en,
+                i_ch_en         = rx_ch_en,
+                i_fidm          = Constant(0, 1),
+
+                # Control signals
+                i_cmp_AI        = Constant(0xAAA, diq_width),
+                i_cmp_AQ        = Constant(0x555, diq_width),
+                i_cmp_BI        = Constant(0xAAA, diq_width),
+                i_cmp_BQ        = Constant(0x555, diq_width),
+                o_cmp_error_cnt = Open(16),
+            )
+
 
         # test_data_dd.
         # -------------
@@ -430,8 +440,6 @@ class LMS7002Top(LiteXModule):
             ),
 
             # Pads.
-            self.pads.TXEN.eq(       self.lms1.fields.txen),
-            self.pads.RXEN.eq(       self.lms1.fields.rxen),
             self.pads.CORE_LDO_EN.eq(self.lms1.fields.core_ldo_en),
             self.pads.TXNRX1.eq(     self.lms1.fields.txnrx1),
             self.pads.RESET.eq(      self.lms1.fields.reset & self._lms_ctr_gpio.storage[0]),
@@ -446,13 +454,39 @@ class LMS7002Top(LiteXModule):
         ]
 
         # LMS Controls.
-        if platform.name in ["limesdr_mini_v2"]:
+        if platform.name.startswith("limesdr_mini"):
             self.comb += [
-                If((self.hw_ver > 5),
-                    self.pads.TXNRX2_or_CLK_SEL.eq(self.periph_output_val_1),
+                self.pads.TXEN.eq(self.lms1.fields.txen),
+                self.pads.RXEN.eq(self.lms1.fields.rxen),
+            ]
+            if platform.name in ["limesdr_mini_v2"]:
+                self.comb += [
+                    If((self.hw_ver > 5),
+                        self.pads.TXNRX2_or_CLK_SEL.eq(self.periph_output_val_1),
+                    ).Else(
+                        self.pads.TXNRX2_or_CLK_SEL.eq(self.lms1.fields.txnrx2),
+                    ),
+                ]
+        else:
+            lms_txen = Signal()
+            lms_rxen = Signal()
+            txant_en = Signal()
+            self.comb += [
+                self.pads.TXNRX2_or_CLK_SEL.eq(self.lms1.fields.txnrx2),
+                If(self.lms1.fields.txrxen_mux_sel,
+                    lms_txen.eq(txant_en),
+                    lms_txen.eq(~txant_en),
                 ).Else(
-                    self.pads.TXNRX2_or_CLK_SEL.eq(self.lms1.fields.txnrx2),
+                    lms_txen.eq(self.lms1.fields.txen),
+                    lms_txen.eq(self.lms1.fields.rxen),
                 ),
+                If(self.lms1.fields.txrxen_inv,
+                   self.pads.TXEN.eq(~lms_txen),
+                   self.pads.RXEN.eq(~lms_rxen),
+                ).Else(
+                   self.pads.TXEN.eq(lms_txen),
+                   self.pads.RXEN.eq(lms_rxen),
+                )
             ]
 
         self.specials += AsyncResetSynchronizer(self.cd_lms_rx, ResetSignal("sys"))
@@ -511,8 +545,11 @@ class LMS7002Top(LiteXModule):
             force_convert = LiteXContext.platform.vhd2v_force,
             params        = self.smpl_cmp_params,
             add_instance  = True,
-            files         = ["gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd"],
         )
+        if self.platform.name.startswith("limesdr_mini"):
+            self.smpl_cmp.add_source("gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd")
+        else:
+            self.smpl_cmp.add_source("gateware/LimeDFB/lms7002/src/smpl_cmp.vhd")
 
         # RX test_data_dd.
         self.rx_test_data_dd = VHD2VConverter(self.platform,
