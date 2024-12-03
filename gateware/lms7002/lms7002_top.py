@@ -29,6 +29,7 @@ class LMS7002Top(LiteXModule):
     def __init__(self, platform, pads=None, hw_ver=None, add_csr=True,
         fpgacfg_manager      = None,
         diq_width            = 12,
+        invert_input_clock   = False,
         s_clk_domain         = "lms_tx",
         s_axis_tx_fifo_words = 16,
         m_clk_domain         = "lms_rx",
@@ -253,7 +254,7 @@ class LMS7002Top(LiteXModule):
 
         # RX path (DIQ2). --------------------------------------------------------------------------
 
-        self.lms7002_rxiq = ClockDomainsRenamer("lms_rx")(LMS7002RXIQ(platform, 12, pads))
+        self.lms7002_rxiq = ClockDomainsRenamer("lms_rx")(LMS7002RXIQ(platform, 12, pads, invert_input_clock))
 
         self.rx_cdc = stream.ClockDomainCrossing([("data", 64), ("keep", 64 // 8)],
             cd_from = "lms_rx",
