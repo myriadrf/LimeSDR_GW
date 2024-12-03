@@ -119,7 +119,6 @@ class TstTop(LiteXModule):
             "gateware/hdl/self_test/singl_clk_with_ref_test.vhd",
             "gateware/hdl/self_test/clk_with_ref_test.vhd",
             "gateware/hdl/self_test/clk_no_ref_test.vhd",
-            "gateware/hdl/self_test/tst_top.vhd",
             "gateware/hdl/self_test/clock_test.vhd",
         ]
 
