@@ -442,7 +442,6 @@ class LMS7002Top(LiteXModule):
             # Pads.
             self.pads.CORE_LDO_EN.eq(self.lms1.fields.core_ldo_en),
             self.pads.TXNRX1.eq(     self.lms1.fields.txnrx1),
-            self.pads.RESET.eq(      self.lms1.fields.reset & self._lms_ctr_gpio.storage[0]),
 
             # pllcfg
             self.reg01.status.eq(Cat(1, 0, self.delay_ctrl_done, self.delay_ctrl_error, Constant(0, 12))),
@@ -456,8 +455,9 @@ class LMS7002Top(LiteXModule):
         # LMS Controls.
         if platform.name.startswith("limesdr_mini"):
             self.comb += [
-                self.pads.TXEN.eq(self.lms1.fields.txen),
-                self.pads.RXEN.eq(self.lms1.fields.rxen),
+                self.pads.TXEN.eq( self.lms1.fields.txen),
+                self.pads.RXEN.eq( self.lms1.fields.rxen),
+                self.pads.RESET.eq(self.lms1.fields.reset),
             ]
             if platform.name in ["limesdr_mini_v2"]:
                 self.comb += [
@@ -473,6 +473,7 @@ class LMS7002Top(LiteXModule):
             txant_en = Signal()
             self.comb += [
                 self.pads.TXNRX2_or_CLK_SEL.eq(self.lms1.fields.txnrx2),
+                self.pads.RESET.eq(            self.lms1.fields.reset),
                 If(self.lms1.fields.txrxen_mux_sel,
                     lms_txen.eq(txant_en),
                     lms_txen.eq(~txant_en),
