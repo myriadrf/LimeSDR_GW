@@ -88,12 +88,20 @@ class RXPath(LiteXModule):
         iqsmpls_fifo      = ClockDomainsRenamer({"write": s_clk_domain, "read": int_clk_domain})(iqsmpls_fifo)
         self.iqsmpls_fifo = iqsmpls_fifo
 
-        self.comb += [
-            fifo_conv.reset.eq(~m_clk_rst_n),
+        self.comb += fifo_conv.reset.eq(~m_clk_rst_n)
 
-            # Packet Header 0
-            pct_hdr_0.eq(Cat(Constant(0, 16), 0x060504030201)) # FIXME: 0:15: isn't 0 and 16:63 differs for XTRX
-        ]
+        if platform.name.startswith("limesdr_mini"):
+            self.comb += [
+                # Packet Header 0
+                pct_hdr_0.eq(Cat(Constant(0, 16), 0x060504030201)), # FIXME: 0:15: isn't 0 and 16:63 differs for XTRX
+                pkt_size.eq(Constant(4096 // 16, 16)),              # 256 * 128b = 4096Bytes
+            ]
+        else:
+            self.comb += [
+                # Packet Header 0
+                pct_hdr_0.eq(0x7766554433221100),
+                pkt_size.eq(Cat(Constant(0, 3), self.pkt_size.storage)[7:]),
+            ]
 
         # AXI Stream packager (removes null bytes from axi stream)
         # Combine IQ samples into full 64bit bus
@@ -193,7 +201,7 @@ class RXPath(LiteXModule):
             # Clk/Reset.
             i_ACLK               = ClockSignal(int_clk_domain),
             i_ARESET_N           = int_clk_rst_n,
-            i_PCT_SIZE           = Constant(4096 // 16, 16), # 256 * 128b = 4096Bytes
+            i_PCT_SIZE           = pkt_size,
             # PCT_HDR_0          = x"7766554433221100",
             i_PCT_HDR_0          = pct_hdr_0,
             i_PCT_HDR_1          = bp_sample_nr_counter,
