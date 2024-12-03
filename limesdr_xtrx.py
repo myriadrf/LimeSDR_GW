@@ -316,12 +316,13 @@ class BaseSoC(SoCCore):
 
         # LMS7002 Top ------------------------------------------------------------------------------
         self.lms7002_top = LMS7002Top(
-            platform        = platform,
-            pads            = platform.request("LMS"),
-            hw_ver          = Constant(0, 4),
-            add_csr         = True,
-            fpgacfg_manager = self.fpgacfg,
-            diq_width       = LMS_DIQ_WIDTH,
+            platform           = platform,
+            pads               = platform.request("LMS"),
+            hw_ver             = Constant(0, 4),
+            add_csr            = True,
+            fpgacfg_manager    = self.fpgacfg,
+            diq_width          = LMS_DIQ_WIDTH,
+            invert_input_clock = True,
         )
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
