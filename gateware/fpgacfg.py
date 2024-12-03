@@ -13,23 +13,10 @@ from litex.soc.interconnect.csr import *
 
 from gateware.common import FromFPGACfg
 
-# Constants ----------------------------------------------------------------------------------------
-MAJOR_REV           = 2
-MINOR_REV           = 2
-BETA_REV            = 1
-COMPILE_REV         = 6
-COMPILE_YEAR_STAMP  = 19
-COMPILE_MONTH_STAMP = 5
-COMPILE_DAY_STAMP   = 7
-COMPILE_HOUR_STAMP  = 14
-
-MAGIC_NUM           = 0xD8A5F009
-BOARD_ID            = 0x0011 # LimeSDR-MINI
-
 # FPGA Cfg -----------------------------------------------------------------------------------------
 
 class FPGACfg(LiteXModule):
-    def __init__(self, platform, pads=None):
+    def __init__(self, platform, board_id, major_rev, compile_rev, pads=None):
         self.from_fpgacfg      = FromFPGACfg()
         self.pwr_src           = Signal()
 
@@ -61,9 +48,9 @@ class FPGACfg(LiteXModule):
         # -----
 
         # Read only registers (0-3)
-        self.board_id          = CSRStatus(16,  reset=BOARD_ID)
-        self.major_rev         = CSRStatus(16,  reset=MAJOR_REV)
-        self.compile_rev       = CSRStatus(16,  reset=COMPILE_REV)
+        self.board_id          = CSRStatus(16,  reset=board_id)
+        self.major_rev         = CSRStatus(16,  reset=major_rev)
+        self.compile_rev       = CSRStatus(16,  reset=compile_rev)
 
         # limesdr_mini only
         if platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]:
