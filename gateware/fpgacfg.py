@@ -44,6 +44,9 @@ class FPGACfg(LiteXModule):
         self.txant_pre         = Signal(16)
         self.txant_post        = Signal(16)
 
+        self.tcxo_en           = Signal()
+        self.ext_clk           = Signal()
+
         # CSRs.
         # -----
 
@@ -106,7 +109,15 @@ class FPGACfg(LiteXModule):
         # Peripheral config (16-31).
         self._txant_pre         = CSRStorage(16, reset=1)
         self._txant_post        = CSRStorage(16, reset=1)
-        self.spi_ss             = CSRStorage(16, reset=0xffff)
+        if platform.name.startswith("limesdr_mini"):
+            self.spi_ss             = CSRStorage(16, reset=0xffff)
+        else:
+            self.reg18          = CSRStorage(fields=[
+                CSRField("tcxo_en", size=1, offset=1, reset=1,
+                    description="TCXO Enable: 0: Disabled, 1: Enabled."),
+                CSRField("ext_clk", size=1, offset=2, reset=0,
+                    description="CLK source select: 0: Internal, 1: External."),
+            ])
         self.clk_ena            = CSRStorage(4, reset=0b1111)              # 29
         self._sync_pulse_period = CSRStorage(32, reset=0x3D090)            # 30
 
@@ -126,6 +137,8 @@ class FPGACfg(LiteXModule):
                 self.from_fpgacfg.load_phase_reg.eq(self.load_phase.fields.load_phase_reg),
                 self.from_fpgacfg.clk_ind.eq(       self.load_phase.fields.clk_int),
                 self.from_fpgacfg.cnt_ind.eq(       self.load_phase.fields.cnt_int),
+                # Peripheral config.
+                self.from_fpgacfg.spi_ss.eq(        self.spi_ss.storage),
             ]
             self.sync += [
                 If((pads.HW_VER == 0),
@@ -140,13 +153,18 @@ class FPGACfg(LiteXModule):
                     _bom_ver.eq(pads.BOM_VER),
                 ),
             ]
+        else:
+            self.comb += [
+                self.tcxo_en.eq(self.reg18.fields.tcxo_en),
+                self.ext_clk.eq(self.reg18.fields.ext_clk),
+            ]
+
         self.comb += [
 
             self.from_fpgacfg.wfm_ch_en.eq(        self.wfm_ch_en.storage),
             self.from_fpgacfg.wfm_smpl_width.eq(   self.wfm_smpl_width.storage),
 
             # Peripheral config.
-            self.from_fpgacfg.spi_ss.eq(           self.spi_ss.storage),
             self.from_fpgacfg.clk_ena.eq(          self.clk_ena.storage),
 
             # export.
