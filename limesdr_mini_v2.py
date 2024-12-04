@@ -220,6 +220,7 @@ class BaseSoC(SoCCore):
             EP83_wwidth        = STRM0_FPGA_TX_WWIDTH,
             EP83_wsize         = 2048,
             s_clk_domain       = "sys",
+            m_clk_domain       = "sys",
         )
 
         # LMS7002 Top ------------------------------------------------------------------------------
@@ -263,6 +264,7 @@ class BaseSoC(SoCCore):
                 TX_IN_PCT_SIZE         = TX_PCT_SIZE,
                 TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
                 TX_IN_PCT_DATA_W       = STRM0_FPGA_RX_RWIDTH,
+                tx_s_clk_domain        = "sys",
 
                 # RX parameters
                 RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
