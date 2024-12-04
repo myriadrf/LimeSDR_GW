@@ -57,6 +57,8 @@ class TXPath(LiteXModule):
         # Synchro
         rx_sample_nr     = Signal(64)
         ch_en            = Signal(2)
+        smpl_width       = Signal()
+        synch_dis        = Signal()
 
         pct_loss_flg_clr = Signal()
 
@@ -81,11 +83,11 @@ class TXPath(LiteXModule):
         data_pad_tlast   = Signal()
 
         # AXI Slave 64 -> 128 (must uses s_axis_domain)
-        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.Converter(64, 128)))
+        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(64, 128)))
         self.conv_64_to_128 = conv_64_to_128
 
         # FIFO before unpacker
-        fifo_smpl_buff      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.SyncFIFO([("data", 128)], 16)))
+        fifo_smpl_buff      = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.SyncFIFO([("data", 128)], 16)))
         self.fifo_smpl_buff = fifo_smpl_buff
 
         unpack_bypass       = Signal()
@@ -114,7 +116,7 @@ class TXPath(LiteXModule):
 
             # smpl_nr_fifo
             smpl_nr_fifo.sink.data.eq(   self.rx_sample_nr),
-            smpl_nr_fifo.sink.ready.eq(  smpl_nr_fifo.sink.valid),
+            smpl_nr_fifo.sink.valid.eq(  smpl_nr_fifo.sink.ready),
             rx_sample_nr.eq(             smpl_nr_fifo.source.data),
             smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid),
         ]
@@ -202,8 +204,8 @@ class TXPath(LiteXModule):
 
             o_CURR_BUF_INDEX     = curr_buf_index,
 
-            i_RESET_N            = m_reset_n,                   # Unconnected for XTRX
-            i_SYNCH_DIS          = fpgacfg_manager.synch_dis, # Disable timestamp sync
+            i_RESET_N            = m_reset_n,                 # Unconnected for XTRX
+            i_SYNCH_DIS          = synch_dis,                 # Disable timestamp sync
             i_SAMPLE_NR          = rx_sample_nr,
             o_PCT_LOSS_FLG       = self.pct_loss_flg,         # Goes high when a packet is dropped due to outdated timestamp, stays high until PCT_LOSS_FLG_CLR is set
             i_PCT_LOSS_FLG_CLR   = pct_loss_flg_clr,          # Clears PCT_LOSS_FLG
@@ -255,15 +257,17 @@ class TXPath(LiteXModule):
         )
 
         self.specials += [
-            MultiReg(fpgacfg_manager.tx_en, s_reset_n,        odomain=s_clk_domain),
-            MultiReg(fpgacfg_manager.tx_en, m_reset_n,        odomain=m_clk_domain),
-            MultiReg(fpgacfg_manager.ch_en, ch_en,            odomain=m_clk_domain),
-            MultiReg(self.pct_loss_flg_clr, pct_loss_flg_clr, odomain=m_clk_domain),
+            MultiReg(fpgacfg_manager.tx_en,      s_reset_n,        odomain=s_clk_domain),
+            MultiReg(fpgacfg_manager.tx_en,      m_reset_n,        odomain=m_clk_domain),
+            MultiReg(fpgacfg_manager.ch_en,      ch_en,            odomain=m_clk_domain),
+            MultiReg(fpgacfg_manager.smpl_width, smpl_width,       odomain=m_clk_domain),
+            MultiReg(fpgacfg_manager.synch_dis,  synch_dis,        odomain=m_clk_domain),
+            MultiReg(self.pct_loss_flg_clr,      pct_loss_flg_clr, odomain=m_clk_domain),
         ]
 
         self.comb += [
             self.source.last.eq(0),
-            If(fpgacfg_manager.smpl_width == 0b00,
+            If(smpl_width == 0b00,
                 unpack_bypass.eq(1),
             ).Else(
                 unpack_bypass.eq(0),
