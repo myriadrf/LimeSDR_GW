@@ -37,8 +37,8 @@ class TXPath(LiteXModule):
 
         self.platform          = platform
 
-        self.source            = AXIStreamInterface(64,          clock_domain="lms_tx")
-        self.sink              = AXIStreamInterface(FIFO_DATA_W, clock_domain="lms_tx")
+        self.source            = AXIStreamInterface(64,          clock_domain=m_clk_domain)
+        self.sink              = AXIStreamInterface(FIFO_DATA_W, clock_domain=s_clk_domain)
 
         self.rx_sample_nr      = Signal(64)
         self.pct_loss_flg      = Signal()
