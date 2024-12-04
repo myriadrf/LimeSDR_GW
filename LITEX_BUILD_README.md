@@ -19,6 +19,16 @@ present/installed.
 - Possibility to use the same codebase/project between LimeSDR Mini and Mini-V2 (with just minor changes).
 - Possibility to share the same codebase for common peripherals between LimeSDR Mini, XTRX and future boards.
 
+## LimeSDR_GW / LimeDFB hash
+
+Before 20241204:
+- LimeSDR_GW: 8348e184ccfcbbb79c738188cf43e4b0b3deca6e
+- LimeDFB : 3ad6d470286fd857e3bc7fef2dbc9fe59d8c65c3
+
+After 20241204:
+- LimeSDR_GW: 1837abce83e30d7f35db15b03c30c6b43c08ec97
+- LimeDFB : 05abc7eb57875a92de8018cbb814006bfb5e0a38
+
 ## Fetch repository
 
 Fetch this repository and switch to development branch:
