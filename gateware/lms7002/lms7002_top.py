@@ -246,7 +246,7 @@ class LMS7002Top(LiteXModule):
         )
 
         self.specials += [
-            MultiReg(fpgacfg_manager.rx_en,       tx_reset_n,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.tx_en,       tx_reset_n,      odomain="lms_tx"),
             MultiReg(fpgacfg_manager.tx_ptrn_en,  tx_ptrn_en,      odomain="lms_tx"),
             MultiReg(fpgacfg_manager.mode,        tx_mode,         odomain="lms_tx"),
             MultiReg(fpgacfg_manager.trxiq_pulse, tx_trxiqpulse,   odomain="lms_tx"),
