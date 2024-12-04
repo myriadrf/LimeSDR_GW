@@ -104,12 +104,19 @@ _io = [
     ("gps", 0,
         Subsignal("rst", Pins("U18"), IOStandard("LVCMOS33")),
         Subsignal("pps", Pins("P3"),  Misc("PULLDOWN=True")),
-        Subsignal("tx" , Pins("N2"),  Misc("PULLUP=True")),
-        Subsignal("rx" , Pins("L1"),  Misc("PULLUP=True")),
+        #Subsignal("tx" , Pins("N2"),  Misc("PULLUP=True")),
+        #Subsignal("rx" , Pins("L1"),  Misc("PULLUP=True")),
         Subsignal("hw_s",Pins("L18"), IOStandard("LVCMOS33")),
         Subsignal("fix", Pins("R18"), IOStandard("LVCMOS33")),
         IOStandard("LVCMOS33")
     ),
+
+    # GPS Serial.
+    ("gps_serial", 0,
+     Subsignal("tx", Pins("N2"), Misc("PULLUP=True")),
+     Subsignal("rx", Pins("L1"), Misc("PULLUP=True")),
+     IOStandard("LVCMOS33")
+     ),
 
     # VCTCXO.
     ("vctcxo", 0,
