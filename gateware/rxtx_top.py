@@ -31,7 +31,6 @@ class RXTXTop(LiteXModule):
         TX_IN_PCT_DATA_W       = 128,
         TX_OUT_PCT_DATA_W      = 64,
         tx_s_clk_domain        = "lms_tx",
-        tx_int_clk_domain      = "lms_tx",
         tx_m_clk_domain        = "lms_tx",
 
         # RX parameters
@@ -66,11 +65,14 @@ class RXTXTop(LiteXModule):
         # TX Path. ---------------------------------------------------------------------------------
         self.tx_path = tx_path = TXPath(platform, fpgacfg_manager,
             # TX parameters
-            IQ_WIDTH     = TX_IQ_WIDTH,
-            PCT_MAX_SIZE = TX_IN_PCT_SIZE,
-            PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
-            BUFF_COUNT   = TX_N_BUFF,
-            FIFO_DATA_W  = TX_IN_PCT_DATA_W,
+            IQ_WIDTH      = TX_IQ_WIDTH,
+            PCT_MAX_SIZE  = TX_IN_PCT_SIZE,
+            PCT_HDR_SIZE  = TX_IN_PCT_HDR_SIZE,
+            BUFF_COUNT    = TX_N_BUFF,
+            FIFO_DATA_W   = TX_IN_PCT_DATA_W,
+            s_clk_domain  = tx_s_clk_domain,
+            m_clk_domain  = tx_m_clk_domain,
+            rx_clk_domain = rx_s_clk_domain, # FIXME: unsure
         )
 
         # RX Path. ---------------------------------------------------------------------------------
