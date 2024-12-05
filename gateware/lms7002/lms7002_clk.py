@@ -14,7 +14,7 @@ from litex.build.io import DDROutput
 # LMS7002 CLK --------------------------------------------------------------------------------------
 
 class LMS7002CLK(LiteXModule):
-    def __init__(self, platform, pads=None):
+    def __init__(self, platform, pads=None, drct_c0_ndly=1, drct_c2_ndly=1):
         # Configuration
         self.sel       = Signal() # 0 - fclk1 control, 1 - fclk2 control
         self.cflag     = Signal()
@@ -24,6 +24,10 @@ class LMS7002CLK(LiteXModule):
 
         self.rx_clk    = Signal()
         self.tx_clk    = Signal()
+
+        # mini V1 only
+        self.clk_ena     = Signal(3)
+        self.drct_clk_en = Signal(4)
 
         # # #
 
@@ -73,22 +77,25 @@ class LMS7002CLK(LiteXModule):
         ]
 
         if platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]:
+            c0_global         = Signal()
+            c2_global         = Signal()
+
             self.specials += [
                 # Forwarded clock fclk1.
                 # ----------------------
                 DDROutput(
-                    clk = pads.MCLK1,
-                    i1  = 0,
-                    i2  = 1,
+                    clk = c0_global,
+                    i1  = {True:0, False:1}[platform.name == "limesdr_mini_v2"],
+                    i2  = {True:1, False:1}[platform.name == "limesdr_mini_v2"],
                     o   = inst1_q
                 ),
 
                 # Forwarded clock fclk2.
                 # ----------------------
                 DDROutput(
-                    clk = pads.MCLK2,
-                    i1  = 0,
-                    i2  = 1,
+                    clk = c2_global,
+                    i1  = {True:0, False:1}[platform.name == "limesdr_mini_v2"],
+                    i2  = {True:1, False:1}[platform.name == "limesdr_mini_v2"],
                     o   = inst2_q
                 )
             ]
@@ -97,6 +104,11 @@ class LMS7002CLK(LiteXModule):
                 self.rx_clk.eq(pads.MCLK2),
             ]
         if platform.name in ["limesdr_mini_v2"]:
+            self.comb += [
+                c0_global.eq(pads.MCLK1),
+                c2_global.eq(pads.MCLK2),
+            ]
+
             self.specials += [
                 Instance("DELAYF",
                     p_DEL_VALUE = 1,
@@ -119,7 +131,76 @@ class LMS7002CLK(LiteXModule):
                     o_CFLAG     = inst4_cflag,
                 ),
             ]
-        elif platform.name not in ["limesdr_mini_v1", "limesdr_mini_v2"]:
+        elif platform.name in ["limesdr_mini_v1"]:
+            inst3_clk         = Signal(3)
+            # TX.
+            # ---
+            drct_c0_dly_chain = Signal(drct_c0_ndly)
+            c0_mux            = Signal()
+
+            for i in range(drct_c0_ndly):
+                self.specials += Instance("lcell",
+                    i_in  = {True:pads.MCLK2, False:drct_c0_dly_chain[i-1]}[i==0],
+                    o_out = drct_c0_dly_chain[i],
+                )
+            self.specials += [
+                Instance("fiftyfivenm_clkctrl",
+                    p_clock_type        = "Global Clock",
+                    p_ena_register_mode = "falling edge",
+                    p_lpm_type          = "fiftyfivenm_clkctrl",
+
+                    i_inclk             = c0_mux,
+                    i_clkselect         = Constant(0, 2),
+                    i_ena               = self.clk_ena[0],
+                    o_outclk            = c0_global,
+                    # io_devclrn          = Constant(1, 1),
+                    # io_devpor           = Constant(1, 1),
+                ),
+            ]
+
+            self.comb += [
+                If(self.drct_clk_en[0],
+                    c0_mux.eq(drct_c0_dly_chain[drct_c0_ndly-1]),
+                ).Else(
+                    c0_mux.eq(pads.MCLK2)
+                ),
+                pads.FCLK1.eq(inst1_q),
+            ]
+
+            # RX.
+            # ---
+            drct_c2_dly_chain = Signal(drct_c2_ndly)
+            c2_mux            = Signal()
+
+            for i in range(drct_c2_ndly):
+                self.specials += Instance("lcell",
+                    i_in  = {True:pads.MCLK2, False:drct_c2_dly_chain[i-1]}[i==0],
+                    o_out = drct_c2_dly_chain[i],
+                )
+            self.specials += [
+                Instance("fiftyfivenm_clkctrl",
+                    p_clock_type        = "Global Clock",
+                    p_ena_register_mode = "falling edge",
+                    p_lpm_type          = "fiftyfivenm_clkctrl",
+
+                    i_inclk             = c2_mux,
+                    i_clkselect         = Constant(0, 2),
+                    i_ena               = self.clk_ena[2],
+                    o_outclk            = c2_global,
+                    # io_devclrn          = Constant(1, 1),
+                    # io_devpor           = Constant(1, 1),
+                ),
+            ]
+            self.comb += [
+                If(self.drct_clk_en[2],
+                    c2_mux.eq(drct_c2_dly_chain[drct_c2_ndly-1]),
+                ).Else(
+                    c2_mux.eq(pads.MCLK2),
+                ),
+                pads.FCLK2.eq(inst2_q),
+            ]
+
+        else:
             from gateware.LimeDFB.lms7002.src.lms7002_pll import ClkCfgRegs
             from gateware.LimeDFB.lms7002.src.lms7002_pll import XilinxLmsMMCM
 
@@ -139,9 +220,3 @@ class LMS7002CLK(LiteXModule):
                 fclk     = pads.MCLK2,
                 logic_cd = self.rxclk)
             self.comb += self.rx_clk.eq(self.rxclk.clk)
-
-
-        else:
-            print("LMS7002CLK Missing Delay!")
-            self.comb += pads.FCLK1.eq(inst1_q)
-            self.comb += pads.FCLK2.eq(inst2_q)
