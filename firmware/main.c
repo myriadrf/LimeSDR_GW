@@ -41,7 +41,7 @@
 //#define DEBUG_FIFO
 //#define DEBUG_CSR_ACCESS
 //#define DEBUG_LMS_SPI
-#define DEBUG_CMD
+//#define DEBUG_CMD
 
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
@@ -1279,13 +1279,14 @@ int main(void)
 				break;
 
 			case CMD_LMS_MCU_FW_WR:
-				//printf("CMD_LMS_MCU_FW_WR\n");
+				printf("CMD_LMS_MCU_FW_WR\n");
 				current_portion = LMS_Ctrl_Packet_Rx->Data_field[1];
 
 				//check if portions are send in correct order
 				if(current_portion != 0) { //not first portion?
 					if(last_portion != (current_portion - 1)) { //portion number increments?
 						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_WRONG_ORDER_CMD;
+						printf("Error 1\n");
 						break;
 					}
 				}
@@ -1377,12 +1378,13 @@ int main(void)
 					//**ZT CyU3PSpiReceiveWords (&sc_brdg_data[0], 2); //reg data
 					//spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 2, &sc_brdg_data[0], 2, &sc_brdg_data[0], 0);
 					spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+					printf("%08x\n", spi_read_val);
 
-					if (wdata &0x01) break; //EMPTY_WRITE_BUFF = 1
+					if (spi_read_val &0x01) break; //EMPTY_WRITE_BUFF = 1
 
 					MCU_retries++;
 					//usleep (30);
-					cdelay(30000);
+					cdelay(3000);
 				}
 
 				//write 32 bytes to FIFO
