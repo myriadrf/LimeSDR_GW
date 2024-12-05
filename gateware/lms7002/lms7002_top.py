@@ -399,7 +399,7 @@ class LMS7002Top(LiteXModule):
                 o_delayf_move      = inst1_delayf_move,
                 o_delayf_direction = Open(),
             )
-        else:
+        elif platform.name not in ["limesdr_mini_v1"]:
             self.comb += [
                 smpl_cmp_en.eq(self.cmp_start.storage),
                 self.smpl_cmp_cnt.eq(self.cmp_length.storage),
