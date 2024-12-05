@@ -733,9 +733,11 @@ int main(void)
  				break;
 
 			case CMD_GET_INFO:
+				uint8_t rdata[2];
+				fpgacfg_read(0x00, rdata);
 
 				LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
-				LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
+				LMS_Ctrl_Packet_Tx->Data_field[1] = rdata[0]; // DEV_TYPE
 				LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
 				LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
 				LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
