@@ -61,7 +61,7 @@ _io = [
         Subsignal("clk",  Pins("K5"), IOStandard("2.5 V")),
         #Subsignal("LMS_SS", Pins("K8"), IOStandard("2.5 V")),
         #Subsignal("DAC_SS", Pins("J5"), IOStandard("2.5 V")),
-        Subsignal("cs_n", Pins("K8 J5"), IOStandard("2.5 V")),
+        Subsignal("cs_n", Pins("J5 K8"), IOStandard("2.5 V")),
         Subsignal("mosi", Pins("J7"), IOStandard("2.5 V")),
         Subsignal("miso", Pins("J6")),
         IOStandard("2.5 V")
