@@ -94,17 +94,22 @@ class TXPath(LiteXModule):
 
         # Clocks ----------------------------------------------------------------------------------
         # Sample NR FIFO (must be async with sink in RX_CLK, source iqsample, areset_n with iqpacket_areset_n)
-        self.cd_smpl_nr_fifo  = ClockDomain()
-        smpl_nr_fifo          = stream.ClockDomainCrossing([("data", 64)],
-            cd_from = "smpl_nr_fifo",
-            cd_to   = s_clk_domain,
-            depth   = 128,
-        )
-        self.smpl_nr_fifo     = smpl_nr_fifo
-        self.comb += [
-            self.cd_smpl_nr_fifo.clk.eq(ClockSignal(rx_clk_domain)),
-            self.cd_smpl_nr_fifo.rst.eq(ResetSignal(rx_clk_domain) | (~(s_reset_n & self.ext_reset_n))),
-        ]
+        if platform.name in ["limesdr_mini_v1"]:
+            smpl_nr_fifo      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.SyncFIFO([("data", 64)], 128)))
+            self.smpl_nr_fifo = smpl_nr_fifo
+            self.comb += smpl_nr_fifo.reset.eq(s_reset_n),
+        else:
+            self.cd_smpl_nr_fifo  = ClockDomain()
+            smpl_nr_fifo          = stream.ClockDomainCrossing([("data", 64)],
+                cd_from = "smpl_nr_fifo",
+                cd_to   = s_clk_domain,
+                depth   = 128,
+            )
+            self.smpl_nr_fifo     = smpl_nr_fifo
+            self.comb += [
+                self.cd_smpl_nr_fifo.clk.eq(ClockSignal(rx_clk_domain)),
+                self.cd_smpl_nr_fifo.rst.eq(ResetSignal(rx_clk_domain) | (~(s_reset_n & self.ext_reset_n))),
+            ]
 
         self.comb += [
             conv_64_to_128.reset.eq(     ~(s_reset_n & self.ext_reset_n)),
@@ -149,18 +154,25 @@ class TXPath(LiteXModule):
 
         cases = {}
         for i in range(BUFF_COUNT):
-            # Sample FIFO ClockDomain
-            self.cd_smpl_fifo = ClockDomain()
-            self.comb += [
-                self.cd_smpl_fifo.clk.eq(ClockSignal(s_clk_domain)),
-                self.cd_smpl_fifo.rst.eq(ResetSignal(s_clk_domain) | (~(s_reset_n & p2d_rd_resetn[i]))),
-            ]
+            if platform.name in ["limesdr_mini_v1"]:
+                # FIXME: write: s_axis_domain, read: m_axis_domain. Must check PACKET_FIFO mean
+                smpl_fifo = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.SyncFIFO([("data", 128)], 256)))
+                self.comb += [
+                    smpl_fifo.reset.eq(       s_reset_n & p2d_rd_resetn[i]),
+                ]
+            else:
+                # Sample FIFO ClockDomain
+                self.cd_smpl_fifo = ClockDomain()
+                self.comb += [
+                    self.cd_smpl_fifo.clk.eq(ClockSignal(s_clk_domain)),
+                    self.cd_smpl_fifo.rst.eq(ResetSignal(s_clk_domain) | (~(s_reset_n & p2d_rd_resetn[i]))),
+                ]
 
-            self.smpl_fifo = smpl_fifo = stream.ClockDomainCrossing([("data", 128)],
-                cd_from = "smpl_fifo",
-                cd_to   = m_clk_domain,
-                depth   = 256,
-            )
+                self.smpl_fifo = smpl_fifo = stream.ClockDomainCrossing([("data", 128)],
+                    cd_from = "smpl_fifo",
+                    cd_to   = m_clk_domain,
+                    depth   = 256,
+                )
 
             self.comb += [
                 # pct2data_buf_wr -> FIFO
