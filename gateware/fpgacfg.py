@@ -47,6 +47,9 @@ class FPGACfg(LiteXModule):
         self.tcxo_en           = Signal()
         self.ext_clk           = Signal()
 
+        self.drct_clk_en       = Signal(16)
+        self.clk_ena           = Signal(16)
+
         # CSRs.
         # -----
 
@@ -61,7 +64,7 @@ class FPGACfg(LiteXModule):
 
             # FPGA direct clocking (4-6)
             self.phase_reg_sel = CSRStorage(16, reset=0)
-            self.drct_clk_en   = CSRStorage(16, reset=0)
+            self._drct_clk_en  = CSRStorage(16, reset=0)
             # load_phase, cnt_int[4:0], clk_ind[4:0]
             self.load_phase    = CSRStorage(fields=[
                 CSRField("clk_int",        size=5, offset=0),
@@ -118,7 +121,7 @@ class FPGACfg(LiteXModule):
                 CSRField("ext_clk", size=1, offset=2, reset=0,
                     description="CLK source select: 0: Internal, 1: External."),
             ])
-        self.clk_ena            = CSRStorage(4, reset=0b1111)              # 29
+        self._clk_ena           = CSRStorage(4, reset=0b1111)              # 29
         self._sync_pulse_period = CSRStorage(32, reset=0x3D090)            # 30
 
         # # #
@@ -133,7 +136,8 @@ class FPGACfg(LiteXModule):
                 self.bom_hw_ver.status.eq(          Cat(_hw_ver, _bom_ver, self.pwr_src, Constant(0, 8))),
                 # FPGA direct clocking
                 self.from_fpgacfg.phase_reg_sel.eq( self.phase_reg_sel.storage),
-                self.from_fpgacfg.drct_clk_en.eq(   self.drct_clk_en.storage),
+                self.from_fpgacfg.drct_clk_en.eq(   self._drct_clk_en.storage),
+                self.drct_clk_en.eq(                self._drct_clk_en.storage),
                 self.from_fpgacfg.load_phase_reg.eq(self.load_phase.fields.load_phase_reg),
                 self.from_fpgacfg.clk_ind.eq(       self.load_phase.fields.clk_int),
                 self.from_fpgacfg.cnt_ind.eq(       self.load_phase.fields.cnt_int),
@@ -165,7 +169,8 @@ class FPGACfg(LiteXModule):
             self.from_fpgacfg.wfm_smpl_width.eq(   self.wfm_smpl_width.storage),
 
             # Peripheral config.
-            self.from_fpgacfg.clk_ena.eq(          self.clk_ena.storage),
+            self.from_fpgacfg.clk_ena.eq(          self._clk_ena.storage),
+            self.clk_ena.eq(                       self._clk_ena.storage),
 
             # export.
             # -------
