@@ -34,7 +34,7 @@ After 20241204:
 Fetch this repository and switch to development branch:
 
 ```bash
-git clone git@github.com:enjoy-digital/LimeSDR-Mini-v2_GW
+git clone --recursive git@github.com:enjoy-digital/LimeSDR-Mini-v2_GW
 cd LimeSDR-Mini-v2_GW
 git checkout origin/litex
 ```
