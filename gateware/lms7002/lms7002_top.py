@@ -155,6 +155,16 @@ class LMS7002Top(LiteXModule):
         tx_test_data_h      = Signal(diq_width + 1)
         tx_test_data_l      = Signal(diq_width + 1)
 
+        tx_mux0_diq_h       = Signal(diq_width + 1)
+        tx_mux0_diq_l       = Signal(diq_width + 1)
+        tx_mux1_diq_h       = Signal(diq_width + 1)
+        tx_mux1_diq_l       = Signal(diq_width + 1)
+
+        tx_tst_ptrn_h       = Signal(diq_width + 1)
+        tx_tst_ptrn_l       = Signal(diq_width + 1)
+        tx_mux_sel          = Signal()
+        tx_tst_data_en      = Signal()
+
         smpl_cmp_en         = Signal()
         smpl_cmp_done       = Signal()
         smpl_cmp_error      = Signal()
@@ -228,33 +238,32 @@ class LMS7002Top(LiteXModule):
             o_data_l    = tx_test_data_l,
         )
 
-        # txiqmux instance.
-        # -----------------
-        self.txiqmux_params = dict()
-        self.txiqmux_params.update(
-            p_diq_width         = diq_width,
-            i_clk               = ClockSignal("lms_tx"),
-            i_reset_n           = ~ResetSignal("sys"),
-            i_test_ptrn_en      = tx_ptrn_en,                # Enables test pattern
-            i_test_ptrn_fidm    = Constant(0, 1),            # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
-            i_test_ptrn_I       = self.from_tstcfg_tx_tst_i,
-            i_test_ptrn_Q       = self.from_tstcfg_tx_tst_q,
-            i_test_data_en      = fpgacfg_manager.tx_cnt_en,
-            i_test_data_mimo_en = Constant(1, 1),
-            i_mux_sel           = fpgacfg_manager.wfm_play,  # Mux select: 0 - tx, 1 - wfm
-            i_tx_diq_h          = tx_diq_h,
-            i_tx_diq_l          = tx_diq_l,
-            i_test_data_h       = tx_test_data_h,
-            i_test_data_l       = tx_test_data_l,
-            i_wfm_diq_h         = Constant(0, diq_width + 1),
-            i_wfm_diq_l         = Constant(0, diq_width + 1),
-            o_diq_h             = self.lms7002_txiq.tx_diq1_h,
-            o_diq_l             = self.lms7002_txiq.tx_diq1_l,
+        # txiq_tst_ptrn.
+        # --------------
+        self.txiq_tst_ptrn_params = dict()
+        self.txiq_tst_ptrn_params.update(
+            # Parameters.
+            p_diq_width = diq_width,
+
+            # Clk/Reset.
+            i_clk       = ClockSignal("lms_tx"),
+            i_reset_n   = tx_ptrn_en,
+
+            # Mode Settings.
+            i_fidm      = Constant(0, 1),            # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+            i_ptrn_i    = self.from_tstcfg_tx_tst_i,
+            i_ptrn_q    = self.from_tstcfg_tx_tst_q,
+
+            # Output.
+            o_diq_h     = tx_tst_ptrn_h,
+            o_diq_l     = tx_tst_ptrn_l,
         )
 
         self.specials += [
             MultiReg(fpgacfg_manager.tx_en,       tx_reset_n,      odomain="lms_tx"),
             MultiReg(fpgacfg_manager.tx_ptrn_en,  tx_ptrn_en,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.tx_cnt_en,   tx_tst_data_en,  odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.wfm_play,    tx_mux_sel,      odomain="lms_tx"),
             MultiReg(fpgacfg_manager.mode,        tx_mode,         odomain="lms_tx"),
             MultiReg(fpgacfg_manager.trxiq_pulse, tx_trxiqpulse,   odomain="lms_tx"),
             MultiReg(fpgacfg_manager.ddr_en,      tx_ddr_en,       odomain="lms_tx"),
@@ -472,6 +481,30 @@ class LMS7002Top(LiteXModule):
             )
         ]
 
+        # TX sync
+        self.sync.lms_tx += [
+            If(tx_mux_sel,
+                tx_mux0_diq_h.eq(Constant(0, diq_width + 1)),
+                tx_mux0_diq_l.eq(Constant(0, diq_width + 1)),
+            ).Else(
+                tx_mux0_diq_h.eq(tx_diq_h),
+                tx_mux0_diq_l.eq(tx_diq_l),
+            ),
+            If(tx_ptrn_en,
+                tx_mux1_diq_h.eq(tx_tst_ptrn_h),
+                tx_mux1_diq_l.eq(tx_tst_ptrn_l),
+            ).Else(
+                tx_mux1_diq_h.eq(tx_mux0_diq_h),
+                tx_mux1_diq_l.eq(tx_mux0_diq_l),
+            ),
+            If(tx_tst_data_en,
+                tx_mux1_diq_h.eq(tx_test_data_h),
+                tx_mux1_diq_l.eq(tx_test_data_l),
+            ).Else(
+                tx_mux1_diq_h.eq(tx_mux1_diq_h),
+                tx_mux1_diq_l.eq(tx_mux1_diq_l),
+            ),
+
 
         # LMS Controls.
         if platform.name.startswith("limesdr_mini"):
@@ -544,19 +577,17 @@ class LMS7002Top(LiteXModule):
         )
         self.tx_test_data_dd.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd")
 
-        # txiqmux
-        self.txiqmux = VHD2VConverter(self.platform,
-            top_entity    = "txiqmux",
-            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.txiqmux_params,
-            add_instance  = True,
+        # txiq_tst_ptrn.
+        txiq_tst_ptrn_files = [
+            "gateware/LimeDFB_LiteX/txiqmux/src/txiq_tst_ptrn.vhd",
+            "gateware/LimeDFB_LiteX/general/sync_reg.vhd",
+            "gateware/LimeDFB_LiteX/general/bus_sync_reg.vhd",
+        ]
+        self.txiq_tst_ptrn = add_vhd2v_converter(self.platform,
+            top    = "txiq_tst_ptrn",
+            params = self.txiq_tst_ptrn_params,
+            files  = txiq_tst_ptrn_files,
         )
-        self.txiqmux.add_source("gateware/LimeDFB_LiteX/txiqmux/src/txiq_tst_ptrn.vhd")
-        self.txiqmux.add_source("gateware/LimeDFB_LiteX/txiqmux/src/txiqmux.vhd")
-        self.txiqmux.add_source("gateware/LimeDFB_LiteX/general/sync_reg.vhd")
-        self.txiqmux.add_source("gateware/LimeDFB_LiteX/general/bus_sync_reg.vhd")
 
         # RX.
         # ---
