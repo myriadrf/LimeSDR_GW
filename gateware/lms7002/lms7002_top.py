@@ -603,7 +603,7 @@ class LMS7002Top(LiteXModule):
                 params        = self.delay_ctrl_top_params,
                 add_instance  = True,
             )
-            self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delay_ctrl_fsm.vhd")
-            self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delay_ctrl_top.vhd")
-            self.delay_ctrl_top.add_source("gateware/hdl/delayf_ctrl/delayf_ctrl.vhd")
+            self.delay_ctrl_top.add_source("gateware/LimeDFB_LiteX/delayf_ctrl/delay_ctrl_fsm.vhd")
+            self.delay_ctrl_top.add_source("gateware/LimeDFB_LiteX/delayf_ctrl/delay_ctrl_top.vhd")
+            self.delay_ctrl_top.add_source("gateware/LimeDFB_LiteX/delayf_ctrl/delayf_ctrl.vhd")
 
