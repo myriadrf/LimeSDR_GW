@@ -167,15 +167,15 @@ class GeneralPeriphTop(LiteXModule):
 
     def do_finalize(self):
         general_periph_files = [
-            "gateware/hdl/general/alive.vhd",
-            "gateware/hdl/general/FPGA_LED_cntrl.vhd",
-            "gateware/hdl/general/FPGA_LED2_ctrl.vhd",
-            "gateware/hdl/general/FX3_LED_ctrl.vhd",
-            "gateware/hdl/general/gpio_ctrl_top.vhd",
-            "gateware/hdl/general/gpio_ctrl.vhd",
-            "gateware/hdl/general/general_pkg.vhd",
-            "gateware/hdl/general_periph/synth/general_periph_top.vhd",
-            "gateware/hdl/general_periph/synth/general_periph_top_wrapper.vhd",
+            "gateware/LimeDFB_LiteX/general/alive.vhd",
+            "gateware/LimeDFB_LiteX/general/FPGA_LED_cntrl.vhd",
+            "gateware/LimeDFB_LiteX/general/FPGA_LED2_ctrl.vhd",
+            "gateware/LimeDFB_LiteX/general/FX3_LED_ctrl.vhd",
+            "gateware/LimeDFB_LiteX/general/gpio_ctrl_top.vhd",
+            "gateware/LimeDFB_LiteX/general/gpio_ctrl.vhd",
+            "gateware/LimeDFB_LiteX/general/general_pkg.vhd",
+            "gateware/LimeDFB_LiteX/general_periph/src/general_periph_top.vhd",
+            "gateware/LimeDFB_LiteX/general_periph/src/general_periph_top_wrapper.vhd",
             "gateware/hdl/spi/periphcfg_pkg.vhd",
         ]
 

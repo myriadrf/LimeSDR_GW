@@ -45,5 +45,5 @@ class BusyDelay(LiteXModule):
         )
 
     def do_finalize(self):
-        files           = ["gateware/hdl/general/busy_delay.vhd"]
+        files           = ["gateware/LimeDFB_LiteX/general/busy_delay.vhd"]
         self.busy_delay = add_vhd2v_converter(self.platform, "busy_delay", self.busy_delay_params, files)
