@@ -290,23 +290,23 @@ class TXPath(LiteXModule):
         self.pct2data_buf_wr = add_vhd2v_converter(self.platform,
             top    = "PCT2DATA_BUF_WR",
             params = self.pct2data_buf_wr_params,
-            files  = ["gateware/LimeDFB/tx_path_top/src/pct2data_buf_wr.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/tx_path_top/src/pct2data_buf_wr.vhd"],
         )
 
         self.pct2data_buf_rd = add_vhd2v_converter(self.platform,
             top    = "PCT2DATA_BUF_RD",
             params = self.pct2data_buf_rd_params,
-            files  = ["gateware/LimeDFB/tx_path_top/src/pct2data_buf_rd.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/tx_path_top/src/pct2data_buf_rd.vhd"],
         )
 
         self.sample_padder = add_vhd2v_converter(self.platform,
             top    = "sample_padder",
             params = self.sample_padder_params,
-            files  = ["gateware/LimeDFB/tx_path_top/src/sample_padder.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/tx_path_top/src/sample_padder.vhd"],
         )
 
         self.sample_unpack = add_vhd2v_converter(self.platform,
             top    = "SAMPLE_UNPACK",
             params = self.sample_unpack_params,
-            files  = ["gateware/LimeDFB/tx_path_top/src/sample_unpack.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/tx_path_top/src/sample_unpack.vhd"],
         )

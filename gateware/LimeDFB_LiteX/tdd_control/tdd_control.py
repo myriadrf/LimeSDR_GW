@@ -64,7 +64,7 @@ class TDDControl(LiteXModule):
         self.pct2data_buf_wr = add_vhd2v_converter(self.platform,
             top    = "tdd_control",
             params = self.params_ios,
-            files  = ["gateware/LimeDFB/tdd_control/tdd_control.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/tdd_control/tdd_control.vhd"],
         )
 
 

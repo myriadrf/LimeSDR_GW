@@ -470,6 +470,8 @@ class LMS7002Top(LiteXModule):
                         self.pads.TXNRX2_or_CLK_SEL.eq(self.lms1.fields.txnrx2),
                     ),
                 ]
+            else:
+                self.comb += self.pads.TXNRX2.eq(self.lms1.fields.txnrx2)
         else:
             lms_txen = Signal()
             lms_rxen = Signal()
@@ -511,7 +513,7 @@ class LMS7002Top(LiteXModule):
             params        = self.lms7002_tx_params,
             add_instance  = True,
         )
-        self.lms7002_tx.add_source("gateware/LimeDFB/lms7002/src/lms7002_tx.vhd")
+        self.lms7002_tx.add_source("gateware/LimeDFB_LiteX/lms7002/src/lms7002_tx.vhd")
 
         # TX test_data_dd.
         self.tx_test_data_dd = VHD2VConverter(self.platform,
@@ -553,7 +555,7 @@ class LMS7002Top(LiteXModule):
         if self.platform.name.startswith("limesdr_mini"):
             self.smpl_cmp.add_source("gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd")
         else:
-            self.smpl_cmp.add_source("gateware/LimeDFB/lms7002/src/smpl_cmp.vhd")
+            self.smpl_cmp.add_source("gateware/LimeDFB_LiteX/lms7002/src/smpl_cmp.vhd")
 
         # RX test_data_dd.
         self.rx_test_data_dd = VHD2VConverter(self.platform,
@@ -575,7 +577,7 @@ class LMS7002Top(LiteXModule):
             params        = self.diq2fifo_params,
             add_instance  = True,
         )
-        self.diq2fifo.add_source("gateware/LimeDFB/lms7002/src/lms7002_rx.vhd")
+        self.diq2fifo.add_source("gateware/LimeDFB_LiteX/lms7002/src/lms7002_rx.vhd")
         self.diq2fifo.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd")
 
         # Delay Ctrl.

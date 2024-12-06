@@ -10,8 +10,8 @@ from litex.soc.cores.clock     import *
 
 from litescope import LiteScopeAnalyzer
 
-from gateware.LimeDFB.lms7002.src.lms7002_pll import ClkCfgRegs
-from gateware.LimeDFB.lms7002.src.lms7002_pll import XilinxLmsMMCM
+from gateware.LimeDFB_LiteX.lms7002.src.lms7002_pll import ClkCfgRegs
+from gateware.LimeDFB_LiteX.lms7002.src.lms7002_pll import XilinxLmsMMCM
 
 
 class vctcxo_tamer_top(LiteXModule):
@@ -30,24 +30,24 @@ class vctcxo_tamer_top(LiteXModule):
         ])
 
         # Add sources
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/edge_detector.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/gnss_led.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/handshake.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/nmea_mm_driver.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/nmea_parser_pkg.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/nmea_parser_tb.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/nmea_parser.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/nmea_str_to_bcd.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/pps_counter.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/reset_synchronizer.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/str_to_bcd.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/synchronizer.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/vctcxo_tamer_log.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/vctcxo_tamer_top.vhd")
-        platform.add_source("./gateware/LimeDFB/vctcxo_tamer/src/vctcxo_tamer.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/edge_detector.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/gnss_led.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/handshake.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/nmea_mm_driver.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/nmea_parser_pkg.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/nmea_parser_tb.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/nmea_parser.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/nmea_str_to_bcd.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/pps_counter.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/reset_synchronizer.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/str_to_bcd.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/synchronizer.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/vctcxo_tamer_log.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/vctcxo_tamer_top.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/vctcxo_tamer/src/vctcxo_tamer.vhd")
 
-        platform.add_source("./gateware/LimeDFB/packages/src/string_pkg.vhd")
-        platform.add_source("./gateware/LimeDFB/uart/src/uart.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/packages/src/string_pkg.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/uart/src/uart.vhd")
 
 
 

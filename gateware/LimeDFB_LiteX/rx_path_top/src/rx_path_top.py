@@ -23,17 +23,17 @@ class rx_path_top(LiteXModule):
         )
 
         # Add sources
-        platform.add_source("./gateware/LimeDFB/rx_path_top/src/rx_path_top.vhd")
-        platform.add_source("./gateware/LimeDFB/rx_path_top/src/pack_56_to_64.vhd")
-        platform.add_source("./gateware/LimeDFB/rx_path_top/src/pack_48_to_64.vhd")
-        platform.add_source("./gateware/LimeDFB/rx_path_top/src/iq_stream_combiner.vhd")
-        platform.add_source("./gateware/LimeDFB/rx_path_top/src/data2packets_fsm.vhd")
-        platform.add_source("./gateware/LimeDFB/rx_path_top/src/bit_pack.vhd")
-        platform.add_source("./gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/rx_path_top/src/rx_path_top.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/rx_path_top/src/pack_56_to_64.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/rx_path_top/src/pack_48_to_64.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/rx_path_top/src/iq_stream_combiner.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/rx_path_top/src/data2packets_fsm.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/rx_path_top/src/bit_pack.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/rx_path_top/src/axis_nto1_converter.vhd")
 
-        platform.add_source("./gateware/LimeDFB/fifo_axis/src/fifo_axis_wrap.vhd")
-        platform.add_ip("./gateware/LimeDFB/axis/src/axis_dwidth_converter_128_to_64/axis_dwidth_converter_128_to_64.xci")
-        platform.add_source("./gateware/LimeDFB/axis/src/axis_pkg.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/fifo_axis/src/fifo_axis_wrap.vhd")
+        platform.add_ip("./gateware/LimeDFB_LiteX/axis/src/axis_dwidth_converter_128_to_64/axis_dwidth_converter_128_to_64.xci")
+        platform.add_source("./gateware/LimeDFB_LiteX/axis/src/axis_pkg.vhd")
 
 
         # create misc signals

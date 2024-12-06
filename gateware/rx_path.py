@@ -278,13 +278,13 @@ class RXPath(LiteXModule):
         self.iq_stream_combiner = add_vhd2v_converter(self.platform,
             top    = "IQ_STREAM_COMBINER",
             params = self.iq_stream_combiner_params,
-            files  = ["gateware/LimeDFB/rx_path_top/src/iq_stream_combiner.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/iq_stream_combiner.vhd"],
         )
 
         bit_pack_files = [
-            "gateware/LimeDFB/rx_path_top/src/bit_pack.vhd",
-            "gateware/LimeDFB/rx_path_top/src/pack_48_to_64.vhd",
-            "gateware/LimeDFB/rx_path_top/src/pack_56_to_64.vhd",
+            "gateware/LimeDFB_LiteX/rx_path_top/src/bit_pack.vhd",
+            "gateware/LimeDFB_LiteX/rx_path_top/src/pack_48_to_64.vhd",
+            "gateware/LimeDFB_LiteX/rx_path_top/src/pack_56_to_64.vhd",
         ]
 
         self.bit_pack = add_vhd2v_converter(self.platform,
@@ -296,17 +296,17 @@ class RXPath(LiteXModule):
         self.axis_nto1_converter = add_vhd2v_converter(self.platform,
             top    = "AXIS_NTO1_CONVERTER",
             params = self.axis_nto1_converter_params,
-            files  = ["gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/axis_nto1_converter.vhd"],
         )
 
         self.rx_path_top = add_vhd2v_converter(self.platform,
             top    = "RX_PATH_TOP",
             params = self.rx_path_top_params,
-            files  = ["gateware/LimeDFB/rx_path_top/src/rx_path_top.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/rx_path_top.vhd"],
         )
 
         self.data2packets_fsm = add_vhd2v_converter(self.platform,
             top    = "DATA2PACKETS_FSM",
             params = self.data2packets_fsm_params,
-            files  = ["gateware/LimeDFB/rx_path_top/src/data2packets_fsm.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/data2packets_fsm.vhd"],
         )

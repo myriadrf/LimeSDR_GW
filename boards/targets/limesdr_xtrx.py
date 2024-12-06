@@ -13,7 +13,6 @@ from migen import *
 
 from litex.gen import *
 
-#from boards.platforms import fairwaves_xtrx_platform
 from boards.platforms import limesdr_xtrx_platform
 
 from litex.soc.interconnect.csr import *
@@ -45,7 +44,7 @@ from gateware.GpioTop                         import GpioTop
 from gateware.lms7002.lms7002_top             import LMS7002Top
 from gateware.rxtx_top                        import RXTXTop
 
-from gateware.LimeDFB.tdd_control.tdd_control import TDDControl
+from gateware.LimeDFB_LiteX.tdd_control.tdd_control import TDDControl
 
 from litepcie.software import generate_litepcie_software, generate_litepcie_software_headers
 
@@ -510,7 +509,7 @@ class BaseSoC(SoCCore):
         vctcxo_tamer_pads = Record(vctcxo_tamer_layout)
         vctcxo_tamer_pads.tune_ref =self.pps_internal
 
-        from gateware.LimeDFB.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
+        from gateware.LimeDFB_LiteX.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
         self.vctcxo_tamer = vctcxo_tamer_top(platform=platform, vctcxo_tamer_pads=vctcxo_tamer_pads, clk100_domain="sys", vctcxo_clk_domain="xo_fpga")
         self.comb += self.vctcxo_tamer.RESET_N.eq(self.crg.pll.locked)
 

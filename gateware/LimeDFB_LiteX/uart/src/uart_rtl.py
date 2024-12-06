@@ -30,7 +30,7 @@ class uart_rtl(LiteXModule):
         ])
 
         # Add sources
-        platform.add_source("./gateware/LimeDFB/uart/src/uart.vhd")
+        platform.add_source("./gateware/LimeDFB_LiteX/uart/src/uart.vhd")
 
         # Reset
         self.RESET = Signal()
