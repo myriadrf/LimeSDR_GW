@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
 from migen import *
-
-from litex.gen import *
-
+from litex.soc.interconnect.axi import *
 from litex.soc.interconnect.csr import *
 
-from gateware.common            import add_vhd2v_converter
 
-class TDDControl(LiteXModule):
+from litescope import LiteScopeAnalyzer
+
+
+class xtrx_rfsw(LiteXModule):
     def __init__(self, platform, pads):
-
-        self.platform = platform
         # Add CSRs
         self.tdd_manual_val = CSRStorage(1, reset=0,
             description="TDD Signal manual control value"
@@ -35,11 +33,12 @@ class TDDControl(LiteXModule):
             description="0- RFSW Auto control disabled, 1- RFSW Auto control Enabled"
         )
 
+        # Add sources
+        platform.add_source("./gateware/tdd_control.vhd")
+
         # create misc signals
         self.AUTO_IN        = Signal()
         self.TDD_OUT        = Signal()
-
-        # # #
 
         # Create params
         self.params_ios = dict()
@@ -60,11 +59,6 @@ class TDDControl(LiteXModule):
             o_TX_RF_SW_OUT          = pads.tx
         )
 
-    def do_finalize(self):
-        self.pct2data_buf_wr = add_vhd2v_converter(self.platform,
-            top    = "tdd_control",
-            params = self.params_ios,
-            files  = ["gateware/LimeDFB_LiteX/tdd_control/tdd_control.vhd"],
-        )
-
+        # Create instance and assign params
+        self.specials += Instance("tdd_control", **self.params_ios)
 

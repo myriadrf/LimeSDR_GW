@@ -44,7 +44,7 @@ from gateware.GpioTop                         import GpioTop
 from gateware.lms7002.lms7002_top             import LMS7002Top
 from gateware.rxtx_top                        import RXTXTop
 
-from gateware.LimeDFB_LiteX.tdd_control.tdd_control import TDDControl
+from gateware.xtrx_rfsw import xtrx_rfsw
 
 from litepcie.software import generate_litepcie_software, generate_litepcie_software_headers
 
@@ -467,7 +467,7 @@ class BaseSoC(SoCCore):
 
         rfsw_pads = platform.request("rf_switches")
 
-        self.rfsw_control = TDDControl(platform, rfsw_pads)
+        self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
         #self.comb += rfsw_pads.tx.eq(1)
 
         # Interrupt --------------------------------------------------------------------------------
