@@ -489,6 +489,7 @@ int main(void)
 #endif
 
 	uint32_t wdata;
+	uint8_t rdata[2];
     //char wdata[256];
     //char rdata[256];
     char i2c_wdata[64];
@@ -733,7 +734,6 @@ int main(void)
  				break;
 
 			case CMD_GET_INFO:
-				uint8_t rdata[2];
 				fpgacfg_read(0x00, rdata);
 
 				LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
