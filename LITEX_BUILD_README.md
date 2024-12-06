@@ -41,24 +41,55 @@ git checkout origin/litex
 
 ## Build gateware
 
-Go back to *LimeSDR-Mini-v2_GW* and execute script with:
+Go back to *LimeSDR-Mini-v2_GW*. Scrip to use depends on target board:
+
+### limesdr_mini_v1
 
 ```bash
-cd /somewhere/LimeSDR-Mini-v2_GW
 # Build the Gateware
-./limesdr_mini_v2.py --build --toolchain=diamond
-# Load bitstream
-openFPGALoader -c ft2232
-build/limesdr_mini_v2_platform/gateware/limesdr_mini_v2_platform_impl.bit
+python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--with-spi-flash] [--load]
 ```
+
+Where:
+- `--with-bios` enables *LiteX bios* (requires more resources)
+- `--with-spi-flash` enables SPI Flash support
+- `--load` to write bitstream
+
+### limesdr_mini_v2
+
+```bash
+# Build the Gateware
+python -m boards.targets.limesdr_mini_v2 --build [--with-bios] [--with-spi-flash] [--load] [--write] [--toolchain=TOOLCHAIN]
+```
+
+Where:
+
+- `TOOLCHAIN` may be **diamond** or **trellis** (default: **diamond**)
+- `--with-bios` enables *LiteX bios*
+- `--with-spi-flash` enables SPI Flash support (only working with **trellis** toolchain)
+- `--load` to load the bitstream (Volatile memory)
+- `--write` to write the bitstream (SPI Flash)
+
+### limesdr_xtrx
+
+```bash
+# Build the Gateware
+python -m boards.targets.limesdr_xtrx --build [--with-bios] [--load] [--write]
+```
+
+Where:
+
+- `--with-bios` enables *LiteX bios*
+- `--load` to load the bitstream (Volatile memory)
+- `--write` to write the bitstream (SPI Flash)
+
+## Tests
 
 To have debug messages:
 
 ``` bash
 litex_term /dev/ttyUSB2
 ```
-
-## Tests
 
 Tests are done using **GQRX**:
 
