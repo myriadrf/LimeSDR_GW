@@ -200,7 +200,7 @@ class BaseSoC(SoCCore):
 
         # FPGA Cfg ---------------------------------------------------------------------------------
         revision_pads = platform.request("revision")
-        self.fpgacfg  = FPGACfg(platform, board_id=0x0011, major_rev=2, compile_rev=6, pads=revision_pads)
+        self.fpgacfg  = FPGACfg(platform, board_id=0x0019, major_rev=2, compile_rev=6, pads=revision_pads)
         self.comb += self.fpgacfg.pwr_src.eq(0)
 
         # PLL Cfg ----------------------------------------------------------------------------------
