@@ -531,7 +531,7 @@ class LMS7002Top(LiteXModule):
             params        = self.lms7002_tx_params,
             add_instance  = True,
         )
-        self.lms7002_tx.add_source("gateware/LimeDFB_LiteX/lms7002/src/lms7002_tx.vhd")
+        self.lms7002_tx.add_source("gateware/LimeDFB/lms7002/src/lms7002_tx.vhd")
 
         # TX test_data_dd.
         self.tx_test_data_dd = VHD2VConverter(self.platform,
