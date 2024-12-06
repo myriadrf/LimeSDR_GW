@@ -201,8 +201,8 @@ class LMS7002CLK(LiteXModule):
             ]
 
         else:
-            from gateware.LimeDFB_LiteX.lms7002.src.lms7002_pll import ClkCfgRegs
-            from gateware.LimeDFB_LiteX.lms7002.src.lms7002_pll import XilinxLmsMMCM
+            from gateware.lms7002_clk import ClkCfgRegs
+            from gateware.lms7002_clk import XilinxLmsMMCM
 
             # Clocking control registers
             self.CLK_CTRL = ClkCfgRegs()

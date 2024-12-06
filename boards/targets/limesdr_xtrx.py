@@ -509,7 +509,7 @@ class BaseSoC(SoCCore):
         vctcxo_tamer_pads = Record(vctcxo_tamer_layout)
         vctcxo_tamer_pads.tune_ref =self.pps_internal
 
-        from gateware.LimeDFB_LiteX.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
+        from gateware.LimeDFB.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
         self.vctcxo_tamer = vctcxo_tamer_top(platform=platform, vctcxo_tamer_pads=vctcxo_tamer_pads, clk100_domain="sys", vctcxo_clk_domain="xo_fpga")
         self.comb += self.vctcxo_tamer.RESET_N.eq(self.crg.pll.locked)
 
