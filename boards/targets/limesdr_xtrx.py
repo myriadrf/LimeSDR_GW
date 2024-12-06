@@ -14,7 +14,7 @@ from migen import *
 from litex.gen import *
 
 #from boards.platforms import fairwaves_xtrx_platform
-import limesdr_xtrx_platform
+from boards.platforms import limesdr_xtrx_platform
 
 from litex.soc.interconnect.csr import *
 from litex.soc.interconnect     import stream

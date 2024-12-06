@@ -17,7 +17,7 @@ from migen.genlib.resetsync import AsyncResetSynchronizer
 
 from litex.gen import *
 
-import limesdr_mini_v1_platform as limesdr_mini_v1
+from boards.platforms import limesdr_mini_v1_platform as limesdr_mini_v1
 
 from litex.soc.interconnect         import stream
 from litex.soc.interconnect.csr     import *
