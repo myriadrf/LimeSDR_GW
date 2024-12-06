@@ -504,6 +504,7 @@ class LMS7002Top(LiteXModule):
                 tx_mux1_diq_h.eq(tx_mux1_diq_h),
                 tx_mux1_diq_l.eq(tx_mux1_diq_l),
             ),
+        ]
 
 
         # LMS Controls.
