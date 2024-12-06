@@ -372,7 +372,7 @@ class FT601(LiteXModule):
             params        = self.ft601_arbiter_params,
             add_instance  = True,
         )
-        self.ft601_arbiter_converter.add_source("gateware/hdl/FT601/synth/FT601_arb.vhd")
+        self.ft601_arbiter_converter.add_source("gateware/LimeDFB_LiteX/FT601/src/FT601_arb.vhd")
 
         self.ft601_converter = VHD2VConverter(self.platform,
             top_entity    = "FT601",
@@ -382,4 +382,4 @@ class FT601(LiteXModule):
             params        = self.ft601_params,
             add_instance  = True,
         )
-        self.ft601_converter.add_source("gateware/hdl/FT601/synth/FT601.vhd")
+        self.ft601_converter.add_source("gateware/LimeDFB_LiteX/FT601/src/FT601.vhd")

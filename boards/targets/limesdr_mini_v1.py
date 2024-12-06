@@ -34,12 +34,13 @@ from litescope import LiteScopeAnalyzer
 
 from gateware.busy_delay          import BusyDelay
 from gateware.fpgacfg             import FPGACfg
-from gateware.ft601               import FT601
 from gateware.lms7002.lms7002_top import LMS7002Top
 from gateware.tst_top             import TstTop
 from gateware.general_periph      import GeneralPeriphTop
 from gateware.pllcfg              import PLLCfg
 from gateware.rxtx_top            import RXTXTop
+
+from gateware.LimeDFB_LiteX.FT601.src.ft601 import FT601
 
 # Constants ----------------------------------------------------------------------------------------
 
