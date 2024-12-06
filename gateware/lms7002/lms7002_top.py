@@ -19,6 +19,8 @@ from litex.soc.interconnect                import stream
 from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect.csr            import *
 
+from gateware.common               import add_vhd2v_converter
+
 from gateware.lms7002.lms7002_rxiq import LMS7002RXIQ
 from gateware.lms7002.lms7002_txiq import LMS7002TXIQ
 from gateware.lms7002.lms7002_clk  import LMS7002CLK
@@ -128,6 +130,8 @@ class LMS7002Top(LiteXModule):
 
         rx_test_data_h      = Signal(diq_width + 1)
         rx_test_data_l      = Signal(diq_width + 1)
+        rx_diq2_h_mux       = Signal(diq_width + 1)
+        rx_diq2_l_mux       = Signal(diq_width + 1)
 
         rx_ptrn_en          = Signal()
 
@@ -326,41 +330,35 @@ class LMS7002Top(LiteXModule):
             o_data_l    = rx_test_data_l,
         )
 
-        self.diq2fifo_params = dict()
-        self.diq2fifo_params.update(
+        self.lms7002_rx_params = dict()
+        self.lms7002_rx_params.update(
             # Parameters.
-            p_iq_width       = diq_width,
-            p_invert_input_clocks = "OFF",
-            # Clk/Reset.
-            i_clk            = ClockSignal("lms_rx"),
-            i_reset_n        = rx_reset_n,
-            # Mode settings
-            i_test_ptrn_en   = rx_ptrn_en,
-            i_mode           = rx_mode,        # JESD207: 1; TRXIQ: 0
-            i_trxiqpulse     = rx_trxiqpulse,  # trxiqpulse on: 1; trxiqpulse off: 0
-            i_ddr_en         = rx_ddr_en,      # DDR: 1; SDR: 0
-            i_mimo_en        = rx_mimo_en,     # SISO: 1; MIMO: 0
-            i_ch_en          = rx_ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
-            i_fidm           = Constant(0, 1), # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
-            # Rx interface data
-            i_rx_diq2_h      = self.lms7002_rxiq.rx_diq2_h,
-            i_rx_diq2_l      = self.lms7002_rxiq.rx_diq2_l,
+            p_g_IQ_WIDTH          = diq_width,
+            p_g_M_AXIS_FIFO_WORDS = 16,
 
-            # Test interface data
-            i_test_data_h    = rx_test_data_h,
-            i_test_data_l    = rx_test_data_l,
+            # Clock/Reset.
+            i_clk                 = ClockSignal("lms_rx"),
+            i_reset_n             = rx_reset_n,
+
+            # Mode settings
+            i_mode                = rx_mode,
+            i_trxiqpulse          = rx_trxiqpulse,
+            i_ddr_en              = rx_ddr_en,
+            i_mimo_en             = rx_mimo_en,
+            i_ch_en               = rx_ch_en,
+            i_fidm                = Constant(0, 1),
+            # Tx interface data
+            i_diq_h               = rx_diq2_h_mux,
+            i_diq_l               = rx_diq2_l_mux,
 
             # AXI Stream Master Interface.
-            o_m_axis_tdata   = self.rx_cdc.sink.data,
-            o_m_axis_tkeep   = self.rx_cdc.sink.keep,
-            o_m_axis_tvalid  = self.rx_cdc.sink.valid,
-            o_m_axis_tlast   = self.rx_cdc.sink.last,
-            i_m_axis_tready  = self.rx_cdc.sink.ready,
-
-            # sample compare
-            i_smpl_cmp_start = smpl_cmp_en,
-            ## sample counter enable
-            o_smpl_cnt_en    = self.smpl_cnt_en,
+            i_m_axis_areset_n     = Constant(0, 1),
+            i_m_axis_aclk         = Constant(0, 1),
+            o_m_axis_tvalid       = self.rx_cdc.sink.valid,
+            o_m_axis_tdata        = self.rx_cdc.sink.data,
+            o_m_axis_tkeep        = self.rx_cdc.sink.keep,
+            i_m_axis_tready       = self.rx_cdc.sink.ready,
+            o_m_axis_tlast        = self.rx_cdc.sink.last
         )
 
         self.specials += [
@@ -441,7 +439,6 @@ class LMS7002Top(LiteXModule):
                 self.lms7002_rxiq.data_loadn.eq(1),
                 self.lms7002_rxiq.data_move.eq (0),
             ),
-
             # Pads.
             self.pads.CORE_LDO_EN.eq(self.lms1.fields.core_ldo_en),
             self.pads.TXNRX1.eq(     self.lms1.fields.txnrx1),
@@ -454,6 +451,27 @@ class LMS7002Top(LiteXModule):
                 self.delay_ctrl_sel.eq(3),
             ),
         ]
+
+        # RX sync
+        self.sync.lms_rx += [
+            If(rx_ptrn_en,
+               rx_diq2_h_mux.eq(rx_test_data_h),
+               rx_diq2_l_mux.eq(rx_test_data_l),
+            ).Else(
+               rx_diq2_h_mux.eq(self.lms7002_rxiq.rx_diq2_h),
+               rx_diq2_l_mux.eq(self.lms7002_rxiq.rx_diq2_l),
+            ),
+            # Sample counter.
+            If(~rx_mimo_en & rx_ddr_en,
+                self.smpl_cnt_en.eq(1)
+            ).Else(
+                self.smpl_cnt_en.eq(~self.smpl_cnt_en)
+            ),
+            If(~smpl_cmp_en & ~rx_reset_n,
+                self.smpl_cnt_en.eq(0),
+            )
+        ]
+
 
         # LMS Controls.
         if platform.name.startswith("limesdr_mini"):
@@ -568,17 +586,12 @@ class LMS7002Top(LiteXModule):
         )
         self.rx_test_data_dd.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd")
 
-        # DIQ2FIFO.
-        self.diq2fifo = VHD2VConverter(self.platform,
-            top_entity    = "diq2fifo",
-            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.diq2fifo_params,
-            add_instance  = True,
+        # LMS7002RX.
+        self.lms7002_rx = add_vhd2v_converter(self.platform,
+            top    = "lms7002_rx",
+            params = self.lms7002_rx_params,
+            files  = ["gateware/LimeDFB/lms7002/src/lms7002_rx.vhd"],
         )
-        self.diq2fifo.add_source("gateware/LimeDFB_LiteX/lms7002/src/lms7002_rx.vhd")
-        self.diq2fifo.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/diq2fifo.vhd")
 
         # Delay Ctrl.
         if hasattr(self, "delay_ctrl_top_params"):
