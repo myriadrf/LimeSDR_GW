@@ -553,8 +553,8 @@ class LMS7002Top(LiteXModule):
             params        = self.txiqmux_params,
             add_instance  = True,
         )
-        self.txiqmux.add_source("gateware/hdl/txiqmux/synth/txiq_tst_ptrn.vhd")
-        self.txiqmux.add_source("gateware/hdl/txiqmux/synth/txiqmux.vhd")
+        self.txiqmux.add_source("gateware/LimeDFB_LiteX/txiqmux/src/txiq_tst_ptrn.vhd")
+        self.txiqmux.add_source("gateware/LimeDFB_LiteX/txiqmux/src/txiqmux.vhd")
         self.txiqmux.add_source("gateware/LimeDFB_LiteX/general/sync_reg.vhd")
         self.txiqmux.add_source("gateware/LimeDFB_LiteX/general/bus_sync_reg.vhd")
 
