@@ -7,17 +7,86 @@ present/installed.
 
 ### Current
 - Simplified integration/cores interconnection.
-- Selection of possible various CPUs with --cpu-type (VexRiscv, PicoRV32, etc...) to select tradeoff between performance/resoruce usage.
+- Selection of possible various CPUs with --cpu-type (VexRiscv, PicoRV32, etc...) to select tradeoff between performance/resource usage.
 - Use of LiteX Peripherals.
 - Use of LiteX CSR Bus to simplify peripheral control from CPU.
 - Observation/Debug capabilities with LiteScope Logic Analyser over UART/JTAG.
 - Simplified firmware build/integration (automatic).
 - Simplified firmware development with serialboot of firmware not requiring full Gateware recompilation.
 
-### Future
-- Once all FIFOs will be replaced, possibility to try GHDL/Yosys/NextPnr build.
-- Possibility to use the same codebase/project between LimeSDR Mini and Mini-V2 (with just minor changes).
-- Possibility to share the same codebase for common peripherals between LimeSDR Mini, XTRX and future boards.
+## Questions
+
+1. **Use of Single-Bit Registers**
+   Why are registers split into one-bit registers instead of using `CSRField`?
+2. **Reset Signal Differences**
+   The reset signals for *limesdr_mini* and *limesdr_xtrx* appear to be different.
+   - Is there a way to standardize or converge them?
+   - Would it be possible to re-use the *limesdr_mini* memory map for both boards?
+3. **Clock Domains Complexity**
+   Currently, there are three clock domains for `tx_path` and `rx_path`.
+   - Why not simplify this by using a CDC (Clock Domain Crossing) in the
+     communication interface module and a second CDC in `lms7002_top` to bridge
+     the `sys` clock with `lms_tx`/`lms_rx`?
+
+## Status
+
+### **Code / Repository Status**
+- **Vendor FIFOs Removed**: All vendor FIFOs have been replaced by LiteX FIFOs.
+- **Unified Codebase**: A single codebase is now used for all three boards.
+  Board-specific functionality is conditionally included at build time based on
+  the target name.
+- **Verilog Conversion**: Code from the *LimeSDR_Mini-V2_GW* repository can be
+  converted to Verilog using *GHDL* (default for `limesdr_mini_v2`).
+- **Build Tools**:
+  - **limesdr_mini_v2**: Can be built using either *Diamond* or *Yosys/nextPNR/Trellis*
+    (diamond has some limitations: SPI Flash not working, no boot with VexRiscv).
+  - **limesdr_mini_v1**: Requires *Quartus* for building.
+  - **limesdr_xtrx**: Built using *Vivado*.
+- **VexRiscv Support**: VexRiscv can be used as the firmware processor for all boards.
+- **Conditional Primitives**: Specific code and hardware primitives are enabled
+  or disabled at build time based on the target name.
+
+### Boards Status
+
+#### **limesdr_mini_v1**
+
+- **Build Tool**: *Quartus*
+- **Detection**: Board is correctly detected with `limeDevice -f`.
+- **Rx Path**:
+  - Validated with *GQRX* appimage (via *LimeSuite*).
+  - Also tested with `FM_receiver.grc` using *GNURadio* + *LimeSuiteNG*.
+- **Tx Path**:
+  - Validated with `test_miniv2_tx.grc` using *GNURadio* + *LimeSuiteNG*.
+
+**Limitations**:
+- **PLL Calibration / Delays**: Not used. The LiteX implementation of the Altera PLL module needs improvement.
+- **SPI Flash**: Not tested.
+
+#### limesdr_mini_v2
+
+- **Build Tool**: Can be built with either *Diamond* or *Yosys/nextPNR/Trellis*.
+- **Detection**: Board is correctly detected with `limeDevice -f`.
+- **Rx Path**:
+  - Validated with *GQRX* appimage (via *LimeSuite*).
+  - Also tested with `FM_receiver.grc` using *GNURadio* + *LimeSuiteNG*.
+- **Tx Path**:
+  - Validated with `test_miniv2_tx.grc` using *GNURadio* + *LimeSuiteNG*.
+
+**Limitations**:
+- **SPI Flash**:
+  - The SPI Flash is detected successfully (a read at offset 0 returns the first bytes of the bitstream).
+  - However, the logic in the firmware to manage the SPI Flash must be re-added.
+
+#### limesdr_xtrx
+
+- **Build Tool**: *Vivado*
+- **Detection**:
+  - The board is detected by the operating system (via `lspci`).
+  - The board is correctly detected with `limeDevice -f`.
+
+**Limitations**:
+- **Rx Path**: Not working (no samples received).
+- **Tx Path**: Not tested.
 
 ## LimeSDR_GW / LimeDFB hash
 
