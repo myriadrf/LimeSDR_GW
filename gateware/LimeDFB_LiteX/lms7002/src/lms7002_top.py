@@ -562,7 +562,7 @@ class LMS7002Top(LiteXModule):
             params        = self.tx_test_data_dd_params,
             add_instance  = True,
         )
-        self.tx_test_data_dd.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd")
+        self.tx_test_data_dd.add_source("gateware/LimeDFB_LiteX/lms7002/src/test_data_dd.vhd")
 
         # txiq_tst_ptrn.
         txiq_tst_ptrn_files = [
@@ -602,7 +602,7 @@ class LMS7002Top(LiteXModule):
             params        = self.rx_test_data_dd_params,
             add_instance  = True,
         )
-        self.rx_test_data_dd.add_source("gateware/hdl/rx_path_top/diq2fifo/synth/test_data_dd.vhd")
+        self.rx_test_data_dd.add_source("gateware/LimeDFB_LiteX/lms7002/src/test_data_dd.vhd")
 
         # LMS7002RX.
         self.lms7002_rx = add_vhd2v_converter(self.platform,
