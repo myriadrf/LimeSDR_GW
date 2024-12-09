@@ -17,7 +17,7 @@ from litex.soc.interconnect.csr            import CSRStatus, CSRStorage, CSRFiel
 
 from gateware.common                                import *
 from gateware.LimeDFB_LiteX.rx_path_top.src.rx_path import RXPath
-from gateware.tx_path                               import TXPath
+from gateware.LimeDFB_LiteX.tx_path_top.src.tx_path import TXPath
 
 # RXTX Top -----------------------------------------------------------------------------------------
 
