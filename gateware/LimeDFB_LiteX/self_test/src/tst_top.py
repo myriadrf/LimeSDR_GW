@@ -115,11 +115,11 @@ class TstTop(LiteXModule):
 
     def do_finalize(self):
         clock_test_files = [
-            "gateware/hdl/self_test/transition_count.vhd",
-            "gateware/hdl/self_test/singl_clk_with_ref_test.vhd",
-            "gateware/hdl/self_test/clk_with_ref_test.vhd",
-            "gateware/hdl/self_test/clk_no_ref_test.vhd",
-            "gateware/hdl/self_test/clock_test.vhd",
+            "gateware/LimeDFB_LiteX/self_test/src/transition_count.vhd",
+            "gateware/LimeDFB_LiteX/self_test/src/singl_clk_with_ref_test.vhd",
+            "gateware/LimeDFB_LiteX/self_test/src/clk_with_ref_test.vhd",
+            "gateware/LimeDFB_LiteX/self_test/src/clk_no_ref_test.vhd",
+            "gateware/LimeDFB_LiteX/self_test/src/clock_test.vhd",
         ]
 
         self.clock_test = add_vhd2v_converter(self.platform,
