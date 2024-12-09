@@ -86,7 +86,7 @@ class LMS7002CLK(LiteXModule):
                 DDROutput(
                     clk = c0_global,
                     i1  = {True:0, False:1}[platform.name == "limesdr_mini_v2"],
-                    i2  = {True:1, False:1}[platform.name == "limesdr_mini_v2"],
+                    i2  = {True:1, False:0}[platform.name == "limesdr_mini_v2"],
                     o   = inst1_q
                 ),
 
@@ -95,7 +95,7 @@ class LMS7002CLK(LiteXModule):
                 DDROutput(
                     clk = c2_global,
                     i1  = {True:0, False:1}[platform.name == "limesdr_mini_v2"],
-                    i2  = {True:1, False:1}[platform.name == "limesdr_mini_v2"],
+                    i2  = {True:1, False:0}[platform.name == "limesdr_mini_v2"],
                     o   = inst2_q
                 )
             ]
