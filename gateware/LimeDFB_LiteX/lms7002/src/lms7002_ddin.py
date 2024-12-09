@@ -11,9 +11,9 @@ from litex.gen import *
 
 from litex.build.io import DDRInput
 
-# LMS7002 RXIQ -------------------------------------------------------------------------------------
+# LMS7002 DDIN -------------------------------------------------------------------------------------
 
-class LMS7002RXIQ(LiteXModule):
+class LMS7002DDIN(LiteXModule):
     def __init__(self, platform, iq_width=12, pads=None, invert_input_clock=False):
         # Delay control
         self.data_loadn     = Signal()
@@ -65,7 +65,7 @@ class LMS7002RXIQ(LiteXModule):
                     )
                 ]
             else:
-                print("LMS7002RXIQ Missing Delay!")
+                print("LMS7002DDIN Missing Delay!")
                 self.comb += delay_datain.eq(datain[i])
 
             self.specials += [

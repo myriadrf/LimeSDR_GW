@@ -19,11 +19,11 @@ from litex.soc.interconnect                import stream
 from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect.csr            import *
 
-from gateware.common               import add_vhd2v_converter
+from gateware.common                                  import add_vhd2v_converter
 
-from gateware.lms7002.lms7002_rxiq import LMS7002RXIQ
-from gateware.lms7002.lms7002_txiq import LMS7002TXIQ
-from gateware.lms7002.lms7002_clk  import LMS7002CLK
+from gateware.LimeDFB_LiteX.lms7002.src.lms7002_ddin  import LMS7002DDIN
+from gateware.LimeDFB_LiteX.lms7002.src.lms7002_ddout import LMS7002DDOUT
+from gateware.LimeDFB_LiteX.lms7002.src.lms7002_clk   import LMS7002CLK
 
 # LMS7002 Top --------------------------------------------------------------------------------------
 
@@ -184,8 +184,8 @@ class LMS7002Top(LiteXModule):
 
         # TX Path (DIQ1).
         # ------------------------------------------------------------------------------------------
-        self.lms7002_txiq = ClockDomainsRenamer("lms_tx")(LMS7002TXIQ(platform, 12, pads))
-        self.tx_cdc       = stream.ClockDomainCrossing([("data", 64)], cd_from=s_clk_domain, cd_to="lms_tx", depth=s_axis_tx_fifo_words)
+        self.lms7002_ddout = ClockDomainsRenamer("lms_tx")(LMS7002DDOUT(platform, 12, pads))
+        self.tx_cdc        = stream.ClockDomainCrossing([("data", 64)], cd_from=s_clk_domain, cd_to="lms_tx", depth=s_axis_tx_fifo_words)
 
         self.lms7002_tx_params = dict()
         self.lms7002_tx_params.update(
@@ -269,7 +269,7 @@ class LMS7002Top(LiteXModule):
 
         # RX path (DIQ2). --------------------------------------------------------------------------
 
-        self.lms7002_rxiq = ClockDomainsRenamer("lms_rx")(LMS7002RXIQ(platform, 12, pads, invert_input_clock))
+        self.lms7002_ddin = ClockDomainsRenamer("lms_rx")(LMS7002DDIN(platform, 12, pads, invert_input_clock))
 
         self.rx_cdc = stream.ClockDomainCrossing([("data", 64), ("keep", 64 // 8)],
             cd_from = "lms_rx",
@@ -289,8 +289,8 @@ class LMS7002Top(LiteXModule):
             i_reset_n       = smpl_cmp_en,
 
             # DIQ bus.
-            i_diq_h         = self.lms7002_rxiq.rx_diq2_h,
-            i_diq_l         = self.lms7002_rxiq.rx_diq2_l,
+            i_diq_h         = self.lms7002_ddin.rx_diq2_h,
+            i_diq_l         = self.lms7002_ddin.rx_diq2_l,
 
             # Control signals
             i_cmp_start     = smpl_cmp_en,
@@ -316,7 +316,6 @@ class LMS7002Top(LiteXModule):
                 i_cmp_BQ        = Constant(0x555, diq_width),
                 o_cmp_error_cnt = Open(16),
             )
-
 
         # test_data_dd.
         # -------------
@@ -425,23 +424,23 @@ class LMS7002Top(LiteXModule):
             ),
             # lms7002_tx
             self.sink.connect(self.tx_cdc.sink, keep=["data", "ready", "last", "valid"]),
-            self.lms7002_txiq.data_direction.eq(0),
+            self.lms7002_ddout.data_direction.eq(0),
             If(self.delay_ctrl_sel == 0b01,
-                self.lms7002_txiq.data_loadn.eq(inst1_delayf_loadn),
-                self.lms7002_txiq.data_move.eq (inst1_delayf_move),
+                self.lms7002_ddout.data_loadn.eq(inst1_delayf_loadn),
+                self.lms7002_ddout.data_move.eq (inst1_delayf_move),
             ).Else(
-                self.lms7002_txiq.data_loadn.eq(1),
-                self.lms7002_txiq.data_move.eq (0),
+                self.lms7002_ddout.data_loadn.eq(1),
+                self.lms7002_ddout.data_move.eq (0),
             ),
             # lms7002_rx
             self.rx_cdc.source.connect(self.source),
-            self.lms7002_rxiq.data_direction.eq(Constant(0, 1)),
+            self.lms7002_ddin.data_direction.eq(Constant(0, 1)),
             If(self.delay_ctrl_sel == 0b11,
-                self.lms7002_rxiq.data_loadn.eq(inst1_delayf_loadn),
-                self.lms7002_rxiq.data_move.eq (inst1_delayf_move),
+                self.lms7002_ddin.data_loadn.eq(inst1_delayf_loadn),
+                self.lms7002_ddin.data_move.eq (inst1_delayf_move),
             ).Else(
-                self.lms7002_rxiq.data_loadn.eq(1),
-                self.lms7002_rxiq.data_move.eq (0),
+                self.lms7002_ddin.data_loadn.eq(1),
+                self.lms7002_ddin.data_move.eq (0),
             ),
             # Pads.
             self.pads.CORE_LDO_EN.eq(self.lms1.fields.core_ldo_en),
@@ -462,8 +461,8 @@ class LMS7002Top(LiteXModule):
                rx_diq2_h_mux.eq(rx_test_data_h),
                rx_diq2_l_mux.eq(rx_test_data_l),
             ).Else(
-               rx_diq2_h_mux.eq(self.lms7002_rxiq.rx_diq2_h),
-               rx_diq2_l_mux.eq(self.lms7002_rxiq.rx_diq2_l),
+               rx_diq2_h_mux.eq(self.lms7002_ddin.rx_diq2_h),
+               rx_diq2_l_mux.eq(self.lms7002_ddin.rx_diq2_l),
             ),
             # Sample counter.
             If(~rx_mimo_en & rx_ddr_en,
@@ -479,17 +478,17 @@ class LMS7002Top(LiteXModule):
         # TX sync
         self.sync.lms_tx += [
             If(tx_tst_data_en,
-                self.lms7002_txiq.tx_diq1_h.eq(tx_test_data_h),
-                self.lms7002_txiq.tx_diq1_l.eq(tx_test_data_l),
+                self.lms7002_ddout.tx_diq1_h.eq(tx_test_data_h),
+                self.lms7002_ddout.tx_diq1_l.eq(tx_test_data_l),
             ).Elif(tx_ptrn_en,
-                self.lms7002_txiq.tx_diq1_h.eq(tx_tst_ptrn_h),
-                self.lms7002_txiq.tx_diq1_l.eq(tx_tst_ptrn_l),
+                self.lms7002_ddout.tx_diq1_h.eq(tx_tst_ptrn_h),
+                self.lms7002_ddout.tx_diq1_l.eq(tx_tst_ptrn_l),
             ).Elif(tx_mux_sel,
-                self.lms7002_txiq.tx_diq1_h.eq(Constant(0, diq_width + 1)),
-                self.lms7002_txiq.tx_diq1_l.eq(Constant(0, diq_width + 1)),
+                self.lms7002_ddout.tx_diq1_h.eq(Constant(0, diq_width + 1)),
+                self.lms7002_ddout.tx_diq1_l.eq(Constant(0, diq_width + 1)),
             ).Else(
-                self.lms7002_txiq.tx_diq1_h.eq(tx_diq_h),
-                self.lms7002_txiq.tx_diq1_l.eq(tx_diq_l),
+                self.lms7002_ddout.tx_diq1_h.eq(tx_diq_h),
+                self.lms7002_ddout.tx_diq1_l.eq(tx_diq_l),
             ),
         ]
 

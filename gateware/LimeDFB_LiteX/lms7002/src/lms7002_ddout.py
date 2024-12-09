@@ -11,9 +11,9 @@ from litex.gen import *
 
 from litex.build.io import DDROutput
 
-# LMS7002 TXIQ -------------------------------------------------------------------------------------
+# LMS7002 DDOUT ------------------------------------------------------------------------------------
 
-class LMS7002TXIQ(LiteXModule):
+class LMS7002DDOUT(LiteXModule):
     def __init__(self, platform, iq_width=12, pads=None):
         # Delay control
         self.data_loadn     = Signal()
@@ -59,7 +59,7 @@ class LMS7002TXIQ(LiteXModule):
                     ),
                 ]
             else:
-                print("LMS7002TXIQ Missing Delay!")
+                print("LMS7002DDOUT Missing Delay!")
                 self.comb += delay_z[i].eq(oddr_q)
 
         # Connect outputs.

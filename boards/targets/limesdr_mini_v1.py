@@ -33,11 +33,11 @@ from litespi.phy.generic import LiteSPIPHY
 from litescope import LiteScopeAnalyzer
 
 from gateware.fpgacfg             import FPGACfg
-from gateware.lms7002.lms7002_top import LMS7002Top
 from gateware.tst_top             import TstTop
 from gateware.pllcfg              import PLLCfg
 from gateware.rxtx_top            import RXTXTop
 
+from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
 from gateware.LimeDFB_LiteX.general.busy_delay                import BusyDelay
 from gateware.LimeDFB_LiteX.general_periph.src.general_periph import GeneralPeriphTop
 from gateware.LimeDFB_LiteX.FT601.src.ft601                   import FT601

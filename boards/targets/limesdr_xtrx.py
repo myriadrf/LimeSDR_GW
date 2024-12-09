@@ -41,8 +41,9 @@ from litescope import LiteScopeAnalyzer
 from gateware.aux                             import AUX
 from gateware.fpgacfg                         import FPGACfg
 from gateware.GpioTop                         import GpioTop
-from gateware.lms7002.lms7002_top             import LMS7002Top
 from gateware.rxtx_top                        import RXTXTop
+
+from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
 
 from gateware.xtrx_rfsw import xtrx_rfsw
 
