@@ -282,9 +282,9 @@ class RXPathTop(LiteXModule):
         )
 
         bit_pack_files = [
-            "gateware/LimeDFB_LiteX/rx_path_top/src/bit_pack.vhd",
-            "gateware/LimeDFB_LiteX/rx_path_top/src/pack_48_to_64.vhd",
-            "gateware/LimeDFB_LiteX/rx_path_top/src/pack_56_to_64.vhd",
+            "gateware/LimeDFB/rx_path_top/src/bit_pack.vhd",
+            "gateware/LimeDFB/rx_path_top/src/pack_48_to_64.vhd",
+            "gateware/LimeDFB/rx_path_top/src/pack_56_to_64.vhd",
         ]
 
         self.bit_pack = add_vhd2v_converter(self.platform,
@@ -296,7 +296,7 @@ class RXPathTop(LiteXModule):
         self.axis_nto1_converter = add_vhd2v_converter(self.platform,
             top    = "AXIS_NTO1_CONVERTER",
             params = self.axis_nto1_converter_params,
-            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/axis_nto1_converter.vhd"],
+            files  = ["gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd"],
         )
 
         self.rx_path_top = add_vhd2v_converter(self.platform,
@@ -308,5 +308,5 @@ class RXPathTop(LiteXModule):
         self.data2packets_fsm = add_vhd2v_converter(self.platform,
             top    = "DATA2PACKETS_FSM",
             params = self.data2packets_fsm_params,
-            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/data2packets_fsm.vhd"],
+            files  = ["gateware/LimeDFB/rx_path_top/src/data2packets_fsm.vhd"],
         )
