@@ -155,11 +155,6 @@ class LMS7002Top(LiteXModule):
         tx_test_data_h      = Signal(diq_width + 1)
         tx_test_data_l      = Signal(diq_width + 1)
 
-        tx_mux0_diq_h       = Signal(diq_width + 1)
-        tx_mux0_diq_l       = Signal(diq_width + 1)
-        tx_mux1_diq_h       = Signal(diq_width + 1)
-        tx_mux1_diq_l       = Signal(diq_width + 1)
-
         tx_tst_ptrn_h       = Signal(diq_width + 1)
         tx_tst_ptrn_l       = Signal(diq_width + 1)
         tx_mux_sel          = Signal()
@@ -483,26 +478,18 @@ class LMS7002Top(LiteXModule):
 
         # TX sync
         self.sync.lms_tx += [
-            If(tx_mux_sel,
-                tx_mux0_diq_h.eq(Constant(0, diq_width + 1)),
-                tx_mux0_diq_l.eq(Constant(0, diq_width + 1)),
-            ).Else(
-                tx_mux0_diq_h.eq(tx_diq_h),
-                tx_mux0_diq_l.eq(tx_diq_l),
-            ),
-            If(tx_ptrn_en,
-                tx_mux1_diq_h.eq(tx_tst_ptrn_h),
-                tx_mux1_diq_l.eq(tx_tst_ptrn_l),
-            ).Else(
-                tx_mux1_diq_h.eq(tx_mux0_diq_h),
-                tx_mux1_diq_l.eq(tx_mux0_diq_l),
-            ),
             If(tx_tst_data_en,
-                tx_mux1_diq_h.eq(tx_test_data_h),
-                tx_mux1_diq_l.eq(tx_test_data_l),
+                self.lms7002_txiq.tx_diq1_h.eq(tx_test_data_h),
+                self.lms7002_txiq.tx_diq1_l.eq(tx_test_data_l),
+            ).Elif(tx_ptrn_en,
+                self.lms7002_txiq.tx_diq1_h.eq(tx_tst_ptrn_h),
+                self.lms7002_txiq.tx_diq1_l.eq(tx_tst_ptrn_l),
+            ).Elif(tx_mux_sel,
+                self.lms7002_txiq.tx_diq1_h.eq(Constant(0, diq_width + 1)),
+                self.lms7002_txiq.tx_diq1_l.eq(Constant(0, diq_width + 1)),
             ).Else(
-                tx_mux1_diq_h.eq(tx_mux1_diq_h),
-                tx_mux1_diq_l.eq(tx_mux1_diq_l),
+                self.lms7002_txiq.tx_diq1_h.eq(tx_diq_h),
+                self.lms7002_txiq.tx_diq1_l.eq(tx_diq_l),
             ),
         ]
 
