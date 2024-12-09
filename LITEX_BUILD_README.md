@@ -151,6 +151,9 @@ but not present in *LimeDFB* directory:
 
 All of them comes from *LimeSDR_Mini-v2_GW* repository with LiteX wrappers.
 
+As done for *limesdr_mini* `tx_path` and `rx_path` are not directly instanciated
+at the target level but `rxtx_top.py` remains used to instanciates both submodules.
+
 ## Changes in LMS7002
 
 1. **VHDL-to-LiteX Replacements**
@@ -179,3 +182,10 @@ All of them comes from *LimeSDR_Mini-v2_GW* repository with LiteX wrappers.
      a FIFO has been moved to the `tx_path_top.py` level.
   - `sample_unpack.vhd` has been modified to support conversion by `GHDL`.
 
+## Changes in `rx_path_top`
+
+1. **VHDL-To-LiteX Replacements**
+   - `rx_path_top.vhd`: Most of the logic has been moved to `rx_path_top.py` only
+     few process remains. **Question**: this logic may/must be converted to LiteX
+2. **New Additions and Modifications**
+   - `iq_stream_combiner.vhd` has been modified to correctly handle *SISO* mode
