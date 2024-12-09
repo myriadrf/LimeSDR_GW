@@ -94,7 +94,7 @@ present/installed.
 - **Rx Path**: Not working (no samples received).
 - **Tx Path**: Not tested.
 
-## Future Plans
+## potential future improvements
 
 1. **Clock Domain Crossings (CDC)**
    - Not all CDCs are fully implemented or operational.
