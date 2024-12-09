@@ -141,8 +141,6 @@ via the constructor to the modules that require access to its registers
 (`lms7002`, `rx_path`, and `tx_path`). This approach avoids redundant definitions
 of the same CSRs and simplifies configuration at the firmware level.
 
----
-
 ## Changes in LMS7002
 
 1. **VHDL-to-LiteX Replacements**
@@ -159,3 +157,15 @@ of the same CSRs and simplifies configuration at the firmware level.
      because, in *LimeDFB*, the test patterns are not configurable. **Question:** Is
      this configurability feature is used with `limesdr_mini`, or are the
      default pattern values always sufficient?
+
+## Changes in `tx_path_top`
+
+1. **VHDL-to-LiteX Replacements**
+    - **`tx_path_top.vhd`**: This module has been removed, and its associated logic has been fully integrated into `tx_path_top.py`
+
+2. **New Additions and Modifications**
+  - `pct2data_buf_rd.vhd` and `pct2data_buf_wr.vhd`: These modules have been modified to use
+     an `std_logic_vector` for the data bus instead of a complex type. Additionally, logic for selecting
+     a FIFO has been moved to the `tx_path_top.py` level.
+  - `sample_unpack.vhd` has been modified to support conversion by `GHDL`.
+
