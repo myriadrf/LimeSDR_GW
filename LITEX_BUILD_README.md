@@ -223,6 +223,13 @@ All of them comes from *LimeSDR_Mini-v2_GW* repository with LiteX wrappers.
 As done for *limesdr_mini* `tx_path` and `rx_path` are not directly instanciated
 at the target level but `rxtx_top.py` remains used to instanciates both submodules.
 
+## Firmware
+
+- Firmware for *limesdr_mini_v1* and *limesdr_mini_v2* is in *firmware_mini* directory.
+  This firmware is an adapted version of *LimeSDR_Mini-v2_GW* software.
+- *limesdr_xtrx* firmware is in *firmware_xtrx* repository. This firmware is an
+- adapted version of the one in *LimeSDR_GW* repository.
+
 ## Changes in LMS7002
 
 1. **VHDL-to-LiteX Replacements**
