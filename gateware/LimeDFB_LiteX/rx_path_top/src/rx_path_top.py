@@ -63,8 +63,11 @@ class RXPathTop(LiteXModule):
         s_clk_rst_n            = Signal()
         m_clk_rst_n            = Signal()
         int_clk_rst_n          = Signal()
+        int_clk_smpl_nr_clr    = Signal()
+        int_clk_ch_en          = Signal(2)
         mimo_en                = Signal()
         ddr_en                 = Signal()
+        s_smpl_width           = Signal(2)
 
         # IQ Stream Combiner To Rx Path Top.
         iq_to_bit_pack_tdata    = Signal(64)
@@ -139,7 +142,7 @@ class RXPathTop(LiteXModule):
             # AXI Stream Slave interface.
             i_data_in        = iq_to_bit_pack_tdata,
             i_data_in_valid  = iq_to_bit_pack_tvalid,
-            i_sample_width   = fpgacfg_manager.smpl_width,  # "10"-12bit, "01"-14bit, "00"-16bit;
+            i_sample_width   = s_smpl_width,              # "10"-12bit, "01"-14bit, "00"-16bit;
             # AXI Stream Master interface.
             o_data_out       = bit_pack_to_nto1_tdata,
             o_data_out_valid = bit_pack_to_nto1_tvalid,
@@ -184,12 +187,12 @@ class RXPathTop(LiteXModule):
             i_S_AXIS_IQSMPLS_TLAST    = iqsmpls_fifo.source.last,
 
             # Mode settings.
-            i_CFG_SMPL_WIDTH          = fpgacfg_manager.smpl_width,  # "10"-12bit, "01"-14bit, "00"-16bit;
-            i_CFG_CH_EN               = fpgacfg_manager.ch_en,       # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
+            i_CFG_SMPL_WIDTH          = s_smpl_width,                # "10"-12bit, "01"-14bit, "00"-16bit;
+            i_CFG_CH_EN               = int_clk_ch_en,               # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
 
             # sample nr
             i_SMPL_NR_INCR            = (self.sink.valid & iqsmpls_fifo.sink.ready),
-            i_SMPL_NR_CLR             = fpgacfg_manager.smpl_nr_clr,
+            i_SMPL_NR_CLR             = int_clk_smpl_nr_clr,
             i_SMPL_NR_LD              = Constant(0, 1),
             i_SMPL_NR_IN              = Constant(0, 64),
             o_SMPL_NR_OUT             = self.smpl_nr_cnt,
@@ -256,6 +259,7 @@ class RXPathTop(LiteXModule):
                 self.rx_pct_fifo_aclrn_req.eq(s_clk_rst_n),
                 mimo_en.eq(                   fpgacfg_manager.mimo_int_en),
                 ddr_en.eq(                    fpgacfg_manager.ddr_en),
+                s_smpl_width.eq(              fpgacfg_manager.smpl_width),
             ]
         else:
             self.specials += [
@@ -263,11 +267,21 @@ class RXPathTop(LiteXModule):
                 MultiReg(s_clk_rst_n,                 self.rx_pct_fifo_aclrn_req, s_clk_domain, reset=1),
                 MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,                    s_clk_domain),
                 MultiReg(fpgacfg_manager.ddr_en,      ddr_en,                     s_clk_domain),
+                MultiReg(fpgacfg_manager.smpl_width,  s_smpl_width,               s_clk_domain),
             ]
+
         if int_clk_domain == "sys":
-            self.comb += int_clk_rst_n.eq(fpgacfg_manager.rx_en)
+            self.comb += [
+                int_clk_rst_n.eq(      fpgacfg_manager.rx_en),
+                int_clk_ch_en.eq(      fpgacfg_manager.ch_en),
+                int_clk_smpl_nr_clr.eq(fpgacfg_manager.smpl_nr_clr),
+            ]
         else:
-            self.specials += MultiReg(fpgacfg_manager.rx_en, int_clk_rst_n, int_clk_domain, reset=1)
+            self.specials += [
+                MultiReg(fpgacfg_manager.rx_en,       int_clk_rst_n,       int_clk_domain, reset=1),
+                MultiReg(fpgacfg_manager.ch_en,       int_clk_ch_en,       int_clk_domain, reset=0),
+                MultiReg(fpgacfg_manager.smpl_nr_clr, int_clk_smpl_nr_clr, int_clk_domain, reset=0),
+            ]
         if m_clk_domain == "sys":
             self.comb += m_clk_rst_n.eq(fpgacfg_manager.rx_en)
         else:
