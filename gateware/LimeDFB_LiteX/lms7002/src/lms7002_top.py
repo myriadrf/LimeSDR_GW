@@ -566,7 +566,7 @@ class LMS7002Top(LiteXModule):
 
         # txiq_tst_ptrn.
         txiq_tst_ptrn_files = [
-            "gateware/LimeDFB_LiteX/txiqmux/src/txiq_tst_ptrn.vhd",
+            "gateware/LimeDFB_LiteX/lms7002/src/txiq_tst_ptrn.vhd",
             "gateware/LimeDFB_LiteX/general/sync_reg.vhd",
             "gateware/LimeDFB_LiteX/general/bus_sync_reg.vhd",
         ]
