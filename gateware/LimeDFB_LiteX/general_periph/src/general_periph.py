@@ -176,7 +176,7 @@ class GeneralPeriphTop(LiteXModule):
             "gateware/LimeDFB_LiteX/general/general_pkg.vhd",
             "gateware/LimeDFB_LiteX/general_periph/src/general_periph_top.vhd",
             "gateware/LimeDFB_LiteX/general_periph/src/general_periph_top_wrapper.vhd",
-            "gateware/hdl/spi/periphcfg_pkg.vhd",
+            "gateware/LimeDFB_LiteX/general_periph/src/periphcfg_pkg.vhd",
         ]
 
         self.general_periph = add_vhd2v_converter(self.platform,
