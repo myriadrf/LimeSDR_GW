@@ -23,15 +23,20 @@ entity smpl_cmp is
 
       clk            : in std_logic;
       reset_n        : in std_logic;
-      fidm           : in std_logic := '0';
-      -- Values to compare with (changing defaults not recommended)
-      cmp_AI      : std_logic_vector(smpl_width-1 downto 0) := x"AAA";
-      cmp_AQ      : std_logic_vector(smpl_width-1 downto 0) := x"555";
-      cmp_BI      : std_logic_vector(smpl_width-1 downto 0) := x"AAA";
-      cmp_BQ      : std_logic_vector(smpl_width-1 downto 0) := x"555";
+      --Mode settings
+      mode           : in std_logic; -- JESD207: 1; TRXIQ: 0
+      trxiqpulse     : in std_logic; -- trxiqpulse on: 1; trxiqpulse off: 0
+      ddr_en         : in std_logic; -- DDR: 1; SDR: 0
+      mimo_en        : in std_logic; -- SISO: 1; MIMO: 0
+      ch_en          : in std_logic_vector(1 downto 0); --"01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
+      fidm           : in std_logic;
       --control and status
       cmp_start      : in std_logic := '0';
       cmp_length     : in std_logic_vector(15 downto 0) := x"00FF";  -- buffer length to check
+      cmp_AI         : in std_logic_vector(smpl_width-1 downto 0);   -- values to compare with
+      cmp_AQ         : in std_logic_vector(smpl_width-1 downto 0);   
+      cmp_BI         : in std_logic_vector(smpl_width-1 downto 0);
+      cmp_BQ         : in std_logic_vector(smpl_width-1 downto 0);
       cmp_done       : out std_logic;     -- '1' - indicates when sample compare is done
       cmp_error      : out std_logic;     -- '0' - no errors, '1' - captured error
       cmp_error_cnt  : out std_logic_vector(15 downto 0);
@@ -66,33 +71,10 @@ signal smpl_err_cnt     : unsigned(15 downto 0);
 signal compare_cnt      : unsigned(15 downto 0);
 signal wait_cnt         : unsigned(3 downto 0);
 signal compare_stop     : std_logic;
-signal debug_compare_stop : std_logic;
 
 type state_type is (idle, wait_cyc, compare, compare_done);
 signal current_state, next_state : state_type;
 
--- attribute mark_debug    : string;
--- attribute keep          : string;
--- attribute mark_debug of current_state       : signal is "true";
--- attribute mark_debug of debug_compare_stop  : signal is "true";
--- attribute mark_debug of diq_h_reg           : signal is "true";
--- attribute mark_debug of diq_l_reg           : signal is "true";
--- attribute mark_debug of AI_err              : signal is "true";
--- attribute mark_debug of AQ_err              : signal is "true";
--- attribute mark_debug of BQ_err              : signal is "true";
--- attribute mark_debug of BI_err              : signal is "true";
--- attribute mark_debug of IQ_SEL_err          : signal is "true";
--- attribute mark_debug of smpl_err            : signal is "true";
--- attribute mark_debug of cmp_start           : signal is "true";
--- attribute mark_debug of cmp_done_reg        : signal is "true";
--- attribute mark_debug of cmp_error_reg       : signal is "true";
--- attribute mark_debug of cmp_AI       : signal is "true";
--- attribute mark_debug of cmp_AQ       : signal is "true";
--- attribute mark_debug of cmp_BI       : signal is "true";
--- attribute mark_debug of cmp_BQ       : signal is "true";
--- attribute mark_debug of smpl_err_cnt       : signal is "true";
--- attribute mark_debug of wait_cnt       : signal is "true";
--- attribute mark_debug of compare_cnt       : signal is "true";
 
   
 begin
@@ -128,7 +110,8 @@ begin
          IQ_SEL_err  <= '0';
          smpl_err    <= '0';
       elsif (clk'event AND clk='1') then
-         smpl_err <= AI_err OR AQ_err OR BI_err OR BQ_err OR IQ_SEL_err;
+         --smpl_err <= AI_err OR AQ_err OR BI_err OR BQ_err OR IQ_SEL_err;
+         smpl_err <= AI_err OR AQ_err OR IQ_SEL_err;
          
          --compare IQ_SEL signal
          if diq_h_reg(smpl_width) = diq_l_reg(smpl_width) then 
@@ -290,8 +273,6 @@ fsm : process(current_state, cmp_start, cmp_start_reg, compare_stop, smpl_err, w
 			next_state <= idle;
 	end case;
 end process;
-
-debug_compare_stop <= compare_stop OR smpl_err;
 
 -- ----------------------------------------------------------------------------
 -- Output registers

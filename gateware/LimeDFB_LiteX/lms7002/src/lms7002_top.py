@@ -589,9 +589,9 @@ class LMS7002Top(LiteXModule):
             add_instance  = True,
         )
         if self.platform.name.startswith("limesdr_mini"):
-            self.smpl_cmp.add_source("gateware/hdl/rx_path_top/smpl_cmp/synth/smpl_cmp.vhd")
-        else:
             self.smpl_cmp.add_source("gateware/LimeDFB_LiteX/lms7002/src/smpl_cmp.vhd")
+        else:
+            self.smpl_cmp.add_source("gateware/LimeDFB/lms7002/src/smpl_cmp.vhd")
 
         # RX test_data_dd.
         self.rx_test_data_dd = VHD2VConverter(self.platform,
