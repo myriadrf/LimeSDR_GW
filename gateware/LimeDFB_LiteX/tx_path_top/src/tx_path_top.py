@@ -302,7 +302,7 @@ class TXPathTop(LiteXModule):
         self.sample_padder = add_vhd2v_converter(self.platform,
             top    = "sample_padder",
             params = self.sample_padder_params,
-            files  = ["gateware/LimeDFB_LiteX/tx_path_top/src/sample_padder.vhd"],
+            files  = ["gateware/LimeDFB/tx_path_top/src/sample_padder.vhd"],
         )
 
         self.sample_unpack = add_vhd2v_converter(self.platform,
