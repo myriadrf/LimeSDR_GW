@@ -325,6 +325,7 @@ class BaseSoC(SoCCore):
             with_dma_synchronizer = False,
             with_msi              = True
         )
+        platform.add_false_path_constraints(self.crg.cd_sys.clk, self.pcie_phy.cd_pcie.clk)
 
         # I2C Bus0 ---------------------------------------------------------------------------------
         # - Temperature Sensor (TMP108  @ 0x4a) Lime: (TMP1075 @ 0x4b).
@@ -352,19 +353,19 @@ class BaseSoC(SoCCore):
         self.aux = AUX(platform.request("aux"))
 
         # Timing Constraints/False Paths -----------------------------------------------------------
-        for i in range(4):
-            platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks        dna_clk] -asynchronous")
-            platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       jtag_clk] -asynchronous")
-            platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       icap_clk] -asynchronous")
-
         platform.toolchain.pre_placement_commands.append(
             "set_clock_groups "
-            "-group [get_clocks -include_generated_clocks lms7002m_mclk1] "
-            "-group [get_clocks -include_generated_clocks lms7002m_mclk2] "
+            "-group [get_clocks -include_generated_clocks main_crg_clkout1] "
+            "-group [get_clocks -include_generated_clocks main_s7pciephy_clkout0] "
+            "-group [get_clocks -include_generated_clocks main_s7pciephy_clkout1] "
+            "-group [get_clocks -include_generated_clocks main_s7pciephy_clkout2] "
+            "-group [get_clocks -include_generated_clocks main_s7pciephy_clkout3] "
+            "-group [get_clocks -include_generated_clocks LMS_MCLK1] "
+            "-group [get_clocks -include_generated_clocks LMS_MCLK2] "
+            "-group [get_clocks -include_generated_clocks clk26] "
             "-group [get_clocks -include_generated_clocks jtag_clk] "
             "-group [get_clocks -include_generated_clocks icap_clk] "
             "-group [get_clocks -include_generated_clocks dna_clk] "
-            "-group [get_clocks -include_generated_clocks *] "
             "-asynchronous"
         )
 
