@@ -735,8 +735,13 @@ int main(void)
 			case CMD_GET_INFO:
 				fpgacfg_read(0x00, rdata);
 
-				LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
-				LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
+				if (!strcmp(CONFIG_PLATFORM_NAME, "limesdr_mini_v2")) {
+					LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
+					LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
+				} else {
+					LMS_Ctrl_Packet_Tx->Data_field[0] = 6;
+					LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI;
+				}
 				LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
 				LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
 				LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
