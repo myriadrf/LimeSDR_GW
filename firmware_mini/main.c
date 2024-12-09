@@ -677,13 +677,12 @@ int main(void)
  				//if(Check_many_blocks (2)) break;
 
 				//write reg addr
-				sc_brdg_data[0] = 0x80;		// Write command & BOARD_GPIO_DIR register address MSB
-				sc_brdg_data[1] = 0xC4;		// BOARD_GPIO_DIR register address LSB
-				sc_brdg_data[2] = LMS_Ctrl_Packet_Rx->Data_field[0];	// leftmost byte
-				sc_brdg_data[3] = LMS_Ctrl_Packet_Rx->Data_field[1];	// Data fields swapped, while MSB in the data packet is in the
+				wdata = 0x80;               		                        // Write command & BOARD_GPIO_DIR register address MSB
+				wdata = (wdata << 8) | 0xC4;		                        // BOARD_GPIO_DIR register address LSB
+				wdata = (wdata << 8) | LMS_Ctrl_Packet_Rx->Data_field[0];	// leftmost byte
+				wdata = (wdata << 8) | LMS_Ctrl_Packet_Rx->Data_field[1];	// Data fields swapped, while MSB in the data packet is in the
 				//spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 4, sc_brdg_data, 0, NULL, 0);
-				p_spi_wrdata32 = (uint32_t*) &sc_brdg_data;
-				//spi_read_val = lat_wishbone_spi_command(pMaster, SPI_FPGA_SELECT, *p_spi_wrdata32, 0);
+				spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
 
  				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
  			break;
@@ -737,7 +736,7 @@ int main(void)
 				fpgacfg_read(0x00, rdata);
 
 				LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
-				LMS_Ctrl_Packet_Tx->Data_field[1] = rdata[0]; // DEV_TYPE
+				LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
 				LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
 				LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
 				LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
