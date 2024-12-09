@@ -33,6 +33,8 @@ present/installed.
    Unlike *limesdr_xtrx*, *limesdr_mini* have a *test_data_dd.vhd* module and,
    for Rx and Tx (*lms7002* module) a mux with more options. Is this test remains
    relevant or may be removed to align all 3 boards?
+5. **VCTCXO_TAMER**
+   Why not using LiteUART instead of a VHDL implementation?
 
 ## Status
 
