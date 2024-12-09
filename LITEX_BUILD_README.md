@@ -125,3 +125,37 @@ litex_term /dev/ttyUSB2 --kernel firmware/firmware.bin
   *periphcfg* and *pllcfg*
   - `main.c` is a main part with function to read/write LMS7002 registers and
     DAC.
+
+# Difference Between `gateware/LimeDFB` and `gateware/LimeDFB_LiteX`
+
+The `gateware/LimeDFB` directory is a submodule for the LimeDFB repository.
+
+Unlike `limesdr_xtrx`, both `limesdr_mini` and `limesdr_mini_2.0` use SPI for
+register access along with dedicated VHDL modules. However, in *LimeDFB_LiteX*,
+some of these modules have been removed, and the registers have been directly
+integrated into the corresponding modules.
+
+The `fpgacfg` component remains largely similar to the original approach but has
+been adapted to use LiteX scripts. A single shared instance of `fpgacfg` is passed
+via the constructor to the modules that require access to its registers
+(`lms7002`, `rx_path`, and `tx_path`). This approach avoids redundant definitions
+of the same CSRs and simplifies configuration at the firmware level.
+
+---
+
+## Changes in LMS7002
+
+1. **VHDL-to-LiteX Replacements**
+   - **`lms7002_ddin.vhd` and `lms7002_ddout.vhd`**: These modules have been replaced with LiteX scripts of the same name.
+   - **`lms7002_top.vhd`**: This module has been removed, and its associated logic has been fully integrated into `lms7002_top.py`.
+
+2. **New Additions and Modifications**
+   - **`lms7002_clk.py`**: This script now handles all logic related to clock management for the LMS7002.
+   - **`test_data_dd`**: This component is present in *LimeDFB_LiteX* but has no equivalent in *LimeDFB*.
+   - **`smpl_cmp.vhd`**: The *LimeDFB_LiteX* version of `smpl_cmp.vhd` is kept
+     for `limesdr_mini` because the *LimeDFB* version requires two channels. To support
+     both SISO and MIMO modes, the logic must be updated accordingly.
+   - **`txiq_tst_ptrn.vhd`** The *LimeDFB_LiteX* version of this module is kept
+     because, in *LimeDFB*, the test patterns are not configurable. **Question:** Is
+     this configurability feature is used with `limesdr_mini`, or are the
+     default pattern values always sufficient?
