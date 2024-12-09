@@ -512,7 +512,7 @@ class LMS7002Top(LiteXModule):
             self.comb += [
                 self.pads.TXEN.eq( self.lms1.fields.txen),
                 self.pads.RXEN.eq( self.lms1.fields.rxen),
-                self.pads.RESET.eq(self.lms1.fields.reset),
+                self.pads.RESET.eq(self.lms1.fields.reset & self._lms_ctr_gpio.storage[0]),
             ]
             if platform.name in ["limesdr_mini_v2"]:
                 self.comb += [
