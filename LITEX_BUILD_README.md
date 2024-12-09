@@ -18,15 +18,21 @@ present/installed.
 
 1. **Use of Single-Bit Registers**
    Why are registers split into one-bit registers instead of using `CSRField`?
+   - Would it be possible to re-use the *limesdr_mini* memory map for all boards?
+   - Some CSR, for the same register, are declared in more than one module. Looks
+     better to have a common instance shared between modules.
 2. **Reset Signal Differences**
    The reset signals for *limesdr_mini* and *limesdr_xtrx* appear to be different.
    - Is there a way to standardize or converge them?
-   - Would it be possible to re-use the *limesdr_mini* memory map for both boards?
 3. **Clock Domains Complexity**
    Currently, there are three clock domains for `tx_path` and `rx_path`.
    - Why not simplify this by using a CDC (Clock Domain Crossing) in the
      communication interface module and a second CDC in `lms7002_top` to bridge
      the `sys` clock with `lms_tx`/`lms_rx`?
+4. **Tests**
+   Unlike *limesdr_xtrx*, *limesdr_mini* have a *test_data_dd.vhd* module and,
+   for Rx and Tx (*lms7002* module) a mux with more options. Is this test remains
+   relevant or may be removed to align all 3 boards?
 
 ## Status
 
@@ -87,6 +93,30 @@ present/installed.
 **Limitations**:
 - **Rx Path**: Not working (no samples received).
 - **Tx Path**: Not tested.
+
+## Future Plans
+
+1. **Clock Domain Crossings (CDC)**
+   - Not all CDCs are fully implemented or operational.
+   - A potential first step toward improvement would be to simplify the CDC logic.
+2. **Reset Signal Improvements**
+   - The handling of `reset` signals needs improvement.
+   - Currently, the `tx_en` or `rx_en` signals are used as resets, but the approach
+     varies depending on the board.
+   - A more unified and consistent reset strategy is required across all boards.
+1. **Input/Output Data Stream Delays (limesdr_mini_v1)**
+   - For *limesdr_mini_v1*, input and output data stream delays are not fully managed.
+   - The LiteX PLL module must be enhanced to support dynamic phase configuration,
+     which would allow better handling of data stream alignment.
+2. **Support for limesdr_xtrx**
+   - The *limesdr_xtrx* target is currently a proof of concept.
+   - Full support is required to bring its status to parity with *LimeSDR_GW*,
+     ensuring the same level of stability, feature set, and testing coverage.
+3. **Firmware merge**
+   - *limesdr_mini_v1* and *limesdr_mini_v2* have one firmware (`firmware_mini`),
+     *limesdr_xtrx* has another firmware (`firmware_xtrx`). A common firmware, or
+     at least a common codebase may simplify future evolutions
+   - before merge memory map may need to be unified
 
 ## LimeSDR_GW / LimeDFB hash
 
