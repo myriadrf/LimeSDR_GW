@@ -261,8 +261,6 @@ class Platform(Xilinx7SeriesPlatform):
             "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}_fallback.bit\" -file {build_name}_fallback.bin"
         ]
 
-        self.add_source("./gateware/limesdr_xtrx_constrs.xdc")
-
     def create_programmer(self, cable="digilent_hs2"):
         return OpenFPGALoader(cable=cable, fpga_part=f"xc7a50tcpg236", freq=10e6)
 

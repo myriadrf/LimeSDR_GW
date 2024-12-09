@@ -357,6 +357,17 @@ class BaseSoC(SoCCore):
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       jtag_clk] -asynchronous")
             platform.toolchain.pre_placement_commands.append(f"set_clock_groups -group [get_clocks {{{{*s7pciephy_clkout{i}}}}}] -group [get_clocks       icap_clk] -asynchronous")
 
+        platform.toolchain.pre_placement_commands.append(
+            "set_clock_groups "
+            "-group [get_clocks -include_generated_clocks lms7002m_mclk1] "
+            "-group [get_clocks -include_generated_clocks lms7002m_mclk2] "
+            "-group [get_clocks -include_generated_clocks jtag_clk] "
+            "-group [get_clocks -include_generated_clocks icap_clk] "
+            "-group [get_clocks -include_generated_clocks dna_clk] "
+            "-group [get_clocks -include_generated_clocks *] "
+            "-asynchronous"
+        )
+
         # FPGA Cfg ---------------------------------------------------------------------------------
         self.fpgacfg  = FPGACfg(platform, board_id=27, major_rev=2, compile_rev=20)
 
