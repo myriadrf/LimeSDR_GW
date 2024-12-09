@@ -141,6 +141,16 @@ via the constructor to the modules that require access to its registers
 (`lms7002`, `rx_path`, and `tx_path`). This approach avoids redundant definitions
 of the same CSRs and simplifies configuration at the firmware level.
 
+Some new modules have been added, because these are required for *limesdr_mini* targets
+but not present in *LimeDFB* directory:
+- *FT601* for everything related to FT601 communication interface.
+- *delayf_ctrl* for lattice `DELAYF` control/calibration
+- *general*: misc modules required by others modules
+- *general_periphery*: GPIOs and LEDs access
+- *self_test*: clock calibration
+
+All of them comes from *LimeSDR_Mini-v2_GW* repository with LiteX wrappers.
+
 ## Changes in LMS7002
 
 1. **VHDL-to-LiteX Replacements**
