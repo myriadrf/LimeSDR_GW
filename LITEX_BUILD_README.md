@@ -125,8 +125,8 @@ Before 20241204:
 - LimeDFB : 3ad6d470286fd857e3bc7fef2dbc9fe59d8c65c3
 
 After 20241204:
-- LimeSDR_GW: 1837abce83e30d7f35db15b03c30c6b43c08ec97
-- LimeDFB : 05abc7eb57875a92de8018cbb814006bfb5e0a38
+- LimeSDR_GW: 1837abce83e30d7f35db15b03c30c6b43c08ec97 (Mon Dec 2 13:38:27 2024 +0200)
+- LimeDFB : 05abc7eb57875a92de8018cbb814006bfb5e0a38 (Fri Nov 22 16:33:35 2024 +0200)
 
 ## Fetch repository
 
