@@ -15,9 +15,9 @@ from litex.gen import *
 from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect.csr            import CSRStatus, CSRStorage, CSRField
 
-from gateware.common              import *
-from gateware.rx_path             import RXPath
-from gateware.tx_path             import TXPath
+from gateware.common                                import *
+from gateware.LimeDFB_LiteX.rx_path_top.src.rx_path import RXPath
+from gateware.tx_path                               import TXPath
 
 # RXTX Top -----------------------------------------------------------------------------------------
 
