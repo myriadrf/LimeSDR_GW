@@ -70,6 +70,11 @@ unsigned int irq_mask;
 
 uint16_t dac_val = DAC_DEFF_VAL;
 
+uint8_t serial_otp_unlock_key = 0;
+volatile unsigned char serial[32] = {0};
+volatile unsigned char tmp_serial[32] = {0};
+volatile unsigned char tmprd_serial[32] = {0};
+
 // Since there is no eeprom on the XTRX board and the flash is too large for the gw
 // we use the top of the flash instead of eeprom, thus the offset to last sector
 #define mem_write_offset 0x01FF0000
@@ -753,8 +758,13 @@ static void clk_cfg_irq_init(void) {
     irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
 }
 
+void copyArray(unsigned char *source, unsigned char *destination, size_t sourceIndex, size_t destinationIndex, size_t count) {
+    memcpy(destination + destinationIndex, source + sourceIndex, count);
+}
+
 
 int main(void) {
+	int spirez;
 #ifdef CONFIG_CPU_HAS_INTERRUPT
     irq_setmask(0);
     irq_setie(1);
@@ -812,8 +822,64 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
 
+    				// Read Serial number from FLASH OTP region
+    				spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, sizeof(serial), serial);
+
+    				LMS_Ctrl_Packet_Tx->Data_field[10] = serial[7];
+    				LMS_Ctrl_Packet_Tx->Data_field[11] = serial[6];
+    				LMS_Ctrl_Packet_Tx->Data_field[12] = serial[5];
+    				LMS_Ctrl_Packet_Tx->Data_field[13] = serial[4];
+    				LMS_Ctrl_Packet_Tx->Data_field[14] = serial[3];
+    				LMS_Ctrl_Packet_Tx->Data_field[15] = serial[2];
+    				LMS_Ctrl_Packet_Tx->Data_field[16] = serial[1];
+    				LMS_Ctrl_Packet_Tx->Data_field[17] = serial[0];
+
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
+
+    			case CMD_SERIAL_WR:
+
+    				copyArray(LMS_Ctrl_Packet_Rx->Data_field, tmp_serial, 24, 0, 32);
+
+    				// STORAGE_TYPE
+    				switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
+    				case 0:		//Default
+    					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+    					break;
+    				case 1:		//Volatile memory
+    					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+    					break;
+    				case 2:		//Non-Volatile memory
+    					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+    					break;
+    				case 3:		//Non-Volatile OTP memory
+    					if (serial_otp_unlock_key == OTP_UNLOCK_KEY) {
+    						//FlashQspi_EraseSector(&CFG_QSPI, OTP_SERIAL_ADDRESS); //temp for testing
+    						spirez = FlashQspi_ProgramOTP(OTP_SERIAL_ADDRESS, LMS_Ctrl_Packet_Rx->Data_field[1], tmp_serial);
+    						serial_otp_unlock_key = 0;
+    						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+    					} else if (serial_otp_unlock_key != OTP_UNLOCK_KEY && LMS_Ctrl_Packet_Rx->Data_field[2] == OTP_UNLOCK_KEY) {
+    						serial_otp_unlock_key = LMS_Ctrl_Packet_Rx->Data_field[2];
+    						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+    					}
+    					else {
+    						LMS_Ctrl_Packet_Tx->Header.Status = STATUS_RESOURCE_DENIED_CMD;
+    					}
+    					break;
+    				default:
+    					LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+    					break;
+    				}
+
+    				break;
+
+    			case CMD_SERIAL_RD:
+    				spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, 32, tmprd_serial);
+    				copyArray(tmprd_serial, LMS_Ctrl_Packet_Tx->Data_field, 0, 24, 32);
+    				LMS_Ctrl_Packet_Tx->Data_field[1] = 16;
+    				LMS_Ctrl_Packet_Tx->Data_field[2] = serial_otp_unlock_key;
+    				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+    				break;
 
                 case CMD_LMS_RST:
 

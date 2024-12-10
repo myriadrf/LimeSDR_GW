@@ -26,7 +26,7 @@
 #define MAX_ID_LMS7		1
 
 #define OTP_UNLOCK_KEY		0x5A
-#define OTP_SERIAL_ADDRESS  0x1FD8000
+#define OTP_SERIAL_ADDRESS  0x0000010
 #define OTP_SERIAL_LENGTH   0x10
 
 #define DAC_DEFF_VAL			46870			// Default TCXO DAC value loaded when EEPROM is empty
