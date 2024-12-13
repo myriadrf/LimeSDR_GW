@@ -156,8 +156,8 @@ class Platform(AlteraPlatform):
         self.add_platform_command("set_global_assignment -name RESERVE_ALL_UNUSED_PINS_WEAK_PULLUP \"AS INPUT TRI-STATED\"")
         self.add_platform_command("set_global_assignment -name INTERNAL_FLASH_UPDATE_MODE \"SINGLE IMAGE WITH ERAM\"") # CHECKME/Adapt.
 
-    def create_programmer(self):
-        return OpenFPGALoader(cable="digilent_hs2")
+    def create_programmer(self, cable="ft2232"):
+        return OpenFPGALoader(cable=cable)
 
     def do_finalize(self, fragment):
         self.add_period_constraint(self.lookup_request("FT_CLK",    loose=True), 1e9/100e6)

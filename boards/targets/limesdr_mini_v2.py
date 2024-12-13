@@ -386,6 +386,7 @@ def main():
     parser.add_argument("--toolchain", default="diamond",   help="Build toolchain.", choices=["diamond", "trellis"])
     parser.add_argument("--load",      action="store_true", help="Load bitstream.")
     parser.add_argument("--flash",     action="store_true", help="Flash bitstream.")
+    parser.add_argument("--cable",     default="ft2232",    help="JTAG cable.")
 
     # SoC parameters.
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
@@ -427,12 +428,12 @@ def main():
 
     # Load Bistream.
     if args.load:
-        prog = soc.platform.create_programmer()
+        prog = soc.platform.create_programmer(cable=args.cable)
         prog.load_bitstream(builder.get_bitstream_filename(mode="sram", ext=".bit"))
 
     # Flash Bitstream.
     if args.flash:
-        prog = soc.platform.create_programmer()
+        prog = soc.platform.create_programmer(cable=args.cable)
         prog.flash(0, builder.get_bitstream_filename(mode="sram", ext=".bit"))
 
 if __name__ == "__main__":
