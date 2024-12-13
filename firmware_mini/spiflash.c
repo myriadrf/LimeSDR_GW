@@ -117,6 +117,43 @@ static void spiflash_sector_erase(uint32_t addr)
 	transfer_cmd(w_buf, r_buf, 4);
 }
 
+bool spiflash_erase(uint32_t addr)
+{
+	/* Check Flash is ready */
+	while ((spiflash_read_status_register() & 0x01) != 0);
+	/* Enable Write operation */
+	spiflash_write_enable();
+	/* Wait end of operation */
+	while ((spiflash_read_status_register() & 0x01) != 0);
+	if ((spiflash_read_status_register() & 0x02) != 0x02)
+		return false;
+
+	/* Erase sector */
+	spiflash_sector_erase(addr);
+	/* Wait end of operation */
+	while ((spiflash_read_status_register() & 0x01) != 0);
+
+	return true;
+}
+
+bool spiflash_page_program(uint32_t addr, uint8_t *data, int len)
+{
+	/* Check Flash is ready */
+	while ((spiflash_read_status_register() & 0x01) != 0);
+	/* Enable Write operation */
+	spiflash_write_enable();
+	/* Wait end of operation */
+	while ((spiflash_read_status_register() & 0x01) != 0);
+	if ((spiflash_read_status_register() & 0x02) != 0x02)
+		return false;
+
+	/* Write data */
+	page_program(addr, data, len);
+	/* Don't wait for end operation (done at main.c level) */
+
+	return true;
+}
+
 /* erase page size in bytes, check flash datasheet */
 #define SPI_FLASH_ERASE_SIZE (64*1024)
 
