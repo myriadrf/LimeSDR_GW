@@ -41,7 +41,7 @@
 //#define DEBUG_FIFO
 //#define DEBUG_CSR_ACCESS
 //#define DEBUG_LMS_SPI
-//#define DEBUG_CMD
+#define DEBUG_CMD
 
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
@@ -157,7 +157,6 @@ void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 	uint32_t real_len = length;
 	int i, ii, data_offset;
 	uint32_t rx;
-#if 1
 	uint32_t offset = 0;
 	// Read access is 32b: must be aligned
 	uint32_t base_addr = (rel_addr >> 2) << 2;
@@ -173,13 +172,6 @@ void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 		}
 		offset = 0;
 	}
-
-#else
-	for (i = 0; i < length; i++) {
-		rx = *(uint32_t *)(addr + (i << 2));
-		rdata[i] = rx;
-	}
-#endif
 }
 #endif
 
@@ -494,7 +486,7 @@ int main(void)
     volatile int spirez;
     //int i2crez;
     //int k;
-    uint32_t * p_spi_wrdata32;
+    uint8_t p_spi_wrdata[4];
     int cnt = 0;
 
 #ifdef CONFIG_CPU_HAS_INTERRUPT
@@ -632,20 +624,17 @@ int main(void)
 		printf("SPI Flash access: Error\n");
 	else
 		printf("SPI Flash access: OK\n");
-#endif
 
-	/*if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+DAC_VAL_ADDR_IN_FLASH, 0x2, rdata)!= 0) {
+	spiFlash_read(DAC_VAL_ADDR_IN_FLASH, 2, spi_rdata);
+	if ((spi_rdata[0]==0xFF) & (spi_rdata[1]==0xFF)) {
 		dac_val = DAC_DEFF_VAL;
 	}
 	else {
-		if (rdata[0]==0xFF & rdata[1]==0xFF) {
-			dac_val = DAC_DEFF_VAL;
-		}
-		else {
-			dac_val = ((uint16_t)rdata[1])<<8 | ((uint16_t)rdata[0]);
-		}
-	}*/
+		dac_val = ((uint16_t)spi_rdata[1])<<8 | ((uint16_t)spi_rdata[0]);
+	}
+#else
 	dac_val = DAC_DEFF_VAL;
+#endif
 
 	//spirez = MicoSPISetSlaveEnable(dac_spi, 1);
     // Write initial data to the 10bit DAC
@@ -1127,12 +1116,15 @@ int main(void)
 
 				break;
 
+#if defined(CSR_SPIFLASH_CORE_BASE)
 			case CMD_ALTERA_FPGA_GW_WR: //FPGA passive serial
 
 				printf("CMD_ALTERA_FGPA_GW_WR\n");
-#if 0
-				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
+#if 1
+				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[3] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[1] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[0]);
+				//current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
 				data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+				printf("%d\n", LMS_Ctrl_Packet_Rx->Data_field[0]);
 
 				switch(LMS_Ctrl_Packet_Rx->Data_field[0])//prog_mode
 				{
@@ -1154,6 +1146,7 @@ int main(void)
 					break;
 
 				case 1: //write data to Flash from PC
+					printf("b\n");
 
 					current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
 					data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
@@ -1179,27 +1172,30 @@ int main(void)
 
 							//spiflash_erase_primary(spiflash);
 							// Erase First 64KB block, other blocks are erased later
-							flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base + 0x00000000, 3);
+							//flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base + 0x00000000, 3);
+							if (spiflash_erase(0x00000000) == false)
+								printf("spiflash_erase_primary: Error\n");
 
 							state = 11;
 							Flash = 1;
 
 						case 11:
 							//Start erase CFM0
-							if ((0x03 & MicoSPIFlash_StatusRead (spiflash)) == 0)
+							//if ((0x03 & MicoSPIFlash_StatusRead (spiflash)) == 0)
+							if ((0x03 & spiflash_read_status_register()) == 0)
 							{
 								//printf("CFM0 Erased\n");
 								//printf("Enter Programming file.\n");
 								state = 20;
 								Flash = 1;
 							}
-							if((0x01 & MicoSPIFlash_StatusRead (spiflash)) == 0x01)
+							if((0x01 & spiflash_read_status_register()) == 0x01)
 							{
 								//printf("Erasing CFM0\n");
 								state = 11;
 								Flash = 1;
 							}
-							if((0x02 & MicoSPIFlash_StatusRead (spiflash)) == 0x02)
+							if((0x02 & spiflash_read_status_register()) == 0x02)
 							{
 								//printf("Erase CFM0 Failed\n");
 								state = 0;
@@ -1212,31 +1208,33 @@ int main(void)
 							for(byte = 24; byte <= 52; byte += 4)
 							{
 								//Take word
-								wdata[0] = LMS_Ctrl_Packet_Rx->Data_field[byte+0];
-								wdata[1] = LMS_Ctrl_Packet_Rx->Data_field[byte+1];
-								wdata[2] = LMS_Ctrl_Packet_Rx->Data_field[byte+2];
-								wdata[3] = LMS_Ctrl_Packet_Rx->Data_field[byte+3];
+								p_spi_wrdata[0] = LMS_Ctrl_Packet_Rx->Data_field[byte+0];
+								p_spi_wrdata[1] = LMS_Ctrl_Packet_Rx->Data_field[byte+1];
+								p_spi_wrdata[2] = LMS_Ctrl_Packet_Rx->Data_field[byte+2];
+								p_spi_wrdata[3] = LMS_Ctrl_Packet_Rx->Data_field[byte+3];
 
 								//Command to write into On-Chip Flash IP
 								if(address <= CFM0EndAddress)
 								{
 									// Erase Block if we reach starting address of 64KB block
 									if (address % FLASH_BLOCK_SIZE == 0) {
-										flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
+										//flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
+										spiflash_erase(address);
 									}
 
 									//IOWR_32DIRECT(ONCHIP_FLASH_0_DATA_BASE, address, word);
-									flash_op_status = MicoSPIFlash_AlignedPageProgram(spiflash, spiflash->memory_base+address, 0x4, wdata);
+									//flash_op_status = MicoSPIFlash_AlignedPageProgram(spiflash, spiflash->memory_base+address, 0x4, wdata);
+									spiflash_page_program(address, p_spi_wrdata, 0x04);
 
 									address += 4;
 
 									
-									while((0x01 & MicoSPIFlash_StatusRead (spiflash)) == 0x01)
+									while((0x01 & spiflash_read_status_register()) == 0x01)
 									{
 										//printf("Writing CFM0(%d)\n", address);
 									}
 									//TODO: Do we need this?
-									if((0x02 & MicoSPIFlash_StatusRead (spiflash)) == 0x02)
+									if((0x02 & spiflash_read_status_register()) == 0x02)
 									{
 										//printf("Write to %d failed\n", address);
 										state = 0;
@@ -1283,6 +1281,7 @@ int main(void)
 					break;
 
 				case 2: //configure FPGA from flash
+					printf("a\n");
 
 					//enable boot to factory image, booting is executed after response to command is sent
 					boot_img_en = 1;
@@ -1301,6 +1300,7 @@ int main(void)
 #endif
 
 				break;
+#endif
 
 			case CMD_LMS_MCU_FW_WR:
 				printf("CMD_LMS_MCU_FW_WR\n");
