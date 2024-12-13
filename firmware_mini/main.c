@@ -41,7 +41,7 @@
 //#define DEBUG_FIFO
 //#define DEBUG_CSR_ACCESS
 //#define DEBUG_LMS_SPI
-#define DEBUG_CMD
+//#define DEBUG_CMD
 
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
@@ -1119,12 +1119,9 @@ int main(void)
 #if defined(CSR_SPIFLASH_CORE_BASE)
 			case CMD_ALTERA_FPGA_GW_WR: //FPGA passive serial
 
-				printf("CMD_ALTERA_FGPA_GW_WR\n");
-#if 1
 				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[3] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[1] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[0]);
 				//current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
 				data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
-				printf("%d\n", LMS_Ctrl_Packet_Rx->Data_field[0]);
 
 				switch(LMS_Ctrl_Packet_Rx->Data_field[0])//prog_mode
 				{
@@ -1146,7 +1143,6 @@ int main(void)
 					break;
 
 				case 1: //write data to Flash from PC
-					printf("b\n");
 
 					current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
 					data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
@@ -1281,7 +1277,6 @@ int main(void)
 					break;
 
 				case 2: //configure FPGA from flash
-					printf("a\n");
 
 					//enable boot to factory image, booting is executed after response to command is sent
 					boot_img_en = 1;
@@ -1297,8 +1292,6 @@ int main(void)
 					break;
 
 				}
-#endif
-
 				break;
 #endif
 
