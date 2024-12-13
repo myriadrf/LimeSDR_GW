@@ -151,15 +151,35 @@ uint32_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_
 
 /* SPIFlash ------------------------------------------------------------------*/
 #if defined(CSR_SPIFLASH_CORE_BASE)
-void spiFlash_read(uint32_t rel_addr, uint32_t length, uint32_t *rdata)
+void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 {
 	void *addr = (void *)SPIFLASH_BASE;
-	int i;
+	uint32_t real_len = length;
+	int i, ii, data_offset;
 	uint32_t rx;
+#if 1
+	uint32_t offset = 0;
+	// Read access is 32b: must be aligned
+	uint32_t base_addr = (rel_addr >> 2) << 2;
+	if (base_addr != rel_addr) {
+		offset = rel_addr - base_addr;
+		real_len++;
+	}
+	for (i = 0, data_offset = 0; i < real_len; i += 4) {
+		rx = *(uint32_t *)(addr + i);
+		int max = (data_offset + 4 > length) ? length - data_offset : 4;
+		for (ii = offset; ii < max; ii++) {
+			rdata[data_offset++] = (rx >> (ii * 8));
+		}
+		offset = 0;
+	}
+
+#else
 	for (i = 0; i < length; i++) {
 		rx = *(uint32_t *)(addr + (i << 2));
 		rdata[i] = rx;
 	}
+#endif
 }
 #endif
 
@@ -606,11 +626,9 @@ int main(void)
 	*/
 
 #if defined(CSR_SPIFLASH_CORE_BASE)
-	uint16_t preamble;
-	uint32_t spi_rdata[10];
-	spiFlash_read(0x0, 10, spi_rdata);
-	preamble = (spi_rdata[0] >> 24) | (spi_rdata[1] << 8);
-	if (preamble != 0xb3bd)
+	uint8_t spi_rdata[16];
+	spiFlash_read(0x0, 5, spi_rdata);
+	if (spi_rdata[3] == 0xff || spi_rdata[4] == 0xff)
 		printf("SPI Flash access: Error\n");
 	else
 		printf("SPI Flash access: OK\n");
