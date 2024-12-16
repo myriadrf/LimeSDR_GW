@@ -435,6 +435,7 @@ class LMS7002Top(LiteXModule):
             ),
             # lms7002_rx
             self.rx_cdc.source.connect(self.source),
+            self.rx_cdc.sink.valid.eq(rx_cdc_sink_valid),
             If(~rx_reset_n,
                self.rx_cdc.source.ready.eq(1),
                self.source.valid.eq(0),
