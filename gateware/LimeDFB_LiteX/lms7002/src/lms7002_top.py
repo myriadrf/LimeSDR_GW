@@ -268,7 +268,6 @@ class LMS7002Top(LiteXModule):
         ]
 
         # RX path (DIQ2). --------------------------------------------------------------------------
-
         self.lms7002_ddin = ClockDomainsRenamer("lms_rx")(LMS7002DDIN(platform, 12, pads, invert_input_clock))
 
         self.rx_cdc = stream.ClockDomainCrossing([("data", 64), ("keep", 64 // 8)],
@@ -333,6 +332,8 @@ class LMS7002Top(LiteXModule):
             o_data_l    = rx_test_data_l,
         )
 
+        rx_cdc_sink_valid = Signal()
+
         self.lms7002_rx_params = dict()
         self.lms7002_rx_params.update(
             # Parameters.
@@ -357,7 +358,7 @@ class LMS7002Top(LiteXModule):
             # AXI Stream Master Interface.
             i_m_axis_areset_n     = Constant(0, 1),
             i_m_axis_aclk         = Constant(0, 1),
-            o_m_axis_tvalid       = self.rx_cdc.sink.valid,
+            o_m_axis_tvalid       = rx_cdc_sink_valid,
             o_m_axis_tdata        = self.rx_cdc.sink.data,
             o_m_axis_tkeep        = self.rx_cdc.sink.keep,
             i_m_axis_tready       = self.rx_cdc.sink.ready,
@@ -434,6 +435,11 @@ class LMS7002Top(LiteXModule):
             ),
             # lms7002_rx
             self.rx_cdc.source.connect(self.source),
+            If(~rx_reset_n,
+               self.rx_cdc.source.ready.eq(1),
+               self.source.valid.eq(0),
+               self.rx_cdc.sink.valid.eq(0),
+            ),
             self.lms7002_ddin.data_direction.eq(Constant(0, 1)),
             If(self.delay_ctrl_sel == 0b11,
                 self.lms7002_ddin.data_loadn.eq(inst1_delayf_loadn),

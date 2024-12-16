@@ -86,6 +86,12 @@ class RXPathTop(LiteXModule):
         bp_sample_nr_counter    = Signal(64)
         pkt_size                = Signal(15)
 
+        iqsmpls_fifo_sink_ready   = Signal()
+        iqsmpls_fifo_sink_valid   = Signal()
+        iqsmpls_fifo_source_valid = Signal()
+        iqsmpls_fifo_source_ready = Signal()
+
+
         self.fifo_conv    = fifo_conv = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.Converter(128, 64)))
         iqsmpls_fifo      = stream.AsyncFIFO([("data", 128)], 16)
         iqsmpls_fifo      = ClockDomainsRenamer({"write": s_clk_domain, "read": int_clk_domain})(iqsmpls_fifo)
@@ -125,7 +131,7 @@ class RXPathTop(LiteXModule):
             i_S_AXIS_TKEEP      = self.sink.keep,
             # AXI Stream Master
             o_M_AXIS_TVALID     = iq_to_bit_pack_tvalid,
-            i_M_AXIS_TREADY     = iqsmpls_fifo.sink.ready, #iq_to_bit_pack_tready, # axis_iq128.tready
+            i_M_AXIS_TREADY     = iqsmpls_fifo_sink_ready, #iq_to_bit_pack_tready, # axis_iq128.tready
             o_M_AXIS_TDATA      = iq_to_bit_pack_tdata,
             o_M_AXIS_TKEEP      = iq_to_bit_pack_tkeep,  # Unused full 1
         )
@@ -164,7 +170,7 @@ class RXPathTop(LiteXModule):
             i_S_AXIS_TDATA  = bit_pack_to_nto1_tdata,
             i_S_AXIS_TLAST  = bit_pack_to_nto1_tlast,
             # AXIS Master
-            o_M_AXIS_TVALID = iqsmpls_fifo.sink.valid,
+            o_M_AXIS_TVALID = iqsmpls_fifo_sink_valid,
             o_M_AXIS_TDATA  = iqsmpls_fifo.sink.data,
             o_M_AXIS_TLAST  = iqsmpls_fifo.sink.last,
         )
@@ -182,8 +188,8 @@ class RXPathTop(LiteXModule):
             # AXI Stream Slave bus for IQ samples
             i_S_AXIS_IQSMPLS_ACLK     = ClockSignal(s_clk_domain),
             i_S_AXIS_IQSMPLS_ARESETN  = s_clk_rst_n,
-            i_S_AXIS_IQSMPLS_TVALID   = iqsmpls_fifo.source.valid,
-            i_S_AXIS_IQSMPLS_TREADY   = iqsmpls_fifo.source.ready,
+            i_S_AXIS_IQSMPLS_TVALID   = iqsmpls_fifo_source_valid,
+            i_S_AXIS_IQSMPLS_TREADY   = iqsmpls_fifo_source_ready,
             i_S_AXIS_IQSMPLS_TLAST    = iqsmpls_fifo.source.last,
 
             # Mode settings.
@@ -191,7 +197,7 @@ class RXPathTop(LiteXModule):
             i_CFG_CH_EN               = int_clk_ch_en,               # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
 
             # sample nr
-            i_SMPL_NR_INCR            = (self.sink.valid & iqsmpls_fifo.sink.ready),
+            i_SMPL_NR_INCR            = (self.sink.valid & iqsmpls_fifo_sink_ready),
             i_SMPL_NR_CLR             = int_clk_smpl_nr_clr,
             i_SMPL_NR_LD              = Constant(0, 1),
             i_SMPL_NR_IN              = Constant(0, 64),
@@ -209,8 +215,8 @@ class RXPathTop(LiteXModule):
             i_PCT_HDR_0          = pct_hdr_0,
             i_PCT_HDR_1          = bp_sample_nr_counter,
             # AXIS Slave.
-            i_S_AXIS_TVALID      = iqsmpls_fifo.source.valid,
-            o_S_AXIS_TREADY      = iqsmpls_fifo.source.ready,
+            i_S_AXIS_TVALID      = iqsmpls_fifo_source_valid,
+            o_S_AXIS_TREADY      = iqsmpls_fifo_source_ready,
             i_S_AXIS_TDATA       = iqsmpls_fifo.source.data,
             i_S_AXIS_TLAST       = iqsmpls_fifo.source.last,
             # AXIS Master.
@@ -221,6 +227,20 @@ class RXPathTop(LiteXModule):
             o_WR_DATA_COUNT_AXIS = iqpacket_wr_data_count
         )
 
+        self.comb += [
+            If(int_clk_rst_n,
+               iqsmpls_fifo_sink_ready.eq(iqsmpls_fifo.sink.ready),
+               iqsmpls_fifo.sink.valid.eq(iqsmpls_fifo_sink_valid),
+               iqsmpls_fifo_source_valid.eq(iqsmpls_fifo.source.valid),
+               iqsmpls_fifo.source.ready.eq(iqsmpls_fifo_source_ready),
+            ).Else(
+               iqsmpls_fifo_sink_ready.eq(0),
+               iqsmpls_fifo.sink.valid.eq(0),
+               iqsmpls_fifo_source_valid.eq(0),
+               iqsmpls_fifo.source.ready.eq(1),
+            )
+        ]
+
         if M_AXIS_IQPACKET_BUFFER_WORDS > 0:
             # FIFO before Converter
             fifo_iqpacket = ResetInserter()(ClockDomainsRenamer(int_clk_domain)(stream.SyncFIFO([("data", 128)],
@@ -228,7 +248,7 @@ class RXPathTop(LiteXModule):
                 buffered = True)))
             self.fifo_iqpacket = fifo_iqpacket
 
-            self.iqpacket_cdc = stream.ClockDomainCrossing([("data", 128)],
+            self.iqpacket_cdc = iqpacket_cdc = stream.ClockDomainCrossing([("data", 128)],
                 cd_from = int_clk_domain,
                 cd_to   = m_clk_domain,
             )
@@ -239,9 +259,20 @@ class RXPathTop(LiteXModule):
             ]
             self.iqpacket_pipeline = stream.Pipeline(
                 iqpacket_axis,
-                fifo_iqpacket,
-                self.iqpacket_cdc,
-                fifo_conv,
+                fifo_iqpacket.sink,
+            )
+            self.comb += [
+                fifo_iqpacket.source.connect(iqpacket_cdc.sink),
+                iqpacket_cdc.source.connect(fifo_conv.sink),
+                If(~int_clk_rst_n,
+                    iqpacket_cdc.sink.valid.eq(0),
+                    fifo_iqpacket.source.ready.eq(0),
+                    fifo_conv.sink.valid.eq(0),
+                    iqpacket_cdc.source.ready.eq(1)
+                )
+            ]
+            self.iqpacket_pipeline2 = stream.Pipeline(
+                fifo_conv.source,
                 self.source,
             )
         else:

@@ -189,8 +189,6 @@ class FT601(LiteXModule):
         self.EP83_fifo = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", EP83_wwidth)], 2024, True)))
         self.EP83_conv = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(EP83_wwidth, FT_data_width)))
         self.EP83_pipeline  = stream.Pipeline(
-            self.EP83_sink,
-            self.EP83_cdc,
             self.EP83_fifo,
             self.EP83_conv,
         )
@@ -330,6 +328,15 @@ class FT601(LiteXModule):
             self.EP83_conv.reset.eq(~self.stream_fifo_fpga_pc_reset_n),
             # Fifo Interface -> stream.Endpoint
             EP83_fifo_rdusedw.eq(Cat(0, self.EP83_fifo.level)),
+            # force flush when stream disable
+            self.EP83_sink.connect(self.EP83_cdc.sink),
+            self.EP83_cdc.source.connect(self.EP83_fifo.sink),
+            If(~self.stream_fifo_fpga_pc_reset_n,
+                self.EP83_sink.ready.eq(      0),
+                self.EP83_cdc.sink.valid.eq(  0),
+                self.EP83_cdc.source.ready.eq(1),
+                self.EP83_fifo.sink.valid.eq( 0)
+            ),
 
             self.wr_active.eq(EP83_fifo_status.busy_out),
             self.rd_active.eq(self.EP03_fifo_status.busy_out),
