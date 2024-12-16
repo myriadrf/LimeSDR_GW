@@ -104,7 +104,7 @@ class fpgacfg_csr(LiteXModule):
             self.compile_rev    = CSRStatus(16, reset=0xDEAD)
         else:
             self.major_rev      = CSRStatus(16, reset=2)
-            self.compile_rev    = CSRStatus(16, reset=22)
+            self.compile_rev    = CSRStatus(16, reset=23)
         self.channel_cntrl  = CSRStorage(fields=[
             CSRField("ch_en", size=2, offset=0, values=[
                 ("``2b01", "Channel A"),
@@ -204,7 +204,7 @@ class BaseSoC(SoCCore):
             cpu_variant              = "standard",
             integrated_rom_size      = 0x8000 if with_cpu else 0,
             integrated_sram_ram_size = 0x1000 if with_cpu else 0,
-            integrated_main_ram_size = 0x4600 if with_cpu else 0, #increase when cpu debug is enabled
+            integrated_main_ram_size = 0x4700 if with_cpu else 0, #increase when cpu debug is enabled
             integrated_main_ram_init = [] if cpu_firmware is None or flash_boot else get_mem_data(cpu_firmware, endianness="little"),
             uart_name                = "gpio_serial",#"crossover",
         )
@@ -433,6 +433,17 @@ class BaseSoC(SoCCore):
         pcie_uart1 = UART(pcie_uart1_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
         self.add_module(name=f"PCIE_UART1_phy", module=pcie_uart1_phy)
         self.add_module(name="PCIE_UART1", module=pcie_uart1)
+
+    # CLK Tests ------------------------------------------------------------------------------------
+        from gateware.LimeDFB.self_test.clk_no_ref_test import clk_no_ref_test
+        from gateware.LimeDFB.self_test.singl_clk_with_ref_test import singl_clk_with_ref_test
+        self.sys_clock_test = clk_no_ref_test(platform=platform,test_clock_domain="sys")
+        self.comb += self.sys_clock_test.RESET_N.eq(self.crg.pll.locked)
+
+        self.lms_clock_test = singl_clk_with_ref_test(platform=platform,test_clock_domain="xo_fpga"
+                                                      , ref_clock_domain="sys")
+        self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
+
 
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
