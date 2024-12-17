@@ -21,9 +21,9 @@ _io = [
 
     # Revision.
     ("revision", 0,
-        Subsignal("HW_VER",  Pins("D4 M2 N4 J3")),
+        Subsignal("HW_VER",  Pins("D4 M2 N4 J3"), Misc("PULLMODE=UP")),
         Subsignal("BOM_VER", Pins("N1 M1 N2")),
-        IOStandard("LVCMOS25")
+        IOStandard("LVCMOS25"),
     ),
 
     # Serial/Debug.
