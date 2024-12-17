@@ -80,7 +80,7 @@ class RXPathTop(LiteXModule):
 
         pct_hdr_0               = Signal(64)
 
-        iqpacket_axis           = stream.Endpoint([("data", 128)])
+        self.iqpacket_axis = iqpacket_axis           = stream.Endpoint([("data", 128)])
 
         iqpacket_wr_data_count  = Signal(9)
         bp_sample_nr_counter    = Signal(64)

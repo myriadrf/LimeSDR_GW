@@ -375,6 +375,32 @@ class BaseSoC(SoCCore):
             register     = True,
             csr_csv      = "analyzer.csv"
         )
+    def add_rxdatapath_ctrl_probe(self):
+        analyzer_signals = [
+            self.lms7002_top.source.ready,
+            self.lms7002_top.source.valid,
+            self.rxtx_top.rx_path.iqsmpls_fifo.sink.ready,
+            self.rxtx_top.rx_path.iqsmpls_fifo.sink.valid,
+            self.rxtx_top.rx_path.iqpacket_axis.ready,
+            self.rxtx_top.rx_path.iqpacket_axis.valid,
+            self.rxtx_top.rx_path.iqpacket_cdc.sink.valid,
+            self.rxtx_top.rx_path.iqpacket_cdc.sink.ready,
+            self.rxtx_top.rx_path.iqpacket_cdc.source.valid,
+            self.rxtx_top.rx_path.iqpacket_cdc.source.ready,
+            self.rxtx_top.rx_path.source.ready,
+            self.rxtx_top.rx_path.source.valid,
+            self.ft601.sink.ready,
+            self.ft601.sink.valid,
+            self.ft601.EP83_fifo.level,
+            self.ft601.EP83_fifo.sink.ready,
+            self.ft601.EP83_fifo.sink.valid,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
 
 # Build --------------------------------------------------------------------------------------------
 
@@ -396,6 +422,7 @@ def main():
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-ft601-ctrl-probe",      action="store_true", help="Enable FT601 Ctrl Probe.")
+    probeopts.add_argument("--with-rxdatapath-probe",      action="store_true", help="Enable RXDatapath Ctrl Probe.")
 
     args = parser.parse_args()
 
@@ -412,9 +439,12 @@ def main():
             cpu_firmware   = None if prepare else "firmware_mini/firmware.bin",
         )
         # LiteScope Analyzer Probes.
-        if args.with_ft601_ctrl_probe:
+        if args.with_ft601_ctrl_probe or args.with_ft601_sink_probe:
             assert args.with_uartbone
-            soc.add_ft601_ctrl_probe()
+            if args.with_ft601_ctrl_probe:
+                soc.add_ft601_ctrl_probe()
+            if args.with_ft601_sink_probe:
+                soc.add_ft601_sink_probe()
         # Builder.
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
