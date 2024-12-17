@@ -185,6 +185,7 @@ class FT601(LiteXModule):
             cd_from         = s_clk_domain,
             cd_to           = "ft601",
             with_common_rst = True,
+            depth           = 16,
         )
         self.EP83_fifo = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", EP83_wwidth)], 2048, True)))
         self.EP83_conv = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(EP83_wwidth, FT_data_width)))

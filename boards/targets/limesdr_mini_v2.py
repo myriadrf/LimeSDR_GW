@@ -377,8 +377,8 @@ class BaseSoC(SoCCore):
         )
     def add_rxdatapath_ctrl_probe(self):
         analyzer_signals = [
-            self.lms7002_top.source.ready,
-            self.lms7002_top.source.valid,
+            #self.lms7002_top.source.ready,
+            #self.lms7002_top.source.valid,
             self.rxtx_top.rx_path.iqsmpls_fifo.sink.ready,
             self.rxtx_top.rx_path.iqsmpls_fifo.sink.valid,
             self.rxtx_top.rx_path.iqpacket_axis.ready,
@@ -402,6 +402,7 @@ class BaseSoC(SoCCore):
             self.ft601.EP83_conv.sink.ready,
             self.ft601.EP83_conv.source.valid,
             self.ft601.EP83_conv.source.ready,
+            #self.ft601.EP83_fifo_status.busy_in,
         ]
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 1024,
