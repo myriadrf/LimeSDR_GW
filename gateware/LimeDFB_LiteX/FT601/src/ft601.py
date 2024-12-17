@@ -186,7 +186,7 @@ class FT601(LiteXModule):
             cd_to           = "ft601",
             with_common_rst = True,
         )
-        self.EP83_fifo = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", EP83_wwidth)], 2024, True)))
+        self.EP83_fifo = ResetInserter()(ClockDomainsRenamer("ft601")(stream.SyncFIFO([("data", EP83_wwidth)], 2048, True)))
         self.EP83_conv = ResetInserter()(ClockDomainsRenamer("ft601")(stream.Converter(EP83_wwidth, FT_data_width)))
         self.EP83_pipeline  = stream.Pipeline(
             self.EP83_fifo,
