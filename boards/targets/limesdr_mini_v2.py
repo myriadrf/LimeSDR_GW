@@ -383,6 +383,9 @@ class BaseSoC(SoCCore):
             self.rxtx_top.rx_path.iqsmpls_fifo.sink.valid,
             self.rxtx_top.rx_path.iqpacket_axis.ready,
             self.rxtx_top.rx_path.iqpacket_axis.valid,
+            self.rxtx_top.rx_path.fifo_iqpacket.sink.ready,
+            self.rxtx_top.rx_path.fifo_iqpacket.sink.valid,
+            self.rxtx_top.rx_path.fifo_iqpacket.level,
             self.rxtx_top.rx_path.iqpacket_cdc.sink.valid,
             self.rxtx_top.rx_path.iqpacket_cdc.sink.ready,
             self.rxtx_top.rx_path.iqpacket_cdc.source.valid,
@@ -394,6 +397,11 @@ class BaseSoC(SoCCore):
             self.ft601.EP83_fifo.level,
             self.ft601.EP83_fifo.sink.ready,
             self.ft601.EP83_fifo.sink.valid,
+            self.ft601.EP83_fifo.sink.data,
+            self.ft601.EP83_conv.sink.valid,
+            self.ft601.EP83_conv.sink.ready,
+            self.ft601.EP83_conv.source.valid,
+            self.ft601.EP83_conv.source.ready,
         ]
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 1024,
@@ -439,12 +447,12 @@ def main():
             cpu_firmware   = None if prepare else "firmware_mini/firmware.bin",
         )
         # LiteScope Analyzer Probes.
-        if args.with_ft601_ctrl_probe or args.with_ft601_sink_probe:
+        if args.with_ft601_ctrl_probe or args.with_rxdatapath_probe:
             assert args.with_uartbone
             if args.with_ft601_ctrl_probe:
                 soc.add_ft601_ctrl_probe()
-            if args.with_ft601_sink_probe:
-                soc.add_ft601_sink_probe()
+            if args.with_rxdatapath_probe:
+                soc.add_rxdatapath_ctrl_probe()
         # Builder.
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
