@@ -424,9 +424,9 @@ def main():
     parser.add_argument("--cable",     default="ft2232",    help="JTAG cable.")
 
     # SoC parameters.
-    parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
-    parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
-    parser.add_argument("--with-spi-flash", action="store_true", help="Enable SPI Flash (MMAPed).")
+    parser.add_argument("--with-bios",         action="store_true", help="Enable LiteX BIOS.")
+    parser.add_argument("--with-uartbone",     action="store_true", help="Enable UARTBone.")
+    parser.add_argument("--without-spi-flash", action="store_true", help="Disable SPI Flash (MMAPed).")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -444,7 +444,7 @@ def main():
             toolchain      = args.toolchain,
             with_bios      = args.with_bios,
             with_uartbone  = args.with_uartbone,
-            with_spi_flash = args.with_spi_flash,
+            with_spi_flash = not args.without_spi_flash,
             cpu_firmware   = None if prepare else "firmware_mini/firmware.bin",
         )
         # LiteScope Analyzer Probes.

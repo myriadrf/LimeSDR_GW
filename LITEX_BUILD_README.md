@@ -147,12 +147,12 @@ Go back to *LimeSDR-Mini-v2_GW*. Scrip to use depends on target board:
 
 ```bash
 # Build the Gateware
-python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--with-spi-flash] [--load]
+python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--without-spi-flash] [--load]
 ```
 
 Where:
 - `--with-bios` enables *LiteX bios* (requires more resources)
-- `--with-spi-flash` enables SPI Flash support
+- `--with-spi-flash` to disable SPI Flash support
 - `--load` to write bitstream
 
 ### limesdr_mini_v2
