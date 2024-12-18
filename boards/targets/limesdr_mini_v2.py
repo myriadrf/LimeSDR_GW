@@ -110,7 +110,7 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=77.5e6, cpu_type="picorv32", toolchain="trellis",
+    def __init__(self, sys_clk_freq=77.5e6, cpu_type="vexriscv", toolchain="trellis",
         with_bios      = False,
         with_rx_tx_top = True,
         with_uartbone  = False,
