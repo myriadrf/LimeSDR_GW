@@ -110,7 +110,7 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=77.5e6, cpu_type="picorv32", toolchain="diamond",
+    def __init__(self, sys_clk_freq=77.5e6, cpu_type="picorv32", toolchain="trellis",
         with_bios      = False,
         with_rx_tx_top = True,
         with_uartbone  = False,
@@ -118,8 +118,15 @@ class BaseSoC(SoCCore):
         cpu_firmware   = None,
         **kwargs):
 
-        # SPI Flash is only working with trellis
-        assert not (with_spi_flash and toolchain == "diamond")
+        # Assert Diamond Limitations ---------------------------------------------------------------
+
+        if toolchain == "diamond":
+            # CPU.
+            if cpu_type == "vexriscv":
+                raise ValueError("VexRiscv is not supported with the Diamond toolchain (HDL implementation issues).")
+            # SPI Flash.
+            if with_spi_flash:
+                raise ValueError("SPI Flash is not supported with the Diamond toolchain (HDL implementation issues).")
 
         # Platform ---------------------------------------------------------------------------------
         platform             = limesdr_mini_v2.Platform(toolchain=toolchain)
@@ -130,9 +137,6 @@ class BaseSoC(SoCCore):
 
         # SoCCore ----------------------------------------------------------------------------------
         assert cpu_type in ["vexriscv", "picorv32", "fazyrv", "firev"]
-        if (cpu_type == "vexriscv") and (toolchain == "diamond"):
-            raise ValueError("VexRiscv is not supported with the Diamond toolchain (HDL implementation issues).")
-
         cpu_variant = {
             "vexriscv" : "minimal",
             "picorv32" : "minimal",
@@ -418,7 +422,7 @@ def main():
 
     # Build/Load/Utilities.
     parser.add_argument("--build",     action="store_true", help="Build bitstream.")
-    parser.add_argument("--toolchain", default="diamond",   help="Build toolchain.", choices=["diamond", "trellis"])
+    parser.add_argument("--toolchain", default="trellis",   help="Build toolchain.", choices=["diamond", "trellis"])
     parser.add_argument("--load",      action="store_true", help="Load bitstream.")
     parser.add_argument("--flash",     action="store_true", help="Flash bitstream.")
     parser.add_argument("--cable",     default="ft2232",    help="JTAG cable.")
