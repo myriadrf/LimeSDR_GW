@@ -175,7 +175,7 @@ class FT601(LiteXModule):
 
         # Stream FPGA->PC.
         # ----------------
-        EP83_fifo_status = BusyDelay(platform, "ft601",
+        self.EP83_fifo_status = BusyDelay(platform, "ft601",
             clock_period = 10,  #  input clock period in ns
             delay_time   = 100, #  delay time in ms
         )
@@ -233,7 +233,7 @@ class FT601(LiteXModule):
 
             # Stream EP FPGA->PC.
             i_EP83_fifo_data    = self.EP83_conv.source.data,
-            o_EP83_fifo_rd      = EP83_fifo_status.busy_in,
+            o_EP83_fifo_rd      = self.EP83_fifo_status.busy_in,
             i_EP83_fifo_rdusedw = EP83_fifo_rdusedw,
 
             o_fsm_epgo          = arb_en,
@@ -339,7 +339,7 @@ class FT601(LiteXModule):
                 self.EP83_fifo.sink.valid.eq( 0)
             ),
 
-            self.wr_active.eq(EP83_fifo_status.busy_out),
+            self.wr_active.eq(self.EP83_fifo_status.busy_out),
             self.rd_active.eq(self.EP03_fifo_status.busy_out),
         ]
         if hasattr(pads, "RESETn"):
@@ -356,7 +356,7 @@ class FT601(LiteXModule):
 
             # EP83 Fifo.
             # ----------
-            self.EP83_conv.source.ready.eq(EP83_fifo_status.busy_in),
+            self.EP83_conv.source.ready.eq(self.EP83_fifo_status.busy_in),
 
             If(self.stream_fifo_pc_fpga_reset_n == 0b0,
                 sync_reg0.eq(0b00),
