@@ -130,7 +130,7 @@ class BaseSoC(SoCCore):
             integrated_main_ram_size = 0x3800
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
         else:
-            integrated_rom_size      = 0x3800
+            integrated_rom_size      = 0x4000
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
