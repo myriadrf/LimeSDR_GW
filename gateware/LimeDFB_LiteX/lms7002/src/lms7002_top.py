@@ -187,8 +187,7 @@ class LMS7002Top(LiteXModule):
         self.lms7002_ddout = ClockDomainsRenamer("lms_tx")(LMS7002DDOUT(platform, 12, pads))
         self.tx_cdc        = stream.ClockDomainCrossing([("data", 64)], cd_from=s_clk_domain, cd_to="lms_tx", depth=s_axis_tx_fifo_words)
 
-        self.lms7002_tx_params = dict()
-        self.lms7002_tx_params.update(
+        self.lms7002_tx = Instance("LMS7002_TX",
             # Parameters.
             p_G_IQ_WIDTH      = diq_width,
 
@@ -219,8 +218,7 @@ class LMS7002Top(LiteXModule):
 
         # test_data_dd.
         # -------------
-        self.tx_test_data_dd_params = dict()
-        self.tx_test_data_dd_params.update(
+        self.tx_test_data_dd = Instance("test_data_dd",
             # Clk/Reset.
             i_clk       = ClockSignal("lms_tx"),
             i_reset_n   = ~ResetSignal("lms_tx"),
@@ -235,8 +233,7 @@ class LMS7002Top(LiteXModule):
 
         # txiq_tst_ptrn.
         # --------------
-        self.txiq_tst_ptrn_params = dict()
-        self.txiq_tst_ptrn_params.update(
+        self.txiq_tst_ptrn = Instance("txiq_tst_ptrn",
             # Parameters.
             p_diq_width = diq_width,
 
@@ -278,8 +275,8 @@ class LMS7002Top(LiteXModule):
 
         # lms7002_rx.
         # -----------
-        self.smpl_cmp_params = dict()
-        self.smpl_cmp_params.update(
+        smpl_cmp_params = dict()
+        smpl_cmp_params.update(
             # Parameters.
             p_smpl_width    = diq_width,
 
@@ -299,7 +296,7 @@ class LMS7002Top(LiteXModule):
         )
 
         if platform.name.startswith("limesdr_mini"):
-            self.smpl_cmp_params.update(
+            smpl_cmp_params.update(
                 # Mode settings
                 i_mode          = rx_mode,
                 i_trxiqpulse    = rx_trxiqpulse,
@@ -315,11 +312,11 @@ class LMS7002Top(LiteXModule):
                 i_cmp_BQ        = Constant(0x555, diq_width),
                 o_cmp_error_cnt = Open(16),
             )
+        self.smpl_cmp = Instance("smpl_cmp", **smpl_cmp_params)
 
         # test_data_dd.
         # -------------
-        self.rx_test_data_dd_params = dict()
-        self.rx_test_data_dd_params.update(
+        self.rx_test_data_dd = Instance("test_data_dd",
             # Clk/Reset.
             i_clk       = ClockSignal("lms_rx"),
             i_reset_n   = rx_reset_n,
@@ -334,8 +331,7 @@ class LMS7002Top(LiteXModule):
 
         rx_cdc_sink_valid = Signal()
 
-        self.lms7002_rx_params = dict()
-        self.lms7002_rx_params.update(
+        self.lms7002_rx = Instance("lms7002_rx",
             # Parameters.
             p_g_IQ_WIDTH          = diq_width,
             p_g_M_AXIS_FIFO_WORDS = 16,
@@ -379,9 +375,7 @@ class LMS7002Top(LiteXModule):
         # Delay control module.
         # ---------------------
         if platform.name in ["limesdr_mini_v2"]:
-            self.delay_ctrl_top_params = dict()
-            # Delay Ctrl Top Signals
-            self.delay_ctrl_top_params.update(
+            self.delay_ctrl_top = Instance("delay_ctrl_top",
                 # Clk/Reset.
                 i_clk              = ClockSignal("lms_rx"),
                 i_reset_n          = ~ResetSignal("lms_rx"),
@@ -543,33 +537,24 @@ class LMS7002Top(LiteXModule):
         self.specials += AsyncResetSynchronizer(self.cd_lms_rx, ResetSignal("sys"))
         self.specials += AsyncResetSynchronizer(self.cd_lms_tx, ResetSignal("sys"))
 
-    def do_finalize(self):
-        output_dir = self.platform.output_dir
-
         # TX.
         # ---
 
         # LMS7002_TX
-        self.lms7002_tx = VHD2VConverter(self.platform,
-            top_entity    = "LMS7002_TX",
-            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.lms7002_tx_params,
-            add_instance  = True,
+        self.lms7002_tx_conv = add_vhd2v_converter(self.platform,
+            instance = self.lms7002_tx,
+            files    = ["gateware/LimeDFB/lms7002/src/lms7002_tx.vhd"],
         )
-        self.lms7002_tx.add_source("gateware/LimeDFB/lms7002/src/lms7002_tx.vhd")
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.lms7002_tx)
 
         # TX test_data_dd.
-        self.tx_test_data_dd = VHD2VConverter(self.platform,
-            top_entity    = "test_data_dd",
-            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.tx_test_data_dd_params,
-            add_instance  = True,
+        self.tx_test_data_dd_conv = add_vhd2v_converter(self.platform,
+            instance = self.tx_test_data_dd,
+            files    = ["gateware/LimeDFB_LiteX/lms7002/src/test_data_dd.vhd"],
         )
-        self.tx_test_data_dd.add_source("gateware/LimeDFB_LiteX/lms7002/src/test_data_dd.vhd")
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.tx_test_data_dd)
 
         # txiq_tst_ptrn.
         txiq_tst_ptrn_files = [
@@ -577,58 +562,55 @@ class LMS7002Top(LiteXModule):
             "gateware/LimeDFB_LiteX/general/sync_reg.vhd",
             "gateware/LimeDFB_LiteX/general/bus_sync_reg.vhd",
         ]
-        self.txiq_tst_ptrn = add_vhd2v_converter(self.platform,
-            top    = "txiq_tst_ptrn",
-            params = self.txiq_tst_ptrn_params,
-            files  = txiq_tst_ptrn_files,
+        self.txiq_tst_ptrn_conv = add_vhd2v_converter(self.platform,
+            instance = self.txiq_tst_ptrn,
+            files    = txiq_tst_ptrn_files,
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.txiq_tst_ptrn)
 
         # RX.
         # ---
 
         # Smpl CMP.
-        self.smpl_cmp = VHD2VConverter(self.platform,
-            top_entity    = "smpl_cmp",
-            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.smpl_cmp_params,
-            add_instance  = True,
-        )
         if self.platform.name.startswith("limesdr_mini"):
-            self.smpl_cmp.add_source("gateware/LimeDFB_LiteX/lms7002/src/smpl_cmp.vhd")
+            smpl_cmp_file = "gateware/LimeDFB_LiteX/lms7002/src/smpl_cmp.vhd"
         else:
-            self.smpl_cmp.add_source("gateware/LimeDFB/lms7002/src/smpl_cmp.vhd")
+            smpl_cmp_file = "gateware/LimeDFB/lms7002/src/smpl_cmp.vhd"
+        self.smpl_cmp_conv = add_vhd2v_converter(self.platform,
+            instance = self.smpl_cmp,
+            files    = [smpl_cmp_file],
+        )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.smpl_cmp)
 
         # RX test_data_dd.
-        self.rx_test_data_dd = VHD2VConverter(self.platform,
-            top_entity    = "test_data_dd",
-            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.rx_test_data_dd_params,
-            add_instance  = True,
+        self.rx_test_data_dd_conv = add_vhd2v_converter(self.platform,
+            instance = self.rx_test_data_dd,
+            files    = ["gateware/LimeDFB_LiteX/lms7002/src/test_data_dd.vhd"],
         )
-        self.rx_test_data_dd.add_source("gateware/LimeDFB_LiteX/lms7002/src/test_data_dd.vhd")
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.rx_test_data_dd)
 
         # LMS7002RX.
-        self.lms7002_rx = add_vhd2v_converter(self.platform,
-            top    = "lms7002_rx",
-            params = self.lms7002_rx_params,
-            files  = ["gateware/LimeDFB/lms7002/src/lms7002_rx.vhd"],
+        self.lms7002_rx_conv = add_vhd2v_converter(self.platform,
+            instance = self.lms7002_rx,
+            files    = ["gateware/LimeDFB/lms7002/src/lms7002_rx.vhd"],
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.lms7002_rx)
 
         # Delay Ctrl.
-        if hasattr(self, "delay_ctrl_top_params"):
-            self.delay_ctrl_top = VHD2VConverter(self.platform,
-                top_entity    = "delay_ctrl_top",
-                build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-                work_package  = "work",
-                force_convert = LiteXContext.platform.vhd2v_force,
-                params        = self.delay_ctrl_top_params,
-                add_instance  = True,
-            )
-            self.delay_ctrl_top.add_source("gateware/LimeDFB_LiteX/delayf_ctrl/delay_ctrl_fsm.vhd")
-            self.delay_ctrl_top.add_source("gateware/LimeDFB_LiteX/delayf_ctrl/delay_ctrl_top.vhd")
-            self.delay_ctrl_top.add_source("gateware/LimeDFB_LiteX/delayf_ctrl/delayf_ctrl.vhd")
+        if hasattr(self, "delay_ctrl_top"):
+            delay_ctrl_top_files = [
+                "gateware/LimeDFB_LiteX/delayf_ctrl/delay_ctrl_fsm.vhd",
+                "gateware/LimeDFB_LiteX/delayf_ctrl/delay_ctrl_top.vhd",
+                "gateware/LimeDFB_LiteX/delayf_ctrl/delayf_ctrl.vhd",
+            ]
 
+            self.delay_ctrl_top_conv = add_vhd2v_converter(self.platform,
+                instance = self.delay_ctrl_top,
+                files    = delay_ctrl_top_files,
+            )
+            # Removed Instance to avoid multiple definition
+            self._fragment.specials.remove(self.delay_ctrl_top)

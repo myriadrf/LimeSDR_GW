@@ -126,8 +126,7 @@ class TXPathTop(LiteXModule):
             smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid),
         ]
 
-        self.pct2data_buf_wr_params = dict()
-        self.pct2data_buf_wr_params.update(
+        self.pct2data_buf_wr = Instance("PCT2DATA_BUF_WR",
             # Parameters.
             p_G_BUFF_COUNT    = BUFF_COUNT,
 
@@ -191,8 +190,7 @@ class TXPathTop(LiteXModule):
 
         self.comb += Case(curr_buf_index, cases)
 
-        self.pct2data_buf_rd_params = dict()
-        self.pct2data_buf_rd_params.update(
+        self.pct2data_buf_rd = Instance("PCT2DATA_BUF_RD",
             # Parameters.
             p_G_BUFF_COUNT       = BUFF_COUNT,
 
@@ -224,8 +222,7 @@ class TXPathTop(LiteXModule):
         )
 
         # Pad 12 bit samples to 16 bit samples, bypass logic if no padding is needed
-        self.sample_padder_params = dict()
-        self.sample_padder_params.update(
+        self.sample_padder = Instance("sample_padder",
             # Clk/Reset.
             i_CLK           = ClockSignal(m_clk_domain), # m_axis_domain
             i_RESET_N       = m_reset_n,                 # Unconnected for XTRX
@@ -246,8 +243,7 @@ class TXPathTop(LiteXModule):
             i_BYPASS        = unpack_bypass,
         )
 
-        self.sample_unpack_params = dict()
-        self.sample_unpack_params.update(
+        self.sample_unpack = Instance("SAMPLE_UNPACK",
             # Clk/Reset.
             i_RESET_N       = m_reset_n,                 # Unconnected for XTRX
             i_AXIS_ACLK     = ClockSignal(m_clk_domain), # m_axis_domain
@@ -286,27 +282,30 @@ class TXPathTop(LiteXModule):
             ),
         ]
 
-    def do_finalize(self):
-        self.pct2data_buf_wr = add_vhd2v_converter(self.platform,
-            top    = "PCT2DATA_BUF_WR",
-            params = self.pct2data_buf_wr_params,
-            files  = ["gateware/LimeDFB_LiteX/tx_path_top/src/pct2data_buf_wr.vhd"],
+        self.pct2data_buf_wr_conv = add_vhd2v_converter(self.platform,
+            instance = self.pct2data_buf_wr,
+            files    = ["gateware/LimeDFB_LiteX/tx_path_top/src/pct2data_buf_wr.vhd"],
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.pct2data_buf_wr)
 
-        self.pct2data_buf_rd = add_vhd2v_converter(self.platform,
-            top    = "PCT2DATA_BUF_RD",
-            params = self.pct2data_buf_rd_params,
-            files  = ["gateware/LimeDFB_LiteX/tx_path_top/src/pct2data_buf_rd.vhd"],
+        self.pct2data_buf_rd_conv = add_vhd2v_converter(self.platform,
+            instance = self.pct2data_buf_rd,
+            files    = ["gateware/LimeDFB_LiteX/tx_path_top/src/pct2data_buf_rd.vhd"],
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.pct2data_buf_rd)
 
-        self.sample_padder = add_vhd2v_converter(self.platform,
-            top    = "sample_padder",
-            params = self.sample_padder_params,
-            files  = ["gateware/LimeDFB/tx_path_top/src/sample_padder.vhd"],
+        self.sample_padder_conv = add_vhd2v_converter(self.platform,
+            instance = self.sample_padder,
+            files    = ["gateware/LimeDFB/tx_path_top/src/sample_padder.vhd"],
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.sample_padder)
 
-        self.sample_unpack = add_vhd2v_converter(self.platform,
-            top    = "SAMPLE_UNPACK",
-            params = self.sample_unpack_params,
-            files  = ["gateware/LimeDFB_LiteX/tx_path_top/src/sample_unpack.vhd"],
+        self.sample_unpack_conv = add_vhd2v_converter(self.platform,
+            instance = self.sample_unpack,
+            files    = ["gateware/LimeDFB_LiteX/tx_path_top/src/sample_unpack.vhd"],
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.sample_unpack)

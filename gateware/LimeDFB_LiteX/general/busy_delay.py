@@ -29,8 +29,7 @@ class BusyDelay(LiteXModule):
         # busy_delay instance.
         # -------------------------
 
-        self.busy_delay_params = dict()
-        self.busy_delay_params.update(
+        self.busy_delay = Instance("busy_delay",
             # Parameters
             p_clock_period = clock_period,
             p_delay_time   = delay_time,
@@ -44,6 +43,7 @@ class BusyDelay(LiteXModule):
             o_busy_out     = self.busy_out,
         )
 
-    def do_finalize(self):
-        files           = ["gateware/LimeDFB_LiteX/general/busy_delay.vhd"]
-        self.busy_delay = add_vhd2v_converter(self.platform, "busy_delay", self.busy_delay_params, files)
+        files                = ["gateware/LimeDFB_LiteX/general/busy_delay.vhd"]
+        self.busy_delay_conv = add_vhd2v_converter(self.platform, self.busy_delay, files)
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.busy_delay)

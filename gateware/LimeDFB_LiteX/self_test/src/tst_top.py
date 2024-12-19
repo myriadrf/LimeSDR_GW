@@ -39,8 +39,7 @@ class TstTop(LiteXModule):
         # Tst Clock Test (tst_top is a wrapper with specials records).
         # ------------------------------------------------------------
 
-        self.clock_test_params = dict()
-        self.clock_test_params.update(
+        self.clock_test = Instance("clock_test",
             # input ports
             i_FX3_clk            = fx3_clk,
             i_reset_n            = ~ResetSignal("sys"),
@@ -73,6 +72,21 @@ class TstTop(LiteXModule):
 
         if add_csr:
             self.add_csr()
+
+        clock_test_files = [
+            "gateware/LimeDFB_LiteX/self_test/src/transition_count.vhd",
+            "gateware/LimeDFB_LiteX/self_test/src/singl_clk_with_ref_test.vhd",
+            "gateware/LimeDFB_LiteX/self_test/src/clk_with_ref_test.vhd",
+            "gateware/LimeDFB_LiteX/self_test/src/clk_no_ref_test.vhd",
+            "gateware/LimeDFB_LiteX/self_test/src/clock_test.vhd",
+        ]
+
+        self.clock_test_conv = add_vhd2v_converter(self.platform,
+            instance = self.clock_test,
+            files    = clock_test_files,
+        )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.clock_test)
 
     def add_csr(self):
         self._test_en          = CSRStorage(fields=[
@@ -112,18 +126,3 @@ class TstTop(LiteXModule):
             self.tx_tst_i.eq(                 self._tx_tst_i.storage),
             self.tx_tst_q.eq(                 self._tx_tst_q.storage),
         ]
-
-    def do_finalize(self):
-        clock_test_files = [
-            "gateware/LimeDFB_LiteX/self_test/src/transition_count.vhd",
-            "gateware/LimeDFB_LiteX/self_test/src/singl_clk_with_ref_test.vhd",
-            "gateware/LimeDFB_LiteX/self_test/src/clk_with_ref_test.vhd",
-            "gateware/LimeDFB_LiteX/self_test/src/clk_no_ref_test.vhd",
-            "gateware/LimeDFB_LiteX/self_test/src/clock_test.vhd",
-        ]
-
-        self.clock_test = add_vhd2v_converter(self.platform,
-            top    = "clock_test",
-            params = self.clock_test_params,
-            files  = clock_test_files,
-        )

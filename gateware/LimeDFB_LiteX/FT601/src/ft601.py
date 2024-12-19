@@ -23,7 +23,7 @@ from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect                import stream
 from litex.soc.interconnect.csr            import *
 
-from gateware.common     import FIFOInterface
+from gateware.common     import FIFOInterface, add_vhd2v_converter
 
 from gateware.LimeDFB_LiteX.general.busy_delay import BusyDelay
 
@@ -197,20 +197,14 @@ class FT601(LiteXModule):
 
         # FTDI arbiter
         # ------------
-        self.ft601_arbiter_params = dict()
-
-        # FT601 Arbiter Parameters.
-        self.ft601_arbiter_params.update(
+        self.ft601_arbiter = Instance("FT601_arb",
             # Parameters
             p_FT_data_width     = FT_data_width,
             p_EP82_fifo_rwidth  = FIFORD_SIZE(EP82_wwidth, FT_data_width, EP82_wrusedw_width),
             p_EP82_wsize        = EP82_wsize,
             p_EP83_fifo_rwidth  = FIFORD_SIZE(EP83_wwidth, FT_data_width, EP83_wrusedw_width),
             p_EP83_wsize        = EP83_wsize,
-        )
 
-        # FT601 Arbiter Signals.
-        self.ft601_arbiter_params.update(
             # Clk/Rst.
             i_clk               = ClockSignal("ft601"),
             i_reset_n           = ~ResetSignal("ft601"),
@@ -249,19 +243,13 @@ class FT601(LiteXModule):
 
         # FTDI fsm
         # --------
-        self.ft601_params = dict()
-
-        # FT601 Parameters.
-        self.ft601_params.update(
+        self.ft601 = Instance("FT601",
             # Parameters
             p_FT_data_width = FT_data_width,
             p_FT_be_width   = FT_be_width,
             p_EP82_wsize    = EP82_wsize,
             p_EP83_wsize    = EP83_wsize,
-        )
 
-        # FT601 Signals.
-        self.ft601_params.update(
             # Clk/Rst.
             i_clk           = ClockSignal("ft601"),
             i_reset_n       = ~ResetSignal("ft601"),
@@ -370,25 +358,14 @@ class FT601(LiteXModule):
             )
         ]
 
-    def do_finalize(self):
-        output_dir = self.platform.output_dir
-
-        self.ft601_arbiter_converter = VHD2VConverter(self.platform,
-            top_entity    = "FT601_arb",
-            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.ft601_arbiter_params,
-            add_instance  = True,
+        self.ft601_arbiter_conv = add_vhd2v_converter(self.platform,
+            instance = self.ft601_arbiter,
+            files    = ["gateware/LimeDFB_LiteX/FT601/src/FT601_arb.vhd"],
         )
-        self.ft601_arbiter_converter.add_source("gateware/LimeDFB_LiteX/FT601/src/FT601_arb.vhd")
+        self._fragment.specials.remove(self.ft601_arbiter)
 
-        self.ft601_converter = VHD2VConverter(self.platform,
-            top_entity    = "FT601",
-            build_dir     = os.path.join(os.path.abspath(output_dir), "vhd2v"),
-            work_package  = "work",
-            force_convert = LiteXContext.platform.vhd2v_force,
-            params        = self.ft601_params,
-            add_instance  = True,
+        self.ft601_conv = add_vhd2v_converter(self.platform,
+            instance = self.ft601,
+            files    = ["gateware/LimeDFB_LiteX/FT601/src/FT601.vhd"],
         )
-        self.ft601_converter.add_source("gateware/LimeDFB_LiteX/FT601/src/FT601.vhd")
+        self._fragment.specials.remove(self.ft601)

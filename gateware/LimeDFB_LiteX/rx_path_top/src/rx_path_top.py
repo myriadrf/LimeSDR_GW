@@ -116,8 +116,7 @@ class RXPathTop(LiteXModule):
         # Combine IQ samples into full 64bit bus
         # In mimo Mode: AI AQ BI BQ
         # In siso Mode: AI AQ AI AQ
-        self.iq_stream_combiner_params = dict()
-        self.iq_stream_combiner_params.update(
+        self.iq_stream_combiner = Instance("IQ_STREAM_COMBINER",
             # Clk/Reset.
             i_CLK               = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK
             i_RESET_N           = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN
@@ -137,8 +136,7 @@ class RXPathTop(LiteXModule):
         )
 
         # Bit packer
-        self.bit_pack_params = dict()
-        self.bit_pack_params.update(
+        self.bit_pack = Instance("bit_pack",
             # Parameters.
             p_G_PORT_WIDTH  = 64,
             #p_G_DISABLE_14BIT = false
@@ -155,8 +153,7 @@ class RXPathTop(LiteXModule):
             o_data_out_tlast = bit_pack_to_nto1_tlast,      # always 1 when smpl_width == 0b00
         )
 
-        self.axis_nto1_converter_params = dict()
-        self.axis_nto1_converter_params.update(
+        self.axis_nto1_converter = Instance("AXIS_NTO1_CONVERTER",
             # Parameters.
             p_G_N_RATIO    = 2,
             p_G_DATA_WIDTH = 64,
@@ -175,8 +172,7 @@ class RXPathTop(LiteXModule):
             o_M_AXIS_TLAST  = iqsmpls_fifo.sink.last,
         )
 
-        self.rx_path_top_params = dict()
-        self.rx_path_top_params.update(
+        self.rx_path_top = Instance("RX_PATH_TOP",
             # Parameters.
             p_G_S_AXIS_IQSMPLS_BUFFER_WORDS  = S_AXIS_IQSMPLS_BUFFER_WORDS,
             p_G_M_AXIS_IQPACKET_BUFFER_WORDS = M_AXIS_IQPACKET_BUFFER_WORDS,
@@ -208,8 +204,7 @@ class RXPathTop(LiteXModule):
         self.drop_samples = Signal()
         self.wr_header    = Signal()
 
-        self.data2packets_fsm_params = dict()
-        self.data2packets_fsm_params.update(
+        self.data2packets_fsm = Instance("DATA2PACKETS_FSM",
             # Clk/Reset.
             i_ACLK               = ClockSignal(int_clk_domain),
             i_ARESET_N           = int_clk_rst_n,
@@ -325,12 +320,12 @@ class RXPathTop(LiteXModule):
             self.specials += MultiReg(fpgacfg_manager.rx_en, m_clk_rst_n, m_clk_domain, reset=1)
 
 
-    def do_finalize(self):
-        self.iq_stream_combiner = add_vhd2v_converter(self.platform,
-            top    = "IQ_STREAM_COMBINER",
-            params = self.iq_stream_combiner_params,
-            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/iq_stream_combiner.vhd"],
+        self.iq_stream_combiner_conv = add_vhd2v_converter(self.platform,
+            instance = self.iq_stream_combiner,
+            files    = ["gateware/LimeDFB_LiteX/rx_path_top/src/iq_stream_combiner.vhd"],
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.iq_stream_combiner)
 
         bit_pack_files = [
             "gateware/LimeDFB/rx_path_top/src/bit_pack.vhd",
@@ -338,26 +333,30 @@ class RXPathTop(LiteXModule):
             "gateware/LimeDFB/rx_path_top/src/pack_56_to_64.vhd",
         ]
 
-        self.bit_pack = add_vhd2v_converter(self.platform,
-            top    = "bit_pack",
-            params = self.bit_pack_params,
-            files  = bit_pack_files,
+        self.bit_pack_conv = add_vhd2v_converter(self.platform,
+            instance = self.bit_pack,
+            files    = bit_pack_files,
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.bit_pack)
 
-        self.axis_nto1_converter = add_vhd2v_converter(self.platform,
-            top    = "AXIS_NTO1_CONVERTER",
-            params = self.axis_nto1_converter_params,
-            files  = ["gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd"],
+        self.axis_nto1_converter_conv = add_vhd2v_converter(self.platform,
+            instance = self.axis_nto1_converter,
+            files    = ["gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd"],
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.axis_nto1_converter)
 
-        self.rx_path_top = add_vhd2v_converter(self.platform,
-            top    = "RX_PATH_TOP",
-            params = self.rx_path_top_params,
-            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/rx_path_top.vhd"],
+        self.rx_path_top_conv = add_vhd2v_converter(self.platform,
+            instance = self.rx_path_top,
+            files    = ["gateware/LimeDFB_LiteX/rx_path_top/src/rx_path_top.vhd"],
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.rx_path_top)
 
-        self.data2packets_fsm = add_vhd2v_converter(self.platform,
-            top    = "DATA2PACKETS_FSM",
-            params = self.data2packets_fsm_params,
-            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/data2packets_fsm.vhd"],
+        self.data2packets_fsm_conv = add_vhd2v_converter(self.platform,
+            instance = self.data2packets_fsm,
+            files    = ["gateware/LimeDFB_LiteX/rx_path_top/src/data2packets_fsm.vhd"],
         )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.data2packets_fsm)

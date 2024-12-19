@@ -67,8 +67,7 @@ class GeneralPeriphTop(LiteXModule):
 
         # General_periph_top wrapper (required due to record).
         # ----------------------------------------------------
-        self.general_periph_params = dict()
-        self.general_periph_params.update(
+        self.general_periph = Instance("general_periph_top_wrapper",
             # Parameters
             p_N_GPIO               = N_GPIO,
 
@@ -125,6 +124,26 @@ class GeneralPeriphTop(LiteXModule):
             o_fan_ctrl_out         = platform.request("FAN_CTRL"),
         )
 
+        general_periph_files = [
+            "gateware/LimeDFB_LiteX/general/alive.vhd",
+            "gateware/LimeDFB_LiteX/general/FPGA_LED_cntrl.vhd",
+            "gateware/LimeDFB_LiteX/general/FPGA_LED2_ctrl.vhd",
+            "gateware/LimeDFB_LiteX/general/FX3_LED_ctrl.vhd",
+            "gateware/LimeDFB_LiteX/general/gpio_ctrl_top.vhd",
+            "gateware/LimeDFB_LiteX/general/gpio_ctrl.vhd",
+            "gateware/LimeDFB_LiteX/general/general_pkg.vhd",
+            "gateware/LimeDFB_LiteX/general_periph/src/general_periph_top.vhd",
+            "gateware/LimeDFB_LiteX/general_periph/src/general_periph_top_wrapper.vhd",
+            "gateware/LimeDFB_LiteX/general_periph/src/periphcfg_pkg.vhd",
+        ]
+
+        self.general_periph_conv = add_vhd2v_converter(self.platform,
+            instance = self.general_periph,
+            files    = general_periph_files,
+        )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.general_periph)
+
         if add_csr:
             self.add_csr()
 
@@ -164,23 +183,3 @@ class GeneralPeriphTop(LiteXModule):
             self.led2_ctrl.eq(                self.fpga_led_ctrl.fields.LED2_CTRL),
             self.fx3_led_ctrl.eq(             self._FX3_LED_CTRL.storage),
         ]
-
-    def do_finalize(self):
-        general_periph_files = [
-            "gateware/LimeDFB_LiteX/general/alive.vhd",
-            "gateware/LimeDFB_LiteX/general/FPGA_LED_cntrl.vhd",
-            "gateware/LimeDFB_LiteX/general/FPGA_LED2_ctrl.vhd",
-            "gateware/LimeDFB_LiteX/general/FX3_LED_ctrl.vhd",
-            "gateware/LimeDFB_LiteX/general/gpio_ctrl_top.vhd",
-            "gateware/LimeDFB_LiteX/general/gpio_ctrl.vhd",
-            "gateware/LimeDFB_LiteX/general/general_pkg.vhd",
-            "gateware/LimeDFB_LiteX/general_periph/src/general_periph_top.vhd",
-            "gateware/LimeDFB_LiteX/general_periph/src/general_periph_top_wrapper.vhd",
-            "gateware/LimeDFB_LiteX/general_periph/src/periphcfg_pkg.vhd",
-        ]
-
-        self.general_periph = add_vhd2v_converter(self.platform,
-            top    = "general_periph_top_wrapper",
-            params = self.general_periph_params,
-            files  = general_periph_files,
-        )
