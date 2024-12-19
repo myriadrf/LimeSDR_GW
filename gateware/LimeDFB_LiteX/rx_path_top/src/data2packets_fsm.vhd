@@ -121,7 +121,7 @@ begin
          -- Droping samples until there is enough space in buffer and making sure that whole frame of bit packed samples are droped.
          when DROP_SAMPLES =>
 
-            if (space_required <= MAX_BUFFER_WORDS  and S_AXIS_TLAST = '1') then
+            if ((space_required <= MAX_BUFFER_WORDS)  and (S_AXIS_TVALID ='1') and (S_AXIS_TLAST = '1')) then
                next_state <= IDLE;
             else
                next_state <= DROP_SAMPLES;
@@ -236,7 +236,9 @@ begin
    -- ----------------------------------------------------------------------------
    -- Output ports
    -- ----------------------------------------------------------------------------
-   S_AXIS_TREADY <= s_axis_tready_reg;
+   S_AXIS_TREADY <= '0' when (current_state = IDLE) else
+                    '0' when (current_state = WR_HEADER) else
+                    s_axis_tready_reg;
 
    M_AXIS_TVALID <= m_axis_tvalid_reg;
    M_AXIS_TDATA  <= m_axis_tdata_reg;
