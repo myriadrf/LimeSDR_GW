@@ -205,6 +205,9 @@ class RXPathTop(LiteXModule):
             o_bp_sample_nr_counter    = bp_sample_nr_counter,
         )
 
+        self.drop_samples = Signal()
+        self.wr_header    = Signal()
+
         self.data2packets_fsm_params = dict()
         self.data2packets_fsm_params.update(
             # Clk/Reset.
@@ -224,7 +227,10 @@ class RXPathTop(LiteXModule):
             i_M_AXIS_TREADY      = iqpacket_axis.ready,
             o_M_AXIS_TDATA       = iqpacket_axis.data,
             o_M_AXIS_TLAST       = iqpacket_axis.last,
-            o_WR_DATA_COUNT_AXIS = iqpacket_wr_data_count
+            o_WR_DATA_COUNT_AXIS = iqpacket_wr_data_count,
+
+            o_DBG_DROP_SAMPLES       = self.drop_samples,
+            o_DBG_WR_HEADER          = self.wr_header,
         )
 
         self.comb += [
@@ -353,5 +359,5 @@ class RXPathTop(LiteXModule):
         self.data2packets_fsm = add_vhd2v_converter(self.platform,
             top    = "DATA2PACKETS_FSM",
             params = self.data2packets_fsm_params,
-            files  = ["gateware/LimeDFB/rx_path_top/src/data2packets_fsm.vhd"],
+            files  = ["gateware/LimeDFB_LiteX/rx_path_top/src/data2packets_fsm.vhd"],
         )

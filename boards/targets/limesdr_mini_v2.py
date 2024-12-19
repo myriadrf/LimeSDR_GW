@@ -379,12 +379,17 @@ class BaseSoC(SoCCore):
             register     = True,
             csr_csv      = "analyzer.csv"
         )
+
     def add_rxdatapath_ctrl_probe(self):
         analyzer_signals = [
             #self.lms7002_top.source.ready,
             #self.lms7002_top.source.valid,
             self.rxtx_top.rx_path.iqsmpls_fifo.sink.ready,
             self.rxtx_top.rx_path.iqsmpls_fifo.sink.valid,
+            self.rxtx_top.rx_path.iqsmpls_fifo.sink.last,
+            self.rxtx_top.rx_path.iqsmpls_fifo.source.valid,
+            self.rxtx_top.rx_path.iqsmpls_fifo.source.ready,
+            self.rxtx_top.rx_path.iqsmpls_fifo.source.last,
             self.rxtx_top.rx_path.iqpacket_axis.ready,
             self.rxtx_top.rx_path.iqpacket_axis.valid,
             self.rxtx_top.rx_path.fifo_iqpacket.sink.ready,
@@ -396,6 +401,9 @@ class BaseSoC(SoCCore):
             self.rxtx_top.rx_path.iqpacket_cdc.source.ready,
             self.rxtx_top.rx_path.source.ready,
             self.rxtx_top.rx_path.source.valid,
+            self.rxtx_top.rx_path.drop_samples,
+            self.rxtx_top.rx_path.wr_header,
+
             self.ft601.sink.ready,
             self.ft601.sink.valid,
             self.ft601.EP83_fifo.level,
