@@ -131,7 +131,7 @@ class RXPathTop(LiteXModule):
             i_S_AXIS_TKEEP      = self.sink.keep,
             # AXI Stream Master
             o_M_AXIS_TVALID     = iq_to_bit_pack_tvalid,
-            i_M_AXIS_TREADY     = iqsmpls_fifo_sink_ready, #iq_to_bit_pack_tready, # axis_iq128.tready
+            i_M_AXIS_TREADY     = 1, # Always accept incoming data (No back pressure possible on PHY).
             o_M_AXIS_TDATA      = iq_to_bit_pack_tdata,
             o_M_AXIS_TKEEP      = iq_to_bit_pack_tkeep,  # Unused full 1
         )
@@ -197,7 +197,7 @@ class RXPathTop(LiteXModule):
             i_CFG_CH_EN               = int_clk_ch_en,               # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
 
             # sample nr
-            i_SMPL_NR_INCR            = (self.sink.valid & iqsmpls_fifo_sink_ready),
+            i_SMPL_NR_INCR            = self.sink.valid,
             i_SMPL_NR_CLR             = int_clk_smpl_nr_clr,
             i_SMPL_NR_LD              = Constant(0, 1),
             i_SMPL_NR_IN              = Constant(0, 64),
