@@ -485,6 +485,12 @@ def main():
     # Prepare User/Golden bitstream.
     if args.toolchain == "diamond":
         os.system(f"./limesdr_mini_v2_bitstream.py")
+    else:
+        golden = soc.platform.name + "_golden.bit"
+        user   = soc.platform.name + ".bit"
+        cmd = f"ecpmulti --flashsize 128 --input {golden} --input {user} --address 0x00280000 limesdr_mini_v2.bin"
+        os.system(cmd)
+        os.system("srec_cat limesdr_mini_v2.bin -Binary -Bit_Reverse=2 -Byte-Swap -o limesdr_mini_v2.mcs -Intel")
 
     # Load Bistream.
     if args.load:
