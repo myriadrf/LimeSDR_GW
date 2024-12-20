@@ -429,11 +429,13 @@ def main():
     parser = argparse.ArgumentParser(description="LimeSDR-Mini-V2 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Build/Load/Utilities.
-    parser.add_argument("--build",     action="store_true", help="Build bitstream.")
-    parser.add_argument("--toolchain", default="trellis",   help="Build toolchain.", choices=["diamond", "trellis"])
-    parser.add_argument("--load",      action="store_true", help="Load bitstream.")
-    parser.add_argument("--flash",     action="store_true", help="Flash bitstream.")
-    parser.add_argument("--cable",     default="ft2232",    help="JTAG cable.")
+    parser.add_argument("--build",        action="store_true", help="Build bitstream.")
+    parser.add_argument("--toolchain",    default="trellis",   help="Build toolchain.", choices=["diamond", "trellis"])
+    parser.add_argument("--load",         action="store_true", help="Load bitstream.")
+    parser.add_argument("--flash",        action="store_true", help="Flash bitstream.")
+    parser.add_argument("--flash-user",   action="store_true", help="Flash User bitstream.")
+    parser.add_argument("--flash-golden", action="store_true", help="Flash Golden bitstream.")
+    parser.add_argument("--cable",        default="ft2232",    help="JTAG cable.")
 
     # SoC parameters.
     parser.add_argument("--with-bios",         action="store_true", help="Enable LiteX BIOS.")
@@ -480,6 +482,10 @@ def main():
             }[args.with_bios]
             os.system(f"cd firmware_mini && make BUILD_DIR={builder.output_dir} LINKER={linker} clean all")
 
+    # Prepare User/Golden bitstream.
+    if args.toolchain == "diamond":
+        os.system(f"./limesdr_mini_v2_bitstream.py")
+
     # Load Bistream.
     if args.load:
         prog = soc.platform.create_programmer(cable=args.cable)
@@ -489,6 +495,16 @@ def main():
     if args.flash:
         prog = soc.platform.create_programmer(cable=args.cable)
         prog.flash(0, builder.get_bitstream_filename(mode="sram", ext=".bit"))
+
+    # Flash Golden Bitstream.
+    if args.flash_golden:
+        prog = soc.platform.create_programmer(cable=args.cable)
+        prog.flash(0x00140000, soc.platform.name + "_golden.bit")
+
+    # Flash User Bitstream.
+    if args.flash_user:
+        prog = soc.platform.create_programmer(cable=args.cable)
+        prog.flash(0x00280000, soc.platform.name + ".bit")
 
 if __name__ == "__main__":
     main()
