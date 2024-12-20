@@ -439,6 +439,8 @@ def main():
     parser.add_argument("--with-bios",         action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",     action="store_true", help="Enable UARTBone.")
     parser.add_argument("--without-spi-flash", action="store_true", help="Disable SPI Flash (MMAPed).")
+    parser.add_argument("--cpu-type",          default="vexriscv",  help="Select CPU.", choices=[
+        "vexriscv", "picorv32", "fazyrv", "firev"]),
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -453,6 +455,7 @@ def main():
         build   = ((run == 1) & args.build)
         # SoC.
         soc = BaseSoC(
+            cpu_type       = args.cpu_type,
             toolchain      = args.toolchain,
             with_bios      = args.with_bios,
             with_uartbone  = args.with_uartbone,
