@@ -21,6 +21,7 @@ from boards.platforms import limesdr_mini_v1_platform as limesdr_mini_v1
 
 from litex.soc.interconnect         import stream
 from litex.soc.interconnect.csr     import *
+from litex.soc.integration.soc      import SoCRegion
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder  import *
 
@@ -32,9 +33,11 @@ from litespi.phy.generic import LiteSPIPHY
 
 from litescope import LiteScopeAnalyzer
 
-from gateware.fpgacfg             import FPGACfg
-from gateware.pllcfg              import PLLCfg
-from gateware.rxtx_top            import RXTXTop
+from gateware.fpgacfg                             import FPGACfg
+from gateware.max10_onchipflash.max10_onchipflash import Max10OnChipFlash
+from gateware.max10_dual_cfg.max10_dual_cfg       import Max10DualCfg
+from gateware.pllcfg                              import PLLCfg
+from gateware.rxtx_top                            import RXTXTop
 
 from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
 from gateware.LimeDFB_LiteX.general.busy_delay                import BusyDelay
@@ -113,6 +116,7 @@ class BaseSoC(SoCCore):
         platform.name        = "limesdr_mini_v1"
         platform.vhd2v_force = False
         platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008") # Enable VHDL-2008 support.
+        platform.add_platform_command("set_global_assignment -name INTERNAL_FLASH_UPDATE_MODE \"DUAL IMAGES\"") # Required to access internal flash
 
         # SoCCore ----------------------------------------------------------------------------------
         assert cpu_type in ["vexriscv", "picorv32", "fazyrv", "firev"]
@@ -149,6 +153,8 @@ class BaseSoC(SoCCore):
             uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
+        self.add_constant("LIMESDR_MINI_V1")
+
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
@@ -163,6 +169,23 @@ class BaseSoC(SoCCore):
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
+
+        # Internal Flash ---------------------------------------------------------------------------
+        self.internal_flash = Max10OnChipFlash(platform)
+
+        internal_flash_region = SoCRegion(
+                origin = 0x100000, # keep original addr
+                size   = 0x8C000,
+                mode   = "rwx")
+        self.bus.add_region("internal_flash", internal_flash_region)
+
+        # Max10 Dual Cfg ---------------------------------------------------------------------------
+        self.dual_cfg = Max10DualCfg(platform)
+        dual_cfg_region = SoCRegion(
+                origin = 0x900000,
+                size   = 0x10,
+                mode   = "rwx")
+        self.bus.add_region("dual_cfg", dual_cfg_region)
 
         # SPI Flash --------------------------------------------------------------------------------
         if with_spi_flash:
