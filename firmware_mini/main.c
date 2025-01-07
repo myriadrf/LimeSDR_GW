@@ -21,6 +21,7 @@
 #include <irq.h>
 #include <generated/csr.h>
 #include <generated/mem.h>
+#include <generated/soc.h>
 
 #define sbi(p,n) ((p) |= (1UL << (n)))
 #define cbi(p,n) ((p) &= ~(1 << (n)))
@@ -87,6 +88,7 @@ uint32_t CFM0StartAddress = 0x012800;
 uint32_t CFM0EndAddress   = 0x022FFF;
 uint32_t UFMStartAddress = 0x0;
 uint32_t UFMEndAddress   = 0x01FFF;
+uint32_t word;
 #else
 uint32_t CFM0StartAddress = 0x000000;
 uint32_t CFM0EndAddress   = 0x13FFFF;
@@ -104,6 +106,19 @@ uint16_t dac_val = 720;
 unsigned char dac_data[2];
 
 signed short int converted_val = 300;
+
+#ifdef LIMESDR_MINI_V1
+/**
+ * Bit swap in byte
+ */
+uint8_t reverse(uint8_t b)
+{
+	b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+	b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+	b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+	return b;
+}
+#endif
 
 static void dac_spi_write(const uint16_t write_data)
 {
@@ -1123,7 +1138,7 @@ int main(void)
 
 				break;
 
-#if defined(CSR_SPIFLASH_CORE_BASE)
+#if defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE)
 			case CMD_ALTERA_FPGA_GW_WR: //FPGA passive serial
 
 				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[3] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[1] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[0]);
@@ -1169,7 +1184,7 @@ int main(void)
 						case 10:
 							//Set Flash memory addresses
 #ifdef LIMESDR_MINI_V1
-							address = UFMStartAddress
+							address = UFMStartAddress;
 							//Write Control Register of On-Chip Flash IP to un-protect and erase operation
 							//wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf67fffff);
 							//wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf65fffff);
@@ -1190,6 +1205,26 @@ int main(void)
 
 						case 11:
 							//Start erase CFM0
+#ifdef LIMESDR_MINI_V1
+							if((internal_flash_status_register_read() & 0x13) == 0x10)
+							{
+								internal_flash_control_register_write(0xf67fffff);
+								printf("CFM0 Erased\n");
+								state = 13;
+								Flash = 1;
+							}
+							if((internal_flash_status_register_read() & 0x13) == 0x01)
+							{
+								printf("Erasing CFM0\n");
+								state = 11;
+								Flash = 1;
+							}
+							if((internal_flash_status_register_read() & 0x13) == 0x00)
+							{
+								printf("Erase CFM0 Failed\n");
+								state = 0;
+							}
+#else
 							//if ((0x03 & MicoSPIFlash_StatusRead (spiflash)) == 0)
 							if ((0x03 & spiflash_read_status_register()) == 0)
 							{
@@ -1209,6 +1244,7 @@ int main(void)
 								//printf("Erase CFM0 Failed\n");
 								state = 0;
 							}
+#endif
 
 							break;
 
@@ -1283,15 +1319,47 @@ int main(void)
 						case 20:
 							for(byte = 24; byte <= 52; byte += 4)
 							{
+#ifdef LIMESDR_MINI_V1
+								//Take word and swap bits
+								word  = ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+0]) << 24) & 0xFF000000;
+								word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+1]) << 16) & 0x00FF0000;
+								word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+2]) <<  8) & 0x0000FF00;
+								word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+3]) <<  0) & 0x000000FF;
+#else
 								//Take word
 								p_spi_wrdata[0] = LMS_Ctrl_Packet_Rx->Data_field[byte+0];
 								p_spi_wrdata[1] = LMS_Ctrl_Packet_Rx->Data_field[byte+1];
 								p_spi_wrdata[2] = LMS_Ctrl_Packet_Rx->Data_field[byte+2];
 								p_spi_wrdata[3] = LMS_Ctrl_Packet_Rx->Data_field[byte+3];
+#endif
 
 								//Command to write into On-Chip Flash IP
 								if(address <= CFM0EndAddress)
 								{
+#ifdef LIMESDR_MINI_V1
+									*(uint32_t *)(INTERNAL_FLASH_BASE + (address << 2)) = word;
+									//wishbone_write32(ONCHIP_FLASH_0_DATA_BASE + (address<<2), word);
+
+									while((internal_flash_status_register_read() & 0x0b) == 0x02)
+									{
+									    //printf("Writing CFM0(%d)\n", address);
+									}
+
+									if((internal_flash_status_register_read() & 0x0b) == 0x00)
+									{
+									    printf("Write to addr failed\n");
+									    state = 0;
+									    address = 700000;
+									}
+
+									if((internal_flash_status_register_read() & 0x0b) == 0x08)
+									{
+									};
+
+									// Increment address or move to CFM0 sector
+									if (address == UFMEndAddress) address = CFM0StartAddress;
+									else address += 1;
+#else
 									// Erase Block if we reach starting address of 64KB block
 									if (address % FLASH_BLOCK_SIZE == 0) {
 										//flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
@@ -1321,7 +1389,7 @@ int main(void)
 									{
 									};
                            */
-									
+#endif
 								}
 								else
 								{
@@ -1339,6 +1407,9 @@ int main(void)
 						case 30:
 							//Re-protect the sector
 							//IOWR(ONCHIP_FLASH_0_CSR_BASE, 1, 0xffffffff);
+#ifdef LIMESDR_MINI_V1
+							internal_flash_control_register_write(0xffffffff);
+#endif
 
 							state = 0;
 							Flash = 0;
