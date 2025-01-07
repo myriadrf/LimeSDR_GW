@@ -84,11 +84,10 @@ unsigned long int fpga_byte;
 
 // Used for MAX10 Flash programming
 #ifdef LIMESDR_MINI_V1
-uint32_t CFM0StartAddress = 0x012800;
-uint32_t CFM0EndAddress   = 0x022FFF;
-uint32_t UFMStartAddress = 0x0;
-uint32_t UFMEndAddress   = 0x01FFF;
-uint32_t word;
+#define CFM0StartAddress 0x012800
+#define CFM0EndAddress   0x022FFF
+#define UFMStartAddress  0x0
+#define UFMEndAddress    0x01FFF
 #else
 uint32_t CFM0StartAddress = 0x000000;
 uint32_t CFM0EndAddress   = 0x13FFFF;
@@ -96,7 +95,6 @@ uint32_t CFM0EndAddress   = 0x13FFFF;
 uint32_t address = 0x0;
 uint32_t byte = 0;
 uint32_t byte1;
-uint32_t word = 0x0;
 uint8_t state, Flash = 0x0;
 char spiflash_wdata[4];
 
@@ -172,10 +170,14 @@ uint32_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_
 }
 
 /* SPIFlash ------------------------------------------------------------------*/
-#if defined(CSR_SPIFLASH_CORE_BASE)
+#if defined(CSR_SPIFLASH_CORE_BASE) | defined(INTERNAL_FLASH_BASE)
 void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 {
+#ifdef CSR_SPIFLASH_CORE_BASE
 	void *addr = (void *)SPIFLASH_BASE;
+#else
+	void *addr = (void *)INTERNAL_FLASH_BASE;
+#endif
 	uint32_t real_len = length;
 	int i, ii, data_offset;
 	uint32_t rx;
@@ -638,6 +640,22 @@ int main(void)
 		dac_val = (uint16_t) eeprom_dac_val;
 	}
 	*/
+
+#if 0
+//#ifdef LIMESDR_MINI_V1
+	uint8_t spi_rdata[16];
+	spiFlash_read(0x0, 5, spi_rdata);
+	int pp;
+	for (pp=0; pp < 16; pp++)
+		printf("%02x ", spi_rdata[pp]);
+	printf("\n");
+
+//	uint32_t reg = internal_flash_status_register_read();
+//	printf("%08x\n", reg);
+//	reg = internal_flash_control_register_read();
+//	printf("%08x\n", reg);
+//
+#endif
 
 #if defined(CSR_SPIFLASH_CORE_BASE)
 	uint8_t spi_rdata[16];
@@ -1138,7 +1156,7 @@ int main(void)
 
 				break;
 
-#if defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE)
+#if 0 //defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE)
 			case CMD_ALTERA_FPGA_GW_WR: //FPGA passive serial
 
 				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[3] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[1] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[0]);
@@ -1209,19 +1227,19 @@ int main(void)
 							if((internal_flash_status_register_read() & 0x13) == 0x10)
 							{
 								internal_flash_control_register_write(0xf67fffff);
-								printf("CFM0 Erased\n");
+								//printf("CFM0 Erased\n");
 								state = 13;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x01)
 							{
-								printf("Erasing CFM0\n");
+								//printf("Erasing CFM0\n");
 								state = 11;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x00)
 							{
-								printf("Erase CFM0 Failed\n");
+								//printf("Erase CFM0 Failed\n");
 								state = 0;
 							}
 #else
@@ -1248,7 +1266,8 @@ int main(void)
 
 							break;
 
-#ifdef LIMESDR_MINI_V1
+//#ifdef LIMESDR_MINI_V1
+#if 0
 						//Initiate UFM (ID1) Erase Operation
 						case 13:
 							//Write Control Register of On-Chip Flash IP to un-protect and erase operation
@@ -1297,19 +1316,19 @@ int main(void)
 							if((internal_flash_status_register_read() & 0x13) == 0x10)
 							{
 								internal_flash_control_register_write(0xf67fffff);
-								printf("UFM ID2 Erased\n");
+								//printf("UFM ID2 Erased\n");
 								state = 20;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x01)
 							{
-								printf("Erasing UFM ID2\n");
+								//printf("Erasing UFM ID2\n");
 								state = 17;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x00)
 							{
-								printf("Erase UFM ID2 Failed\n");
+								//printf("Erase UFM ID2 Failed\n");
 								state = 0;
 							}
 						break;
@@ -1319,12 +1338,13 @@ int main(void)
 						case 20:
 							for(byte = 24; byte <= 52; byte += 4)
 							{
-#ifdef LIMESDR_MINI_V1
+//#ifdef LIMESDR_MINI_V1
+#if 0
 								//Take word and swap bits
-								word  = ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+0]) << 24) & 0xFF000000;
-								word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+1]) << 16) & 0x00FF0000;
-								word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+2]) <<  8) & 0x0000FF00;
-								word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+3]) <<  0) & 0x000000FF;
+								wdata  = ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+0]) << 24) & 0xFF000000;
+								wdata |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+1]) << 16) & 0x00FF0000;
+								wdata |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+2]) <<  8) & 0x0000FF00;
+								wdata |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+3]) <<  0) & 0x000000FF;
 #else
 								//Take word
 								p_spi_wrdata[0] = LMS_Ctrl_Packet_Rx->Data_field[byte+0];
@@ -1337,7 +1357,7 @@ int main(void)
 								if(address <= CFM0EndAddress)
 								{
 #ifdef LIMESDR_MINI_V1
-									*(uint32_t *)(INTERNAL_FLASH_BASE + (address << 2)) = word;
+									*(uint32_t *)(INTERNAL_FLASH_BASE + (address << 2)) = wdata;
 									//wishbone_write32(ONCHIP_FLASH_0_DATA_BASE + (address<<2), word);
 
 									while((internal_flash_status_register_read() & 0x0b) == 0x02)
@@ -1347,7 +1367,7 @@ int main(void)
 
 									if((internal_flash_status_register_read() & 0x0b) == 0x00)
 									{
-									    printf("Write to addr failed\n");
+									    //printf("Write to addr failed\n");
 									    state = 0;
 									    address = 700000;
 									}
