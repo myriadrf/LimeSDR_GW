@@ -82,8 +82,15 @@ tBoard_Config_FPGA *Board_Config_FPGA = (tBoard_Config_FPGA*) flash_page_data;
 unsigned long int fpga_byte;
 
 // Used for MAX10 Flash programming
+#ifdef LIMESDR_MINI_V1
+uint32_t CFM0StartAddress = 0x012800;
+uint32_t CFM0EndAddress   = 0x022FFF;
+uint32_t UFMStartAddress = 0x0;
+uint32_t UFMEndAddress   = 0x01FFF;
+#else
 uint32_t CFM0StartAddress = 0x000000;
 uint32_t CFM0EndAddress   = 0x13FFFF;
+#endif
 uint32_t address = 0x0;
 uint32_t byte = 0;
 uint32_t byte1;
@@ -1161,9 +1168,14 @@ int main(void)
 						//Init
 						case 10:
 							//Set Flash memory addresses
-							CFM0StartAddress = 0x000000;
-							CFM0EndAddress   = 0x13FFFF;
-
+#ifdef LIMESDR_MINI_V1
+							address = UFMStartAddress
+							//Write Control Register of On-Chip Flash IP to un-protect and erase operation
+							//wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf67fffff);
+							//wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf65fffff);
+							internal_flash_control_register_write(0xf67fffff);
+							internal_flash_control_register_write(0xf65fffff);
+#else
 							address = CFM0StartAddress;
 
 							//spiflash_erase_primary(spiflash);
@@ -1171,6 +1183,7 @@ int main(void)
 							//flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base + 0x00000000, 3);
 							if (spiflash_erase(0x00000000) == false)
 								printf("spiflash_erase_primary: Error\n");
+#endif
 
 							state = 11;
 							Flash = 1;
@@ -1198,6 +1211,73 @@ int main(void)
 							}
 
 							break;
+
+#ifdef LIMESDR_MINI_V1
+						//Initiate UFM (ID1) Erase Operation
+						case 13:
+							//Write Control Register of On-Chip Flash IP to un-protect and erase operation
+							internal_flash_control_register_write(0xf67fffff);
+							internal_flash_control_register_write(0xf61fffff);
+
+							state = 14;
+							Flash = 1;
+							break;
+
+						case 14:
+							//Start erase UFM ID1
+							if((internal_flash_status_register_read() & 0x13) == 0x10)
+							{
+								internal_flash_control_register_write(0xf67fffff);
+								//printf("UFM ID1 Erased\n");
+								state = 16;
+								Flash = 1;
+							}
+							if((internal_flash_status_register_read() & 0x13) == 0x01)
+							{
+								//printf("Erasing UFM ID1\n");
+								state = 14;
+								Flash = 1;
+							}
+							if((internal_flash_status_register_read() & 0x13) == 0x00)
+							{
+								//printf("Erase UFM ID1 Failed\n");
+								state = 0;
+							}
+							break;
+
+						//Initiate UFM (ID2) Erase Operation
+						case 16:
+
+							//Write Control Register of On-Chip Flash IP to un-protect and erase operation
+							internal_flash_control_register_write(0xf67fffff);
+							internal_flash_control_register_write(0xf62fffff);
+
+							state = 17;
+							Flash = 1;
+						break;
+
+						case 17:
+							//Start erase UFM ID2
+							if((internal_flash_status_register_read() & 0x13) == 0x10)
+							{
+								internal_flash_control_register_write(0xf67fffff);
+								printf("UFM ID2 Erased\n");
+								state = 20;
+								Flash = 1;
+							}
+							if((internal_flash_status_register_read() & 0x13) == 0x01)
+							{
+								printf("Erasing UFM ID2\n");
+								state = 17;
+								Flash = 1;
+							}
+							if((internal_flash_status_register_read() & 0x13) == 0x00)
+							{
+								printf("Erase UFM ID2 Failed\n");
+								state = 0;
+							}
+						break;
+#endif
 
 							//Program
 						case 20:
