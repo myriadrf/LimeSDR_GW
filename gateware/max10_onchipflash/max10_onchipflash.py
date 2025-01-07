@@ -41,6 +41,8 @@ class Max10OnChipFlash(LiteXModule):
         avmm_csr_rdata = Signal(32)
 
         # Data Interface (Avalon MM for Data Access)
+        avmm_read               = Signal()
+        avmm_write              = Signal()
         avmm_data_waitrequest   = Signal()
         avmm_data_readdatavalid = Signal()
         avmm_data_burstcount    = Signal(4)
@@ -61,8 +63,8 @@ class Max10OnChipFlash(LiteXModule):
 
             # Data Interface (Avalon MM)
             i_avmm_data_addr          = self.bus.adr,
-            i_avmm_data_read          = ~self.bus.we & self.bus.stb,
-            i_avmm_data_write         = self.bus.we & self.bus.stb,
+            i_avmm_data_read          = avmm_read,
+            i_avmm_data_write         = avmm_write,
             i_avmm_data_writedata     = self.bus.dat_w,
             o_avmm_data_readdata      = self.bus.dat_r,
             o_avmm_data_waitrequest   = avmm_data_waitrequest,
@@ -83,8 +85,10 @@ class Max10OnChipFlash(LiteXModule):
 
         # Connect Data Interface to Wishbone.
         self.comb += [
-            self.bus.ack.eq(        ~avmm_data_waitrequest),
+            self.bus.ack.eq(        (~avmm_data_waitrequest & self.bus.cyc & self.bus.we) | (avmm_data_readdatavalid & self.bus.cyc & ~self.bus.we)),
             avmm_data_burstcount.eq(1),
+            avmm_write.eq(          self.bus.we & self.bus.stb & self.bus.cyc),
+            avmm_read.eq(           ~self.bus.we & self.bus.stb & self.bus.cyc),
         ]
 
     def do_finalize(self):
