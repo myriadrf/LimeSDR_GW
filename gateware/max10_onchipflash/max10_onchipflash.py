@@ -85,7 +85,7 @@ class Max10OnChipFlash(LiteXModule):
 
         # Connect Data Interface to Wishbone.
         self.comb += [
-            self.bus.ack.eq(        (~avmm_data_waitrequest & self.bus.cyc & self.bus.we) | (avmm_data_readdatavalid & self.bus.cyc & ~self.bus.we)),
+            self.bus.ack.eq(        (~avmm_data_waitrequest & self.bus.cyc & self.bus.stb)),
             avmm_data_burstcount.eq(1),
             avmm_write.eq(          self.bus.we & self.bus.stb & self.bus.cyc),
             avmm_read.eq(           ~self.bus.we & self.bus.stb & self.bus.cyc),

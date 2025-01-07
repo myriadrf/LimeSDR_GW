@@ -41,9 +41,9 @@ class Max10DualCfg(LiteXModule):
 
             # Avalon MM
             i_avmm_rcv_address   = self.bus.adr,
-            i_avmm_rcv_read      = ~self.bus.we & self.bus.stb,
+            i_avmm_rcv_read      = ~self.bus.we & self.bus.cyc & self.bus.stb,
             o_avmm_rcv_readdata  = self.bus.dat_r,
-            i_avmm_rcv_write     = self.bus.we & self.bus.stb,
+            i_avmm_rcv_write     = self.bus.we & self.bus.cyc & self.bus.stb,
             i_avmm_rcv_writedata = self.bus.dat_w,
         )
 
@@ -53,8 +53,8 @@ class Max10DualCfg(LiteXModule):
         # Connect Avalon Interface to Wishbone.
         self.comb += [
             self.bus.ack.eq(avmm_write | avmm_read),
-            avmm_write.eq(  self.bus.we & self.bus.stb & ~self.bus.ack),
-            avmm_read.eq(  ~self.bus.we & self.bus.stb & ~self.bus.ack),
+            avmm_write.eq(  self.bus.we & self.bus.stb & self.bus.cyc & ~self.bus.ack),
+            avmm_read.eq(  ~self.bus.we & self.bus.stb & self.bus.cyc & ~self.bus.ack),
         ]
 
         self.add_sources(platform)
