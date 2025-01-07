@@ -395,6 +395,22 @@ class BaseSoC(SoCCore):
             csr_csv      = "analyzer.csv"
         )
 
+    def add_internal_flash_probe(self):
+        analyzer_signals = [
+            self.internal_flash.bus,
+            self.internal_flash.avmm_read,
+            self.internal_flash.avmm_write,
+            self.internal_flash.avmm_data_waitrequest,
+            self.internal_flash.avmm_data_readdatavalid,
+            self.internal_flash.avmm_data_burstcount,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -415,6 +431,7 @@ def main():
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-ft601-ctrl-probe",      action="store_true", help="Enable FT601 Ctrl Probe.")
+    probeopts.add_argument("--with-internal-flash-probe",  action="store_true", help="Enable Internal Flash Probe.")
 
     args = parser.parse_args()
 
@@ -434,6 +451,9 @@ def main():
         if args.with_ft601_ctrl_probe:
             assert args.with_uartbone
             soc.add_ft601_ctrl_probe()
+        if args.with_internal_flash_probe:
+            assert args.with_uartbone
+            soc.add_internal_flash_probe()
         # Builder.
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
