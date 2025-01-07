@@ -41,11 +41,11 @@ class Max10OnChipFlash(LiteXModule):
         avmm_csr_rdata = Signal(32)
 
         # Data Interface (Avalon MM for Data Access)
-        avmm_read               = Signal()
-        avmm_write              = Signal()
-        avmm_data_waitrequest   = Signal()
-        avmm_data_readdatavalid = Signal()
-        avmm_data_burstcount    = Signal(4)
+        self.avmm_read               = avmm_read               = Signal()
+        self.avmm_write              = avmm_write              = Signal()
+        self.avmm_data_waitrequest   = avmm_data_waitrequest   = Signal()
+        self.avmm_data_readdatavalid = avmm_data_readdatavalid = Signal()
+        self.avmm_data_burstcount    = avmm_data_burstcount    = Signal(4)
 
         # max10_onchipflash Instance.
         # -------------------------------------
