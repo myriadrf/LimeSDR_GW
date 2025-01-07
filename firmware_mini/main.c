@@ -641,14 +641,16 @@ int main(void)
 	}
 	*/
 
-#if 0
-//#ifdef LIMESDR_MINI_V1
+#ifdef LIMESDR_MINI_V1
 	uint8_t spi_rdata[16];
-	spiFlash_read(0x0, 5, spi_rdata);
 	int pp;
-	for (pp=0; pp < 16; pp++)
-		printf("%02x ", spi_rdata[pp]);
-	printf("\n");
+	while(1) {
+		spiFlash_read(0x4a000, 16, spi_rdata);
+		for (pp=0; pp < 16; pp++)
+			printf("%02x ", spi_rdata[pp]);
+		printf("\n");
+		cdelay(30000);
+	}
 
 //	uint32_t reg = internal_flash_status_register_read();
 //	printf("%08x\n", reg);
