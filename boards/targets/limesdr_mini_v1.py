@@ -105,7 +105,7 @@ class _CRG(LiteXModule):
 class BaseSoC(SoCCore):
     def __init__(self, sys_clk_freq=80e6, cpu_type="vexriscv", toolchain="quartus",
         with_bios      = False,
-        with_rx_tx_top = True,
+        with_rx_tx_top = False,
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
@@ -177,7 +177,7 @@ class BaseSoC(SoCCore):
                 origin = 0x100000, # keep original addr
                 size   = 0x8C000,
                 mode   = "rwx")
-        self.bus.add_region("internal_flash", internal_flash_region)
+        self.bus.add_slave("internal_flash", self.internal_flash.bus, internal_flash_region)
 
         # Max10 Dual Cfg ---------------------------------------------------------------------------
         self.dual_cfg = Max10DualCfg(platform)
@@ -185,7 +185,7 @@ class BaseSoC(SoCCore):
                 origin = 0x900000,
                 size   = 0x10,
                 mode   = "rwx")
-        self.bus.add_region("dual_cfg", dual_cfg_region)
+        self.bus.add_slave("dual_cfg", self.dual_cfg.bus, dual_cfg_region)
 
         # SPI Flash --------------------------------------------------------------------------------
         if with_spi_flash:
