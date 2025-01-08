@@ -41,11 +41,13 @@ class Max10OnChipFlash(LiteXModule):
         avmm_csr_rdata = Signal(32)
 
         # Data Interface (Avalon MM for Data Access)
-        self.avmm_addr               = avmm_addr               = Signal(18)
-        self.avmm_read               = avmm_read               = Signal()
-        self.avmm_write              = avmm_write              = Signal()
-        self.avmm_data_waitrequest   = avmm_data_waitrequest   = Signal()
+        self.avmm_data_addr          = avmm_data_addr          = Signal(18)
+        self.avmm_data_read          = avmm_data_read          = Signal()
+        self.avmm_data_readdata      = avmm_data_readdata      = Signal(32)
         self.avmm_data_readdatavalid = avmm_data_readdatavalid = Signal()
+        self.avmm_data_write         = avmm_data_write         = Signal()
+        self.avmm_data_writedata     = avmm_data_writedata     = Signal(32)
+        self.avmm_data_waitrequest   = avmm_data_waitrequest   = Signal()
         self.avmm_data_burstcount    = avmm_data_burstcount    = Signal(4)
 
         # max10_onchipflash Instance.
@@ -63,11 +65,11 @@ class Max10OnChipFlash(LiteXModule):
             i_avmm_csr_write          = self._control_register.re, #    .write
 
             # Data Interface (Avalon MM)
-            i_avmm_data_addr          = avmm_addr,
-            i_avmm_data_read          = avmm_read,
-            i_avmm_data_write         = avmm_write,
-            i_avmm_data_writedata     = self.bus.dat_w,
-            o_avmm_data_readdata      = self.bus.dat_r,
+            i_avmm_data_addr          = avmm_data_addr,
+            i_avmm_data_read          = avmm_data_read,
+            i_avmm_data_write         = avmm_data_write,
+            i_avmm_data_writedata     = avmm_data_writedata,
+            o_avmm_data_readdata      = avmm_data_readdata,
             o_avmm_data_waitrequest   = avmm_data_waitrequest,
             o_avmm_data_readdatavalid = avmm_data_readdatavalid,
             i_avmm_data_burstcount    = avmm_data_burstcount,
@@ -85,13 +87,39 @@ class Max10OnChipFlash(LiteXModule):
         ]
 
         # Connect Data Interface to Wishbone.
-        self.comb += [
-            avmm_addr.eq(           Cat(Constant(0, 2), self.bus.adr)),
-            self.bus.ack.eq(        (~avmm_data_waitrequest & self.bus.cyc & self.bus.stb)),
-            avmm_data_burstcount.eq(1),
-            avmm_write.eq(          self.bus.we & self.bus.stb & self.bus.cyc),
-            avmm_read.eq(           ~self.bus.we & self.bus.stb & self.bus.cyc),
-        ]
+        self.comb += avmm_data_burstcount.eq(1),
+
+        done = Signal()
+        self.fsm = fsm = FSM(reset_state="IDLE")
+        fsm.act("IDLE",
+            NextValue(done, 0),
+            If(self.bus.stb & self.bus.cyc,
+                If(self.bus.we,
+                    NextState("WRITE")
+                ).Else(
+                    NextState("READ")
+                )
+            ),
+        )
+        fsm.act("WRITE",
+            avmm_data_write.eq(1),
+            avmm_data_addr.eq(self.bus.adr),
+            avmm_data_writedata.eq(self.bus.dat_w),
+            If(avmm_data_waitrequest,
+                self.bus.ack.eq(1),
+                NextState("IDLE")
+            )
+        )
+        fsm.act("READ",
+            If(~done, NextValue(done, avmm_data_waitrequest)),
+            avmm_data_read.eq(~done),
+            avmm_data_addr.eq(self.bus.adr),
+            If(done & avmm_data_readdatavalid,
+                self.bus.ack.eq(1),
+                self.bus.dat_r.eq(avmm_data_readdata),
+                NextState("IDLE")
+            )
+        )
 
     def do_finalize(self):
 
