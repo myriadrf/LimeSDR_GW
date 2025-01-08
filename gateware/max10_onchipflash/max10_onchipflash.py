@@ -89,32 +89,38 @@ class Max10OnChipFlash(LiteXModule):
         # Connect Data Interface to Wishbone.
         self.comb += avmm_data_burstcount.eq(1),
 
-        done = Signal()
+        first = Signal()
         self.fsm = fsm = FSM(reset_state="IDLE")
         fsm.act("IDLE",
-            NextValue(done, 0),
+            NextValue(first, 1),
             If(self.bus.stb & self.bus.cyc,
                 If(self.bus.we,
                     NextState("WRITE")
                 ).Else(
-                    NextState("READ")
+                    NextState("READ-REQ")
                 )
             ),
         )
         fsm.act("WRITE",
+            NextValue(first, 0),
             avmm_data_write.eq(1),
             avmm_data_addr.eq(self.bus.adr),
             avmm_data_writedata.eq(self.bus.dat_w),
-            If(avmm_data_waitrequest,
+            If(~first & ~avmm_data_waitrequest,
                 self.bus.ack.eq(1),
                 NextState("IDLE")
             )
         )
-        fsm.act("READ",
-            If(~done, NextValue(done, avmm_data_waitrequest)),
-            avmm_data_read.eq(~done),
+        fsm.act("READ-REQ",
+            NextValue(first, 0),
+            avmm_data_read.eq(1),
             avmm_data_addr.eq(self.bus.adr),
-            If(done & avmm_data_readdatavalid,
+            If(~first & ~avmm_data_waitrequest,
+                NextState("READ-DAT")
+            )
+        )
+        fsm.act("READ-DAT",
+            If(avmm_data_readdatavalid,
                 self.bus.ack.eq(1),
                 self.bus.dat_r.eq(avmm_data_readdata),
                 NextState("IDLE")
