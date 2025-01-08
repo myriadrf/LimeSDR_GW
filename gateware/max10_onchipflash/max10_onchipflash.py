@@ -82,11 +82,11 @@ class Max10OnChipFlash(LiteXModule):
 
         # CSR.
         self.comb += [
-            avmm_csr_addr.eq(                 self._control_register.re), # 0: status, 1: control
-            avmm_csr_read.eq(                 self._status_register.we),
-            self._status_register.status.eq(  avmm_csr_rdata),
-            avmm_csr_write.eq(                self._control_register.re),
-            self._control_register.storage.eq(avmm_csr_wdata),
+            avmm_csr_addr.eq(               self._control_register.re), # 0: status, 1: control
+            avmm_csr_read.eq(               self._status_register.we),
+            self._status_register.status.eq(avmm_csr_rdata),
+            avmm_csr_write.eq(              self._control_register.re),
+            avmm_csr_wdata.eq(              self._control_register.storage),
         ]
 
         # Connect Data Interface to Wishbone.
