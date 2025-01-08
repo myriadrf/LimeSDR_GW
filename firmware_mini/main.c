@@ -44,6 +44,8 @@
 //#define DEBUG_LMS_SPI
 //#define DEBUG_CMD
 
+#define TEST_INTERNAL_FLASH
+
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
 
@@ -195,6 +197,58 @@ void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 			rdata[data_offset++] = (rx >> (ii * 8));
 		}
 		offset = 0;
+	}
+}
+#endif
+
+#ifdef TEST_INTERNAL_FLASH
+void testInternalFlashAccess(void)
+{
+	uint32_t reg;
+	int i;
+	while(1) {
+		reg = internal_flash_status_register_read();
+		printf("%lx\n", reg);
+		cdelay(3000);
+	}
+
+	address = CFM0StartAddress;
+	//Write Control Register of On-Chip Flash IP to un-protect and erase operation
+	internal_flash_control_register_write(0xf67fffff);
+	internal_flash_control_register_write(0xf65fffff);
+
+	while (1) {
+		reg = internal_flash_status_register_read() & 0x13;
+		if (reg == 0) // error
+			return;
+		if (reg == 0x10) // done
+			break;
+	}
+
+	for (i = 0, reg=0xdeadbeef; i < 40; i+=4, reg += 1) {
+		*(uint32_t *)(INTERNAL_FLASH_BASE + i + (address << 2)) = reg;
+		while((internal_flash_status_register_read() & 0x0b) == 0x02)
+		{
+		    //printf("Writing CFM0(%d)\n", address);
+		}
+
+		if((internal_flash_status_register_read() & 0x0b) == 0x00)
+		{
+		    //printf("Write to addr failed\n");
+			return;
+		}
+
+		if((internal_flash_status_register_read() & 0x0b) == 0x08)
+		{
+		};
+	}
+
+	while (1) {
+		for (i = 0; i < 40; i+= 4) {
+			reg = *(uint32_t *)(INTERNAL_FLASH_BASE + i + (address << 2));
+			printf("%08lx\n", reg);
+		}
+		cdelay(30000);
 	}
 }
 #endif
@@ -624,9 +678,11 @@ int main(void)
 	ft601_fifo_control_write(1);
 	ft601_fifo_control_write(0);
 
+#ifdef WITH_LMS7002
     //Reset LMS7
 	lms7002_top_lms_ctr_gpio_write(0x0);
 	lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+#endif
 
 	//testEEPROM(i2c_master);
 
@@ -641,22 +697,39 @@ int main(void)
 	}
 	*/
 
-#ifdef LIMESDR_MINI_V1
+#ifdef TEST_INTERNAL_FLASH
+	testInternalFlashAccess();
+#endif
+#if 0
+//#ifdef INTERNAL_FLASH_BASE
 	uint8_t spi_rdata[16];
+	address = 0x4a000;
+	address = 0;
 	int pp;
 	while(1) {
-		spiFlash_read(0x4a000, 16, spi_rdata);
+		spiFlash_read(address, 16, spi_rdata);
 		for (pp=0; pp < 16; pp++)
 			printf("%02x ", spi_rdata[pp]);
 		printf("\n");
 		cdelay(30000);
-	}
+		if (address == 0)
+			address = 0x4000;
+		else
+			address = 0;
+		//if (address == 0x4a000) {
+		//	address = 0x08000;
+		//} else if (address == 0x08000) {
+		//	address = 0x2e000;
+		//} else {
+		//	address = 0x4a000;
+		//}
 
-//	uint32_t reg = internal_flash_status_register_read();
-//	printf("%08x\n", reg);
+		uint32_t reg = internal_flash_status_register_read();
+		printf("%08x\n", reg);
 //	reg = internal_flash_control_register_read();
 //	printf("%08x\n", reg);
-//
+
+	}
 #endif
 
 #if defined(CSR_SPIFLASH_CORE_BASE)
@@ -800,6 +873,7 @@ int main(void)
 			case CMD_LMS_RST:
 				printf("CMD_LMS_RST\n");
 
+#ifdef WITH_LMS7002
 				switch (LMS_Ctrl_Packet_Rx->Data_field[0])
 				{
 				case LMS_RST_DEACTIVATE:
@@ -821,10 +895,12 @@ int main(void)
 					cmd_errors++;
 					break;
 				}
+#endif
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
 			case CMD_LMS7002_WR:
+#ifdef WITH_LMS7002
 				if (Check_many_blocks(4))
 					break;
 
@@ -847,11 +923,13 @@ int main(void)
 					printf("%08lx %08x\n", data, spi_read_val);
 #endif
 				}
+#endif
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
 
 			case CMD_LMS7002_RD:
+#ifdef WITH_LMS7002
 				if (Check_many_blocks(4))
 					break;
 
@@ -875,6 +953,7 @@ int main(void)
 					printf("%08lx %02x\n", data >> 16, spi_read_val);
 #endif
 				}
+#endif
 
 				LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 				break;
@@ -1268,8 +1347,7 @@ int main(void)
 
 							break;
 
-//#ifdef LIMESDR_MINI_V1
-#if 0
+#ifdef LIMESDR_MINI_V1
 						//Initiate UFM (ID1) Erase Operation
 						case 13:
 							//Write Control Register of On-Chip Flash IP to un-protect and erase operation
@@ -1340,8 +1418,7 @@ int main(void)
 						case 20:
 							for(byte = 24; byte <= 52; byte += 4)
 							{
-//#ifdef LIMESDR_MINI_V1
-#if 0
+#ifdef LIMESDR_MINI_V1
 								//Take word and swap bits
 								wdata  = ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+0]) << 24) & 0xFF000000;
 								wdata |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+1]) << 16) & 0x00FF0000;
@@ -1470,6 +1547,7 @@ int main(void)
 
 			case CMD_LMS_MCU_FW_WR:
 				printf("CMD_LMS_MCU_FW_WR\n");
+#ifdef WITH_LMS7002
 				current_portion = LMS_Ctrl_Packet_Rx->Data_field[1];
 
 				//check if portions are send in correct order
@@ -1691,6 +1769,7 @@ int main(void)
 				else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 
 				//**ZT Modify_BRDSPI16_Reg_bits (FPGA_SPI_REG_LMS1_LMS2_CTRL, LMS1_SS, LMS1_SS, 1); //Disable LMS's SPI
+#endif
 
 				break;
 
