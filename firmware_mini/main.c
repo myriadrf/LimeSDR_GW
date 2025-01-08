@@ -189,7 +189,7 @@ void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 		real_len++;
 	}
 	for (i = 0, data_offset = 0; i < real_len; i += 4) {
-		rx = *(uint32_t *)(addr + i);
+		rx = *(uint32_t *)(addr + base_addr + i);
 		int max = (data_offset + 4 > length) ? length - data_offset : 4;
 		for (ii = offset; ii < max; ii++) {
 			rdata[data_offset++] = (rx >> (ii * 8));
