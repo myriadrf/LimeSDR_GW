@@ -106,6 +106,7 @@ class BaseSoC(SoCCore):
     def __init__(self, sys_clk_freq=80e6, cpu_type="vexriscv", toolchain="quartus",
         with_bios      = False,
         with_rx_tx_top = False,
+        with_lms7002   = False,
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
@@ -233,14 +234,17 @@ class BaseSoC(SoCCore):
         )
 
         # LMS7002 Top ------------------------------------------------------------------------------
-        self.lms7002_top = LMS7002Top(
-            platform        = platform,
-            pads            = platform.request("LMS"),
-            hw_ver          = revision_pads.HW_VER,
-            add_csr         = True,
-            fpgacfg_manager = self.fpgacfg,
-            diq_width       = LMS_DIQ_WIDTH,
-        )
+        if with_lms7002:
+            self.lms7002_top = LMS7002Top(
+                platform        = platform,
+                pads            = platform.request("LMS"),
+                hw_ver          = revision_pads.HW_VER,
+                add_csr         = True,
+                fpgacfg_manager = self.fpgacfg,
+                diq_width       = LMS_DIQ_WIDTH,
+            )
+
+            self.add_constant("WITH_LMS7002")
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
         self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
@@ -395,7 +399,7 @@ class BaseSoC(SoCCore):
             csr_csv      = "analyzer.csv"
         )
 
-    def add_internal_flash_probe(self):
+    def add_internal_flash_data_probe(self):
         analyzer_signals = [
             self.internal_flash.bus,
             self.internal_flash.avmm_data_addr,
@@ -413,6 +417,21 @@ class BaseSoC(SoCCore):
             self.internal_flash.avmm_data_writedata,
             self.internal_flash.avmm_data_waitrequest,
             self.internal_flash.avmm_data_burstcount,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
+
+    def add_internal_flash_ctrl_probe(self):
+        analyzer_signals = [
+            self.internal_flash.avmm_csr_addr,
+            self.internal_flash.avmm_csr_read,
+            self.internal_flash.avmm_csr_rdata,
+            self.internal_flash.avmm_csr_write,
+            self.internal_flash.avmm_csr_wdata,
         ]
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 1024,
@@ -440,8 +459,9 @@ def main():
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
-    probeopts.add_argument("--with-ft601-ctrl-probe",      action="store_true", help="Enable FT601 Ctrl Probe.")
-    probeopts.add_argument("--with-internal-flash-probe",  action="store_true", help="Enable Internal Flash Probe.")
+    probeopts.add_argument("--with-ft601-ctrl-probe",           action="store_true", help="Enable FT601 Ctrl Probe.")
+    probeopts.add_argument("--with-internal-flash-data-probe",  action="store_true", help="Enable Internal Flash Data Probe.")
+    probeopts.add_argument("--with-internal-flash-ctrl-probe",  action="store_true", help="Enable Internal Flash Ctrl Probe.")
 
     args = parser.parse_args()
 
@@ -461,9 +481,12 @@ def main():
         if args.with_ft601_ctrl_probe:
             assert args.with_uartbone
             soc.add_ft601_ctrl_probe()
-        if args.with_internal_flash_probe:
+        if args.with_internal_flash_data_probe:
             assert args.with_uartbone
-            soc.add_internal_flash_probe()
+            soc.add_internal_flash_data_probe()
+        if args.with_internal_flash_ctrl_probe:
+            assert args.with_uartbone
+            soc.add_internal_flash_ctrl_probe()
         # Builder.
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
