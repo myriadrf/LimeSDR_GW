@@ -15,7 +15,7 @@ from migen import *
 from litex.gen import *
 
 from litex.soc.interconnect     import wishbone
-from litex.soc.interconnect.csr import CSRStatus, CSR
+from litex.soc.interconnect.csr import CSRStatus, CSRStorage
 
 # Max10 OnChipFlash --------------------------------------------------------------------------------
 
@@ -25,9 +25,9 @@ class Max10OnChipFlash(LiteXModule):
         self.bus               = wishbone.Interface(data_width=32, adr_width=18)
 
         # On-Chip-Flash Status register.
-        self._status_register  = CSRStatus(32, description="On-Chip Flash Status Register.")
+        self._status_register  = CSRStatus(32,  description="On-Chip Flash Status Register.")
         # On-Chip-Flash Control register.
-        self._control_register = CSR(32)
+        self._control_register = CSRStorage(32, description="On-Chip Flash Control Register.")
 
         self.platform          = platform
 
@@ -36,9 +36,11 @@ class Max10OnChipFlash(LiteXModule):
         # Signals.
         # --------
 
-        avmm_csr_addr  = Signal()
-        avmm_csr_read  = Signal()
-        avmm_csr_rdata = Signal(32)
+        self.avmm_csr_addr  = avmm_csr_addr  = Signal()
+        self.avmm_csr_read  = avmm_csr_read  = Signal()
+        self.avmm_csr_rdata = avmm_csr_rdata = Signal(32)
+        self.avmm_csr_write = avmm_csr_write = Signal()
+        self.avmm_csr_wdata = avmm_csr_wdata = Signal(32)
 
         # Data Interface (Avalon MM for Data Access)
         self.avmm_data_addr          = avmm_data_addr          = Signal(18)
@@ -54,15 +56,15 @@ class Max10OnChipFlash(LiteXModule):
         # -------------------------------------
         self.specials += Instance("max10_onchipflash",
             # Clk/Reset.
-            i_clock                   = ClockSignal("sys"),        # clk.clk
-            i_reset_n                 = ~ResetSignal("sys"),       # nreset.reset_n
+            i_clock                   = ClockSignal("sys"),  # clk.clk
+            i_reset_n                 = ~ResetSignal("sys"), # nreset.reset_n
 
             # CSR Interface.
-            i_avmm_csr_addr           = avmm_csr_addr,             # csr.address
-            i_avmm_csr_read           = avmm_csr_read,             #    .read
-            o_avmm_csr_readdata       = avmm_csr_rdata,            #    .readdata
-            i_avmm_csr_writedata      = self._control_register.r,  #    .writedata
-            i_avmm_csr_write          = self._control_register.re, #    .write
+            i_avmm_csr_addr           = avmm_csr_addr,       # csr.address
+            i_avmm_csr_read           = avmm_csr_read,       #    .read
+            o_avmm_csr_readdata       = avmm_csr_rdata,      #    .readdata
+            i_avmm_csr_write          = avmm_csr_write,      #    .write
+            i_avmm_csr_writedata      = avmm_csr_wdata,      #    .writedata
 
             # Data Interface (Avalon MM)
             i_avmm_data_addr          = avmm_data_addr,
@@ -80,10 +82,11 @@ class Max10OnChipFlash(LiteXModule):
 
         # CSR.
         self.comb += [
-            avmm_csr_addr.eq(               ~self._status_register.we), # 0: status, 1: control
-            avmm_csr_read.eq(               self._status_register.we | self._control_register.w),
-            self._status_register.status.eq(avmm_csr_rdata),
-            self._control_register.w.eq(    avmm_csr_rdata),
+            avmm_csr_addr.eq(                 self._control_register.re), # 0: status, 1: control
+            avmm_csr_read.eq(                 self._status_register.we),
+            self._status_register.status.eq(  avmm_csr_rdata),
+            avmm_csr_write.eq(                self._control_register.re),
+            self._control_register.storage.eq(avmm_csr_wdata),
         ]
 
         # Connect Data Interface to Wishbone.
