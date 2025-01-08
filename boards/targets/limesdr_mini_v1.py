@@ -398,6 +398,7 @@ class BaseSoC(SoCCore):
     def add_internal_flash_probe(self):
         analyzer_signals = [
             self.internal_flash.bus,
+            self.internal_flash.avmm_addr,
             self.internal_flash.avmm_read,
             self.internal_flash.avmm_write,
             self.internal_flash.avmm_data_waitrequest,
