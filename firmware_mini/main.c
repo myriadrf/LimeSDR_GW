@@ -44,7 +44,8 @@
 //#define DEBUG_LMS_SPI
 //#define DEBUG_CMD
 
-#define TEST_INTERNAL_FLASH
+#define DEBUG_INTERNAL_FLASH
+//#define TEST_INTERNAL_FLASH
 
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
@@ -172,6 +173,29 @@ uint32_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_
 }
 
 /* SPIFlash ------------------------------------------------------------------*/
+#ifdef INTERNAL_FLASH_BASE
+/**
+ * Triggers another configuration
+ */
+void boot_from_flash(void)
+{
+	void *addr = (void *)DUAL_CFG_BASE;
+	//set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 0
+	//wishbone_write32(DUAL_BOOT_0_BASE+(1<<2), 0x00000001);
+	*(uint32_t *)(addr + (1 << 2)) = 0x00000001;
+
+	//set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 1
+	//IOWR(DUAL_BOOT_0_BASE, 1, 0x00000003);
+
+	/*wait while core is busy*/
+	while(*(uint32_t *)(addr + (3 << 2)) == 1) {}
+
+	//Trigger reconfiguration to selected Image
+	//wishbone_write32(DUAL_BOOT_0_BASE+(0<<2), 0x00000001);
+	*(uint32_t *)(addr + (0 << 2)) = 0x00000001;
+}
+#endif
+
 #if defined(CSR_SPIFLASH_CORE_BASE) | defined(INTERNAL_FLASH_BASE)
 void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 {
@@ -250,7 +274,7 @@ void testInternalFlashAccess(void)
 		if((internal_flash_status_register_read() & 0x0b) == 0x00)
 		{
 			while(1) {
-		    	printf("Write to addr failed\n");
+				printf("Write to addr failed\n");
 				printf(internal_flash_status_register_read() & 0x0b);
 				cdelay(3000);
 			}
@@ -1256,7 +1280,7 @@ int main(void)
 
 				break;
 
-#if 0 //defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE)
+#if defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE)
 			case CMD_ALTERA_FPGA_GW_WR: //FPGA passive serial
 
 				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[3] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[1] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[0]);
@@ -1327,39 +1351,51 @@ int main(void)
 							if((internal_flash_status_register_read() & 0x13) == 0x10)
 							{
 								internal_flash_control_register_write(0xf67fffff);
-								//printf("CFM0 Erased\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("CFM0 Erased\n");
+#endif
 								state = 13;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x01)
 							{
-								//printf("Erasing CFM0\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("Erasing CFM0\n");
+#endif
 								state = 11;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x00)
 							{
-								//printf("Erase CFM0 Failed\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("Erase CFM0 Failed\n");
+#endif
 								state = 0;
 							}
 #else
 							//if ((0x03 & MicoSPIFlash_StatusRead (spiflash)) == 0)
 							if ((0x03 & spiflash_read_status_register()) == 0)
 							{
-								//printf("CFM0 Erased\n");
-								//printf("Enter Programming file.\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("CFM0 Erased\n");
+								printf("Enter Programming file.\n");
+#endif
 								state = 20;
 								Flash = 1;
 							}
 							if((0x01 & spiflash_read_status_register()) == 0x01)
 							{
-								//printf("Erasing CFM0\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("Erasing CFM0\n");
+#endif
 								state = 11;
 								Flash = 1;
 							}
 							if((0x02 & spiflash_read_status_register()) == 0x02)
 							{
-								//printf("Erase CFM0 Failed\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("Erase CFM0 Failed\n");
+#endif
 								state = 0;
 							}
 #endif
@@ -1382,19 +1418,25 @@ int main(void)
 							if((internal_flash_status_register_read() & 0x13) == 0x10)
 							{
 								internal_flash_control_register_write(0xf67fffff);
-								//printf("UFM ID1 Erased\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("UFM ID1 Erased\n");
+#endif
 								state = 16;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x01)
 							{
-								//printf("Erasing UFM ID1\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("Erasing UFM ID1\n");
+#endif
 								state = 14;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x00)
 							{
-								//printf("Erase UFM ID1 Failed\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("Erase UFM ID1 Failed\n");
+#endif
 								state = 0;
 							}
 							break;
@@ -1415,19 +1457,25 @@ int main(void)
 							if((internal_flash_status_register_read() & 0x13) == 0x10)
 							{
 								internal_flash_control_register_write(0xf67fffff);
-								//printf("UFM ID2 Erased\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("UFM ID2 Erased\n");
+#endif
 								state = 20;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x01)
 							{
-								//printf("Erasing UFM ID2\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("Erasing UFM ID2\n");
+#endif
 								state = 17;
 								Flash = 1;
 							}
 							if((internal_flash_status_register_read() & 0x13) == 0x00)
 							{
-								//printf("Erase UFM ID2 Failed\n");
+#ifdef DEBUG_INTERNAL_FLASH
+								printf("Erase UFM ID2 Failed\n");
+#endif
 								state = 0;
 							}
 						break;
@@ -1465,7 +1513,9 @@ int main(void)
 
 									if((internal_flash_status_register_read() & 0x0b) == 0x00)
 									{
-									    //printf("Write to addr failed\n");
+#ifdef DEBUG_INTERNAL_FLASH
+									    printf("Write to addr failed\n");
+#endif
 									    state = 0;
 									    address = 700000;
 									}
@@ -1815,6 +1865,13 @@ int main(void)
 			//gpo_val = 0x0;
 			//*gpo_reg = gpo_val;
 			main_gpo_write(0);
+#if INTERNAL_FLASH_BASE
+			// If boot from flash CMD is executed FPGA GW is loaded from internal FLASH (image 1)
+			if(boot_img_en==1)
+			{
+				boot_from_flash();
+			}
+#endif
 		}
 #if 0
 		unsigned int gpo_reg_04_val = *gpo_reg_04;
