@@ -130,6 +130,10 @@ After 20241204:
 - LimeSDR_GW: 1837abce83e30d7f35db15b03c30c6b43c08ec97 (Mon Dec 2 13:38:27 2024 +0200)
 - LimeDFB : 05abc7eb57875a92de8018cbb814006bfb5e0a38 (Fri Nov 22 16:33:35 2024 +0200)
 
+After 20250109:
+- LimeSDR_GW: ff0ba8b156cbd4e59dc63772738cd45d83156e19 (Mon Dec 16 16:24:03 2024 +0200)
+- LimeDFB: a9295be5142a907f01d963cd3649e0fc5f610e56 (Mon Dec 16 15:30:52 2024 +0200)
+
 ## Fetch repository
 
 Fetch this repository and switch to development branch:
