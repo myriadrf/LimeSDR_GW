@@ -28,9 +28,12 @@ class Max10DualCfg(LiteXModule):
         # Signals.
         # --------
 
-        # Avalong Interface
-        avmm_read  = Signal()
-        avmm_write = Signal()
+        # Avalon Interface
+        self.avmm_addr  = avmm_addr  = Signal(3)
+        self.avmm_read  = avmm_read  = Signal()
+        self.avmm_rdata = avmm_rdata = Signal(32)
+        self.avmm_write = avmm_write = Signal()
+        self.avmm_wdata = avmm_wdata = Signal(32)
 
         # max10_dual_cfg Instance.
         # ------------------------
@@ -40,22 +43,44 @@ class Max10DualCfg(LiteXModule):
             i_nreset              = ~ResetSignal("sys"),
 
             # Avalon MM
-            i_avmm_rcv_address   = self.bus.adr,
-            i_avmm_rcv_read      = ~self.bus.we & self.bus.cyc & self.bus.stb,
-            o_avmm_rcv_readdata  = self.bus.dat_r,
-            i_avmm_rcv_write     = self.bus.we & self.bus.cyc & self.bus.stb,
-            i_avmm_rcv_writedata = self.bus.dat_w,
+            i_avmm_rcv_address   = avmm_addr,
+            i_avmm_rcv_read      = avmm_read,
+            o_avmm_rcv_readdata  = avmm_rdata,
+            i_avmm_rcv_write     = avmm_write,
+            i_avmm_rcv_writedata = avmm_wdata,
         )
 
         # Logic.
         # ------
 
         # Connect Avalon Interface to Wishbone.
-        self.comb += [
-            self.bus.ack.eq(avmm_write | avmm_read),
-            avmm_write.eq(  self.bus.we & self.bus.stb & self.bus.cyc & ~self.bus.ack),
-            avmm_read.eq(  ~self.bus.we & self.bus.stb & self.bus.cyc & ~self.bus.ack),
-        ]
+        self.fsm = fsm = FSM(reset_state="IDLE")
+        fsm.act("IDLE",
+            If(self.bus.stb & self.bus.cyc,
+                If(self.bus.we,
+                    NextState("WRITE")
+                ).Else(
+                    NextState("READ-REQ")
+                )
+            ),
+        )
+        fsm.act("WRITE",
+            avmm_write.eq(1),
+            avmm_addr.eq(self.bus.adr),
+            avmm_wdata.eq(self.bus.dat_w),
+            self.bus.ack.eq(1),
+            NextState("IDLE")
+        )
+        fsm.act("READ-REQ",
+            avmm_read.eq(1),
+            avmm_addr.eq(self.bus.adr),
+            NextState("READ-DAT")
+        )
+        fsm.act("READ-DAT",
+            self.bus.ack.eq(1),
+            self.bus.dat_r.eq(avmm_rdata),
+            NextState("IDLE")
+        )
 
         self.add_sources(platform)
 
