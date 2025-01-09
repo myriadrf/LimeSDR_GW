@@ -308,11 +308,15 @@ class BaseSoC(SoCCore):
             #"pcie_id_if"               : "false",  #check this
             "Bar0_64bit"               : "true",
             "Bar0_Prefetchable"        : "false",
+            "Vendor_ID"                : "2058",
+            "Device_ID"                : "001B",
             "Base_Class_Menu"          : "Wireless_controller",
-            "Sub_Class_Interface_Menu" : "RF_controller",
+            "Sub_Class_Interface_Menu" : "Other_type_of_wireless_controller",
             "Class_Code_Base"          : "0D",
-            "Class_Code_Sub"           : "10",
+            "Class_Code_Sub"           : "80",
             "Revision_ID"              : "0001",
+            "Subsystem_Vendor_ID"      : "2058",
+            "Subsystem_ID"             : "0001",
             "MSI_64b"                  : "true",
             "MSIx_Table_BIR"           : "BAR_1:0",
             "MSIx_PBA_BIR"             : "BAR_1:0"
