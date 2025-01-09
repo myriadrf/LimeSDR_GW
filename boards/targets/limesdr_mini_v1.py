@@ -184,7 +184,7 @@ class BaseSoC(SoCCore):
         self.dual_cfg = Max10DualCfg(platform)
         dual_cfg_region = SoCRegion(
                 origin = 0x900000,
-                size   = 0x10,
+                size   = 0x100,
                 mode   = "rwx")
         self.bus.add_slave("dual_cfg", self.dual_cfg.bus, dual_cfg_region)
 
@@ -440,6 +440,21 @@ class BaseSoC(SoCCore):
             csr_csv      = "analyzer.csv"
         )
 
+    def add_dual_cfg_probe(self):
+        analyzer_signals = [
+            self.dual_cfg.avmm_addr,
+            self.dual_cfg.avmm_read,
+            self.dual_cfg.avmm_rdata,
+            self.dual_cfg.avmm_write,
+            self.dual_cfg.avmm_wdata,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -462,6 +477,7 @@ def main():
     probeopts.add_argument("--with-ft601-ctrl-probe",           action="store_true", help="Enable FT601 Ctrl Probe.")
     probeopts.add_argument("--with-internal-flash-data-probe",  action="store_true", help="Enable Internal Flash Data Probe.")
     probeopts.add_argument("--with-internal-flash-ctrl-probe",  action="store_true", help="Enable Internal Flash Ctrl Probe.")
+    probeopts.add_argument("--with-dual-cfg-probe",             action="store_true", help="Enable Dual Cfg Probe.")
 
     args = parser.parse_args()
 
@@ -487,6 +503,9 @@ def main():
         if args.with_internal_flash_ctrl_probe:
             assert args.with_uartbone
             soc.add_internal_flash_ctrl_probe()
+        if args.with_dual_cfg_probe:
+            assert args.with_uartbone
+            soc.add_dual_cfg_probe()
         # Builder.
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
