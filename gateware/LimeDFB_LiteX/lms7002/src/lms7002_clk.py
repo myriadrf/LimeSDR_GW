@@ -203,20 +203,110 @@ class LMS7002CLK(LiteXModule):
         else:
             from gateware.lms7002_clk import ClkCfgRegs
             from gateware.lms7002_clk import XilinxLmsMMCM
+            from gateware.lms7002_clk import ClkMux
+            from gateware.lms7002_clk import ClkDlyFxd
 
             # Clocking control registers
             self.CLK_CTRL = ClkCfgRegs()
+
+            # TX clk
+            # Xilinx MMCM is used to support configurable interface frequencies >5NHz
+            # Muxed and delayed clock version is used for interface frequencies <5MHz
+
+            # Global TX CLock
+            self.cd_txclk_global = ClockDomain()
+            self.comb += self.cd_txclk_global.clk.eq(pads.MCLK1)
+
             # TX PLL.
-            self.txclk    = ClockDomain()
-            self.PLL0_TX  = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
-                mclk     = pads.MCLK1,
-                fclk     = pads.FCLK1,
-                logic_cd = self.txclk)
-            self.comb += self.tx_clk.eq(self.txclk.clk)
+            self.cd_txpll_clk_c0 = ClockDomain()
+            self.cd_txpll_clk_c1 = ClockDomain()
+
+            self.PLL0_TX = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
+                mclk      = self.cd_txclk_global.clk,
+                fclk      = self.cd_txpll_clk_c0.clk,
+                logic_cd  = self.cd_txpll_clk_c1)
+
+            #TX CLK C0 mux
+            self.cd_txclk_c0_muxed = ClockDomain()
+            self.txclk_mux         = ClkMux(
+                i0  = self.cd_txpll_clk_c0.clk,
+                i1  = self.cd_txclk_global.clk,
+                o   = self.cd_txclk_c0_muxed.clk,
+                sel = self.CLK_CTRL.DRCT_TXCLK_EN.storage)
+
+            #TX CLK C1 delay
+            self.cd_txclk_c1_dly = ClockDomain()
+            self.txclk_c1_dlly   = ClkDlyFxd(i=self.cd_txclk_global.clk, o=self.cd_txclk_c1_dly.clk)
+
+            #TX CLK C1 mux
+            self.txclk     = ClockDomain()
+            self.txclk_mux = ClkMux(
+                i0  = self.cd_txpll_clk_c1.clk,
+                i1  = self.cd_txclk_c1_dly.clk,
+                o   = self.txclk.clk,
+                sel = self.CLK_CTRL.DRCT_TXCLK_EN.storage)
+
+            platform.add_false_path_constraints(
+                self.cd_txclk_global.clk,
+                self.cd_txpll_clk_c0.clk,
+                self.cd_txpll_clk_c1.clk,
+                self.cd_txclk_c0_muxed.clk,
+                self.cd_txclk_c1_dly.clk,
+                self.txclk.clk,
+            )
+
+            self.comb += [
+                self.tx_clk.eq(self.txclk.clk),
+                pads.FCLK1.eq(self.cd_txclk_c0_muxed.clk),
+            ]
+
+            # RX clk
+            # Xilinx MMCM is used to support configurable interface frequencies >5NHz
+            # Muxed and delayed clock version is used for interface frequencies <5MHz
+
+            # Global RX CLock
+            self.cd_rxclk_global = ClockDomain()
+            self.comb += self.cd_rxclk_global.clk.eq(pads.MCLK2)
+
             # RX PLL.
-            self.rxclk    = ClockDomain()
-            self.PLL1_RX  = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
-                mclk     = pads.MCLK2,
-                fclk     = pads.MCLK2,
-                logic_cd = self.rxclk)
-            self.comb += self.rx_clk.eq(self.rxclk.clk)
+            self.cd_rxpll_clk_c0 = ClockDomain()
+            self.cd_rxpll_clk_c1 = ClockDomain()
+            self.PLL1_RX         = XilinxLmsMMCM(platform, speedgrade=-2, max_freq=122.88e6,
+                mclk     = self.cd_rxclk_global.clk,
+                fclk     = self.cd_rxpll_clk_c0.clk,
+                logic_cd = self.cd_rxpll_clk_c1)
+
+            #RX CLK C0 mux
+            self.cd_rxclk_c0_muxed = ClockDomain()
+            self.rxclk_mux         = ClkMux(
+                i0  = self.cd_rxpll_clk_c0.clk,
+                i1  = self.cd_rxclk_global.clk,
+                o   = self.cd_rxclk_c0_muxed.clk,
+                sel = self.CLK_CTRL.DRCT_RXCLK_EN.storage)
+
+            #RX CLK C1 delay
+            self.cd_rxclk_c1_dly = ClockDomain()
+            self.rxclk_c1_dlly   = ClkDlyFxd(i=self.cd_rxclk_global.clk, o=self.cd_rxclk_c1_dly.clk)
+
+            #RX CLK C1 mux
+            self.rxclk     = ClockDomain()
+            self.rxclk_mux = ClkMux(
+                i0  = self.cd_rxpll_clk_c1.clk,
+                i1  = self.cd_rxclk_c1_dly.clk,
+                o   = self.rxclk.clk,
+                sel = self.CLK_CTRL.DRCT_RXCLK_EN.storage,
+            )
+
+            platform.add_false_path_constraints(
+                self.cd_rxclk_global.clk,
+                self.cd_rxpll_clk_c0.clk,
+                self.cd_rxpll_clk_c1.clk,
+                self.cd_rxclk_c0_muxed.clk,
+                self.cd_rxclk_c1_dly.clk,
+                self.rxclk.clk,
+            )
+
+            self.comb += [
+                self.rx_clk.eq(self.rxclk.clk),
+                pads.FCLK2.eq(self.cd_rxclk_c0_muxed.clk),
+            ]
