@@ -849,6 +849,8 @@ int main(void) {
                             break;
                     }
 
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
                 case CMD_BRDSPI16_WR:
                     if (Check_many_blocks(4))
                         break;

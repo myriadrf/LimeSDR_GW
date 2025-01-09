@@ -23,6 +23,10 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
         case 0x3:
             value = 0x2;
             break;
+        case 0x05:
+            lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
+            lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
+            break;
         case 0x7:
             value = fpgacfg_ch_en_read();
             break;
@@ -117,6 +121,10 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
     switch (addr) {
         case 0x3:
             fpgacfg_reserved_03_write(value);
+            break;
+        case 0x5:
+            value = lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
+            value = value | ((lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
             break;
         case 0x7:
             fpgacfg_ch_en_write(value);

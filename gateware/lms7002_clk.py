@@ -16,6 +16,10 @@ class ClkCfgRegs(LiteXModule):
     def __init__(self):
         # --------- Clocking CFG registers --------------------------------------------------------
         # Control registers
+        self.DRCT_TXCLK_EN = CSRStorage(size=1, reset=0,
+                                     description="TX CLK source selection: 0: PLL, 1: Direct clock")
+        self.DRCT_RXCLK_EN = CSRStorage(size=1, reset=0,
+                                     description="RX CLK source selection: 0: PLL, 1: Direct clock")
         self.PHCFG_MODE = CSRStorage(size=1, reset=0,
                                      description="Phase configuration mode: 0: Manual, 1: Auto")
         self.PHCFG_DONE = CSRStorage(size=1, reset=0,
@@ -67,8 +71,8 @@ class XilinxLmsMMCM(LiteXModule):
         self.mmcm = S7MMCM(speedgrade)
         self.mmcm.csr_reset = CSRStorage(reset=0, reset_less=True)
         self.mmcm.register_clkin(mclk, max_freq)
-        self.mmcm.create_clkout(self.cd_clkout0, max_freq)
-        self.mmcm.create_clkout(logic_cd, max_freq)
+        self.mmcm.create_clkout(cd=self.cd_clkout0, freq=max_freq, buf=None)
+        self.mmcm.create_clkout(cd=logic_cd, freq=max_freq, buf=None)
         self.mmcm.expose_drp()
 
         self.comb += self.mmcm.reset.eq(self.mmcm.csr_reset.storage)
@@ -92,3 +96,47 @@ class XilinxLmsMMCM(LiteXModule):
         ]
 
         self.comb += fclk.eq(self.cd_clkout0.clk)
+
+class ClkMux(LiteXModule):
+    def __init__(self, i0, i1, o, sel):
+
+        self.specials += Instance("BUFGCTRL",
+            p_INIT_OUT      = 0,
+            p_PRESELECT_I0  = False,
+            p_PRESELECT_I1  = False,
+            o_O         = o,
+            i_CE0       = 1,
+            i_CE1       = 1,
+            i_I0        = i0,
+            i_I1        = i1,
+            i_IGNORE0   = 1,
+            i_IGNORE1   = 1,
+            i_S0        = ~sel,
+            i_S1        = sel,
+        )
+
+class ClkDlyFxd(LiteXModule):
+    def __init__(self, i, o, dly_val=31, refclk_freq=200):
+
+        self.specials += Instance("IDELAYE2",
+            p_CINVCTRL_SEL              = True,
+            p_DELAY_SRC                 = "DATAIN",
+            p_HIGH_PERFORMANCE_MODE     = True,
+            p_IDELAY_TYPE               = "FIXED",
+            p_IDELAY_VALUE              = dly_val,
+            p_PIPE_SEL                  = False,
+            p_REFCLK_FREQUENCY          = refclk_freq,
+            p_SIGNAL_PATTERN            = "CLOCK",
+            o_CNTVALUEOUT   = None,
+            o_DATAOUT       = o,
+            i_C             = 0,
+            i_CE            = 0,
+            i_CINVCTRL      = 0,
+            i_CNTVALUEIN    = 0,
+            i_DATAIN        = i,
+            i_IDATAIN       = 0,
+            i_INC           = 0,
+            i_LD            = 0,
+            i_LDPIPEEN      = 0,
+            i_REGRST        = 0
+        )
