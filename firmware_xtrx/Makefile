@@ -4,8 +4,10 @@ LINKER    ?= linker_main_ram.ld
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
 
-# Add debugging symbol flag
-CFLAGS += -g
+# Add debugging symbol and zero optimization level flags
+ifdef DEBUG
+CFLAGS += -g -O0
+endif
 
 OBJECTS   = i2c0.o i2c1.o crt0.o main.o regremap.o lms7002m.o Xil_clk_drp.o fpga_flash_qspi.o
 
