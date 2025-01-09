@@ -370,7 +370,7 @@ class BaseSoC(SoCCore):
         )
 
         # FPGA Cfg ---------------------------------------------------------------------------------
-        self.fpgacfg  = FPGACfg(platform, board_id=27, major_rev=2, compile_rev=21)
+        self.fpgacfg  = FPGACfg(platform, board_id=27, major_rev=2, compile_rev=22)
 
         # PLL Cfg ----------------------------------------------------------------------------------
         #self.pllcfg = PLLCfg()
