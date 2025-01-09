@@ -206,23 +206,38 @@ void testInternalFlashAccess(void)
 {
 	uint32_t reg;
 	int i;
+	address = CFM0StartAddress;
+
+#if 0
+	/* test to read somewhere and displays status register (Read success / protection) */
 	while(1) {
+		reg = *(uint32_t *)(INTERNAL_FLASH_BASE + 0 + (address << 2));
+		printf("%08lx\n", reg);
 		reg = internal_flash_status_register_read();
 		printf("%lx\n", reg);
 		cdelay(3000);
 	}
+#endif
 
-	address = CFM0StartAddress;
+	reg = internal_flash_status_register_read();
+	printf("%08lx\n", reg);
 	//Write Control Register of On-Chip Flash IP to un-protect and erase operation
 	internal_flash_control_register_write(0xf67fffff);
+	reg = internal_flash_status_register_read();
+	printf("%08lx\n", reg);
 	internal_flash_control_register_write(0xf65fffff);
 
 	while (1) {
-		reg = internal_flash_status_register_read() & 0x13;
-		if (reg == 0) // error
-			return;
-		if (reg == 0x10) // done
+		if ((internal_flash_status_register_read() & 0x13) == 0x10)
 			break;
+		if ((internal_flash_status_register_read() & 0x13) == 0x01) {
+			// nothing: WIP
+		}
+		if ((internal_flash_status_register_read() & 0x13) == 0x00) { // error
+			printf("Error\n");
+			printf("%08lx\n", reg);
+			return;
+		}
 	}
 
 	for (i = 0, reg=0xdeadbeef; i < 40; i+=4, reg += 1) {
@@ -234,7 +249,11 @@ void testInternalFlashAccess(void)
 
 		if((internal_flash_status_register_read() & 0x0b) == 0x00)
 		{
-		    //printf("Write to addr failed\n");
+			while(1) {
+		    	printf("Write to addr failed\n");
+				printf(internal_flash_status_register_read() & 0x0b);
+				cdelay(3000);
+			}
 			return;
 		}
 

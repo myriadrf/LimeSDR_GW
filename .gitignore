@@ -107,3 +107,6 @@ build
 *.swp
 *.o
 *-obj08.cf
+*.sopcinfo
+.qsys_edit
+gateware/max10_onchipflash/max10_onchipflash
