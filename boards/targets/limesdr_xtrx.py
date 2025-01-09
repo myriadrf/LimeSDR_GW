@@ -374,7 +374,7 @@ class BaseSoC(SoCCore):
         )
 
         # FPGA Cfg ---------------------------------------------------------------------------------
-        self.fpgacfg  = FPGACfg(platform, board_id=27, major_rev=2, compile_rev=22)
+        self.fpgacfg  = FPGACfg(platform, board_id=27, major_rev=2, compile_rev=23)
 
         # PLL Cfg ----------------------------------------------------------------------------------
         #self.pllcfg = PLLCfg()
@@ -508,6 +508,15 @@ class BaseSoC(SoCCore):
         self.add_module(name=f"PCIE_UART0_phy", module=gnss_uart_phy)
         self.add_module(name="PCIE_UART0", module=pcie_uart0)
 
+        # CLK Tests --------------------------------------------------------------------------------
+        from gateware.LimeDFB.self_test.clk_no_ref_test import clk_no_ref_test
+        from gateware.LimeDFB.self_test.singl_clk_with_ref_test import singl_clk_with_ref_test
+        self.sys_clock_test = clk_no_ref_test(platform=platform,test_clock_domain="sys")
+        self.comb += self.sys_clock_test.RESET_N.eq(self.crg.pll.locked)
+
+        self.lms_clock_test = singl_clk_with_ref_test(platform=platform,test_clock_domain="xo_fpga"
+                                                      , ref_clock_domain="sys")
+        self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         # VCTCXO tamer
         self.pps_internal = Signal()

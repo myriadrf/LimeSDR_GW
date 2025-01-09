@@ -99,8 +99,23 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
         case 0xD3:
             value = periphcfg_PERIPH_SEL_read();
             break;
-
-
+       case 0x61:
+            value = sys_clock_test_test_en_read();
+            value |= lms_clock_test_test_en_read()<<2;
+            break;
+        case 0x65:
+            value = sys_clock_test_test_complete_read();
+            value |= lms_clock_test_test_complete_read()<<2;
+            break;
+        case 0x69:
+            value = sys_clock_test_test_cnt_read();
+            break;
+        case 0x72:
+            value = lms_clock_test_test_cnt_read() & 0xFFFF;
+            break;
+        case 0x73:
+            value = lms_clock_test_test_cnt_read() >> 16;
+            break;
         default:
             break;
     }
@@ -198,7 +213,10 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
         case 0xD3:
             periphcfg_PERIPH_SEL_write(value);
             break;
-
+        case 0x61:
+            sys_clock_test_test_en_write(value & 0x1);
+            lms_clock_test_test_en_write((value & 0x4)>>2);
+            break;
         default:
             break;
     }
