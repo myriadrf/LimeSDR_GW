@@ -1523,6 +1523,14 @@ int main(void)
 									if((internal_flash_status_register_read() & 0x0b) == 0x08)
 									{
 									};
+#ifdef DEBUG_INTERNAL_FLASH
+									uint32_t reg = *(uint32_t *)(INTERNAL_FLASH_BASE + (address << 2));
+									if (reg != wdata) {
+										printf("Write error\n");
+										printf("%08lx\n", reg);
+										printf("%08lx\n", wdata);
+									}
+#endif
 
 									// Increment address or move to CFM0 sector
 									if (address == UFMEndAddress) address = CFM0StartAddress;
