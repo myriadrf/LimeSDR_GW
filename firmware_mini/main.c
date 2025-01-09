@@ -179,20 +179,28 @@ uint32_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_
  */
 void boot_from_flash(void)
 {
-	void *addr = (void *)DUAL_CFG_BASE;
+	uint32_t reg;
 	//set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 0
 	//wishbone_write32(DUAL_BOOT_0_BASE+(1<<2), 0x00000001);
-	*(uint32_t *)(addr + (1 << 2)) = 0x00000001;
+	reg = 0x00000001;
 
 	//set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 1
 	//IOWR(DUAL_BOOT_0_BASE, 1, 0x00000003);
+	//reg = 0x00000003;
+
+	*(uint32_t *)(DUAL_CFG_BASE + (1 << 2)) = reg;
 
 	/*wait while core is busy*/
-	while(*(uint32_t *)(addr + (3 << 2)) == 1) {}
+	while(1) {
+		reg = *(uint32_t *)(DUAL_CFG_BASE + (3 << 2));
+		if (reg != 0x01)
+			break;
+	}
 
 	//Trigger reconfiguration to selected Image
 	//wishbone_write32(DUAL_BOOT_0_BASE+(0<<2), 0x00000001);
-	*(uint32_t *)(addr + (0 << 2)) = 0x00000001;
+	reg = 0x00000001;
+	*(uint32_t *)(DUAL_CFG_BASE + (0 << 2)) = reg;
 }
 #endif
 
@@ -1327,6 +1335,7 @@ int main(void)
 							//Set Flash memory addresses
 #ifdef LIMESDR_MINI_V1
 							address = UFMStartAddress;
+							address = CFM0StartAddress;
 							//Write Control Register of On-Chip Flash IP to un-protect and erase operation
 							//wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf67fffff);
 							//wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf65fffff);
