@@ -65,6 +65,7 @@ class RXPathTop(LiteXModule):
         int_clk_rst_n          = Signal()
         int_clk_smpl_nr_clr    = Signal()
         int_clk_ch_en          = Signal(2)
+        int_clk_mimo_en        = Signal()
         mimo_en                = Signal()
         ddr_en                 = Signal()
         s_smpl_width           = Signal(2)
@@ -79,6 +80,8 @@ class RXPathTop(LiteXModule):
         bit_pack_to_nto1_tlast  = Signal()
 
         pct_hdr_0               = Signal(64)
+        pct_hdr_1               = Signal(64)
+        one_ch                  = Signal()
 
         self.iqpacket_axis = iqpacket_axis           = stream.Endpoint([("data", 128)])
 
@@ -204,6 +207,15 @@ class RXPathTop(LiteXModule):
         self.drop_samples = Signal()
         self.wr_header    = Signal()
 
+        self.comb += [
+            one_ch.eq(int_clk_ch_en[0] ^ int_clk_ch_en[1]),
+            If((int_clk_mimo_en & one_ch) | ~mimo_en,
+                pct_hdr_1.eq(Cat(0, bp_sample_nr_counter[0:-1]))
+            ).Else(
+                pct_hdr_1.eq(bp_sample_nr_counter)
+            ),
+        ]
+
         self.data2packets_fsm = Instance("DATA2PACKETS_FSM",
             # Clk/Reset.
             i_ACLK               = ClockSignal(int_clk_domain),
@@ -211,7 +223,7 @@ class RXPathTop(LiteXModule):
             i_PCT_SIZE           = pkt_size,
             # PCT_HDR_0          = x"7766554433221100",
             i_PCT_HDR_0          = pct_hdr_0,
-            i_PCT_HDR_1          = bp_sample_nr_counter,
+            i_PCT_HDR_1          = pct_hdr_1,
             # AXIS Slave.
             i_S_AXIS_TVALID      = iqsmpls_fifo_source_valid,
             o_S_AXIS_TREADY      = iqsmpls_fifo_source_ready,
@@ -306,12 +318,14 @@ class RXPathTop(LiteXModule):
             self.comb += [
                 int_clk_rst_n.eq(      fpgacfg_manager.rx_en),
                 int_clk_ch_en.eq(      fpgacfg_manager.ch_en),
+                int_clk_mimo_en.eq(    fpgacfg_manager.mimo_int_en),
                 int_clk_smpl_nr_clr.eq(fpgacfg_manager.smpl_nr_clr),
             ]
         else:
             self.specials += [
                 MultiReg(fpgacfg_manager.rx_en,       int_clk_rst_n,       int_clk_domain, reset=1),
                 MultiReg(fpgacfg_manager.ch_en,       int_clk_ch_en,       int_clk_domain, reset=0),
+                MultiReg(fpgacfg_manager.mimo_int_en, int_clk_mimo_en,     int_clk_domain, reset=0),
                 MultiReg(fpgacfg_manager.smpl_nr_clr, int_clk_smpl_nr_clr, int_clk_domain, reset=0),
             ]
         if m_clk_domain == "sys":
