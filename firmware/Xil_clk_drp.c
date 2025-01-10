@@ -71,7 +71,7 @@ SetPhase_DRP(PLL_ADDRS *addresses, uint8_t phase_mux, uint8_t delay_time, uint16
 }
 
 void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
-    uint8_t DIVIDE;
+    uint16_t DIVIDE;
     uint8_t BYPASS;
     uint16_t PHASE;
 
@@ -81,6 +81,8 @@ void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
 
     //    Clock 0
     DIVIDE = csr_read_simple(ctrl_addresses->c0_div_cnt);
+    // Add LSB and MSB to get divide value (register contains two values for counters)
+    DIVIDE = DIVIDE & 0xFF + DIVIDE>>8 & 0xFF;
     BYPASS = csr_read_simple(ctrl_addresses->c0_div_byp);
     PHASE = 0;
     if (BYPASS == 1)
@@ -89,6 +91,8 @@ void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
 
     //    Clock 1
     DIVIDE = csr_read_simple(ctrl_addresses->c1_div_cnt);
+    // Add LSB and MSB to get divide value (register contains two values for counters)
+    DIVIDE = DIVIDE & 0xFF + DIVIDE>>8 & 0xFF;
     BYPASS = csr_read_simple(ctrl_addresses->c1_div_byp);
     PHASE = csr_read_simple(ctrl_addresses->c1_phase);
     PHASE = PHASE % 360; // Make sure requested phase is between 0 and 359 deg
@@ -98,6 +102,8 @@ void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
 
     // FBCLK
     DIVIDE = csr_read_simple(ctrl_addresses->vco_mult_cnt);
+    // Add LSB and MSB to get divide value (register contains two values for counters)
+    DIVIDE = DIVIDE & 0xFF + DIVIDE>>8 & 0xFF;
     BYPASS = csr_read_simple(ctrl_addresses->vco_mult_byp);
     PHASE = 0;
     if (BYPASS == 1)
@@ -177,7 +183,12 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
     uint8_t cmp_error;
     uint32_t timeout = 0;
     uint32_t timeout_limit = 2000000; // Function will timeout after 2 seconds
-    uint16_t max_phase = csr_read_simple(ctrl_addresses->c1_div_cnt) * 8;
+    // Read divider counter values
+    uint16_t max_phase = csr_read_simple(ctrl_addresses->c1_div_cnt);
+    // Sum counter values to get effective divider value
+    max_phase = max_phase & 0xFF + max_phase>>8 & 0xFF;
+    // Calculate max phase index
+    max_phase = max_phase * 8;
 
     typedef enum state {
         PHASE_MIN,

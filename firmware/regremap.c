@@ -23,9 +23,9 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             value = 0x2;
             break;
         case 0x5:
-        	value = lime_top_lms7002_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
-        	value = value | ((lime_top_lms7002_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
-        	break;
+            value = lime_top_lms7002_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
+            value = value | ((lime_top_lms7002_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
+            break;
         case 0x7:
             value = lime_top_rx_path_ch_en_read();
             break;
@@ -106,11 +106,11 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             break;
         case 0x61:
             value = sys_clock_test_test_en_read();
-            value |= lms_clock_test_test_en_read()<<2;
+            value |= lms_clock_test_test_en_read() << 2;
             break;
         case 0x65:
             value = sys_clock_test_test_complete_read();
-            value |= lms_clock_test_test_complete_read()<<2;
+            value |= lms_clock_test_test_complete_read() << 2;
             break;
         case 0x69:
             value = sys_clock_test_test_cnt_read();
@@ -137,6 +137,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
 // To write and re-map old LMS64C protocol style SPI registers to Litex CSRs
 void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
     uint16_t value = (0x0000FFFF & (((uint32_t) wrdata_array[0] << 8) | ((uint32_t) wrdata_array[1])));
+    uint8_t *value_byte_ptr = (uint8_t *) &value;
     uint16_t addr = ((uint16_t) address[0] << 8) | address[1];
 
     switch (addr) {
@@ -144,8 +145,8 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             fpgacfg_reserved_03_write(value);
             break;
         case 0x05:
-        	lime_top_lms7002_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
-        	lime_top_lms7002_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
+            lime_top_lms7002_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
+            lime_top_lms7002_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
             break;
         case 0x7:
             lime_top_tx_path_ch_en_write(value);
@@ -201,16 +202,28 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.c1_div_byp);
             break;
         case 0x2A:
-            csr_write_simple((value & 0x3F), clk_ctrl_addrs.vco_div_cnt);
+            // Check if either of the bytes are over 32. This is to prevent divider values larger than 64
+            value_byte_ptr[0] = (value_byte_ptr[0] > 32) ? 32 : value_byte_ptr[0];
+            value_byte_ptr[1] = (value_byte_ptr[1] > 32) ? 32 : value_byte_ptr[1];
+            csr_write_simple(value, clk_ctrl_addrs.vco_div_cnt);
             break;
         case 0x2B:
-            csr_write_simple((value & 0x3F), clk_ctrl_addrs.vco_mult_cnt);
+            // Check if either of the bytes are over 32. This is to prevent divider values larger than 64
+            value_byte_ptr[0] = (value_byte_ptr[0] > 32) ? 32 : value_byte_ptr[0];
+            value_byte_ptr[1] = (value_byte_ptr[1] > 32) ? 32 : value_byte_ptr[1];
+            csr_write_simple(value, clk_ctrl_addrs.vco_mult_cnt);
             break;
         case 0x2E:
-            csr_write_simple((value & 0x3F), clk_ctrl_addrs.c0_div_cnt);
+            // Check if either of the bytes are over 32. This is to prevent divider values larger than 64
+            value_byte_ptr[0] = (value_byte_ptr[0] > 32) ? 32 : value_byte_ptr[0];
+            value_byte_ptr[1] = (value_byte_ptr[1] > 32) ? 32 : value_byte_ptr[1];
+            csr_write_simple(value, clk_ctrl_addrs.c0_div_cnt);
             break;
         case 0x2F:
-            csr_write_simple((value & 0x3F), clk_ctrl_addrs.c1_div_cnt);
+            // Check if either of the bytes are over 32. This is to prevent divider values larger than 64
+            value_byte_ptr[0] = (value_byte_ptr[0] > 32) ? 32 : value_byte_ptr[0];
+            value_byte_ptr[1] = (value_byte_ptr[1] > 32) ? 32 : value_byte_ptr[1];
+            csr_write_simple(value, clk_ctrl_addrs.c1_div_cnt);
             break;
         case 0x3E:
             csr_write_simple(value, smpl_cmp_addrs.cmp_length);
@@ -226,7 +239,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             break;
         case 0x61:
             sys_clock_test_test_en_write(value & 0x1);
-            lms_clock_test_test_en_write((value & 0x4)>>2);
+            lms_clock_test_test_en_write((value & 0x4) >> 2);
             break;
         default:
             break;
