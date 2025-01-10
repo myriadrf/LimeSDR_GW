@@ -30,27 +30,40 @@
 #define RDCR 0x15   // Read Configuration Register (RDCR)
 
 
-void Spi_Transfer(uint8_t * sendbuff, uint8_t * recvbuff, unsigned int ByteCount);
+void Spi_Transfer(uint8_t *sendbuff, uint8_t *recvbuff, unsigned int ByteCount);
+
 //void Init_flash_qspi(u16 DeviceId, XSpi *InstancePtr, u32 Options);
 //int FlashQspi_CMD_DisQPI(XSpi *InstancePtr);
 int FlashQspi_CMD(uint8_t cmd);
-void FlashQspi_CMD_ReadRDSR(uint8_t* Data);
-void FlashQspi_CMD_ReadRDCR(uint8_t* Data);
+
+void FlashQspi_CMD_ReadRDSR(uint8_t *Data);
+
+void FlashQspi_CMD_ReadRDCR(uint8_t *Data);
+
 void FlashQspi_CMD_WREN(void);
+
 void FlashQspi_CMD_WRDI(void);
+
 //int FlashQspi_CMD_WRSR(XSpi *InstancePtr, u8 StatusReg, u8 ConfigReg);
 //int FlashQspi_CMD_ReadRDCR(XSpi *InstancePtr, u8* Data);
 //int FlashQspi_CMD_ReadDataPage(XSpi *InstancePtr, u32 address, u8* buffer);
-void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t* buffer);
-int FlashQspi_CMD_ReadOTPData(uint32_t address, uint8_t bytes, uint8_t* buffer);
-void FlashQspi_CMD_WriteDataPage(uint32_t address, uint8_t* buffer);
+void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t *buffer);
+
+int FlashQspi_CMD_ReadOTPData(uint32_t address, uint8_t bytes, uint8_t *buffer);
+
+void FlashQspi_CMD_WriteDataPage(uint32_t address, uint8_t *buffer);
+
 //int FlashQspi_CMD_PageProgram(XSpi *InstancePtr, u32 address, u8 bytes, u8* buffer);
 void FlashQspi_CMD_SectorErase(uint32_t address);
 
-void FlashQspi_ProgramPage(uint32_t address, uint8_t* data);
-void FlashQspi_CMD_PageProgramByte(uint32_t address, uint8_t* byte);
-int FlashQspi_ProgramOTP(uint32_t address, uint8_t bytes, uint8_t* data);
+void FlashQspi_ProgramPage(uint32_t address, uint8_t *data);
+
+void FlashQspi_CMD_PageProgramByte(uint32_t address, uint8_t *byte);
+
+int FlashQspi_ProgramOTP(uint32_t address, uint8_t bytes, uint8_t *data);
+
 void FlashQspi_EraseSector(uint32_t address);
+
 //int FlashQspi_ReadPage(XSpi *InstancePtr, u32 address, u8* data);
 
 #endif /* SRC_FPGA_FLASH_QSPI_H_ */

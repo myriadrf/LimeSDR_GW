@@ -16,6 +16,7 @@
 #define SPI_LENGTH  (1 << 8)
 
 void lms_spi_write(uint16_t addr, uint16_t val);
+
 uint16_t lms_spi_read(uint16_t addr);
 
 #endif //FIRMWARE_LMS7002M_H
