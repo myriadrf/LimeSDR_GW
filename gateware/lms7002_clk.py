@@ -89,10 +89,10 @@ class XilinxLmsMMCM(LiteXModule):
         # Implement the drdy latching
         self.mmcm.sync += [
             If(self.mmcm.latched_drdy_reset.storage == 1,
-               self.mmcm.latched_drdy.status.eq(0)
-               ).Elif(drdy_signal,
-                      self.mmcm.latched_drdy.status.eq(1)
-                      )
+                self.mmcm.latched_drdy.status.eq(0)
+            ).Elif(drdy_signal,
+                self.mmcm.latched_drdy.status.eq(1)
+            )
         ]
 
         self.comb += fclk.eq(self.cd_clkout0.clk)
