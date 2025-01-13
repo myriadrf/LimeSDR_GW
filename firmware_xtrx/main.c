@@ -727,7 +727,6 @@ static void lms64c_init(void) {
 }
 
 static void clk_ctrl_isr(void) {
-    printf("clk_ctrl_isr\n\n");
     // Reset relevant CSR's
     csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
     csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
@@ -741,18 +740,19 @@ static void clk_ctrl_isr(void) {
     if (var_phcfg_start || var_pllcfg_start || var_pllrst_start)
         clk_cfg_pending = 1;
 
-    ev_pending_write(ev_pending_read()); //Clear interrupt
-    ev_enable_write(1 << CSR_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
+    lime_top_ev_pending_write(lime_top_ev_pending_read()); //Clear interrupt
+    lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
+
 }
 
 static void clk_cfg_irq_init(void) {
     printf("CLK config irq initialization \n");
 
     /* Clear all pending interrupts. */
-    ev_pending_write(ev_pending_read());
+    lime_top_ev_pending_write(lime_top_ev_pending_read());
 
     /* Enable CLK CTRL irq */
-    ev_enable_write(1 << CSR_EV_STATUS_CLK_CTRL_IRQ_OFFSET);
+    lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET);
 
     /* Attach isr to interrupt */
     irq_attach(LIME_TOP_INTERRUPT, clk_ctrl_isr);
@@ -989,9 +989,9 @@ int main(void) {
                         addr = (addr << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
                         // Read
                         val = lms_spi_read(addr);
-                        if (addr == 0x40e || addr == 0x40f) { 
-                            printf("block: %02x addr: %04x val: %04x\n", block, addr, val);
-                        }
+                        //if (addr == 0x40e || addr == 0x40f) {
+                        //    printf("block: %02x addr: %04x val: %04x\n", block, addr, val);
+                        //}
                         // Return value and address
                         LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[
                             0 + (block * 2)];

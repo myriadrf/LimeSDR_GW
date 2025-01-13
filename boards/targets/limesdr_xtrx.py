@@ -488,13 +488,18 @@ class BaseSoC(SoCCore):
         #self.comb += rfsw_pads.tx.eq(1)
 
         # Interrupt --------------------------------------------------------------------------------
-        self.ev = EventManager()
-        self.ev.clk_ctrl_irq = EventSourceProcess()
-        self.ev.finalize()
+        class LimeTop(LiteXModule):
+            def __init__(self, lms7002_clk):
+                self.ev = EventManager()
+                self.ev.clk_ctrl_irq = EventSourceProcess()
+                self.ev.finalize()
 
-        self.comb += self.ev.clk_ctrl_irq.trigger.eq((self.lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.re  & self.lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.storage == 1)
-                                                   | (self.lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.re & self.lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.storage == 1)
-                                                   | (self.lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.re & self.lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.storage == 1) )
+                self.comb += self.ev.clk_ctrl_irq.trigger.eq((lms7002_clk.CLK_CTRL.PHCFG_START.re  & lms7002_clk.CLK_CTRL.PHCFG_START.storage == 1)
+                    | (lms7002_clk.CLK_CTRL.PLLCFG_START.re & lms7002_clk.CLK_CTRL.PLLCFG_START.storage == 1)
+                    | (lms7002_clk.CLK_CTRL.PLLRST_START.re & lms7002_clk.CLK_CTRL.PLLRST_START.storage == 1) )
+
+        self.lime_top = LimeTop(self.lms7002_top.lms7002_clk)
+
         self.irq.add("lime_top")
 
         # GPS serial connected to LimeUART0
