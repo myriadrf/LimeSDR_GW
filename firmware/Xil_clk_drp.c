@@ -82,7 +82,7 @@ void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
     //    Clock 0
     DIVIDE = csr_read_simple(ctrl_addresses->c0_div_cnt);
     // Add LSB and MSB to get divide value (register contains two values for counters)
-    DIVIDE = DIVIDE & 0xFF + DIVIDE >> 8 & 0xFF;
+    DIVIDE = (DIVIDE & 0xFF) + ((DIVIDE >> 8) & 0xFF);
     BYPASS = csr_read_simple(ctrl_addresses->c0_div_byp);
     PHASE = 0;
     if (BYPASS == 1)
@@ -92,7 +92,7 @@ void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
     //    Clock 1
     DIVIDE = csr_read_simple(ctrl_addresses->c1_div_cnt);
     // Add LSB and MSB to get divide value (register contains two values for counters)
-    DIVIDE = DIVIDE & 0xFF + DIVIDE >> 8 & 0xFF;
+    DIVIDE = (DIVIDE & 0xFF) + ((DIVIDE >> 8) & 0xFF);
     BYPASS = csr_read_simple(ctrl_addresses->c1_div_byp);
     PHASE = csr_read_simple(ctrl_addresses->c1_phase);
     PHASE = PHASE % 360; // Make sure requested phase is between 0 and 359 deg
@@ -103,7 +103,7 @@ void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
     // FBCLK
     DIVIDE = csr_read_simple(ctrl_addresses->vco_mult_cnt);
     // Add LSB and MSB to get divide value (register contains two values for counters)
-    DIVIDE = DIVIDE & 0xFF + DIVIDE >> 8 & 0xFF;
+    DIVIDE = (DIVIDE & 0xFF) + ((DIVIDE >> 8) & 0xFF);
     BYPASS = csr_read_simple(ctrl_addresses->vco_mult_byp);
     PHASE = 0;
     if (BYPASS == 1)
@@ -186,7 +186,7 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
     // Read divider counter values
     uint16_t max_phase = csr_read_simple(ctrl_addresses->c1_div_cnt);
     // Sum counter values to get effective divider value
-    max_phase = max_phase & 0xFF + max_phase >> 8 & 0xFF;
+    max_phase = (max_phase & 0xFF) + ((max_phase >> 8) & 0xFF);
     // Calculate max phase index
     max_phase = max_phase * 8;
 
