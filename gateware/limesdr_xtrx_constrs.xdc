@@ -1,3 +1,3 @@
 create_clock -period 100 -name GPS_PPS [get_ports gps_pps]
 
-set_clock_groups -group [get_clocks -include_generated_clocks lms7002m_mclk1]  -group [get_clocks -include_generated_clocks lms7002m_mclk2] -group [get_clocks -include_generated_clocks jtag_clk] -group [get_clocks -include_generated_clocks icap_clk] -group [get_clocks -include_generated_clocks dna_clk] -group [get_clocks -include_generated_clocks *] -group [get_clocks -include_generated_clocks clk26] -asynchronous
+set_clock_groups -asynchronous -group [get_clocks -include_generated_clocks rxclk_global_clk] -group [get_clocks -include_generated_clocks txclk_global_clk] -group [get_clocks -include_generated_clocks jtag_clk] -group [get_clocks -include_generated_clocks icap_clk] -group [get_clocks -include_generated_clocks dna_clk] -group [get_clocks -include_generated_clocks txoutclk_x0y0] -group [get_clocks -include_generated_clocks clk26]
