@@ -361,8 +361,12 @@ class LMS7002Top(LiteXModule):
             o_m_axis_tlast        = self.rx_cdc.sink.last
         )
 
+        if platform.name.startswith("limesdr_mini"):
+            self.specials += MultiReg(fpgacfg_manager.rx_en, rx_reset_n, odomain="lms_rx"),
+        else:
+            self.specials += MultiReg(fpgacfg_manager.tx_en, rx_reset_n, odomain="lms_rx"),
+
         self.specials += [
-            MultiReg(fpgacfg_manager.rx_en,       rx_reset_n,      odomain="lms_rx"),
             MultiReg(fpgacfg_manager.rx_ptrn_en,  rx_ptrn_en,      odomain="lms_rx"),
             MultiReg(fpgacfg_manager.mode,        rx_mode,         odomain="lms_rx"),
             MultiReg(fpgacfg_manager.trxiq_pulse, rx_trxiqpulse,   odomain="lms_rx"),

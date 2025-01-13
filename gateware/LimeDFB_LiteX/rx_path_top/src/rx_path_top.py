@@ -297,9 +297,16 @@ class RXPathTop(LiteXModule):
             )
 
         # CDC. -------------------------------------------------------------------------------------
+
+        reset_n = Signal()
+        if platform.name.startswith("limesdr_mini"):
+            reset_n = fpgacfg_manager.rx_en
+        else:
+            reset_n = fpgacfg_manager.tx_en
+
         if s_clk_domain == "sys":
             self.comb += [
-                s_clk_rst_n.eq(               fpgacfg_manager.rx_en),
+                s_clk_rst_n.eq(               reset_n),
                 self.rx_pct_fifo_aclrn_req.eq(s_clk_rst_n),
                 mimo_en.eq(                   fpgacfg_manager.mimo_int_en),
                 ddr_en.eq(                    fpgacfg_manager.ddr_en),
@@ -307,7 +314,7 @@ class RXPathTop(LiteXModule):
             ]
         else:
             self.specials += [
-                MultiReg(fpgacfg_manager.rx_en,       s_clk_rst_n,                s_clk_domain, reset=1),
+                MultiReg(reset_n,                     s_clk_rst_n,                s_clk_domain, reset=1),
                 MultiReg(s_clk_rst_n,                 self.rx_pct_fifo_aclrn_req, s_clk_domain, reset=1),
                 MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,                    s_clk_domain),
                 MultiReg(fpgacfg_manager.ddr_en,      ddr_en,                     s_clk_domain),
@@ -316,22 +323,22 @@ class RXPathTop(LiteXModule):
 
         if int_clk_domain == "sys":
             self.comb += [
-                int_clk_rst_n.eq(      fpgacfg_manager.rx_en),
+                int_clk_rst_n.eq(      reset_n),
                 int_clk_ch_en.eq(      fpgacfg_manager.ch_en),
                 int_clk_mimo_en.eq(    fpgacfg_manager.mimo_int_en),
                 int_clk_smpl_nr_clr.eq(fpgacfg_manager.smpl_nr_clr),
             ]
         else:
             self.specials += [
-                MultiReg(fpgacfg_manager.rx_en,       int_clk_rst_n,       int_clk_domain, reset=1),
+                MultiReg(reset_n,                     int_clk_rst_n,       int_clk_domain, reset=1),
                 MultiReg(fpgacfg_manager.ch_en,       int_clk_ch_en,       int_clk_domain, reset=0),
                 MultiReg(fpgacfg_manager.mimo_int_en, int_clk_mimo_en,     int_clk_domain, reset=0),
                 MultiReg(fpgacfg_manager.smpl_nr_clr, int_clk_smpl_nr_clr, int_clk_domain, reset=0),
             ]
         if m_clk_domain == "sys":
-            self.comb += m_clk_rst_n.eq(fpgacfg_manager.rx_en)
+            self.comb += m_clk_rst_n.eq(reset_n)
         else:
-            self.specials += MultiReg(fpgacfg_manager.rx_en, m_clk_rst_n, m_clk_domain, reset=1)
+            self.specials += MultiReg(reset_n, m_clk_rst_n, m_clk_domain, reset=1)
 
 
         self.iq_stream_combiner_conv = add_vhd2v_converter(self.platform,
