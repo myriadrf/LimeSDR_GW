@@ -163,7 +163,8 @@ class LMS7002Top(LiteXModule):
         smpl_cmp_en         = Signal()
         smpl_cmp_done       = Signal()
         smpl_cmp_error      = Signal()
-        smpl_cmp_length     = Signal(16)
+        rx_smpl_cmp_length  = Signal(16)
+        tx_smpl_cmp_length  = Signal(16)
 
 
         # Clocks.
@@ -261,8 +262,11 @@ class LMS7002Top(LiteXModule):
             MultiReg(fpgacfg_manager.ddr_en,          tx_ddr_en,       odomain="lms_tx"),
             MultiReg(fpgacfg_manager.mimo_int_en,     tx_mimo_en,      odomain="lms_tx"),
             MultiReg(fpgacfg_manager.ch_en,           tx_ch_en,        odomain="lms_tx"),
-            MultiReg(pllcfg_manager.auto_phcfg_smpls, smpl_cmp_length, odomain="lms_tx"),
         ]
+        if pllcfg_manager is not None:
+            self.specials += MultiReg(pllcfg_manager.auto_phcfg_smpls, tx_smpl_cmp_length, odomain="lms_tx"),
+        else:
+            self.comb += tx_smpl_cmp_length.eq(0)
 
         # RX path (DIQ2). --------------------------------------------------------------------------
         self.lms7002_ddin = ClockDomainsRenamer("lms_rx")(LMS7002DDIN(platform, 12, pads, invert_input_clock))
@@ -290,7 +294,7 @@ class LMS7002Top(LiteXModule):
 
             # Control signals
             i_cmp_start     = smpl_cmp_en,
-            i_cmp_length    = smpl_cmp_length,
+            i_cmp_length    = tx_smpl_cmp_length,
             o_cmp_done      = smpl_cmp_done,
             o_cmp_error     = smpl_cmp_error,
         )
@@ -373,8 +377,11 @@ class LMS7002Top(LiteXModule):
             MultiReg(fpgacfg_manager.ddr_en,          rx_ddr_en,       odomain="lms_rx"),
             MultiReg(fpgacfg_manager.mimo_int_en,     rx_mimo_en,      odomain="lms_rx"),
             MultiReg(fpgacfg_manager.ch_en,           rx_ch_en,        odomain="lms_rx"),
-            MultiReg(pllcfg_manager.auto_phcfg_smpls, smpl_cmp_length, odomain="lms_rx"),
         ]
+        if pllcfg_manager is not None:
+            self.specials += MultiReg(pllcfg_manager.auto_phcfg_smpls, rx_smpl_cmp_length, odomain="lms_rx"),
+        else:
+            self.comb += rx_smpl_cmp_length.eq(0)
 
         # Delay control module.
         # ---------------------
