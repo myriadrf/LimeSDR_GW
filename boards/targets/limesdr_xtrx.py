@@ -178,17 +178,19 @@ class BaseSoC(SoCCore):
         VexRiscvSMP.with_rvc = True
         # Enable JTAG.
         if with_bscan:
+            assert cpu_type == "vexriscv_smp"
             VexRiscvSMP.privileged_debug     = True
             VexRiscvSMP.hardware_breakpoints = 4
 
         # SoCCore ----------------------------------------------------------------------------------
-        assert cpu_type in ["vexriscv", "picorv32", "fazyrv", "firev"]
+        assert cpu_type in ["vexriscv", "vexriscv_smp", "picorv32", "fazyrv", "firev"]
 
         cpu_variant = {
-            "vexriscv" : "minimal",
-            "picorv32" : "minimal",
-            "fazyrv"   : "standard",
-            "firev"    : "standard",
+            "vexriscv"     : "minimal",
+            "vexriscv_smp" : "standard",
+            "picorv32"     : "minimal",
+            "fazyrv"       : "standard",
+            "firev"        : "standard",
         }[cpu_type]
 
         if with_bios:
@@ -583,7 +585,10 @@ class BaseSoC(SoCCore):
 def main():
     parser = argparse.ArgumentParser(description="LiteX SoC on Fairwaves/LimeSDR XTRX.")
 
-    parser.add_argument("--board",   default="limesdr", help="Select XTRX board.", choices=["fairwaves_cs", "fairwaves_pro", "limesdr"])
+    parser.add_argument("--board",    default="limesdr",  help="Select XTRX board.", choices=["fairwaves_cs", "fairwaves_pro", "limesdr"])
+    parser.add_argument("--cpu-type", default="vexriscv", help="Select CPU.",
+        choices=["vexriscv", "vexriscv_smp", "picorv32", "fazyrv", "firev"]
+    )
     parser.add_argument("--with-bscan",            action="store_true",     help="Enable CPU debug over JTAG."),
     parser.add_argument("--build",                 action="store_true",     help="Build bitstream.")
     parser.add_argument("--load",                  action="store_true",     help="Load bitstream.")
@@ -606,7 +611,7 @@ def main():
         # SoC.
         soc = BaseSoC(
             board                 = args.board,
-            cpu_type              = "vexriscv",
+            cpu_type              = args.cpu_type,
             with_bios             = args.with_bios,
             with_uartbone         = args.with_uartbone,
             with_cpu              = True,
