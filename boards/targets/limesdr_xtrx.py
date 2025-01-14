@@ -366,8 +366,9 @@ class BaseSoC(SoCCore):
             "-group [get_clocks -include_generated_clocks main_s7pciephy_clkout1] "
             "-group [get_clocks -include_generated_clocks main_s7pciephy_clkout2] "
             "-group [get_clocks -include_generated_clocks main_s7pciephy_clkout3] "
-            "-group [get_clocks -include_generated_clocks LMS_MCLK1] "
-            "-group [get_clocks -include_generated_clocks LMS_MCLK2] "
+            "-group [get_clocks -include_generated_clocks txoutclk_x0y0] "
+            "-group [get_clocks -include_generated_clocks rxclk_global_clk] "
+            "-group [get_clocks -include_generated_clocks txclk_global_clk] "
             "-group [get_clocks -include_generated_clocks clk26] "
             "-group [get_clocks -include_generated_clocks jtag_clk] "
             "-group [get_clocks -include_generated_clocks icap_clk] "
@@ -376,7 +377,7 @@ class BaseSoC(SoCCore):
         )
 
         # FPGA Cfg ---------------------------------------------------------------------------------
-        self.fpgacfg  = FPGACfg(platform, board_id=27, major_rev=2, compile_rev=23)
+        self.fpgacfg  = FPGACfg(platform, board_id=27, major_rev=2, compile_rev=25)
 
         # PLL Cfg ----------------------------------------------------------------------------------
         #self.pllcfg = PLLCfg()
