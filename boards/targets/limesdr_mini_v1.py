@@ -104,11 +104,12 @@ class _CRG(LiteXModule):
 
 class BaseSoC(SoCCore):
     def __init__(self, sys_clk_freq=80e6, cpu_type="vexriscv", toolchain="quartus",
-        with_bios      = False,
-        with_rx_tx_top = True,
-        with_uartbone  = False,
-        with_spi_flash = False,
-        cpu_firmware   = None,
+        with_bios           = False,
+        with_rx_tx_top      = True,
+        with_internal_flash = False,
+        with_uartbone       = False,
+        with_spi_flash      = False,
+        cpu_firmware        = None,
         **kwargs):
 
         # Platform ---------------------------------------------------------------------------------
@@ -171,21 +172,22 @@ class BaseSoC(SoCCore):
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
 
         # Internal Flash ---------------------------------------------------------------------------
-        self.internal_flash = Max10OnChipFlash(platform)
+        if with_internal_flash:
+            self.internal_flash = Max10OnChipFlash(platform)
 
-        internal_flash_region = SoCRegion(
-                origin = 0x100000, # keep original addr
-                size   = 0x8C000,
-                mode   = "rwx")
-        self.bus.add_region("internal_flash", internal_flash_region)
+            internal_flash_region = SoCRegion(
+                    origin = 0x100000, # keep original addr
+                    size   = 0x8C000,
+                    mode   = "rwx")
+            self.bus.add_slave("internal_flash", self.internal_flash.bus, internal_flash_region)
 
         # Max10 Dual Cfg ---------------------------------------------------------------------------
         self.dual_cfg = Max10DualCfg(platform)
         dual_cfg_region = SoCRegion(
                 origin = 0x900000,
-                size   = 0x10,
+                size   = 0x100,
                 mode   = "rwx")
-        self.bus.add_region("dual_cfg", dual_cfg_region)
+        self.bus.add_slave("dual_cfg", self.dual_cfg.bus, dual_cfg_region)
 
         # SPI Flash --------------------------------------------------------------------------------
         if with_spi_flash:
@@ -411,6 +413,7 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
     parser.add_argument("--with-spi-flash", action="store_true", help="Enable SPI Flash (MMAPed).")
+    parser.add_argument("--gold",           action="store_true", help="Build golden image instead of user")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -424,11 +427,13 @@ def main():
         build   = ((run == 1) & args.build)
         # SoC.
         soc = BaseSoC(
-            toolchain      = args.toolchain,
-            with_bios      = args.with_bios,
-            with_uartbone  = args.with_uartbone,
-            with_spi_flash = args.with_spi_flash,
-            cpu_firmware   = None if prepare else "firmware_mini/firmware.bin",
+            toolchain           = args.toolchain,
+            with_bios           = args.with_bios,
+            with_rx_tx_top      = not args.gold,
+            with_internal_flash = args.gold,
+            with_uartbone       = args.with_uartbone,
+            with_spi_flash      = args.with_spi_flash,
+            cpu_firmware        = None if prepare else "firmware_mini/firmware.bin",
         )
         # LiteScope Analyzer Probes.
         if args.with_ft601_ctrl_probe:
