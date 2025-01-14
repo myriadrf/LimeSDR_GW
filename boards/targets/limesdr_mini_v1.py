@@ -80,6 +80,7 @@ class _CRG(LiteXModule):
 
         # Clk.
         self.ft_clk = platform.request("FT_CLK")
+        self.lmk_clk= platform.request("LMK_CLK")
 
         # Power-on-Clk/Rst.
         por_count = Signal(4)
@@ -91,10 +92,8 @@ class _CRG(LiteXModule):
         self.sync.por += por_count.eq(Cat(Constant(1, 1), por_count[0:3]))
 
         # Sys Clk/Rst.
-        self.pll = pll = Max10PLL(speedgrade="-8")
-        self.comb += pll.reset.eq(self.rst | ~por_done)
-        pll.register_clkin(self.ft_clk, 100e6)
-        pll.create_clkout(self.cd_sys, sys_clk_freq)
+        self.comb += self.cd_sys.clk.eq(self.lmk_clk)
+        self.specials += AsyncResetSynchronizer(self.cd_sys, self.rst | ~por_done)
 
         # FT601 Clk/Rst.
         self.comb     += self.cd_ft601.clk.eq(self.ft_clk),
@@ -103,7 +102,7 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=80e6, cpu_type="vexriscv", toolchain="quartus",
+    def __init__(self, sys_clk_freq=40e6, cpu_type="vexriscv", toolchain="quartus",
         with_bios           = False,
         with_rx_tx_top      = True,
         with_internal_flash = False,
@@ -245,7 +244,7 @@ class BaseSoC(SoCCore):
         )
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
-        self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
+        self.tst_top = TstTop(platform, self.crg.ft_clk, self.crg.lmk_clk)
 
         # General Periph ---------------------------------------------------------------------------
 
