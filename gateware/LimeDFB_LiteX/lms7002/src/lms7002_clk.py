@@ -14,7 +14,7 @@ from litex.build.io import DDROutput
 # LMS7002 CLK --------------------------------------------------------------------------------------
 
 class LMS7002CLK(LiteXModule):
-    def __init__(self, platform, pads=None, drct_c0_ndly=1, drct_c2_ndly=1):
+    def __init__(self, platform, pads=None, pllcfg_manager=None, drct_c0_ndly=1, drct_c2_ndly=1):
         # Configuration
         self.sel       = Signal() # 0 - fclk1 control, 1 - fclk2 control
         self.cflag     = Signal()
@@ -132,6 +132,7 @@ class LMS7002CLK(LiteXModule):
                 ),
             ]
         elif platform.name in ["limesdr_mini_v1"]:
+            assert pllcfg_manager is not None
             inst3_clk         = Signal(3)
             # TX.
             # ---

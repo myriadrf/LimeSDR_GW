@@ -240,6 +240,7 @@ class BaseSoC(SoCCore):
             hw_ver          = revision_pads.HW_VER,
             add_csr         = True,
             fpgacfg_manager = self.fpgacfg,
+            pllcfg_manager  = self.pllcfg,
             diq_width       = LMS_DIQ_WIDTH,
         )
 
@@ -287,9 +288,6 @@ class BaseSoC(SoCCore):
                 self.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
                 self.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
                 self.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
-
-                # LMS7002 <-> PLLCFG
-                self.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
 
                 # LMS7002 <-> RXTX Top.
                 self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),

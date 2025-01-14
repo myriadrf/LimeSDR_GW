@@ -30,6 +30,7 @@ from gateware.LimeDFB_LiteX.lms7002.src.lms7002_clk   import LMS7002CLK
 class LMS7002Top(LiteXModule):
     def __init__(self, platform, pads=None, hw_ver=None, add_csr=True,
         fpgacfg_manager      = None,
+        pllcfg_manager       = None,
         diq_width            = 12,
         invert_input_clock   = False,
         s_clk_domain         = "lms_tx",
@@ -60,7 +61,6 @@ class LMS7002Top(LiteXModule):
         self.hw_ver           = Signal(4)
 
         self.smpl_cnt_en      = Signal() # To rx_path
-        self.smpl_cmp_length  = Signal(16)
         self.smpl_cmp_cnt     = Signal(16) # Unused
 
         # CSR --------------------------------------------------------------------------------------
@@ -168,7 +168,7 @@ class LMS7002Top(LiteXModule):
 
         # Clocks.
         # -------
-        self.lms7002_clk = LMS7002CLK(platform, pads)
+        self.lms7002_clk = LMS7002CLK(platform, pads, pllcfg_manager)
         self.comb += [
             self.cd_lms_tx.clk.eq(self.lms7002_clk.tx_clk),
             self.cd_lms_rx.clk.eq(self.lms7002_clk.rx_clk),
@@ -252,16 +252,16 @@ class LMS7002Top(LiteXModule):
         )
 
         self.specials += [
-            MultiReg(fpgacfg_manager.tx_en,       tx_reset_n,      odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.tx_ptrn_en,  tx_ptrn_en,      odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.tx_cnt_en,   tx_tst_data_en,  odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.wfm_play,    tx_mux_sel,      odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.mode,        tx_mode,         odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.trxiq_pulse, tx_trxiqpulse,   odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.ddr_en,      tx_ddr_en,       odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.mimo_int_en, tx_mimo_en,      odomain="lms_tx"),
-            MultiReg(fpgacfg_manager.ch_en,       tx_ch_en,        odomain="lms_tx"),
-            MultiReg(self.smpl_cmp_length,        smpl_cmp_length, odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.tx_en,           tx_reset_n,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.tx_ptrn_en,      tx_ptrn_en,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.tx_cnt_en,       tx_tst_data_en,  odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.wfm_play,        tx_mux_sel,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.mode,            tx_mode,         odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.trxiq_pulse,     tx_trxiqpulse,   odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.ddr_en,          tx_ddr_en,       odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.mimo_int_en,     tx_mimo_en,      odomain="lms_tx"),
+            MultiReg(fpgacfg_manager.ch_en,           tx_ch_en,        odomain="lms_tx"),
+            MultiReg(pllcfg_manager.auto_phcfg_smpls, smpl_cmp_length, odomain="lms_tx"),
         ]
 
         # RX path (DIQ2). --------------------------------------------------------------------------
@@ -367,13 +367,13 @@ class LMS7002Top(LiteXModule):
             self.specials += MultiReg(fpgacfg_manager.tx_en, rx_reset_n, odomain="lms_rx"),
 
         self.specials += [
-            MultiReg(fpgacfg_manager.rx_ptrn_en,  rx_ptrn_en,      odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.mode,        rx_mode,         odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.trxiq_pulse, rx_trxiqpulse,   odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.ddr_en,      rx_ddr_en,       odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.mimo_int_en, rx_mimo_en,      odomain="lms_rx"),
-            MultiReg(fpgacfg_manager.ch_en,       rx_ch_en,        odomain="lms_rx"),
-            MultiReg(self.smpl_cmp_length,        smpl_cmp_length, odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.rx_ptrn_en,      rx_ptrn_en,      odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.mode,            rx_mode,         odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.trxiq_pulse,     rx_trxiqpulse,   odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.ddr_en,          rx_ddr_en,       odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.mimo_int_en,     rx_mimo_en,      odomain="lms_rx"),
+            MultiReg(fpgacfg_manager.ch_en,           rx_ch_en,        odomain="lms_rx"),
+            MultiReg(pllcfg_manager.auto_phcfg_smpls, smpl_cmp_length, odomain="lms_rx"),
         ]
 
         # Delay control module.
