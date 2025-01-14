@@ -129,7 +129,7 @@ bool i2c0_read(unsigned char slave_addr, unsigned char addr, unsigned char *data
 
     i2c0_start();
 
-    if(!i2c0_transmit_byte(I2C0_ADDR_WR(slave_addr))) {
+    if (!i2c0_transmit_byte(I2C0_ADDR_WR(slave_addr))) {
         i2c0_stop();
         return false;
     }

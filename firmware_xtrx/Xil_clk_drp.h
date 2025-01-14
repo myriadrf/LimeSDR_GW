@@ -39,13 +39,13 @@ typedef struct {
     unsigned long pllcfg_done;
     unsigned long phcfg_mode;
     unsigned long phcfg_done;
-	unsigned long phcfg_err;
+    unsigned long phcfg_err;
     unsigned long pllcfg_busy;
     unsigned long pllcfg_start;
     unsigned long pllrst_start;
     unsigned long pll_ind;
     unsigned long phcfg_start;
-	unsigned long pllcfg_error;
+    unsigned long pllcfg_error;
     unsigned long vco_mult_byp;
     unsigned long vco_div_byp;
     unsigned long c0_div_byp;
@@ -100,42 +100,40 @@ typedef struct {
 } SMPL_CMP_ADDRS;
 
 
-typedef struct
-{
+typedef struct {
     uint8_t DIVCLK_DIVIDE;
     uint8_t CLKFBOUT_MULT;
-//    uint32_t CLKFBOUT_FRAC; --NOT IMPLEMENTED
+    //    uint32_t CLKFBOUT_FRAC; --NOT IMPLEMENTED
     uint16_t CLKFBOUT_PHASE;
 
     uint8_t CLKOUT0_DIVIDE;
-//    uint32_t CLKOUT0_FRAC; --NOT IMPLEMENTED
+    //    uint32_t CLKOUT0_FRAC; --NOT IMPLEMENTED
     int16_t CLKOUT0_PHASE;
-//    uint32_t CLKOUT0_DUTY; --NOT IMPLEMENTED
+    //    uint32_t CLKOUT0_DUTY; --NOT IMPLEMENTED
 
     uint8_t CLKOUT1_DIVIDE;
     uint16_t CLKOUT1_PHASE;
-//    uint32_t CLKOUT1_DUTY; --NOT IMPLEMENTED
+    //    uint32_t CLKOUT1_DUTY; --NOT IMPLEMENTED
 
     uint8_t CLKOUT2_DIVIDE;
     uint16_t CLKOUT2_PHASE;
-//    uint32_t CLKOUT2_DUTY; --NOT IMPLEMENTED
+    //    uint32_t CLKOUT2_DUTY; --NOT IMPLEMENTED
 
     uint8_t CLKOUT3_DIVIDE;
     uint16_t CLKOUT3_PHASE;
-//    uint32_t CLKOUT3_DUTY; --NOT IMPLEMENTED
+    //    uint32_t CLKOUT3_DUTY; --NOT IMPLEMENTED
 
     uint8_t CLKOUT4_DIVIDE;
     uint16_t CLKOUT4_PHASE;
-//    uint32_t CLKOUT4_DUTY; --NOT IMPLEMENTED
+    //    uint32_t CLKOUT4_DUTY; --NOT IMPLEMENTED
 
     uint8_t CLKOUT5_DIVIDE;
     uint16_t CLKOUT5_PHASE;
-//    uint32_t CLKOUT5_DUTY; --NOT IMPLEMENTED
+    //    uint32_t CLKOUT5_DUTY; --NOT IMPLEMENTED
 
     uint8_t CLKOUT6_DIVIDE;
     uint16_t CLKOUT6_PHASE;
-//    uint32_t CLKOUT6_DUTY; --NOT IMPLEMENTED
-
+    //    uint32_t CLKOUT6_DUTY; --NOT IMPLEMENTED
 } tXPLL_CFG;
 
 
@@ -175,7 +173,8 @@ uint16_t Read_MMCM_DRP(PLL_ADDRS *addresses, uint16_t Addr);
 
 void Write_MMCM_DRP(PLL_ADDRS *addresses, uint16_t Addr, uint16_t Val);
 
-void SetPhase_DRP(PLL_ADDRS *addresses, uint8_t phase_mux, uint8_t delay_time, uint16_t clkreg1_adr, uint16_t clkreg2_adr);
+void SetPhase_DRP(PLL_ADDRS *addresses, uint8_t phase_mux, uint8_t delay_time, uint16_t clkreg1_adr,
+                  uint16_t clkreg2_adr);
 
 void Reset_Drdy_latch(uint16_t reset_addr);
 
@@ -184,7 +183,6 @@ void SetMMCM_CLKREG(PLL_ADDRS *addresses, uint8_t DIVIDE, uint32_t PHASE, uint16
 void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses);
 
 int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SMPL_CMP_ADDRS *smpl_cmp_addrs);
-
 
 
 #endif //ED_LIMESDR_XTRX_LITEX_GW_XIL_CLK_DRP_H

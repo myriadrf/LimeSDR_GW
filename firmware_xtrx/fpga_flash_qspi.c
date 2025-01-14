@@ -91,16 +91,14 @@ void Init_flash_qspi(u16 DeviceId, XSpi *InstancePtr, u32 Options)
 */
 
 
-int FlashQspi_CMD(uint8_t cmd)
-{
-	uint8_t sendbuf[1]={0};
-	sendbuf[0] = cmd;
+int FlashQspi_CMD(uint8_t cmd) {
+    uint8_t sendbuf[1] = {0};
+    sendbuf[0] = cmd;
 
-	//return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
-	Spi_Transfer(sendbuf, NULL, 1);
-	return 1;
+    //return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
+    Spi_Transfer(sendbuf, NULL, 1);
+    return 1;
 }
-
 
 
 void FlashQspi_CMD_ReadRDSR(uint8_t *Data) {
@@ -275,7 +273,6 @@ void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t *buffer) {
         buffer[i-4] = recvbuf[i];
     }
     */
-
 }
 
 
@@ -294,8 +291,7 @@ void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t *buffer) {
 *
 ******************************************************************************/
 
-int FlashQspi_CMD_ReadOTPData(uint32_t address, uint8_t bytes, uint8_t* buffer)
-{
+int FlashQspi_CMD_ReadOTPData(uint32_t address, uint8_t bytes, uint8_t *buffer) {
     int retval;
 
     // Enter secured OTP
@@ -320,8 +316,6 @@ int FlashQspi_CMD_ReadOTPData(uint32_t address, uint8_t bytes, uint8_t* buffer)
 }
 
 
-
-
 void FlashQspi_CMD_WriteDataPage(uint32_t address, uint8_t *buffer) {
     // 256 bytes in a page, 1 byte command, 3 byte address
     uint8_t sendbuf[260] = {0};
@@ -333,7 +327,7 @@ void FlashQspi_CMD_WriteDataPage(uint32_t address, uint8_t *buffer) {
 
     for (int i = 0; i < 256; i++) {
         FlashQspi_CMD_WREN();
-        FlashQspi_CMD_PageProgramByte(address+i, &buffer[i]);
+        FlashQspi_CMD_PageProgramByte(address + i, &buffer[i]);
     }
     // for (int i = 4; i < 260; i++) {
     //     sendbuf[i] = buffer[i - 4];
@@ -431,38 +425,31 @@ void FlashQspi_ProgramPage(uint32_t address, uint8_t *data) {
 }
 
 
-
-int FlashQspi_ProgramOTP(uint32_t address, uint8_t bytes, uint8_t* data)
-{
+int FlashQspi_ProgramOTP(uint32_t address, uint8_t bytes, uint8_t *data) {
     uint8_t status_reg = 0;
     int retval;
 
 
-
     // Perform write byte by byte
-    for (uint8_t i = 0; i < bytes; i++)
-    {
+    for (uint8_t i = 0; i < bytes; i++) {
         // Enter secured OTP
         retval = FlashQspi_CMD(ENSO);
 
         //Set Write enable
-        do
-        {
+        do {
             FlashQspi_CMD_WREN();
             FlashQspi_CMD_ReadRDSR(&status_reg);
-        } while((status_reg&2) == 0); //Check write enable
+        } while ((status_reg & 2) == 0); //Check write enable
 
         FlashQspi_CMD_PageProgramByte(address + i, &data[i]);
         // Exit secured OTP
         retval = FlashQspi_CMD(EXSO);
-
     }
 
 
     //Return success if no problems
     return retval;
 }
-
 
 
 void FlashQspi_EraseSector(uint32_t address) {

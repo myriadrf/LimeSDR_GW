@@ -48,14 +48,14 @@ class ClkCfgRegs(LiteXModule):
                                      description="Clock output 0 divider bypass: 0: do not bypass, 1: bypass")
         self.C1_Div_BYP = CSRStorage(size=1, reset=0,
                                      description="Clock output 1 divider bypass: 0: do not bypass, 1: bypass")
-        self.VCO_Div_CNT = CSRStorage(size=6, reset=0,
-                                      description="PLL VCO divider value")
-        self.VCO_Mult_CNT = CSRStorage(size=6, reset=0,
-                                       description="PLL VCO multiplier value")
-        self.C0_Div_CNT = CSRStorage(size=6, reset=0,
-                                     description="Clock output 0 divider value")
-        self.C1_Div_CNT = CSRStorage(size=6, reset=0,
-                                     description="Clock output 1 divider value")
+        self.VCO_Div_CNT = CSRStorage(size=16, reset=0,
+                                      description="PLL VCO divider counter values")
+        self.VCO_Mult_CNT = CSRStorage(size=16, reset=0,
+                                       description="PLL VCO multiplier counter values")
+        self.C0_Div_CNT = CSRStorage(size=16, reset=0,
+                                     description="Clock output 0 divider counter values")
+        self.C1_Div_CNT = CSRStorage(size=16, reset=0,
+                                     description="Clock output 1 divider counter values")
         self.C1_Phase = CSRStorage(size=9, reset=0,
                                    description="Clock output 1 phase offset, in degrees")
         self.Auto_PHcfg_smpls = CSRStorage(size=16, reset=0xEFFF,
