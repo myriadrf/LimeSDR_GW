@@ -26,7 +26,7 @@ class LMS7002CLK(LiteXModule):
         self.tx_clk    = Signal()
 
         # mini V1 only
-        self.clk_ena     = Signal(3)
+        self.clk_ena     = Signal(4)
         self.drct_clk_en = Signal(4)
 
         # # #
