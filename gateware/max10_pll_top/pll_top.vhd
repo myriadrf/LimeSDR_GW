@@ -77,9 +77,9 @@ entity pll_top is
       auto_phcfg_err_bit   : out std_logic;
       pll_lock_vect        : out std_logic_vector(15 downto 0);
       --from_pllcfg          : in  t_FROM_PLLCFG
-      phcfg_start_bit      : in  std_logic;
-      pllcfg_start_bit     : in  std_logic;
-      pllrst_start_bit     : in  std_logic;
+      phcfg_start          : in  std_logic;
+      pllcfg_start         : in  std_logic;
+      pllrst_start         : in  std_logic;
       phcfg_updn           : in  std_logic; --
       cnt_ind              : in  std_logic_vector(4 downto 0); --
       pll_ind              : in  std_logic_vector(4 downto 0);
@@ -193,8 +193,8 @@ rxtx_pll_inst0 : entity work.rxtx_pll
       inclk2         	=> pll_inclk,
       pll_areset        => inst2_pllrst_start(0),
       pll_logic_reset_n => pll_logic_reset_n,
-      inv_c0            => '0',
-      inv_c2            => '0',
+      --inv_c0            => '0',
+      --inv_c2            => '0',
       c0                => pll_c0,
       c1                => pll_c1,
       c2                => pll_c2,
@@ -265,9 +265,9 @@ rxtx_pll_inst0 : entity work.rxtx_pll
       pll_lock_vect       => pll_lock_vect,
 
       --from_pllcfg       => from_pllcfg,
-      phcfg_start_bit     => phcfg_start_bit,
-      pllcfg_start_bit    => pllcfg_start_bit,
-      pllrst_start_bit    => pllrst_start_bit,
+      phcfg_start_bit     => phcfg_start,
+      pllcfg_start_bit    => pllcfg_start,
+      pllrst_start_bit    => pllrst_start,
       phcfg_updn_i        => phcfg_updn,
       cnt_ind_i           => cnt_ind,
       pll_ind             => pll_ind,

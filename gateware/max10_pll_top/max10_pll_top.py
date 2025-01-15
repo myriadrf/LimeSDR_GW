@@ -20,7 +20,9 @@ class MAX10PLLTop(LiteXModule):
 
         self.platform              = platform
 
+        self.pll_c0      = Signal()
         self.pll_c1      = Signal()
+        self.pll_c2      = Signal()
         self.pll_c3      = Signal()
         self.pll_locked  = Signal()
 
@@ -74,9 +76,9 @@ class MAX10PLLTop(LiteXModule):
             i_pll_logic_reset_n      = ~ResetSignal("sys"),
             i_pll_clk_ena            = self.clk_ena,
             i_pll_drct_clk_en        = self.drct_clk_en,
-            o_pll_c0                 = pads.FCLK1,
+            o_pll_c0                 = self.pll_c0,
             o_pll_c1                 = self.pll_c1,
-            o_pll_c2                 = pads.FCLK2,
+            o_pll_c2                 = self.pll_c2,
             o_pll_c3                 = self.pll_c3,
             o_pll_locked             = self.pll_locked,
             o_pll_smpl_cmp_en        = self.smpl_cmp_en,#inst1_pll_smpl_cmp_en,
@@ -124,12 +126,12 @@ class MAX10PLLTop(LiteXModule):
 
             # to pllcfg
             # Status Inputs
-            o_pllcfg_busy            = pllcfg_manager.pllcfg_busy,
-            o_pllcfg_done            = pllcfg_manager.pllcfg_done,
-            o_phcfg_done             = pllcfg_manager.phcfg_done,
-            o_phcfg_error            = pllcfg_manager.phcfg_error,
+            o_pllcfg_busy_bit        = pllcfg_manager.pllcfg_busy,
+            o_pllcfg_done_bit        = pllcfg_manager.pllcfg_done,
+            o_auto_phcfg_done_bit    = pllcfg_manager.phcfg_done,
+            o_auto_phcfg_err_bit     = pllcfg_manager.phcfg_error,
             # PLL Lock flags
-            o_pll_lock               = pllcfg_manager.pll_lock,
+            o_pll_lock_vect          = pllcfg_manager.pll_lock,
         )
 
         self.add_sources(platform)
@@ -139,6 +141,12 @@ class MAX10PLLTop(LiteXModule):
             "gateware/max10_pll_top/pll_ctrl.vhd",
             "gateware/max10_pll_top/pll_top.vhd",
             "gateware/max10_pll_top/rxtx_pll.vhd",
+            "gateware/max10_pll_top/pll_reconfig_ctrl/config_ctrl.vhd",
+            "gateware/max10_pll_top/pll_reconfig_ctrl/pll_reconfig_status.vhd",
+            "gateware/max10_pll_top/pll_reconfig_module/pll_reconfig_module.vhd",
+            "gateware/max10_pll_top/dyn_ps/synth/pll_ps_fsm.vhd",
+            "gateware/max10_pll_top/dyn_ps/synth/pll_ps_top.vhd",
+            "gateware/max10_pll_top/dyn_ps/synth/pll_ps.vhd",
         ]
 
         for file in pll_top_files:

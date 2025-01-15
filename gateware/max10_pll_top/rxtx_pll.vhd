@@ -55,8 +55,8 @@ entity rxtx_pll is
       inclk2            : in std_logic;
       pll_areset        : in std_logic;
       pll_logic_reset_n : in std_logic;
-      inv_c0            : in std_logic;
-      inv_c2            : in std_logic;
+      --inv_c0            : in std_logic;
+      --inv_c2            : in std_logic;
       c0                : out std_logic; --muxed clock output
       c1                : out std_logic; --muxed clock output
       c2                : out std_logic; --muxed clock output
@@ -169,33 +169,33 @@ signal inst6_c2_pol_h            : std_logic_vector(0 downto 0);
 signal inst6_c2_pol_l            : std_logic_vector(0 downto 0);
 signal inst6_dataout             : std_logic_vector(0 downto 0);
 
-signal drct_c0_dly_chain         : std_logic_vector(drct_c0_ndly-1 downto 0);
-signal drct_c1_dly_chain         : std_logic_vector(drct_c1_ndly-1 downto 0);
-signal drct_c2_dly_chain         : std_logic_vector(drct_c2_ndly-1 downto 0);
-signal drct_c3_dly_chain         : std_logic_vector(drct_c3_ndly-1 downto 0);
+--signal drct_c0_dly_chain         : std_logic_vector(drct_c0_ndly-1 downto 0);
+--signal drct_c1_dly_chain         : std_logic_vector(drct_c1_ndly-1 downto 0);
+--signal drct_c2_dly_chain         : std_logic_vector(drct_c2_ndly-1 downto 0);
+--signal drct_c3_dly_chain         : std_logic_vector(drct_c3_ndly-1 downto 0);
 
 --inst10
 signal inst10_clkselect          : std_logic_vector(1 downto 0);
 
-signal c0_mux, c1_mux            : std_logic;
-signal c2_mux, c3_mux            : std_logic;
+--signal c0_mux, c1_mux            : std_logic;
+--signal c2_mux, c3_mux            : std_logic;
 signal locked_mux                : std_logic;
 
-component clkctrl is
-   port (
-      inclk  : in  std_logic := '0'; --  altclkctrl_input.inclk
-      ena    : in  std_logic := '0'; --                  .ena
-      outclk : out std_logic         -- altclkctrl_output.outclk
-);
-end component;
+--component clkctrl is
+--   port (
+--      inclk  : in  std_logic := '0'; --  altclkctrl_input.inclk
+--      ena    : in  std_logic := '0'; --                  .ena
+--      outclk : out std_logic         -- altclkctrl_output.outclk
+--);
+--end component;
 
-component ddrox1 is
-   port (
-      outclock : in  std_logic                    := '0';             -- outclock.export
-      din      : in  std_logic_vector(1 downto 0) := (others => '0'); --      din.export
-      pad_out  : out std_logic_vector(0 downto 0)                     --  pad_out.export
-   );
-end component;
+--component ddrox1 is
+--   port (
+--      outclock : in  std_logic                    := '0';             -- outclock.export
+--      din      : in  std_logic_vector(1 downto 0) := (others => '0'); --      din.export
+--      pad_out  : out std_logic_vector(0 downto 0)                     --  pad_out.export
+--   );
+--end component;
 
 COMPONENT altpll
    GENERIC (
@@ -526,121 +526,125 @@ pll_reconfig_status_inst4 : entity work.pll_reconfig_status
 -- ----------------------------------------------------------------------------
 -- c0 direct output lcell delay chain 
 -- ----------------------------------------------------------------------------   
-c0_dly_instx_gen : 
-for i in 0 to drct_c0_ndly-1 generate
-   --first lcell instance
-   first : if i = 0 generate 
-   lcell0 : lcell 
-      port map (
-         a_in  => pll_inclk_global,
-         a_out => drct_c0_dly_chain(i)
-         );
-   end generate first;
-   --rest of the lcell instance
-   rest : if i > 0 generate
-   lcellx : lcell 
-      port map (
-         a_in  => drct_c0_dly_chain(i-1),
-         a_out => drct_c0_dly_chain(i)
-         );
-   end generate rest;
-end generate c0_dly_instx_gen;
+--c0_dly_instx_gen : 
+--for i in 0 to drct_c0_ndly-1 generate
+--   --first lcell instance
+--   first : if i = 0 generate 
+--   lcell0 : lcell 
+--      port map (
+--         a_in  => pll_inclk_global,
+--         a_out => drct_c0_dly_chain(i)
+--         );
+--   end generate first;
+--   --rest of the lcell instance
+--   rest : if i > 0 generate
+--   lcellx : lcell 
+--      port map (
+--         a_in  => drct_c0_dly_chain(i-1),
+--         a_out => drct_c0_dly_chain(i)
+--         );
+--   end generate rest;
+--end generate c0_dly_instx_gen;
 
 
 -- ----------------------------------------------------------------------------
 -- c1 direct output lcell delay chain 
 -- ----------------------------------------------------------------------------   
-c1_dly_instx_gen : 
-for i in 0 to drct_c1_ndly-1 generate
-   --first lcell instance
-   first : if i = 0 generate 
-   lcell0 : lcell 
-      port map (
-         a_in  => pll_inclk_global,
-         a_out => drct_c1_dly_chain(i)
-         );
-   end generate first;
-   --rest of the lcell instance
-   rest : if i > 0 generate
-   lcellx : lcell 
-      port map (
-         a_in  => drct_c1_dly_chain(i-1),
-         a_out => drct_c1_dly_chain(i)
-         );
-   end generate rest;
-end generate c1_dly_instx_gen;
+--c1_dly_instx_gen : 
+--for i in 0 to drct_c1_ndly-1 generate
+--   --first lcell instance
+--   first : if i = 0 generate 
+--   lcell0 : lcell 
+--      port map (
+--         a_in  => pll_inclk_global,
+--         a_out => drct_c1_dly_chain(i)
+--         );
+--   end generate first;
+--   --rest of the lcell instance
+--   rest : if i > 0 generate
+--   lcellx : lcell 
+--      port map (
+--         a_in  => drct_c1_dly_chain(i-1),
+--         a_out => drct_c1_dly_chain(i)
+--         );
+--   end generate rest;
+--end generate c1_dly_instx_gen;
 
 
 -- ----------------------------------------------------------------------------
 -- c2 direct output lcell delay chain 
 -- ----------------------------------------------------------------------------   
-c2_dly_instx_gen : 
-for i in 0 to drct_c2_ndly-1 generate
-   --first lcell instance
-   first : if i = 0 generate 
-   lcell0 : lcell 
-      port map (
-         a_in  => pll_inclk_global,
-         a_out => drct_c2_dly_chain(i)
-         );
-   end generate first;
-   --rest of the lcell instance
-   rest : if i > 0 generate
-   lcellx : lcell 
-      port map (
-         a_in  => drct_c2_dly_chain(i-1),
-         a_out => drct_c2_dly_chain(i)
-         );
-   end generate rest;
-end generate c2_dly_instx_gen;
+--c2_dly_instx_gen : 
+--for i in 0 to drct_c2_ndly-1 generate
+--   --first lcell instance
+--   first : if i = 0 generate 
+--   lcell0 : lcell 
+--      port map (
+--         a_in  => pll_inclk_global,
+--         a_out => drct_c2_dly_chain(i)
+--         );
+--   end generate first;
+--   --rest of the lcell instance
+--   rest : if i > 0 generate
+--   lcellx : lcell 
+--      port map (
+--         a_in  => drct_c2_dly_chain(i-1),
+--         a_out => drct_c2_dly_chain(i)
+--         );
+--   end generate rest;
+--end generate c2_dly_instx_gen;
 
 
 -- ----------------------------------------------------------------------------
 -- c3 direct output lcell delay chain 
 -- ----------------------------------------------------------------------------   
-c3_dly_instx_gen : 
-for i in 0 to drct_c3_ndly-1 generate
-   --first lcell instance
-   first : if i = 0 generate 
-   lcell0 : lcell 
-      port map (
-         a_in  => pll_inclk_global,
-         a_out => drct_c3_dly_chain(i)
-         );
-   end generate first;
-   --rest of the lcell instance
-   rest : if i > 0 generate
-   lcellx : lcell 
-      port map (
-         a_in  => drct_c3_dly_chain(i-1),
-         a_out => drct_c3_dly_chain(i)
-         );
-   end generate rest;
-end generate c3_dly_instx_gen;
+--c3_dly_instx_gen : 
+--for i in 0 to drct_c3_ndly-1 generate
+--   --first lcell instance
+--   first : if i = 0 generate 
+--   lcell0 : lcell 
+--      port map (
+--         a_in  => pll_inclk_global,
+--         a_out => drct_c3_dly_chain(i)
+--         );
+--   end generate first;
+--   --rest of the lcell instance
+--   rest : if i > 0 generate
+--   lcellx : lcell 
+--      port map (
+--         a_in  => drct_c3_dly_chain(i-1),
+--         a_out => drct_c3_dly_chain(i)
+--         );
+--   end generate rest;
+--end generate c3_dly_instx_gen;
 
 -- ----------------------------------------------------------------------------
 -- c0 clk MUX
 -- ----------------------------------------------------------------------------
-c0_mux <=   inst3_clk(0) when drct_clk_en(0)='0' else 
-            drct_c0_dly_chain(drct_c0_ndly-1);
+--c0_mux <=   inst3_clk(0) when drct_clk_en(0)='0' else 
+--            drct_c0_dly_chain(drct_c0_ndly-1);
+c0 <= inst3_clk(0);
 				
 -- ----------------------------------------------------------------------------
 -- c1 clk MUX
 -- ----------------------------------------------------------------------------
-c1_mux <=   inst3_clk(1) when drct_clk_en(1)='0' else 
-            drct_c1_dly_chain(drct_c1_ndly-1);
+--c1_mux <=   inst3_clk(1) when drct_clk_en(1)='0' else 
+--            drct_c1_dly_chain(drct_c1_ndly-1);
+c1 <= inst3_clk(1);
    
 -- ----------------------------------------------------------------------------
 -- c2 clk MUX
 -- ----------------------------------------------------------------------------
-c2_mux <=   inst3_clk(2) when drct_clk_en(2)='0' else 
-            drct_c2_dly_chain(drct_c2_ndly-1);
+--c2_mux <=   inst3_clk(2) when drct_clk_en(2)='0' else 
+--            drct_c2_dly_chain(drct_c2_ndly-1);
+c2 <= inst3_clk(2);
             
 -- ----------------------------------------------------------------------------
 -- c3 clk MUX
 -- ----------------------------------------------------------------------------
-c3_mux <=   inst3_clk(3) when drct_clk_en(3)='0' else 
-            drct_c3_dly_chain(drct_c3_ndly-1);
+--c3_mux <=   inst3_clk(3) when drct_clk_en(3)='0' else 
+--            drct_c3_dly_chain(drct_c3_ndly-1);
+c3 <= inst3_clk(3);
    
 
 locked_mux <=  pll_areset_n when (drct_clk_en(0)='1' OR drct_clk_en(1)='1') else
@@ -649,73 +653,74 @@ locked_mux <=  pll_areset_n when (drct_clk_en(0)='1' OR drct_clk_en(1)='1') else
 -- ----------------------------------------------------------------------------
 -- DDR output buffers
 -- ----------------------------------------------------------------------------
-inst5_c0_pol_h(0) <= not inv_c0;
-inst5_c0_pol_l(0) <= inv_c0;
-
-
-ddrox1_inst6 : ddrox1
-   port map (
-      outclock => c0_global,
-      din      => inst5_c0_pol_l & inst5_c0_pol_h, 		
-      pad_out  => inst5_dataout                 
-   );
-   
-   
-inst6_c2_pol_h(0) <= not inv_c2;
-inst6_c2_pol_l(0) <= inv_c2;
-
-ddrox1_inst7 : ddrox1
-   port map (
-      outclock => c2_global,
-      din      => inst6_c2_pol_l & inst6_c2_pol_h, 		
-      pad_out  => inst6_dataout                 
-   );
+--inst5_c0_pol_h(0) <= not inv_c0;
+--inst5_c0_pol_l(0) <= inv_c0;
+--
+--
+--ddrox1_inst6 : ddrox1
+--   port map (
+--      outclock => c0_global,
+--      din      => inst5_c0_pol_l & inst5_c0_pol_h, 		
+--      pad_out  => inst5_dataout                 
+--   );
+--   
+--   
+--inst6_c2_pol_h(0) <= not inv_c2;
+--inst6_c2_pol_l(0) <= inv_c2;
+--
+--ddrox1_inst7 : ddrox1
+--   port map (
+--      outclock => c2_global,
+--      din      => inst6_c2_pol_l & inst6_c2_pol_h, 		
+--      pad_out  => inst6_dataout                 
+--   );
 
 -- ----------------------------------------------------------------------------
 -- Clock control buffers 
 -- ----------------------------------------------------------------------------
-clkctrl_inst7 : clkctrl 
-port map(
-   inclk    => inclk2,
-   ena      => '1',
-   outclk   => pll_inclk_global
-);
+--clkctrl_inst7 : clkctrl 
+--port map(
+--   inclk    => inclk2,
+--   ena      => '1',
+--   outclk   => pll_inclk_global
+--);
+pll_inclk_global <= inclk2;
 
-clkctrl_inst8 : clkctrl 
-port map(
-   inclk    => c0_mux,
-   ena      => clk_ena(0),
-   outclk   => c0_global
-);
+--clkctrl_inst8 : clkctrl 
+--port map(
+--   inclk    => c0_mux,
+--   ena      => clk_ena(0),
+--   outclk   => c0_global
+--);
 
-clkctrl_inst9 : clkctrl 
-port map(
-   inclk    => c1_mux,
-   ena      => clk_ena(1),
-   outclk   => c1_global
-);
+--clkctrl_inst9 : clkctrl 
+--port map(
+--   inclk    => c1_mux,
+--   ena      => clk_ena(1),
+--   outclk   => c1_global
+--);
 
-clkctrl_inst10 : clkctrl 
-port map(
-   inclk    => c2_mux,
-   ena      => clk_ena(2),
-   outclk   => c2_global
-);
+--clkctrl_inst10 : clkctrl 
+--port map(
+--   inclk    => c2_mux,
+--   ena      => clk_ena(2),
+--   outclk   => c2_global
+--);
 
-clkctrl_inst11 : clkctrl 
-port map(
-   inclk    => c3_mux,
-   ena      => clk_ena(3),
-   outclk   => c3_global
-);
+--clkctrl_inst11 : clkctrl 
+--port map(
+--   inclk    => c3_mux,
+--   ena      => clk_ena(3),
+--   outclk   => c3_global
+--);
 
 -- ----------------------------------------------------------------------------
 -- To output ports
 -- ----------------------------------------------------------------------------
-c0             <= inst5_dataout(0);
-c1             <= c1_global;
-c2             <= inst6_dataout(0);
-c3             <= c3_global;
+--c0             <= inst5_dataout(0);
+--c1             <= c1_global;
+--c2             <= inst6_dataout(0);
+--c3             <= c3_global;
 pll_locked     <= locked_mux;
 rcnfig_status  <= inst4_rcfig_complete;
 dynps_done     <= inst2_ps_done;
