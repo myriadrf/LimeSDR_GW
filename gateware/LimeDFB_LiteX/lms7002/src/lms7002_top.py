@@ -266,7 +266,10 @@ class LMS7002Top(LiteXModule):
         if pllcfg_manager is not None:
             self.specials += MultiReg(pllcfg_manager.auto_phcfg_smpls, tx_smpl_cmp_length, odomain="lms_tx"),
         else:
-            self.comb += tx_smpl_cmp_length.eq(0)
+            if platform.name.startswith("limesdr_mini"):
+                self.comb += tx_smpl_cmp_length.eq(0)
+            else:
+                self.comb += tx_smpl_cmp_length.eq(self.smpl_cmp_cnt)
 
         # RX path (DIQ2). --------------------------------------------------------------------------
         self.lms7002_ddin = ClockDomainsRenamer("lms_rx")(LMS7002DDIN(platform, 12, pads, invert_input_clock))
@@ -294,7 +297,7 @@ class LMS7002Top(LiteXModule):
 
             # Control signals
             i_cmp_start     = smpl_cmp_en,
-            i_cmp_length    = tx_smpl_cmp_length,
+            i_cmp_length    = rx_smpl_cmp_length,
             o_cmp_done      = smpl_cmp_done,
             o_cmp_error     = smpl_cmp_error,
         )
@@ -381,7 +384,10 @@ class LMS7002Top(LiteXModule):
         if pllcfg_manager is not None:
             self.specials += MultiReg(pllcfg_manager.auto_phcfg_smpls, rx_smpl_cmp_length, odomain="lms_rx"),
         else:
-            self.comb += rx_smpl_cmp_length.eq(0)
+            if platform.name.startswith("limesdr_mini"):
+                self.comb += rx_smpl_cmp_length.eq(0)
+            else:
+                self.comb += rx_smpl_cmp_length.eq(self.smpl_cmp_cnt)
 
         # Delay control module.
         # ---------------------
