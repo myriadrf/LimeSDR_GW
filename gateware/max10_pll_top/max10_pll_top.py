@@ -16,14 +16,24 @@ from gateware.common            import add_vhd2v_converter
 # MAX10 PLL Top ------------------------------------------------------------------------------------
 
 class MAX10PLLTop(LiteXModule):
-    def __init__(self, platform, pads, pllcfg_manager):
+    def __init__(self, platform, pads, pllcfg_manager,
+        drct_c0_ndly = 1,
+        drct_c1_ndly = 2,
+        drct_c2_ndly = 1,
+        drct_c3_ndly = 2,
+        ):
 
-        self.platform              = platform
+        # c0: FCLK1
+        # c1: EP03 PC -> FPGA (TX) (tx_clk)
+        # c2: FCLK2
+        # c3: EP83 FPGA -> PC (RX) (rx_clk)
 
-        self.pll_c0      = Signal()
-        self.pll_c1      = Signal()
-        self.pll_c2      = Signal()
-        self.pll_c3      = Signal()
+        self.platform    = platform
+
+        self.c0_global   = Signal()
+        self.c2_global   = Signal()
+        self.rx_clk      = Signal()
+        self.tx_clk      = Signal()
         self.pll_locked  = Signal()
 
         # fpgacfg
@@ -37,6 +47,13 @@ class MAX10PLLTop(LiteXModule):
         self.smpl_cmp_cnt   = Signal(16)
 
         # # #
+
+        # Signals.
+        # --------
+        pll_c0 = Signal()
+        pll_c1 = Signal()
+        pll_c2 = Signal()
+        pll_c3 = Signal()
 
         # pll_top instance.
         # -----------------
@@ -76,10 +93,10 @@ class MAX10PLLTop(LiteXModule):
             i_pll_logic_reset_n      = ~ResetSignal("sys"),
             i_pll_clk_ena            = self.clk_ena,
             i_pll_drct_clk_en        = self.drct_clk_en,
-            o_pll_c0                 = self.pll_c0,
-            o_pll_c1                 = self.pll_c1,
-            o_pll_c2                 = self.pll_c2,
-            o_pll_c3                 = self.pll_c3,
+            o_pll_c0                 = pll_c0,
+            o_pll_c1                 = pll_c1,
+            o_pll_c2                 = pll_c2,
+            o_pll_c3                 = pll_c3,
             o_pll_locked             = self.pll_locked,
             o_pll_smpl_cmp_en        = self.smpl_cmp_en,#inst1_pll_smpl_cmp_en,
             i_pll_smpl_cmp_done      = self.smpl_cmp_done,#inst6_rx_smpl_cmp_done,
@@ -133,6 +150,136 @@ class MAX10PLLTop(LiteXModule):
             # PLL Lock flags
             o_pll_lock_vect          = pllcfg_manager.pll_lock,
         )
+
+        inst3_clk        = Signal(3)
+        pll_inclk_global = Signal()
+
+        # c0: FCLK1
+        # c1: EP03 PC -> FPGA (TX) (tx_clk)
+        # c2: FCLK2
+        # c3: EP83 FPGA -> PC (RX) (rx_clk)
+
+        # Clk.
+        # ----
+        self.specials += Instance("fiftyfivenm_clkctrl",
+            p_clock_type        = "Global Clock",
+            p_ena_register_mode = "falling edge",
+            p_lpm_type          = "fiftyfivenm_clkctrl",
+
+            i_inclk             = pads.MCLK2,
+            i_clkselect         = Constant(0, 2),
+            i_ena               = Constant(1, 1),
+            o_outclk            = pll_inclk_global,
+        )
+
+        # TX.
+        # ---
+        drct_c0_dly_chain = Signal(drct_c0_ndly)
+        c0_mux            = Signal()
+        drct_c1_dly_chain = Signal(drct_c1_ndly)
+        c1_mux            = Signal()
+        c1_global         = Signal()
+
+        for i in range(drct_c0_ndly):
+            self.specials += Instance("lcell",
+                i_in  = {True:pads.MCLK2, False:drct_c0_dly_chain[i-1]}[i==0],
+                o_out = drct_c0_dly_chain[i],
+            )
+        for i in range(drct_c1_ndly):
+            self.specials += Instance("lcell",
+                i_in  = {True:pads.MCLK2, False:drct_c1_dly_chain[i-1]}[i==0],
+                o_out = drct_c1_dly_chain[i],
+            )
+        self.specials += [
+            Instance("fiftyfivenm_clkctrl",
+                p_clock_type        = "Global Clock",
+                p_ena_register_mode = "falling edge",
+                p_lpm_type          = "fiftyfivenm_clkctrl",
+
+                i_inclk             = c0_mux,
+                i_clkselect         = Constant(0, 2),
+                i_ena               = self.clk_ena[0],
+                o_outclk            = self.c0_global,
+            ),
+            Instance("fiftyfivenm_clkctrl",
+                p_clock_type        = "Global Clock",
+                p_ena_register_mode = "falling edge",
+                p_lpm_type          = "fiftyfivenm_clkctrl",
+
+                i_inclk             = c1_mux,
+                i_clkselect         = Constant(0, 2),
+                i_ena               = self.clk_ena[0],
+                o_outclk            = c1_global,
+            ),
+        ]
+
+        self.comb += [
+            If(self.drct_clk_en[0],
+                c0_mux.eq(drct_c0_dly_chain[drct_c0_ndly-1]),
+            ).Else(
+                c0_mux.eq(pll_c0)
+            ),
+            If(self.drct_clk_en[1],
+                c1_mux.eq(drct_c1_dly_chain[drct_c1_ndly-1]),
+            ).Else(
+                c1_mux.eq(pll_c1)
+            ),
+            self.tx_clk.eq(c1_global),
+        ]
+
+        # RX.
+        # ---
+        drct_c2_dly_chain = Signal(drct_c2_ndly)
+        c2_mux            = Signal()
+        drct_c3_dly_chain = Signal(drct_c3_ndly)
+        c3_mux            = Signal()
+        c3_global         = Signal()
+
+        for i in range(drct_c2_ndly):
+            self.specials += Instance("lcell",
+                i_in  = {True:pll_inclk_global, False:drct_c2_dly_chain[i-1]}[i==0],
+                o_out = drct_c2_dly_chain[i],
+            )
+        for i in range(drct_c2_ndly):
+            self.specials += Instance("lcell",
+                i_in  = {True:pll_inclk_global, False:drct_c3_dly_chain[i-1]}[i==0],
+                o_out = drct_c3_dly_chain[i],
+            )
+        self.specials += [
+            Instance("fiftyfivenm_clkctrl",
+                p_clock_type        = "Global Clock",
+                p_ena_register_mode = "falling edge",
+                p_lpm_type          = "fiftyfivenm_clkctrl",
+
+                i_inclk             = c2_mux,
+                i_clkselect         = Constant(0, 2),
+                i_ena               = self.clk_ena[2],
+                o_outclk            = self.c2_global,
+            ),
+            Instance("fiftyfivenm_clkctrl",
+                p_clock_type        = "Global Clock",
+                p_ena_register_mode = "falling edge",
+                p_lpm_type          = "fiftyfivenm_clkctrl",
+
+                i_inclk             = c3_mux,
+                i_clkselect         = Constant(0, 2),
+                i_ena               = self.clk_ena[3],
+                o_outclk            = c3_global,
+            ),
+        ]
+        self.comb += [
+            If(self.drct_clk_en[2],
+                c2_mux.eq(drct_c2_dly_chain[drct_c2_ndly-1]),
+            ).Else(
+                c2_mux.eq(pll_c2),
+            ),
+            If(self.drct_clk_en[3],
+                c3_mux.eq(drct_c3_dly_chain[drct_c3_ndly-1]),
+            ).Else(
+                c3_mux.eq(pll_c3),
+            ),
+            self.rx_clk.eq(c3_global),
+        ]
 
         self.add_sources(platform)
 
