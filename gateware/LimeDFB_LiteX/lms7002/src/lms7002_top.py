@@ -537,10 +537,10 @@ class LMS7002Top(LiteXModule):
                 self.pads.RESET.eq(            self.lms1.fields.reset),
                 If(self.lms1.fields.txrxen_mux_sel,
                     lms_txen.eq(txant_en),
-                    lms_txen.eq(~txant_en),
+                    lms_rxen.eq(~txant_en),
                 ).Else(
                     lms_txen.eq(self.lms1.fields.txen),
-                    lms_txen.eq(self.lms1.fields.rxen),
+                    lms_rxen.eq(self.lms1.fields.rxen),
                 ),
                 If(self.lms1.fields.txrxen_inv,
                    self.pads.TXEN.eq(~lms_txen),
