@@ -16,9 +16,9 @@ from litex.build.io import DDROutput
 class LMS7002CLK(LiteXModule):
     def __init__(self, platform, pads=None, pllcfg_manager=None,
         drct_c0_ndly   = 1,
-        drct_c1_ndly   = 1,
+        drct_c1_ndly   = 2,
         drct_c2_ndly   = 1,
-        drct_c3_ndly   = 1,
+        drct_c3_ndly   = 2,
         with_max10_pll = True,
         ):
         # Configuration
@@ -279,11 +279,11 @@ class LMS7002CLK(LiteXModule):
             self.txclk_c1_dlly   = ClkDlyFxd(i=self.cd_txclk_global.clk, o=self.cd_txclk_c1_dly.clk)
 
             #TX CLK C1 mux
-            self.txclk     = ClockDomain()
+            self.cd_txclk  = ClockDomain()
             self.txclk_mux = ClkMux(
                 i0  = self.cd_txpll_clk_c1.clk,
                 i1  = self.cd_txclk_c1_dly.clk,
-                o   = self.txclk.clk,
+                o   = self.cd_txclk.clk,
                 sel = self.CLK_CTRL.DRCT_TXCLK_EN.storage)
 
             # Create clock groups (false paths) between sys clk and all clocks from TX interface tree
@@ -294,11 +294,11 @@ class LMS7002CLK(LiteXModule):
                 self.cd_txpll_clk_c1.clk,
                 self.cd_txclk_c0_muxed.clk,
                 self.cd_txclk_c1_dly.clk,
-                self.txclk.clk,
+                self.cd_txclk.clk,
             )
 
             self.comb += [
-                self.tx_clk.eq(self.txclk.clk),
+                self.tx_clk.eq(self.cd_txclk.clk),
                 pads.FCLK1.eq(self.cd_txclk_c0_muxed.clk),
             ]
 
@@ -331,11 +331,11 @@ class LMS7002CLK(LiteXModule):
             self.rxclk_c1_dlly   = ClkDlyFxd(i=self.cd_rxclk_global.clk, o=self.cd_rxclk_c1_dly.clk)
 
             #RX CLK C1 mux
-            self.rxclk     = ClockDomain()
+            self.cd_rxclk  = ClockDomain()
             self.rxclk_mux = ClkMux(
                 i0  = self.cd_rxpll_clk_c1.clk,
                 i1  = self.cd_rxclk_c1_dly.clk,
-                o   = self.rxclk.clk,
+                o   = self.cd_rxclk.clk,
                 sel = self.CLK_CTRL.DRCT_RXCLK_EN.storage,
             )
 
@@ -347,10 +347,10 @@ class LMS7002CLK(LiteXModule):
                 self.cd_rxpll_clk_c1.clk,
                 self.cd_rxclk_c0_muxed.clk,
                 self.cd_rxclk_c1_dly.clk,
-                self.rxclk.clk,
+                self.cd_rxclk.clk,
             )
 
             self.comb += [
-                self.rx_clk.eq(self.rxclk.clk),
+                self.rx_clk.eq(self.cd_rxclk.clk),
                 pads.FCLK2.eq(self.cd_rxclk_c0_muxed.clk),
             ]
