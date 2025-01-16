@@ -37,6 +37,7 @@ class LMS7002Top(LiteXModule):
         s_axis_tx_fifo_words = 16,
         m_clk_domain         = "lms_rx",
         m_axis_rx_fifo_words = 16,
+        with_max10_pll       = False,
         ):
 
         assert pads            is not None
@@ -182,7 +183,7 @@ class LMS7002Top(LiteXModule):
 
         # Clocks.
         # -------
-        self.lms7002_clk = LMS7002CLK(platform, pads, pllcfg_manager)
+        self.lms7002_clk = LMS7002CLK(platform, pads, pllcfg_manager, with_max10_pll=with_max10_pll)
         self.comb += [
             self.cd_lms_tx.clk.eq(self.lms7002_clk.tx_clk),
             self.cd_lms_rx.clk.eq(self.lms7002_clk.rx_clk),
@@ -428,7 +429,14 @@ class LMS7002Top(LiteXModule):
                 o_delayf_move      = inst1_delayf_move,
                 o_delayf_direction = Open(),
             )
-        elif platform.name not in ["limesdr_mini_v1"]:
+        elif platform.name in ["limesdr_mini_v1"]:
+            self.comb += [
+                smpl_cmp_en.eq(                    self.lms7002_clk.smpl_cmp_en),
+                self.lms7002_clk.smpl_cmp_done.eq( smpl_cmp_done),
+                self.lms7002_clk.smpl_cmp_error.eq(smpl_cmp_error),
+                smpl_cmp_cnt.eq(                   self.lms7002_clk.smpl_cmp_cnt),
+            ]
+        else:
             self.specials += [
                 MultiReg(self.cmp_start.storage,  smpl_cmp_en_sync,     odomain="lms_rx"),
                 MultiReg(self.cmp_length.storage, smpl_cmp_length_sync, odomain="lms_rx"),
