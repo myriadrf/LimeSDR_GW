@@ -14,20 +14,31 @@ from litex.build.io import DDROutput
 # LMS7002 CLK --------------------------------------------------------------------------------------
 
 class LMS7002CLK(LiteXModule):
-    def __init__(self, platform, pads=None, pllcfg_manager=None, drct_c0_ndly=1, drct_c2_ndly=1):
+    def __init__(self, platform, pads=None, pllcfg_manager=None,
+        drct_c0_ndly   = 1,
+        drct_c1_ndly   = 1,
+        drct_c2_ndly   = 1,
+        drct_c3_ndly   = 1,
+        with_max10_pll = True,
+        ):
         # Configuration
-        self.sel       = Signal() # 0 - fclk1 control, 1 - fclk2 control
-        self.cflag     = Signal()
-        self.direction = Signal()
-        self.loadn     = Signal()
-        self.move      = Signal()
+        self.sel            = Signal() # 0 - fclk1 control, 1 - fclk2 control
+        self.cflag          = Signal()
+        self.direction      = Signal()
+        self.loadn          = Signal()
+        self.move           = Signal()
 
-        self.rx_clk    = Signal()
-        self.tx_clk    = Signal()
+        self.rx_clk         = Signal()
+        self.tx_clk         = Signal()
 
         # mini V1 only
-        self.clk_ena     = Signal(4)
-        self.drct_clk_en = Signal(4)
+        self.clk_ena        = Signal(4)
+        self.drct_clk_en    = Signal(4)
+        self.pll_locked     = Signal()
+        self.smpl_cmp_en    = Signal()
+        self.smpl_cmp_done  = Signal()
+        self.smpl_cmp_error = Signal()
+        self.smpl_cmp_cnt   = Signal(16)
 
         # # #
 
@@ -132,74 +143,102 @@ class LMS7002CLK(LiteXModule):
                 ),
             ]
         elif platform.name in ["limesdr_mini_v1"]:
-            assert pllcfg_manager is not None
-            inst3_clk         = Signal(3)
-            # TX.
-            # ---
-            drct_c0_dly_chain = Signal(drct_c0_ndly)
-            c0_mux            = Signal()
-
-            for i in range(drct_c0_ndly):
-                self.specials += Instance("lcell",
-                    i_in  = {True:pads.MCLK2, False:drct_c0_dly_chain[i-1]}[i==0],
-                    o_out = drct_c0_dly_chain[i],
-                )
-            self.specials += [
-                Instance("fiftyfivenm_clkctrl",
-                    p_clock_type        = "Global Clock",
-                    p_ena_register_mode = "falling edge",
-                    p_lpm_type          = "fiftyfivenm_clkctrl",
-
-                    i_inclk             = c0_mux,
-                    i_clkselect         = Constant(0, 2),
-                    i_ena               = self.clk_ena[0],
-                    o_outclk            = c0_global,
-                    # io_devclrn          = Constant(1, 1),
-                    # io_devpor           = Constant(1, 1),
-                ),
-            ]
-
             self.comb += [
-                If(self.drct_clk_en[0],
-                    c0_mux.eq(drct_c0_dly_chain[drct_c0_ndly-1]),
-                ).Else(
-                    c0_mux.eq(pads.MCLK2)
-                ),
-                pads.FCLK1.eq(inst1_q),
+                pads.FCLK1.eq(                   inst1_q),
+                pads.FCLK2.eq(                   inst2_q),
             ]
 
-            # RX.
-            # ---
-            drct_c2_dly_chain = Signal(drct_c2_ndly)
-            c2_mux            = Signal()
+            if with_max10_pll:
+                assert pllcfg_manager is not None
+                from gateware.max10_pll_top.max10_pll_top import MAX10PLLTop
 
-            for i in range(drct_c2_ndly):
-                self.specials += Instance("lcell",
-                    i_in  = {True:pads.MCLK2, False:drct_c2_dly_chain[i-1]}[i==0],
-                    o_out = drct_c2_dly_chain[i],
+                self.max10_pll = MAX10PLLTop(platform, pads, pllcfg_manager,
+                    drct_c0_ndly = drct_c0_ndly,
+                    drct_c1_ndly = drct_c1_ndly,
+                    drct_c2_ndly = drct_c2_ndly,
+                    drct_c3_ndly = drct_c3_ndly,
                 )
-            self.specials += [
-                Instance("fiftyfivenm_clkctrl",
-                    p_clock_type        = "Global Clock",
-                    p_ena_register_mode = "falling edge",
-                    p_lpm_type          = "fiftyfivenm_clkctrl",
 
-                    i_inclk             = c2_mux,
-                    i_clkselect         = Constant(0, 2),
-                    i_ena               = self.clk_ena[2],
-                    o_outclk            = c2_global,
-                    # io_devclrn          = Constant(1, 1),
-                    # io_devpor           = Constant(1, 1),
-                ),
-            ]
-            self.comb += [
-                If(self.drct_clk_en[2],
-                    c2_mux.eq(drct_c2_dly_chain[drct_c2_ndly-1]),
-                ).Else(
-                    c2_mux.eq(pads.MCLK2),
-                ),
-                pads.FCLK2.eq(inst2_q),
-            ]
+                self.comb += [
+                    self.max10_pll.clk_ena.eq(       self.clk_ena),
+                    self.max10_pll.drct_clk_en.eq(   self.drct_clk_en),
+                    self.pll_locked.eq(              self.max10_pll.pll_locked),
+                    self.smpl_cmp_en.eq(             self.max10_pll.smpl_cmp_en),
+                    self.max10_pll.smpl_cmp_done.eq( self.smpl_cmp_done),
+                    self.max10_pll.smpl_cmp_error.eq(self.smpl_cmp_error),
+                    self.smpl_cmp_cnt.eq(            self.max10_pll.smpl_cmp_cnt),
+
+                    c0_global.eq(                    self.max10_pll.c0_global),
+                    self.tx_clk.eq(                  self.max10_pll.tx_clk),
+                    c2_global.eq(                    self.max10_pll.c2_global),
+                    self.rx_clk.eq(                  self.max10_pll.rx_clk),
+                ]
+            else:
+                inst3_clk         = Signal(3)
+                # TX.
+                # ---
+                drct_c0_dly_chain = Signal(drct_c0_ndly)
+                c0_mux            = Signal()
+
+                for i in range(drct_c0_ndly):
+                    self.specials += Instance("lcell",
+                        i_in  = {True:pads.MCLK2, False:drct_c0_dly_chain[i-1]}[i==0],
+                        o_out = drct_c0_dly_chain[i],
+                    )
+                self.specials += [
+                    Instance("fiftyfivenm_clkctrl",
+                        p_clock_type        = "Global Clock",
+                        p_ena_register_mode = "falling edge",
+                        p_lpm_type          = "fiftyfivenm_clkctrl",
+
+                        i_inclk             = c0_mux,
+                        i_clkselect         = Constant(0, 2),
+                        i_ena               = self.clk_ena[0],
+                        o_outclk            = c0_global,
+                        # io_devclrn          = Constant(1, 1),
+                        # io_devpor           = Constant(1, 1),
+                    ),
+                ]
+
+                self.comb += [
+                    If(self.drct_clk_en[0],
+                        c0_mux.eq(drct_c0_dly_chain[drct_c0_ndly-1]),
+                    ).Else(
+                        c0_mux.eq(pads.MCLK2)
+                    ),
+                ]
+
+                # RX.
+                # ---
+                drct_c2_dly_chain = Signal(drct_c2_ndly)
+                c2_mux            = Signal()
+
+                for i in range(drct_c2_ndly):
+                    self.specials += Instance("lcell",
+                        i_in  = {True:pads.MCLK2, False:drct_c2_dly_chain[i-1]}[i==0],
+                        o_out = drct_c2_dly_chain[i],
+                    )
+                self.specials += [
+                    Instance("fiftyfivenm_clkctrl",
+                        p_clock_type        = "Global Clock",
+                        p_ena_register_mode = "falling edge",
+                        p_lpm_type          = "fiftyfivenm_clkctrl",
+
+                        i_inclk             = c2_mux,
+                        i_clkselect         = Constant(0, 2),
+                        i_ena               = self.clk_ena[2],
+                        o_outclk            = c2_global,
+                        # io_devclrn          = Constant(1, 1),
+                        # io_devpor           = Constant(1, 1),
+                    ),
+                ]
+                self.comb += [
+                    If(self.drct_clk_en[2],
+                        c2_mux.eq(drct_c2_dly_chain[drct_c2_ndly-1]),
+                    ).Else(
+                        c2_mux.eq(pads.MCLK2),
+                    ),
+                ]
 
         else:
             from gateware.lms7002_clk import ClkCfgRegs
