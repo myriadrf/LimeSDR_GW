@@ -261,6 +261,42 @@ at the target level but `rxtx_top.py` remains used to instanciates both submodul
 - *limesdr_xtrx* firmware is in *firmware_xtrx* repository. This firmware is an
 - adapted version of the one in *LimeSDR_GW* repository.
 
+## Test dual boot IP core (LimeSDR_Mini_v1)
+
+### Objective
+Validate the correct behavior of the user bitstream using limeGUI or limeFlash tools.
+The `limesdr_mini_v1_blink.py` target in the test directory is used to verify functionality
+by blinking the onboard LEDs with the `LedChaser` sequence.
+
+### Steps to Prepare And Test
+
+```bash
+# Create a simple bitstream to blink the onboard LEDs:
+python -m test.limesdr_mini_v1_blink
+
+# Prepare the user bitstream:
+python -m boards.targets.limesdr_mini_v1
+
+# Generate the programming files (POF, RPD, SVF) required for the dual boot configuration:
+sh test/gen_pof_file_dual_boot.sh
+
+# Use openFPGALoader to write the new image:
+openFPGALoader -c digilent_hs2 output.svf
+```
+
+**Note:** After programming, unplug and replug the LimeSDR Mini v1 to load the new user bitstream.
+
+### Switch the FPGA to the golden/factory using limeFLASH
+
+```bash
+limeFLASH --device=Mini --target=FPGA/FLASH LimeSDR-Mini_lms7_trx_HW_1.2_auto.rpd
+```
+
+### verify Behavior
+
+Expected Outcome: A visible LED sequence involving both green and red LEDs.
+This indicates the user bitstream successfully triggered FPGA reconfiguration to load the golden image and reboot the device.
+
 ## Changes in LMS7002
 
 1. **VHDL-to-LiteX Replacements**

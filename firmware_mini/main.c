@@ -186,13 +186,15 @@ void boot_from_flash(void)
 
 	//set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 1
 	//IOWR(DUAL_BOOT_0_BASE, 1, 0x00000003);
-	//reg = 0x00000003;
+	reg = 0x00000003;
 
 	*(uint32_t *)(DUAL_CFG_BASE + (1 << 2)) = reg;
 
 	/*wait while core is busy*/
 	while(1) {
 		reg = *(uint32_t *)(DUAL_CFG_BASE + (3 << 2));
+		printf("%02x\n", reg);
+		cdelay(2000);
 		if (reg != 0x01)
 			break;
 	}
@@ -1294,6 +1296,7 @@ int main(void)
 				current_portion = (LMS_Ctrl_Packet_Rx->Data_field[3] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[1] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[0]);
 				//current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
 				data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+				printf("%02x\n", LMS_Ctrl_Packet_Rx->Data_field[0]);
 
 				switch(LMS_Ctrl_Packet_Rx->Data_field[0])//prog_mode
 				{
@@ -1335,7 +1338,7 @@ int main(void)
 							//Set Flash memory addresses
 #ifdef LIMESDR_MINI_V1
 							address = UFMStartAddress;
-							address = CFM0StartAddress;
+							//address = CFM0StartAddress;
 							//Write Control Register of On-Chip Flash IP to un-protect and erase operation
 							//wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf67fffff);
 							//wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf65fffff);
