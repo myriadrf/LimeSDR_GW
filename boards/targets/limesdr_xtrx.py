@@ -581,6 +581,24 @@ class BaseSoC(SoCCore):
         self.platform.add_period_constraint(self.cd_jtag.clk, 1e9/20e6)
         self.platform.add_false_path_constraints(self.cd_jtag.clk, self.crg.cd_sys.clk)
 
+    # LiteScope Analyzer Probes --------------------------------------------------------------------
+
+    def add_smpl_cmp_probe(self):
+        analyzer_signals = [
+            self.lms7002_top.smpl_cmp_en,
+            self.lms7002_top.smpl_cmp_done,
+            self.lms7002_top.smpl_cmp_error,
+            self.lms7002_top.smpl_cmp_length,
+            self.lms7002_top.lms7002_ddin.rx_diq2_h,
+            self.lms7002_top.lms7002_ddin.rx_diq2_l,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -603,6 +621,11 @@ def main():
     # SoC parameters.
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
+
+    # Litescope Analyzer Probes.
+    probeopts = parser.add_mutually_exclusive_group()
+    probeopts.add_argument("--with-smpl-cmp-probe", action="store_true", help="Enable RX Sample Compare Probe.")
+
     args = parser.parse_args()
 
     # Build SoC.
@@ -623,6 +646,13 @@ def main():
             gold_img              = args.gold,
             firmware_flash_offset = args.firmware_flash_offset,
         )
+
+        # LiteScope Analyzer Probes.
+        if args.with_smpl_cmp_probe:
+            assert args.with_uartbone or not args.with_bscan
+            if args.with_smpl_cmp_probe:
+                soc.add_smpl_cmp_probe()
+
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
         # Firmware build.
