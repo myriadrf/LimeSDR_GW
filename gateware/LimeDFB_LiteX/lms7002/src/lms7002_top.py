@@ -160,12 +160,17 @@ class LMS7002Top(LiteXModule):
         tx_mux_sel          = Signal()
         tx_tst_data_en      = Signal()
 
-        smpl_cmp_en         = Signal()
-        smpl_cmp_done       = Signal()
-        smpl_cmp_error      = Signal()
-        rx_smpl_cmp_length  = Signal(16)
+        self.smpl_cmp_en    = smpl_cmp_en         = Signal()
+        self.smpl_cmp_done  = smpl_cmp_done       = Signal()
+        self.smpl_cmp_error = smpl_cmp_error      = Signal()
+        self.smpl_cmp_length= rx_smpl_cmp_length  = Signal(16)
         tx_smpl_cmp_length  = Signal(16)
 
+        smpl_cmp_en_sync        = Signal()
+        smpl_cmp_done_sync      = Signal()
+        smpl_cmp_error_sync     = Signal()
+        rx_smpl_cmp_length_sync = Signal(16)
+        tx_smpl_cmp_length_sync = Signal(16)
 
         # Clocks.
         # -------
@@ -416,11 +421,17 @@ class LMS7002Top(LiteXModule):
                 o_delayf_direction = Open(),
             )
         elif platform.name not in ["limesdr_mini_v1"]:
+            self.specials += [
+                MultiReg(self.cmp_start.storage,  smpl_cmp_en_sync,        odomain="lms_rx"),
+                MultiReg(self.cmp_length.storage, rx_smpl_cmp_length_sync, odomain="lms_rx"),
+                MultiReg(smpl_cmp_done_sync,      self.cmp_done.status,    odomain="sys"),
+                MultiReg(smpl_cmp_done_sync,      self.cmp_error.status,   odomain="sys"),
+            ]
             self.comb += [
-                smpl_cmp_en.eq(self.cmp_start.storage),
-                self.smpl_cmp_cnt.eq(self.cmp_length.storage),
-                self.cmp_done.status.eq(smpl_cmp_done),
-                self.cmp_error.status.eq(smpl_cmp_error),
+                smpl_cmp_en.eq(          smpl_cmp_en_sync),
+                self.smpl_cmp_cnt.eq(    rx_smpl_cmp_length_sync),
+                self.cmp_done.status.eq( smpl_cmp_done_sync),
+                self.cmp_error.status.eq(smpl_cmp_error_sync),
             ]
 
         # Logic.
