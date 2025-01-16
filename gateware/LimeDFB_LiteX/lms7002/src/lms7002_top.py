@@ -256,15 +256,18 @@ class LMS7002Top(LiteXModule):
             i_clk       = ClockSignal("lms_tx"),
             i_reset_n   = tx_ptrn_en,
 
-            # Mode Settings.
-            i_fidm      = Constant(0, 1),            # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
-            i_ptrn_i    = self.from_tstcfg_tx_tst_i,
-            i_ptrn_q    = self.from_tstcfg_tx_tst_q,
-
             # Output.
             o_diq_h     = tx_tst_ptrn_h,
             o_diq_l     = tx_tst_ptrn_l,
         )
+
+        if platform.name.startswith("limesdr_mini"):
+            self.txiq_tst_ptrn.update(
+                # Mode Settings.
+                i_fidm   = Constant(0, 1),            # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
+                i_ptrn_i = self.from_tstcfg_tx_tst_i,
+                i_ptrn_q = self.from_tstcfg_tx_tst_q,
+            )
 
         self.specials += [
             MultiReg(fpgacfg_manager.tx_en,           tx_reset_n,      odomain="lms_tx"),
@@ -333,6 +336,21 @@ class LMS7002Top(LiteXModule):
                 i_cmp_BQ        = Constant(0x555, diq_width),
                 o_cmp_error_cnt = Open(16),
             )
+        else:
+            self.DEBUG_IQ_ERR = Signal()
+            self.DEBUG_AI_ERR = Signal()
+            self.DEBUG_AQ_ERR = Signal()
+            self.DEBUG_BI_ERR = Signal()
+            self.DEBUG_BQ_ERR = Signal()
+
+            smpl_cmp_params.update(
+                o_DEBUG_IQ_ERR = self.DEBUG_IQ_ERR,
+                o_DEBUG_AI_ERR = self.DEBUG_AI_ERR,
+                o_DEBUG_AQ_ERR = self.DEBUG_AQ_ERR,
+                o_DEBUG_BI_ERR = self.DEBUG_BI_ERR,
+                o_DEBUG_BQ_ERR = self.DEBUG_BQ_ERR,
+            )
+
         self.smpl_cmp = Instance("smpl_cmp", **smpl_cmp_params)
 
         # test_data_dd.
@@ -450,10 +468,10 @@ class LMS7002Top(LiteXModule):
                 self.cmp_error.status.eq(smpl_cmp_error_sync),
 
                 # LiteScope Probes.
-                self.smpl_cmp_en.eq(     self.cmp_start.storage),
-                self.smpl_cmp_cnt.eq(    self.cmp_length.storage),
-                self.smpl_cmp_done.eq(   smpl_cmp_done_sync),
-                self.smpl_cmp_error.eq(  smpl_cmp_error_sync),
+                self.smpl_cmp_en.eq(     smpl_cmp_en_sync),
+                self.smpl_cmp_cnt.eq(    smpl_cmp_length_sync),
+                self.smpl_cmp_done.eq(   smpl_cmp_done),
+                self.smpl_cmp_error.eq(  smpl_cmp_error),
             ]
 
         # Logic.
@@ -526,22 +544,33 @@ class LMS7002Top(LiteXModule):
             )
         ]
 
-        # TX sync
-        self.sync.lms_tx += [
-            If(tx_tst_data_en,
-                self.lms7002_ddout.tx_diq1_h.eq(tx_test_data_h),
-                self.lms7002_ddout.tx_diq1_l.eq(tx_test_data_l),
-            ).Elif(tx_ptrn_en,
-                self.lms7002_ddout.tx_diq1_h.eq(tx_tst_ptrn_h),
-                self.lms7002_ddout.tx_diq1_l.eq(tx_tst_ptrn_l),
-            ).Elif(tx_mux_sel,
-                self.lms7002_ddout.tx_diq1_h.eq(Constant(0, diq_width + 1)),
-                self.lms7002_ddout.tx_diq1_l.eq(Constant(0, diq_width + 1)),
-            ).Else(
-                self.lms7002_ddout.tx_diq1_h.eq(tx_diq_h),
-                self.lms7002_ddout.tx_diq1_l.eq(tx_diq_l),
-            ),
-        ]
+        if platform.name.startswith("limesdr_mini"):
+            # TX sync
+            self.sync.lms_tx += [
+                If(tx_tst_data_en,
+                    self.lms7002_ddout.tx_diq1_h.eq(tx_test_data_h),
+                    self.lms7002_ddout.tx_diq1_l.eq(tx_test_data_l),
+                ).Elif(tx_ptrn_en,
+                    self.lms7002_ddout.tx_diq1_h.eq(tx_tst_ptrn_h),
+                    self.lms7002_ddout.tx_diq1_l.eq(tx_tst_ptrn_l),
+                ).Elif(tx_mux_sel,
+                    self.lms7002_ddout.tx_diq1_h.eq(Constant(0, diq_width + 1)),
+                    self.lms7002_ddout.tx_diq1_l.eq(Constant(0, diq_width + 1)),
+                ).Else(
+                    self.lms7002_ddout.tx_diq1_h.eq(tx_diq_h),
+                    self.lms7002_ddout.tx_diq1_l.eq(tx_diq_l),
+                ),
+            ]
+        else:
+            self.comb += [
+                If(tx_ptrn_en,
+                    self.lms7002_ddout.tx_diq1_h.eq(tx_tst_ptrn_h),
+                    self.lms7002_ddout.tx_diq1_l.eq(tx_tst_ptrn_l),
+                ).Else(
+                    self.lms7002_ddout.tx_diq1_h.eq(tx_diq_h),
+                    self.lms7002_ddout.tx_diq1_l.eq(tx_diq_l),
+                )
+            ]
 
 
         # LMS Controls.
@@ -607,11 +636,15 @@ class LMS7002Top(LiteXModule):
         self._fragment.specials.remove(self.tx_test_data_dd)
 
         # txiq_tst_ptrn.
-        txiq_tst_ptrn_files = [
-            "gateware/LimeDFB_LiteX/lms7002/src/txiq_tst_ptrn.vhd",
-            "gateware/LimeDFB_LiteX/general/sync_reg.vhd",
-            "gateware/LimeDFB_LiteX/general/bus_sync_reg.vhd",
-        ]
+        if self.platform.name.startswith("limesdr_mini"):
+            txiq_tst_ptrn_files = [
+                "gateware/LimeDFB_LiteX/lms7002/src/txiq_tst_ptrn.vhd",
+                "gateware/LimeDFB_LiteX/general/sync_reg.vhd",
+                "gateware/LimeDFB_LiteX/general/bus_sync_reg.vhd",
+            ]
+        else:
+            txiq_tst_ptrn_files = ["gateware/LimeDFB/lms7002/src/txiq_tst_ptrn.vhd"]
+
         self.txiq_tst_ptrn_conv = add_vhd2v_converter(self.platform,
             instance = self.txiq_tst_ptrn,
             files    = txiq_tst_ptrn_files,
@@ -626,7 +659,7 @@ class LMS7002Top(LiteXModule):
         if self.platform.name.startswith("limesdr_mini"):
             smpl_cmp_file = "gateware/LimeDFB_LiteX/lms7002/src/smpl_cmp.vhd"
         else:
-            smpl_cmp_file = "gateware/LimeDFB/lms7002/src/smpl_cmp.vhd"
+            smpl_cmp_file = "gateware/LimeDFB_LiteX/lms7002/src/smpl_cmp_xtrx.vhd"
         self.smpl_cmp_conv = add_vhd2v_converter(self.platform,
             instance = self.smpl_cmp,
             files    = [smpl_cmp_file],
