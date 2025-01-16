@@ -98,10 +98,10 @@ class MAX10PLLTop(LiteXModule):
             o_pll_c2                 = pll_c2,
             o_pll_c3                 = pll_c3,
             o_pll_locked             = self.pll_locked,
-            o_pll_smpl_cmp_en        = self.smpl_cmp_en,#inst1_pll_smpl_cmp_en,
-            i_pll_smpl_cmp_done      = self.smpl_cmp_done,#inst6_rx_smpl_cmp_done,
-            i_pll_smpl_cmp_error     = self.smpl_cmp_error,#inst6_rx_smpl_cmp_err,
-            o_pll_smpl_cmp_cnt       = self.smpl_cmp_cnt,#inst1_pll_smpl_cmp_cnt,
+            o_pll_smpl_cmp_en        = self.smpl_cmp_en,
+            i_pll_smpl_cmp_done      = self.smpl_cmp_done,
+            i_pll_smpl_cmp_error     = self.smpl_cmp_error,
+            o_pll_smpl_cmp_cnt       = self.smpl_cmp_cnt,
             # pllcfg ports
             # from pllcfg
             i_phcfg_start            = pllcfg_manager.phcfg_start,
