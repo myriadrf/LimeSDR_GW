@@ -160,17 +160,25 @@ class LMS7002Top(LiteXModule):
         tx_mux_sel          = Signal()
         tx_tst_data_en      = Signal()
 
-        self.smpl_cmp_en    = smpl_cmp_en         = Signal()
-        self.smpl_cmp_done  = smpl_cmp_done       = Signal()
-        self.smpl_cmp_error = smpl_cmp_error      = Signal()
-        self.smpl_cmp_length= rx_smpl_cmp_length  = Signal(16)
+        smpl_cmp_en         = Signal()
+        smpl_cmp_done       = Signal()
+        smpl_cmp_error      = Signal()
+        smpl_cmp_cnt        = Signal(16)
+        smpl_cmp_length     = Signal(16)
+        rx_smpl_cmp_length  = Signal(16)
         tx_smpl_cmp_length  = Signal(16)
 
-        smpl_cmp_en_sync        = Signal()
-        smpl_cmp_done_sync      = Signal()
-        smpl_cmp_error_sync     = Signal()
-        rx_smpl_cmp_length_sync = Signal(16)
-        tx_smpl_cmp_length_sync = Signal(16)
+        # LiteScope Probes.
+        self.smpl_cmp_en    = Signal()
+        self.smpl_cmp_done  = Signal()
+        self.smpl_cmp_error = Signal()
+        self.smpl_cmp_length= Signal(16)
+
+        # Sync lms_rx <-> sys.
+        smpl_cmp_en_sync    = Signal()
+        smpl_cmp_done_sync  = Signal()
+        smpl_cmp_error_sync = Signal()
+        smpl_cmp_length_sync = Signal(16)
 
         # Clocks.
         # -------
@@ -274,7 +282,7 @@ class LMS7002Top(LiteXModule):
             if platform.name.startswith("limesdr_mini"):
                 self.comb += tx_smpl_cmp_length.eq(0)
             else:
-                self.comb += tx_smpl_cmp_length.eq(self.smpl_cmp_cnt)
+                self.comb += tx_smpl_cmp_length.eq(smpl_cmp_cnt)
 
         # RX path (DIQ2). --------------------------------------------------------------------------
         self.lms7002_ddin = ClockDomainsRenamer("lms_rx")(LMS7002DDIN(platform, 12, pads, invert_input_clock))
@@ -392,7 +400,7 @@ class LMS7002Top(LiteXModule):
             if platform.name.startswith("limesdr_mini"):
                 self.comb += rx_smpl_cmp_length.eq(0)
             else:
-                self.comb += rx_smpl_cmp_length.eq(self.smpl_cmp_cnt)
+                self.comb += rx_smpl_cmp_length.eq(smpl_cmp_cnt)
 
         # Delay control module.
         # ---------------------
@@ -414,7 +422,7 @@ class LMS7002Top(LiteXModule):
                 o_smpl_cmp_en      = smpl_cmp_en,
                 i_smpl_cmp_done    = smpl_cmp_done,
                 i_smpl_cmp_error   = smpl_cmp_error,
-                o_smpl_cmp_cnt     = self.smpl_cmp_cnt,
+                o_smpl_cmp_cnt     = smpl_cmp_cnt,
 
                 o_delayf_loadn     = inst1_delayf_loadn,
                 o_delayf_move      = inst1_delayf_move,
@@ -422,16 +430,22 @@ class LMS7002Top(LiteXModule):
             )
         elif platform.name not in ["limesdr_mini_v1"]:
             self.specials += [
-                MultiReg(self.cmp_start.storage,  smpl_cmp_en_sync,        odomain="lms_rx"),
-                MultiReg(self.cmp_length.storage, rx_smpl_cmp_length_sync, odomain="lms_rx"),
-                MultiReg(smpl_cmp_done_sync,      self.cmp_done.status,    odomain="sys"),
-                MultiReg(smpl_cmp_done_sync,      self.cmp_error.status,   odomain="sys"),
+                MultiReg(self.cmp_start.storage,  smpl_cmp_en_sync,     odomain="lms_rx"),
+                MultiReg(self.cmp_length.storage, smpl_cmp_length_sync, odomain="lms_rx"),
+                MultiReg(smpl_cmp_done,           smpl_cmp_done_sync,   odomain="sys"),
+                MultiReg(smpl_cmp_error,          smpl_cmp_error_sync,  odomain="sys"),
             ]
             self.comb += [
                 smpl_cmp_en.eq(          smpl_cmp_en_sync),
-                self.smpl_cmp_cnt.eq(    rx_smpl_cmp_length_sync),
+                smpl_cmp_cnt.eq(         smpl_cmp_length_sync),
                 self.cmp_done.status.eq( smpl_cmp_done_sync),
                 self.cmp_error.status.eq(smpl_cmp_error_sync),
+
+                # LiteScope Probes.
+                self.smpl_cmp_en.eq(     self.cmp_start.storage),
+                self.smpl_cmp_cnt.eq(    self.cmp_length.storage),
+                self.smpl_cmp_done.eq(   smpl_cmp_done_sync),
+                self.smpl_cmp_error.eq(  smpl_cmp_error_sync),
             ]
 
         # Logic.
