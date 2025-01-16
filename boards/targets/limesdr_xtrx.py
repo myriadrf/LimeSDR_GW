@@ -588,13 +588,18 @@ class BaseSoC(SoCCore):
             self.lms7002_top.smpl_cmp_en,
             self.lms7002_top.smpl_cmp_done,
             self.lms7002_top.smpl_cmp_error,
-            self.lms7002_top.smpl_cmp_length,
+            self.lms7002_top.smpl_cmp_cnt,
             self.lms7002_top.lms7002_ddin.rx_diq2_h,
             self.lms7002_top.lms7002_ddin.rx_diq2_l,
+            self.lms7002_top.DEBUG_IQ_ERR,
+            self.lms7002_top.DEBUG_AI_ERR,
+            self.lms7002_top.DEBUG_AQ_ERR,
+            self.lms7002_top.DEBUG_BI_ERR,
+            self.lms7002_top.DEBUG_BQ_ERR,
         ]
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 1024,
-            clock_domain = "sys",
+            clock_domain = "lms_rx",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
