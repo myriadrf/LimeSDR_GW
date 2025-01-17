@@ -604,6 +604,33 @@ class BaseSoC(SoCCore):
             csr_csv      = "analyzer.csv"
         )
 
+    def add_rx_stream_ctrl_probe(self):
+        analyzer_signals = [
+            self.lms7002_top.lms7002_ddin.rx_diq2_h,
+            self.lms7002_top.lms7002_ddin.rx_diq2_l,
+            self.lms7002_top.rx_diq2_h_mux,
+            self.lms7002_top.rx_diq2_l_mux,
+            self.lms7002_top.rx_cdc.sink.valid,
+            self.lms7002_top.rx_cdc.sink.ready,
+            self.lms7002_top.source.valid,
+            self.lms7002_top.source.ready,
+            self.lms7002_top.rx_reset_n,
+            self.fpgacfg.rx_en,
+            self.rxtx_top.rx_path.iq_to_bit_pack_tvalid,
+            self.rxtx_top.rx_path.bit_pack_to_nto1_tvalid,
+            self.rxtx_top.rx_path.bit_pack_to_nto1_tlast,
+            self.rxtx_top.rx_path.fifo_conv.sink.ready,
+            self.rxtx_top.rx_path.fifo_conv.sink.valid,
+            self.rxtx_top.rx_path.source.valid,
+            self.rxtx_top.rx_path.source.ready,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "lms_rx",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -629,7 +656,8 @@ def main():
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
-    probeopts.add_argument("--with-smpl-cmp-probe", action="store_true", help="Enable RX Sample Compare Probe.")
+    probeopts.add_argument("--with-smpl-cmp-probe",       action="store_true", help="Enable RX Sample Compare Probe.")
+    probeopts.add_argument("--with-rx-stream-ctrl-probe", action="store_true", help="Enable RX Stream Control Probe.")
 
     args = parser.parse_args()
 
@@ -653,10 +681,12 @@ def main():
         )
 
         # LiteScope Analyzer Probes.
-        if args.with_smpl_cmp_probe:
+        if args.with_smpl_cmp_probe or args.with_rx_stream_ctrl_probe:
             assert args.with_uartbone or not args.with_bscan
             if args.with_smpl_cmp_probe:
                 soc.add_smpl_cmp_probe()
+            if args.with_rx_stream_ctrl_probe:
+                soc.add_rx_stream_ctrl_probe()
 
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
