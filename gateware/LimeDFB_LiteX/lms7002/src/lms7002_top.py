@@ -317,6 +317,10 @@ class LMS7002Top(LiteXModule):
             i_cmp_length    = rx_smpl_cmp_length,
             o_cmp_done      = smpl_cmp_done,
             o_cmp_error     = smpl_cmp_error,
+            i_cmp_AI        = Constant(0xAAA, diq_width),
+            i_cmp_AQ        = Constant(0x555, diq_width),
+            i_cmp_BI        = Constant(0xAAA, diq_width),
+            i_cmp_BQ        = Constant(0x555, diq_width),
         )
 
         if platform.name.startswith("limesdr_mini"):
@@ -330,10 +334,6 @@ class LMS7002Top(LiteXModule):
                 i_fidm          = Constant(0, 1),
 
                 # Control signals
-                i_cmp_AI        = Constant(0xAAA, diq_width),
-                i_cmp_AQ        = Constant(0x555, diq_width),
-                i_cmp_BI        = Constant(0xAAA, diq_width),
-                i_cmp_BQ        = Constant(0x555, diq_width),
                 o_cmp_error_cnt = Open(16),
             )
         else:
