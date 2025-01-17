@@ -127,12 +127,12 @@ class LMS7002Top(LiteXModule):
         inst1_delayf_loadn  = Signal()
         inst1_delayf_move   = Signal()
 
-        rx_reset_n          = Signal()
+        self.rx_reset_n     = Signal()
 
         rx_test_data_h      = Signal(diq_width + 1)
         rx_test_data_l      = Signal(diq_width + 1)
-        rx_diq2_h_mux       = Signal(diq_width + 1)
-        rx_diq2_l_mux       = Signal(diq_width + 1)
+        self.rx_diq2_h_mux  = Signal(diq_width + 1)
+        self.rx_diq2_l_mux  = Signal(diq_width + 1)
 
         rx_ptrn_en          = Signal()
 
@@ -358,7 +358,7 @@ class LMS7002Top(LiteXModule):
         self.rx_test_data_dd = Instance("test_data_dd",
             # Clk/Reset.
             i_clk       = ClockSignal("lms_rx"),
-            i_reset_n   = rx_reset_n,
+            i_reset_n   = self.rx_reset_n,
             # Mode Settings.
             i_fr_start  = Constant(0, 1), # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
             i_mimo_en   = rx_mimo_en,     # SISO: 1; MIMO: 0
@@ -377,7 +377,7 @@ class LMS7002Top(LiteXModule):
 
             # Clock/Reset.
             i_clk                 = ClockSignal("lms_rx"),
-            i_reset_n             = rx_reset_n,
+            i_reset_n             = self.rx_reset_n,
 
             # Mode settings
             i_mode                = {True: rx_mode, False: Constant(0, 1)}[platform.name.startswith("limesdr_mini")],
@@ -387,8 +387,8 @@ class LMS7002Top(LiteXModule):
             i_ch_en               = rx_ch_en,
             i_fidm                = Constant(0, 1),
             # Tx interface data
-            i_diq_h               = rx_diq2_h_mux,
-            i_diq_l               = rx_diq2_l_mux,
+            i_diq_h               = self.rx_diq2_h_mux,
+            i_diq_l               = self.rx_diq2_l_mux,
 
             # AXI Stream Master Interface.
             i_m_axis_areset_n     = Constant(1, 1),
@@ -401,9 +401,9 @@ class LMS7002Top(LiteXModule):
         )
 
         if platform.name.startswith("limesdr_mini"):
-            self.specials += MultiReg(fpgacfg_manager.rx_en, rx_reset_n, odomain="lms_rx"),
+            self.specials += MultiReg(fpgacfg_manager.rx_en, self.rx_reset_n, odomain="lms_rx"),
         else:
-            self.specials += MultiReg(fpgacfg_manager.tx_en, rx_reset_n, odomain="lms_rx"),
+            self.specials += MultiReg(fpgacfg_manager.tx_en, self.rx_reset_n, odomain="lms_rx"),
 
         self.specials += [
             MultiReg(fpgacfg_manager.rx_ptrn_en,      rx_ptrn_en,      odomain="lms_rx"),
@@ -498,7 +498,7 @@ class LMS7002Top(LiteXModule):
             # lms7002_rx
             self.rx_cdc.source.connect(self.source),
             self.rx_cdc.sink.valid.eq(rx_cdc_sink_valid),
-            If(~rx_reset_n,
+            If(~self.rx_reset_n,
                self.rx_cdc.source.ready.eq(1),
                self.source.valid.eq(0),
                self.rx_cdc.sink.valid.eq(0),
@@ -525,21 +525,30 @@ class LMS7002Top(LiteXModule):
         ]
 
         # RX sync
+        if platform.name.startswith("limesdr_mini"):
+            self.sync.lms_rx += [
+                If(rx_ptrn_en,
+                   self.rx_diq2_h_mux.eq(rx_test_data_h),
+                   self.rx_diq2_l_mux.eq(rx_test_data_l),
+                ).Else(
+                   self.rx_diq2_h_mux.eq(self.lms7002_ddin.rx_diq2_h),
+                   self.rx_diq2_l_mux.eq(self.lms7002_ddin.rx_diq2_l),
+                ),
+            ]
+        else:
+            self.comb += [
+                self.rx_diq2_h_mux.eq(self.lms7002_ddin.rx_diq2_h),
+                self.rx_diq2_l_mux.eq(self.lms7002_ddin.rx_diq2_l),
+            ]
+
         self.sync.lms_rx += [
-            If(rx_ptrn_en,
-               rx_diq2_h_mux.eq(rx_test_data_h),
-               rx_diq2_l_mux.eq(rx_test_data_l),
-            ).Else(
-               rx_diq2_h_mux.eq(self.lms7002_ddin.rx_diq2_h),
-               rx_diq2_l_mux.eq(self.lms7002_ddin.rx_diq2_l),
-            ),
             # Sample counter.
             If(~rx_mimo_en & rx_ddr_en,
                 self.smpl_cnt_en.eq(1)
             ).Else(
                 self.smpl_cnt_en.eq(~self.smpl_cnt_en)
             ),
-            If(~smpl_cmp_en & ~rx_reset_n,
+            If(~smpl_cmp_en & ~self.rx_reset_n,
                 self.smpl_cnt_en.eq(0),
             )
         ]
