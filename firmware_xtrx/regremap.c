@@ -146,7 +146,15 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             fpgacfg_ch_en_write(value);
             break;
         case 0x8:
-            fpgacfg_reg08_write(value);
+            reg = fpgacfg_reg08_read();
+            reg &= ~((1 << CSR_FPGACFG_REG08_SYNCH_DIS_OFFSET) |
+                (1 << CSR_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
+                (1 << CSR_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
+            reg |= (value & 0x03); // smpl_width
+            reg |= (value & 0x80); // trxiq_pulse
+            reg |= (value & 0x100); // mimo_int_en
+            reg |= (value & 0x200); // sync_dis
+            fpgacfg_reg08_write(reg);
             break;
         case 0xA:
             reg =  (value & 0x001) << 0; // rx_en
