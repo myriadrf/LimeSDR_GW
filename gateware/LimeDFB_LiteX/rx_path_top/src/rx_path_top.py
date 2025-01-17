@@ -71,13 +71,13 @@ class RXPathTop(LiteXModule):
         s_smpl_width           = Signal(2)
 
         # IQ Stream Combiner To Rx Path Top.
-        iq_to_bit_pack_tdata    = Signal(64)
-        iq_to_bit_pack_tvalid   = Signal()
-        iq_to_bit_pack_tready   = Signal()
-        iq_to_bit_pack_tkeep    = Signal(8)
-        bit_pack_to_nto1_tdata  = Signal(64)
-        bit_pack_to_nto1_tvalid = Signal()
-        bit_pack_to_nto1_tlast  = Signal()
+        iq_to_bit_pack_tdata         = Signal(64)
+        self.iq_to_bit_pack_tvalid   = Signal()
+        iq_to_bit_pack_tready        = Signal()
+        iq_to_bit_pack_tkeep         = Signal(8)
+        bit_pack_to_nto1_tdata       = Signal(64)
+        self.bit_pack_to_nto1_tvalid = Signal()
+        self.bit_pack_to_nto1_tlast  = Signal()
 
         pct_hdr_0               = Signal(64)
         pct_hdr_1               = Signal(64)
@@ -132,7 +132,7 @@ class RXPathTop(LiteXModule):
             i_S_AXIS_TDATA      = self.sink.data,
             i_S_AXIS_TKEEP      = self.sink.keep,
             # AXI Stream Master
-            o_M_AXIS_TVALID     = iq_to_bit_pack_tvalid,
+            o_M_AXIS_TVALID     = self.iq_to_bit_pack_tvalid,
             i_M_AXIS_TREADY     = 1, # Always accept incoming data (No back pressure possible on PHY).
             o_M_AXIS_TDATA      = iq_to_bit_pack_tdata,
             o_M_AXIS_TKEEP      = iq_to_bit_pack_tkeep,  # Unused full 1
@@ -148,12 +148,12 @@ class RXPathTop(LiteXModule):
             i_reset_n        = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN,
             # AXI Stream Slave interface.
             i_data_in        = iq_to_bit_pack_tdata,
-            i_data_in_valid  = iq_to_bit_pack_tvalid,
+            i_data_in_valid  = self.iq_to_bit_pack_tvalid,
             i_sample_width   = s_smpl_width,              # "10"-12bit, "01"-14bit, "00"-16bit;
             # AXI Stream Master interface.
             o_data_out       = bit_pack_to_nto1_tdata,
-            o_data_out_valid = bit_pack_to_nto1_tvalid,
-            o_data_out_tlast = bit_pack_to_nto1_tlast,      # always 1 when smpl_width == 0b00
+            o_data_out_valid = self.bit_pack_to_nto1_tvalid,
+            o_data_out_tlast = self.bit_pack_to_nto1_tlast, # always 1 when smpl_width == 0b00
         )
 
         self.axis_nto1_converter = Instance("AXIS_NTO1_CONVERTER",
@@ -165,10 +165,10 @@ class RXPathTop(LiteXModule):
             i_ACLK           = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK,
             i_ARESET_N       = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN,
             # AXIS Slave
-            i_S_AXIS_TVALID = bit_pack_to_nto1_tvalid,
+            i_S_AXIS_TVALID = self.bit_pack_to_nto1_tvalid,
             o_S_AXIS_TREADY = Open(),
             i_S_AXIS_TDATA  = bit_pack_to_nto1_tdata,
-            i_S_AXIS_TLAST  = bit_pack_to_nto1_tlast,
+            i_S_AXIS_TLAST  = self.bit_pack_to_nto1_tlast,
             # AXIS Master
             o_M_AXIS_TVALID = iqsmpls_fifo_sink_valid,
             o_M_AXIS_TDATA  = iqsmpls_fifo.sink.data,
