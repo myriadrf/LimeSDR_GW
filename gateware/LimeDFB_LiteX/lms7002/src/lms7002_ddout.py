@@ -65,7 +65,16 @@ class LMS7002DDOUT(LiteXModule):
         # Connect outputs.
         # ----------------
         self.comb += [
-            pads.DIQ1_D.eq(       delay_z[0:iq_width]),
+            #pads.DIQ1_D.eq(       delay_z[0:iq_width]),
             pads.ENABLE_IQSEL1.eq(delay_z[iq_width]),
             self.data_cflag.eq(   Reduce("OR", delay_cflag)), # OR whole vector
         ]
+
+        # Create diq1
+        if hasattr(pads, "DIQ1_D"):
+            self.comb += pads.DIQ1_D.eq(delay_z[0:iq_width])
+        else:
+            for i in range(12):  # assuming self.diq1 is 12 bits wide
+                target_signal = getattr(pads, f'diq1_{i}')
+                source_signal = delay_z[i]
+                self.comb += target_signal.eq(source_signal)
