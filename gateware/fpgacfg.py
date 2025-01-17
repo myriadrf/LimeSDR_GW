@@ -84,7 +84,7 @@ class FPGACfg(LiteXModule):
         self.reg08             = CSRStorage(fields=[
             CSRField("smpl_width",  size=2, offset=0,  reset=0b10),
             CSRField("mode",        size=1, offset=5,  reset=0),
-            CSRField("ddr_en",      size=1, offset=6,  reset=0),
+            CSRField("ddr_en",      size=1, offset=6,  reset={True:0, False:1}[platform.name.startswith("limesdr_mini")]),
             CSRField("trxiq_pulse", size=1, offset=7,  reset=0),
             CSRField("mimo_int_en", size=1, offset=8,  reset=1),
             CSRField("synch_dis",   size=1, offset=9,  reset={True:0, False:1}[platform.name.startswith("limesdr_mini")]),
