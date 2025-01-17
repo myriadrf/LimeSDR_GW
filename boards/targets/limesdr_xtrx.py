@@ -390,7 +390,7 @@ class BaseSoC(SoCCore):
             add_csr            = True,
             fpgacfg_manager    = self.fpgacfg,
             diq_width          = LMS_DIQ_WIDTH,
-            invert_input_clock = True,
+            invert_input_clock = False,
         )
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
