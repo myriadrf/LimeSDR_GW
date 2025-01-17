@@ -380,7 +380,7 @@ class LMS7002Top(LiteXModule):
             i_reset_n             = rx_reset_n,
 
             # Mode settings
-            i_mode                = rx_mode,
+            i_mode                = {True: rx_mode, False: Constant(0, 1)}[platform.name.startswith("limesdr_mini")],
             i_trxiqpulse          = rx_trxiqpulse,
             i_ddr_en              = rx_ddr_en,
             i_mimo_en             = rx_mimo_en,
@@ -391,8 +391,8 @@ class LMS7002Top(LiteXModule):
             i_diq_l               = rx_diq2_l_mux,
 
             # AXI Stream Master Interface.
-            i_m_axis_areset_n     = Constant(0, 1),
-            i_m_axis_aclk         = Constant(0, 1),
+            i_m_axis_areset_n     = Constant(1, 1),
+            i_m_axis_aclk         = ClockSignal("lms_rx"),
             o_m_axis_tvalid       = rx_cdc_sink_valid,
             o_m_axis_tdata        = self.rx_cdc.sink.data,
             o_m_axis_tkeep        = self.rx_cdc.sink.keep,
