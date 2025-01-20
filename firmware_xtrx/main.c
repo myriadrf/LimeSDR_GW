@@ -919,6 +919,9 @@ int main(void) {
                     break;
 
                 case CMD_BRDSPI16_WR:
+#ifdef DEBUG_CSR_ACCESS
+                    printf("CMD_BRDSPI16_WR\n");
+#endif
                     if (Check_many_blocks(4))
                         break;
 
@@ -927,14 +930,37 @@ int main(void) {
                         //sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
                         // Clearing write bit in address field because we are not using SPI registers in LiteX implementation
                         cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
+#ifdef LIMESDR_XTRX
 
                         writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
                                  &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+#else
+                        uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
+#ifdef DEBUG_CSR_ACCESS
+                        printf("csr write @ %04d: %02x%02x\n",addr,
+                                LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)],
+                                LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]);
+#endif
+                        if (addr < 32) {
+                            fpgacfg_write(addr & 0x1f, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+                        } else if (addr < 96) {
+                            pllcfg_write(addr & 0x1f, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+                        } else if (addr < 192) {
+                            tstcfg_write(addr & 0x1f, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+                        } else if (addr < 192+32) {
+                            periphcfg_write(addr & 0x1f, &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+                        } else {
+                            printf("write error : %04d %04x\n", addr, addr);
+                        }
+#endif
                     }
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
                 case CMD_BRDSPI16_RD:
+#ifdef DEBUG_CSR_ACCESS
+                    printf("CMD_BRDSPI16_RD\n");
+#endif
                     if (Check_many_blocks(4))
                         break;
 
@@ -942,9 +968,28 @@ int main(void) {
                         // write reg addr
                         cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
 
+#ifdef LIMESDR_XTRX
                         readCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], reg_array);
+#else // LIMESDR_MINI_V1, LIMESDR_MINI_V2
+                        uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
+                        uint8_t reg_array[2];
+                        if (addr < 32) {
+                            fpgacfg_read(addr & 0x1f, reg_array);
+                        } else if (addr < 96) {
+                            pllcfg_read(addr & 0x1f, reg_array);
+                        } else if (addr < 192) {
+                            tstcfg_read(addr & 0x1f, reg_array);
+                        } else if (addr < 192+32) {
+                            periphcfg_read(addr & 0x1f, reg_array);
+                        } else {
+                            printf("read error\n");
+                        }
+#endif
                         LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = reg_array[1];
                         LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = reg_array[0];
+#ifdef DEBUG_CSR_ACCESS
+                        printf("csr read @ %04d: %02x%02x\n",addr, reg_array[1], reg_array[0]);
+#endif
 
                         //			printf("value: 0x%X\n", reg_array[0]);
                         //			printf("value: 0x%X\n", reg_array[1]);
