@@ -1330,136 +1330,6 @@ int main(void) {
                 break;
 #endif
 
-                case CMD_MEMORY_WR:
-                    printf("CMD_MEMORY_WR\n");
-#if 0
-                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
-                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
-
-                    if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) //TARGET = 3 (EEPROM)
-                    {
-                        if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //write data to EEPROM #1
-                        {
-                            i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
-                            i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
-
-                            for (k=0; k<data_cnt; k++) {
-                                i2c_wdata[k+2]= LMS_Ctrl_Packet_Rx->Data_field[24+k];
-                            }
-                            i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, data_cnt+2, i2c_wdata);
-                            OpenCoresI2CMasterStop(i2c_master);
-                            MicoSleepMilliSecs(5);
-
-                            if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                        }
-                        else
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                    }
-                    else
-                    {
-
-                        if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1)) // TARGET = 1 (FX3)
-                        {
-                            switch (LMS_Ctrl_Packet_Rx->Data_field[0]) //PROG_MODE
-                            {
-
-                                case 2: //PROG_MODE = 2 (write FW to flash). Note please, that this command is used just to program XO DAC value
-
-                                    flash_page = (LMS_Ctrl_Packet_Rx->Data_field[6] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[7] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[8] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[9]);
-
-                                    if (flash_page >= FLASH_USRSEC_START_ADDR) {
-                                        if (flash_page % FLASH_BLOCK_SIZE == 0 && data_cnt > 0) {
-                                            flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
-                                        }
-
-                                        for (k=0; k<data_cnt; k++) {
-                                            wdata[k] = LMS_Ctrl_Packet_Rx->Data_field[24+k];
-                                        }
-
-                                        if (data_cnt > 0) {
-                                            if(MicoSPIFlash_PageProgram(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, wdata)!= 0) cmd_errors++;
-                                        }
-                                        if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                                        else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-
-                                        break;
-                                    }
-                                    else {
-                                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                                        break;
-                                    }
-
-
-                                default:
-                                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                                    break;
-                            }
-                        }
-                        else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                    }
-#endif
-                    break;
-
-                case CMD_MEMORY_RD:
-                    printf("CMD_MEMORY_RD\n");
-#if 0
-                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
-                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
-
-                    if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) //TARGET = 3 (EEPROM)
-                    {
-                        if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //read data from EEPROM #1
-                        {
-                            i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
-                            i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
-                            i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, 2, i2c_wdata);
-
-                            i2crez += OpenCoresI2CMasterRead(i2c_master, EEPROM_I2C_ADDR, (unsigned int) data_cnt, i2c_rdata);
-                            OpenCoresI2CMasterStop(i2c_master);
-
-                            for (k=0; k<data_cnt; k++)
-                            {
-                                LMS_Ctrl_Packet_Tx->Data_field[24+k] = i2c_rdata[k];
-
-                            }
-
-                            if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                        }
-                        else
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                    }
-                    else
-                    {
-                        if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1)) // TARGET = 1 (FX3)
-                        {
-                            flash_page  = LMS_Ctrl_Packet_Rx->Data_field[6] << 24;
-                            flash_page |= LMS_Ctrl_Packet_Rx->Data_field[7] << 16;
-                            flash_page |= LMS_Ctrl_Packet_Rx->Data_field[8] << 8;
-                            flash_page |= LMS_Ctrl_Packet_Rx->Data_field[9];
-                            //flash_page = flash_page / FLASH_PAGE_SIZE;
-
-                            //if( FlashSpiTransfer(FLASH_SPI_BASE, SPI_NR_FLASH, flash_page, FLASH_PAGE_SIZE, flash_page_data, CyTrue) != CY_U3P_SUCCESS)  cmd_errors++;//write to flash
-                            //TODO:if( FlashSpiRead(FLASH_SPI_BASE, SPI_NR_FLASH, flash_page, FLASH_PAGE_SIZE, flash_page_data) != CY_U3P_SUCCESS)  cmd_errors++;//write to flash
-
-                            if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, rdata)!= 0) cmd_errors++;
-
-                            for (k=0; k<data_cnt; k++)
-                            {
-                                LMS_Ctrl_Packet_Tx->Data_field[24+k] = rdata[k];
-                            }
-
-                            if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                        }
-                        else
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                    }
-#endif
-
-                    break;
-
                 // COMMAND ANALOG VALUE READ
                 case CMD_ANALOG_VAL_RD:
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
@@ -1758,6 +1628,136 @@ int main(void) {
                     else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 
                     //**ZT Modify_BRDSPI16_Reg_bits (FPGA_SPI_REG_LMS1_LMS2_CTRL, LMS1_SS, LMS1_SS, 1); //Disable LMS's SPI
+
+                    break;
+
+                case CMD_MEMORY_WR:
+                    printf("CMD_MEMORY_WR\n");
+#if 0
+                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
+                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+                    if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) //TARGET = 3 (EEPROM)
+                    {
+                        if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //write data to EEPROM #1
+                        {
+                            i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
+                            i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
+
+                            for (k=0; k<data_cnt; k++) {
+                                i2c_wdata[k+2]= LMS_Ctrl_Packet_Rx->Data_field[24+k];
+                            }
+                            i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, data_cnt+2, i2c_wdata);
+                            OpenCoresI2CMasterStop(i2c_master);
+                            MicoSleepMilliSecs(5);
+
+                            if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                        }
+                        else
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    }
+                    else
+                    {
+
+                        if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1)) // TARGET = 1 (FX3)
+                        {
+                            switch (LMS_Ctrl_Packet_Rx->Data_field[0]) //PROG_MODE
+                            {
+
+                                case 2: //PROG_MODE = 2 (write FW to flash). Note please, that this command is used just to program XO DAC value
+
+                                    flash_page = (LMS_Ctrl_Packet_Rx->Data_field[6] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[7] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[8] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[9]);
+
+                                    if (flash_page >= FLASH_USRSEC_START_ADDR) {
+                                        if (flash_page % FLASH_BLOCK_SIZE == 0 && data_cnt > 0) {
+                                            flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
+                                        }
+
+                                        for (k=0; k<data_cnt; k++) {
+                                            wdata[k] = LMS_Ctrl_Packet_Rx->Data_field[24+k];
+                                        }
+
+                                        if (data_cnt > 0) {
+                                            if(MicoSPIFlash_PageProgram(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, wdata)!= 0) cmd_errors++;
+                                        }
+                                        if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                        else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+
+                                        break;
+                                    }
+                                    else {
+                                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                        break;
+                                    }
+
+
+                                default:
+                                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                    break;
+                            }
+                        }
+                        else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    }
+#endif
+                    break;
+
+                case CMD_MEMORY_RD:
+                    printf("CMD_MEMORY_RD\n");
+#if 0
+                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
+                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+                    if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) //TARGET = 3 (EEPROM)
+                    {
+                        if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //read data from EEPROM #1
+                        {
+                            i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
+                            i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
+                            i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, 2, i2c_wdata);
+
+                            i2crez += OpenCoresI2CMasterRead(i2c_master, EEPROM_I2C_ADDR, (unsigned int) data_cnt, i2c_rdata);
+                            OpenCoresI2CMasterStop(i2c_master);
+
+                            for (k=0; k<data_cnt; k++)
+                            {
+                                LMS_Ctrl_Packet_Tx->Data_field[24+k] = i2c_rdata[k];
+
+                            }
+
+                            if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                        }
+                        else
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    }
+                    else
+                    {
+                        if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1)) // TARGET = 1 (FX3)
+                        {
+                            flash_page  = LMS_Ctrl_Packet_Rx->Data_field[6] << 24;
+                            flash_page |= LMS_Ctrl_Packet_Rx->Data_field[7] << 16;
+                            flash_page |= LMS_Ctrl_Packet_Rx->Data_field[8] << 8;
+                            flash_page |= LMS_Ctrl_Packet_Rx->Data_field[9];
+                            //flash_page = flash_page / FLASH_PAGE_SIZE;
+
+                            //if( FlashSpiTransfer(FLASH_SPI_BASE, SPI_NR_FLASH, flash_page, FLASH_PAGE_SIZE, flash_page_data, CyTrue) != CY_U3P_SUCCESS)  cmd_errors++;//write to flash
+                            //TODO:if( FlashSpiRead(FLASH_SPI_BASE, SPI_NR_FLASH, flash_page, FLASH_PAGE_SIZE, flash_page_data) != CY_U3P_SUCCESS)  cmd_errors++;//write to flash
+
+                            if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, rdata)!= 0) cmd_errors++;
+
+                            for (k=0; k<data_cnt; k++)
+                            {
+                                LMS_Ctrl_Packet_Tx->Data_field[24+k] = rdata[k];
+                            }
+
+                            if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                        }
+                        else
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    }
+#endif
 
                     break;
 
