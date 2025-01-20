@@ -698,20 +698,41 @@ int main(void) {
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
                 case CMD_GET_INFO:
 
-                    if (!strcmp(CONFIG_PLATFORM_NAME, "limesdr_mini_v2")) {
-                        LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
-                        LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
-                    } else {
-                        LMS_Ctrl_Packet_Tx->Data_field[0] = 6;
-                        LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI;
-                    }
-                    LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
+#ifdef LIMESDR_XTRX
+                    LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
                     LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
+#else
+#ifdef LIMESDR_MINI_V2
+                    LMS_Ctrl_Packet_Tx->Data_field[0] = 10; // FW_VER
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI_V2; // DEV_TYPE
+#else
+                    LMS_Ctrl_Packet_Tx->Data_field[0] = 6; // FW_VER
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI; // DEV_TYPE
+#endif
+                    LMS_Ctrl_Packet_Tx->Data_field[3] = 0; // HW_VER
+#endif
+                    LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
+
+#ifdef LIMESDR_XTRX
+                    // Read Serial number from FLASH OTP region
+                    spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, sizeof(serial), serial);
+
+                    LMS_Ctrl_Packet_Tx->Data_field[10] = serial[7];
+                    LMS_Ctrl_Packet_Tx->Data_field[11] = serial[6];
+                    LMS_Ctrl_Packet_Tx->Data_field[12] = serial[5];
+                    LMS_Ctrl_Packet_Tx->Data_field[13] = serial[4];
+                    LMS_Ctrl_Packet_Tx->Data_field[14] = serial[3];
+                    LMS_Ctrl_Packet_Tx->Data_field[15] = serial[2];
+                    LMS_Ctrl_Packet_Tx->Data_field[16] = serial[1];
+                    LMS_Ctrl_Packet_Tx->Data_field[17] = serial[0];
+#endif
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
+#if defined(LIMESDR_MINI_V1) | defined(LIMESDR_MINI_V2)
                 case CMD_GPIO_DIR_WR:
                     printf("CMD_GPIO_DIR_WR\n");
                     //if(Check_many_blocks (2)) break;
@@ -771,6 +792,54 @@ int main(void) {
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
+#endif
+
+#ifdef LIMESDR_XTRX
+                case CMD_SERIAL_WR:
+
+                    copyArray(LMS_Ctrl_Packet_Rx->Data_field, tmp_serial, 24, 0, 32);
+
+                    // STORAGE_TYPE
+                    switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
+                        case 0: //Default
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            break;
+                        case 1: //Volatile memory
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            break;
+                        case 2: //Non-Volatile memory
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            break;
+                        case 3: //Non-Volatile OTP memory
+                            if (serial_otp_unlock_key == OTP_UNLOCK_KEY) {
+                                //FlashQspi_EraseSector(&CFG_QSPI, OTP_SERIAL_ADDRESS); //temp for testing
+                                spirez = FlashQspi_ProgramOTP(
+                                    OTP_SERIAL_ADDRESS, LMS_Ctrl_Packet_Rx->Data_field[1], tmp_serial);
+                                serial_otp_unlock_key = 0;
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                            } else if (serial_otp_unlock_key != OTP_UNLOCK_KEY && LMS_Ctrl_Packet_Rx->Data_field[2] ==
+                                       OTP_UNLOCK_KEY) {
+                                serial_otp_unlock_key = LMS_Ctrl_Packet_Rx->Data_field[2];
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                            } else {
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_RESOURCE_DENIED_CMD;
+                            }
+                            break;
+                        default:
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            break;
+                    }
+
+                    break;
+
+                case CMD_SERIAL_RD:
+                    spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, 32, tmprd_serial);
+                    copyArray(tmprd_serial, LMS_Ctrl_Packet_Tx->Data_field, 0, 24, 32);
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = 16;
+                    LMS_Ctrl_Packet_Tx->Data_field[2] = serial_otp_unlock_key;
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
+#endif
 
                 case CMD_LMS_RST:
                     printf("CMD_LMS_RST\n");
@@ -800,10 +869,11 @@ int main(void) {
 #ifdef DEBUG_CSR_ACCESS
                     printf("CMD_BRDSPI16_WR\n");
 #endif
-                    if(Check_many_blocks (4)) break;
+                    if (Check_many_blocks(4))
+                        break;
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                        cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); //clear write bit
+                        cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
                         uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
 #ifdef DEBUG_CSR_ACCESS
                         printf("csr write @ %04d: %02x%02x\n",addr,
@@ -824,40 +894,39 @@ int main(void) {
                     }
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                    //printf("end\n");
                     break;
 
                 case CMD_BRDSPI16_RD:
 #ifdef DEBUG_CSR_ACCESS
                     printf("CMD_BRDSPI16_RD\n");
 #endif
-                    if(Check_many_blocks (4)) {
-                        printf("y\n");
+                    if (Check_many_blocks(4))
                         break;
-                    }
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
                         cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
                         uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-                        uint8_t rdata[2];
+                        uint8_t reg_array[2];
                         if (addr < 32) {
-                            fpgacfg_read(addr & 0x1f, rdata);
+                            fpgacfg_read(addr & 0x1f, reg_array);
                         } else if (addr < 96) {
-                            pllcfg_read(addr & 0x1f, rdata);
+                            pllcfg_read(addr & 0x1f, reg_array);
                         } else if (addr < 192) {
-                            tstcfg_read(addr & 0x1f, rdata);
+                            tstcfg_read(addr & 0x1f, reg_array);
                         } else if (addr < 192+32) {
-                            periphcfg_read(addr & 0x1f, rdata);
+                            periphcfg_read(addr & 0x1f, reg_array);
                         } else {
                             printf("read error\n");
                         }
-                        LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = rdata[1];
-                        LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = rdata[0];
+
+                        LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = reg_array[1];
+                        LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = reg_array[0];
 #ifdef DEBUG_CSR_ACCESS
-                        printf("csr read @ %04d: %02x%02x\n",addr, rdata[1], rdata[0]);
+                        printf("csr read @ %04d: %02x%02x\n",addr, reg_array[1], reg_array[0]);
 #endif
 
                     }
+
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
@@ -870,7 +939,7 @@ int main(void) {
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
                         // write reg addr
-                        sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); //set write bit
+                        sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
 
                         uint32_t data = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
                         data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
