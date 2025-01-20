@@ -143,7 +143,7 @@ static void dac_spi_write(const uint16_t write_data)
     while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
 }
 
-uint32_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_t *rd_data)
+uint16_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_t *rd_data)
 {
     //SPI
     uint32_t read_data = 0x0;
@@ -168,7 +168,7 @@ uint32_t lat_wishbone_spi_command(int slave_address, uint32_t write_data, uint8_
     read_data = spimaster_miso_read();
 
     *dest = read_data;
-    return read_data;
+    return read_data & 0xffff;
 }
 
 /* SPIFlash ------------------------------------------------------------------*/
@@ -546,8 +546,6 @@ int main(void) {
     //unsigned int gpio_rd_val = 0x0;
     //unsigned int gpio_rd_val2 = 0x0;
 
-    static unsigned int spi_read_val = 0x0;
-    //unsigned int spi_read_val_p = 0x0;
     unsigned char iShiftLeft = 1;
     uint32_t dest_byte_reordered = 0;
     unsigned int dac_spi_wrdata = 0;
@@ -681,6 +679,7 @@ int main(void) {
 
         if(!(spirez & 0x01)) {
             main_gpo_write(1);
+            uint16_t val;
             uint8_t i2c_buf[3];
 
             //Read packet from the FIFO
@@ -744,7 +743,7 @@ int main(void) {
                     wdata = (wdata << 8) | LMS_Ctrl_Packet_Rx->Data_field[0];	// leftmost byte
                     wdata = (wdata << 8) | LMS_Ctrl_Packet_Rx->Data_field[1];	// Data fields swapped, while MSB in the data packet is in the
                     //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_NR_FPGA, 4, sc_brdg_data, 0, NULL, 0);
-                    spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+                    val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
@@ -981,15 +980,15 @@ int main(void) {
                         data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
                         data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
                         data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
-                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
+                        val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
 #ifdef DEBUG_LMS_SPI
                         printf("%08lx\n", data);
 #endif
                         cbi(data, 31);
                         data = data & ~0xffff;
-                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
+                        val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
 #ifdef DEBUG_LMS_SPI
-                        printf("%08lx %08x\n", data, spi_read_val);
+                        printf("%08lx %08x\n", data, val);
 #endif
                     }
 
@@ -1003,23 +1002,23 @@ int main(void) {
                         break;
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-
                         //write reg addr
-                        cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); //clear write bit
-
+                        cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
                         uint32_t data;
+                        // Parse address
                         data = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
                         data = (data << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
                         data = data << 16;
 
-                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
-
-                       LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-                       LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
-                       LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (spi_read_val >> 8) & 0xff;
-                       LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (spi_read_val >> 0) & 0xff;
+                        val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
+                        LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[
+                            0 + (block * 4)];
+                        LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[
+                            1 + (block * 4)];
+                        LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (val >> 8) & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (val >> 0) & 0xff;
 #ifdef DEBUG_LMS_SPI
-                       printf("%08lx %02x\n", data >> 16, spi_read_val);
+                       printf("%08lx %02x\n", data >> 16, val);
 #endif
                     }
 
@@ -1456,6 +1455,7 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
+#if defined(LIMESDR_MINI_V1) | defined(LIMESDR_MINI_V2)
                 case CMD_LMS_MCU_FW_WR:
                     printf("CMD_LMS_MCU_FW_WR\n");
                     current_portion = LMS_Ctrl_Packet_Rx->Data_field[1];
@@ -1482,7 +1482,7 @@ int main(void) {
 
                         //**ZT CyU3PSpiTransmitWords (&sc_brdg_data[0], 4);
                         //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 4, &sc_brdg_data[0], 0, NULL, 0);
-                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+                        val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
 
                         //set mode
                         //write reg addr - mSPI_REG2 (Controls MCU input pins)
@@ -1498,14 +1498,14 @@ int main(void) {
                                 wdata = (wdata << 8) | (0x01); //Programming both EEPROM and SRAM  //8
                                 //**ZT CyU3PSpiTransmitWords (&sc_brdg_data[0], 4);
                                 //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 4, &sc_brdg_data[0], 0, NULL, 0);
-                                spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+                                val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
                                 break;
 
                             case PROG_SRAM:
                                 wdata = (wdata << 8) | (0x02); //Programming only SRAM  //8
                                 //**ZT CyU3PSpiTransmitWords (&sc_brdg_data[0], 4);
                                 //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 4, &sc_brdg_data[0], 0, NULL, 0);
-                                spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+                                val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
                                 break;
 
 
@@ -1513,7 +1513,7 @@ int main(void) {
                                 wdata = (wdata << 8) | (0x03); //Programming both EEPROM and SRAM  //8
                                 //**ZT CyU3PSpiTransmitWords (&sc_brdg_data[0], 4);
                                 //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 4, &sc_brdg_data[0], 0, NULL, 0);
-                                spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+                                val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
 
                                 /*sbi (PORTB, SAEN); //Disable LMS's SPI
                                 cbi (PORTB, SAEN); //Enable LMS's SPI*/
@@ -1529,7 +1529,7 @@ int main(void) {
                                 //read reg data
                                 //**ZT CyU3PSpiReceiveWords (&sc_brdg_data[0], 2); //reg data
                                 //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 2, &sc_brdg_data[0], 2, &sc_brdg_data[0], 0);
-                                spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+                                val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
 
                                 goto BOOTING;
 
@@ -1554,10 +1554,10 @@ int main(void) {
                         //read reg data
                         //**ZT CyU3PSpiReceiveWords (&sc_brdg_data[0], 2); //reg data
                         //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 2, &sc_brdg_data[0], 2, &sc_brdg_data[0], 0);
-                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
-                        printf("%08x\n", spi_read_val);
+                        val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+                        printf("%08x\n", val);
 
-                        if (spi_read_val &0x01) break; //EMPTY_WRITE_BUFF = 1
+                        if (val &0x01) break; //EMPTY_WRITE_BUFF = 1
 
                         MCU_retries++;
                         //usleep (30);
@@ -1622,10 +1622,10 @@ int main(void) {
                         //read reg data
                         //**ZT CyU3PSpiReceiveWords (&sc_brdg_data[0], 2); //reg data
                         //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 2, &sc_brdg_data[0], 2, &sc_brdg_data[0], 0);
-                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
-                        //printf("%08x\n", spi_read_val);
+                        val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+                        //printf("%08x\n", val);
 
-                        if (spi_read_val &0x01) break; //EMPTY_WRITE_BUFF = 1
+                        if (val &0x01) break; //EMPTY_WRITE_BUFF = 1
 
                         MCU_retries++;
                         //usleep (30);
@@ -1654,10 +1654,10 @@ int main(void) {
                             //read reg data
                             //**ZT CyU3PSpiReceiveWords (&sc_brdg_data[0], 2); //reg data
                             //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 2, &sc_brdg_data[0], 2, &sc_brdg_data[0], 0);
-                            spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
-                            //printf("%08x\n", spi_read_val);
+                            val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, wdata, 0);
+                            //printf("%08x\n", val);
 
-                            if (spi_read_val &0x40) break; //PROGRAMMED = 1
+                            if (val &0x40) break; //PROGRAMMED = 1
 
                             MCU_retries++;
                             //usleep (30);
@@ -1677,6 +1677,7 @@ int main(void) {
                     //**ZT Modify_BRDSPI16_Reg_bits (FPGA_SPI_REG_LMS1_LMS2_CTRL, LMS1_SS, LMS1_SS, 1); //Disable LMS's SPI
 
                     break;
+#endif
 
                 case CMD_MEMORY_WR:
                     printf("CMD_MEMORY_WR\n");
