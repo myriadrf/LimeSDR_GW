@@ -821,12 +821,24 @@ int main(void) {
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
                 case CMD_GET_INFO:
 
+#ifdef LIMESDR_XTRX
                     LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
-                    LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
+#else
+#ifdef LIMESDR_MINI_V2
+                    LMS_Ctrl_Packet_Tx->Data_field[0] = 10; // FW_VER
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI_V2; // DEV_TYPE
+#else
+                    LMS_Ctrl_Packet_Tx->Data_field[0] = 6; // FW_VER
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI; // DEV_TYPE
+#endif
+                    LMS_Ctrl_Packet_Tx->Data_field[3] = 0; // HW_VER
+#endif
+                    LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
 
+#ifdef LIMESDR_XTRX
                     // Read Serial number from FLASH OTP region
                     spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, sizeof(serial), serial);
 
@@ -838,6 +850,7 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Data_field[15] = serial[2];
                     LMS_Ctrl_Packet_Tx->Data_field[16] = serial[1];
                     LMS_Ctrl_Packet_Tx->Data_field[17] = serial[0];
+#endif
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
