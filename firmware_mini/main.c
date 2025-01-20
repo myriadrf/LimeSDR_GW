@@ -846,17 +846,33 @@ int main(void) {
 
                     switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
                         case LMS_RST_DEACTIVATE:
+#ifdef LIMESDR_XTRX
+                            //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
+                            //printf("LMS RESET deactivate...\n");
+#else
                             lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+#endif
                             break;
                         case LMS_RST_ACTIVATE:
                             lms7002_top_lms_ctr_gpio_write(0x0);
+#endif
                             break;
 
                         case LMS_RST_PULSE:
+#ifdef LIMESDR_XTRX
+                            //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
+                            //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
+                            read_value = lms7002_top_lms1_read() & ~(1 << CSR_LMS7002_TOP_LMS1_RESET_OFFSET);
+                            lms7002_top_lms1_write(read_value);
+                            read_value |= (1 << CSR_LMS7002_TOP_LMS1_RESET_OFFSET);
+                            lms7002_top_lms1_write(read_value);
+                        //printf("LMS RST pulse...\n");
+#else
                             lms7002_top_lms_ctr_gpio_write(0x0);
                             asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
                             asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
                             lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+#endif
                             break;
                         default:
                             cmd_errors++;
@@ -873,7 +889,15 @@ int main(void) {
                         break;
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        // write reg addr
+                        //sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
+                        // Clearing write bit in address field because we are not using SPI registers in LiteX implementation
                         cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
+#ifdef LIMESDR_XTRX
+
+                        writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
+                                 &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+#else
                         uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
 #ifdef DEBUG_CSR_ACCESS
                         printf("csr write @ %04d: %02x%02x\n",addr,
@@ -891,8 +915,8 @@ int main(void) {
                         } else {
                             printf("write error : %04d %04x\n", addr, addr);
                         }
+#endif
                     }
-
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
@@ -904,7 +928,12 @@ int main(void) {
                         break;
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        // write reg addr
                         cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
+
+#ifdef LIMESDR_XTRX
+                        readCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], reg_array);
+#else // LIMESDR_MINI_V1, LIMESDR_MINI_V2
                         uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
                         uint8_t reg_array[2];
                         if (addr < 32) {
@@ -918,13 +947,15 @@ int main(void) {
                         } else {
                             printf("read error\n");
                         }
-
+#endif
                         LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = reg_array[1];
                         LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = reg_array[0];
 #ifdef DEBUG_CSR_ACCESS
                         printf("csr read @ %04d: %02x%02x\n",addr, reg_array[1], reg_array[0]);
 #endif
 
+                        //			printf("value: 0x%X\n", reg_array[0]);
+                        //			printf("value: 0x%X\n", reg_array[1]);
                     }
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
@@ -989,6 +1020,315 @@ int main(void) {
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
+
+#if defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE)
+                case CMD_ALTERA_FPGA_GW_WR: //FPGA passive serial
+                case CMD_ALTERA_FPGA_GW_WR: // FPGA active serial
+
+                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[3] << 24) | (
+                                          LMS_Ctrl_Packet_Rx->Data_field[2] << 16)
+                                      | (LMS_Ctrl_Packet_Rx->Data_field[1] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[0]);
+                    //current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
+
+
+                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+                    switch (LMS_Ctrl_Packet_Rx->Data_field[0]) // prog_mode
+                    {
+                        /*
+                        Programming mode:
+                        0 - Bitstream to FPGA
+                        1 - Bitstream to Flash
+                        2 - Bitstream from FLASH
+                        */
+
+                        case 0://Bitstream to FPGA from PC
+                            /*
+                                if ( Configure_FPGA (&LMS_Ctrl_Packet_Rx->Data_field[24], current_portion, data_cnt) ) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                                else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                             */
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+
+                            break;
+
+                        case 1: //write data to Flash from PC
+
+                            current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
+                            data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+                            if (current_portion == 0) state = 10;
+                            if (data_cnt        == 0)
+                            {
+                                state = 30;
+                            }
+                            Flash = 1;
+
+                            while(Flash) {
+                                switch (state)
+                                {
+                                //Init
+                                case 10:
+                                //Set Flash memory addresses
+#ifdef LIMESDR_MINI_V1
+                                    address = UFMStartAddress;
+                                    //Write Control Register of On-Chip Flash IP to un-protect and erase operation
+                                    //wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf67fffff);
+                                    //wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf65fffff);
+                                    internal_flash_control_register_write(0xf67fffff);
+                                    internal_flash_control_register_write(0xf65fffff);
+#else
+                                    address = CFM0StartAddress;
+
+                                    //spiflash_erase_primary(spiflash);
+                                    // Erase First 64KB block, other blocks are erased later
+                                    //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base + 0x00000000, 3);
+                                    if (spiflash_erase(0x00000000) == false)
+                                        printf("spiflash_erase_primary: Error\n");
+#endif
+
+                                    state = 11;
+                                    Flash = 1;
+
+                                case 11:
+                                    //Start erase CFM0
+#ifdef LIMESDR_MINI_V1
+                                    if((internal_flash_status_register_read() & 0x13) == 0x10)
+                                    {
+                                        internal_flash_control_register_write(0xf67fffff);
+                                        printf("CFM0 Erased\n");
+                                        state = 13;
+                                        Flash = 1;
+                                    }
+                                    if((internal_flash_status_register_read() & 0x13) == 0x01)
+                                    {
+                                        printf("Erasing CFM0\n");
+                                        state = 11;
+                                        Flash = 1;
+                                    }
+                                    if((internal_flash_status_register_read() & 0x13) == 0x00)
+                                    {
+                                        printf("Erase CFM0 Failed\n");
+                                        state = 0;
+                                    }
+#else
+                                    //if ((0x03 & MicoSPIFlash_StatusRead (spiflash)) == 0)
+                                    if ((0x03 & spiflash_read_status_register()) == 0)
+                                    {
+                                        //printf("CFM0 Erased\n");
+                                        //printf("Enter Programming file.\n");
+                                        state = 20;
+                                        Flash = 1;
+                                    }
+                                    if((0x01 & spiflash_read_status_register()) == 0x01)
+                                    {
+                                        //printf("Erasing CFM0\n");
+                                        state = 11;
+                                        Flash = 1;
+                                    }
+                                    if((0x02 & spiflash_read_status_register()) == 0x02)
+                                    {
+                                        //printf("Erase CFM0 Failed\n");
+                                        state = 0;
+                                    }
+#endif
+
+                                    break;
+
+#ifdef LIMESDR_MINI_V1
+                                //Initiate UFM (ID1) Erase Operation
+                                case 13:
+                                    //Write Control Register of On-Chip Flash IP to un-protect and erase operation
+                                    internal_flash_control_register_write(0xf67fffff);
+                                    internal_flash_control_register_write(0xf61fffff);
+
+                                    state = 14;
+                                    Flash = 1;
+                                    break;
+
+                                case 14:
+                                    //Start erase UFM ID1
+                                    if((internal_flash_status_register_read() & 0x13) == 0x10)
+                                    {
+                                        internal_flash_control_register_write(0xf67fffff);
+                                        //printf("UFM ID1 Erased\n");
+                                        state = 16;
+                                        Flash = 1;
+                                    }
+                                    if((internal_flash_status_register_read() & 0x13) == 0x01)
+                                    {
+                                        //printf("Erasing UFM ID1\n");
+                                        state = 14;
+                                        Flash = 1;
+                                    }
+                                    if((internal_flash_status_register_read() & 0x13) == 0x00)
+                                    {
+                                        //printf("Erase UFM ID1 Failed\n");
+                                        state = 0;
+                                    }
+                                    break;
+
+                                //Initiate UFM (ID2) Erase Operation
+                                case 16:
+
+                                    //Write Control Register of On-Chip Flash IP to un-protect and erase operation
+                                    internal_flash_control_register_write(0xf67fffff);
+                                    internal_flash_control_register_write(0xf62fffff);
+
+                                    state = 17;
+                                    Flash = 1;
+                                    break;
+
+                                case 17:
+                                    //Start erase UFM ID2
+                                    if((internal_flash_status_register_read() & 0x13) == 0x10)
+                                    {
+                                        internal_flash_control_register_write(0xf67fffff);
+                                        printf("UFM ID2 Erased\n");
+                                        state = 20;
+                                        Flash = 1;
+                                    }
+                                    if((internal_flash_status_register_read() & 0x13) == 0x01)
+                                    {
+                                        printf("Erasing UFM ID2\n");
+                                        state = 17;
+                                        Flash = 1;
+                                    }
+                                    if((internal_flash_status_register_read() & 0x13) == 0x00)
+                                    {
+                                        printf("Erase UFM ID2 Failed\n");
+                                        state = 0;
+                                    }
+                                    break;
+#endif
+
+                                //Program
+                                case 20:
+                                    for (byte = 24; byte <= 52; byte += 4)
+                                    {
+#ifdef LIMESDR_MINI_V1
+                                //Take word and swap bits
+                                word  = ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+0]) << 24) & 0xFF000000;
+                                word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+1]) << 16) & 0x00FF0000;
+                                word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+2]) <<  8) & 0x0000FF00;
+                                word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+3]) <<  0) & 0x000000FF;
+#else
+                                //Take word
+                                p_spi_wrdata[0] = LMS_Ctrl_Packet_Rx->Data_field[byte+0];
+                                p_spi_wrdata[1] = LMS_Ctrl_Packet_Rx->Data_field[byte+1];
+                                p_spi_wrdata[2] = LMS_Ctrl_Packet_Rx->Data_field[byte+2];
+                                p_spi_wrdata[3] = LMS_Ctrl_Packet_Rx->Data_field[byte+3];
+#endif
+
+                                //Command to write into On-Chip Flash IP
+                                if(address <= CFM0EndAddress)
+                                {
+#ifdef LIMESDR_MINI_V1
+                                    *(uint32_t *)(INTERNAL_FLASH_BASE + (address << 2)) = word;
+                                    //wishbone_write32(ONCHIP_FLASH_0_DATA_BASE + (address<<2), word);
+
+                                    while((internal_flash_status_register_read() & 0x0b) == 0x02) {
+                                        //printf("Writing CFM0(%d)\n", address);
+                                    }
+
+                                    if((internal_flash_status_register_read() & 0x0b) == 0x00)
+                                    {
+                                        printf("Write to addr failed\n");
+                                        state = 0;
+                                        address = 700000;
+                                    }
+
+                                    if((internal_flash_status_register_read() & 0x0b) == 0x08)
+                                    {
+                                    };
+
+                                    // Increment address or move to CFM0 sector
+                                    if (address == UFMEndAddress) address = CFM0StartAddress;
+                                    else address += 1;
+#else
+                                    // Erase Block if we reach starting address of 64KB block
+                                    if (address % FLASH_BLOCK_SIZE == 0) {
+                                        //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
+                                        spiflash_erase(address);
+                                    }
+
+                                    //IOWR_32DIRECT(ONCHIP_FLASH_0_DATA_BASE, address, word);
+                                    //flash_op_status = MicoSPIFlash_AlignedPageProgram(spiflash, spiflash->memory_base+address, 0x4, wdata);
+                                    spiflash_page_program(address, p_spi_wrdata, 0x04);
+
+                                    address += 4;
+
+
+                                    while((0x01 & spiflash_read_status_register()) == 0x01) {
+                                        //printf("Writing CFM0(%d)\n", address);
+                                    }
+                                    //TODO: Do we need this?
+                                    if((0x02 & spiflash_read_status_register()) == 0x02)
+                                    {
+                                        //printf("Write to %d failed\n", address);
+                                        state = 0;
+                                        address = 700000;
+                                    }
+                           /*
+                                    if((IORD(ONCHIP_FLASH_0_CSR_BASE, 0) & 0x0b) == 0x08)
+                                    {
+                                    };
+                           */
+#endif
+                                }
+                                else
+                                {
+                                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                };
+                            };
+
+                            state = 20;
+                            Flash = 0;
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+
+                            break;
+
+                            //Finish
+                        case 30:
+                            //Re-protect the sector
+                            //IOWR(ONCHIP_FLASH_0_CSR_BASE, 1, 0xffffffff);
+#ifdef LIMESDR_MINI_V1
+                            internal_flash_control_register_write(0xffffffff);
+#endif
+
+                            state = 0;
+                            Flash = 0;
+
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+
+                            break;
+
+                        default:
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            state = 0;
+                            Flash = 0;
+                        };
+                    };
+
+                    break;
+
+                case 2: //configure FPGA from flash
+
+                    //enable boot to factory image, booting is executed after response to command is sent
+                    boot_img_en = 1;
+
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+
+
+
+                    break;
+
+                default:
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
+
+                }
+                break;
+#endif
 
                 case CMD_MEMORY_WR:
                     printf("CMD_MEMORY_WR\n");
@@ -1198,311 +1538,6 @@ int main(void) {
                     else
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
-
-#if defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE)
-                case CMD_ALTERA_FPGA_GW_WR: //FPGA passive serial
-
-                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[3] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[1] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[0]);
-                    //current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
-                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
-
-                switch(LMS_Ctrl_Packet_Rx->Data_field[0])//prog_mode
-                {
-                /*
-                    Programming mode:
-
-                    0 - Bitstream to FPGA
-                    1 - Bitstream to Flash
-                    2 - Bitstream from Flash
-                 */
-
-                case 0://Bitstream to FPGA from PC
-                    /*
-                        if ( Configure_FPGA (&LMS_Ctrl_Packet_Rx->Data_field[24], current_portion, data_cnt) ) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                        else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                     */
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-
-                    break;
-
-                case 1: //write data to Flash from PC
-
-                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
-                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
-
-                    if (current_portion == 0) state = 10;
-                    if (data_cnt        == 0)
-                    {
-                        state = 30;
-                    }
-                    Flash = 1;
-
-                    while(Flash) {
-                        switch (state)
-                        {
-                        //Init
-                        case 10:
-                            //Set Flash memory addresses
-#ifdef LIMESDR_MINI_V1
-                            address = UFMStartAddress;
-                            //Write Control Register of On-Chip Flash IP to un-protect and erase operation
-                            //wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf67fffff);
-                            //wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf65fffff);
-                            internal_flash_control_register_write(0xf67fffff);
-                            internal_flash_control_register_write(0xf65fffff);
-#else
-                            address = CFM0StartAddress;
-
-                            //spiflash_erase_primary(spiflash);
-                            // Erase First 64KB block, other blocks are erased later
-                            //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base + 0x00000000, 3);
-                            if (spiflash_erase(0x00000000) == false)
-                                printf("spiflash_erase_primary: Error\n");
-#endif
-
-                            state = 11;
-                            Flash = 1;
-
-                        case 11:
-                            //Start erase CFM0
-#ifdef LIMESDR_MINI_V1
-                            if((internal_flash_status_register_read() & 0x13) == 0x10)
-                            {
-                                internal_flash_control_register_write(0xf67fffff);
-                                printf("CFM0 Erased\n");
-                                state = 13;
-                                Flash = 1;
-                            }
-                            if((internal_flash_status_register_read() & 0x13) == 0x01)
-                            {
-                                printf("Erasing CFM0\n");
-                                state = 11;
-                                Flash = 1;
-                            }
-                            if((internal_flash_status_register_read() & 0x13) == 0x00)
-                            {
-                                printf("Erase CFM0 Failed\n");
-                                state = 0;
-                            }
-#else
-                            //if ((0x03 & MicoSPIFlash_StatusRead (spiflash)) == 0)
-                            if ((0x03 & spiflash_read_status_register()) == 0)
-                            {
-                                //printf("CFM0 Erased\n");
-                                //printf("Enter Programming file.\n");
-                                state = 20;
-                                Flash = 1;
-                            }
-                            if((0x01 & spiflash_read_status_register()) == 0x01)
-                            {
-                                //printf("Erasing CFM0\n");
-                                state = 11;
-                                Flash = 1;
-                            }
-                            if((0x02 & spiflash_read_status_register()) == 0x02)
-                            {
-                                //printf("Erase CFM0 Failed\n");
-                                state = 0;
-                            }
-#endif
-
-                            break;
-
-#ifdef LIMESDR_MINI_V1
-                        //Initiate UFM (ID1) Erase Operation
-                        case 13:
-                            //Write Control Register of On-Chip Flash IP to un-protect and erase operation
-                            internal_flash_control_register_write(0xf67fffff);
-                            internal_flash_control_register_write(0xf61fffff);
-
-                            state = 14;
-                            Flash = 1;
-                            break;
-
-                        case 14:
-                            //Start erase UFM ID1
-                            if((internal_flash_status_register_read() & 0x13) == 0x10)
-                            {
-                                internal_flash_control_register_write(0xf67fffff);
-                                //printf("UFM ID1 Erased\n");
-                                state = 16;
-                                Flash = 1;
-                            }
-                            if((internal_flash_status_register_read() & 0x13) == 0x01)
-                            {
-                                //printf("Erasing UFM ID1\n");
-                                state = 14;
-                                Flash = 1;
-                            }
-                            if((internal_flash_status_register_read() & 0x13) == 0x00)
-                            {
-                                //printf("Erase UFM ID1 Failed\n");
-                                state = 0;
-                            }
-                            break;
-
-                        //Initiate UFM (ID2) Erase Operation
-                        case 16:
-
-                            //Write Control Register of On-Chip Flash IP to un-protect and erase operation
-                            internal_flash_control_register_write(0xf67fffff);
-                            internal_flash_control_register_write(0xf62fffff);
-
-                            state = 17;
-                            Flash = 1;
-                        break;
-
-                        case 17:
-                            //Start erase UFM ID2
-                            if((internal_flash_status_register_read() & 0x13) == 0x10)
-                            {
-                                internal_flash_control_register_write(0xf67fffff);
-                                printf("UFM ID2 Erased\n");
-                                state = 20;
-                                Flash = 1;
-                            }
-                            if((internal_flash_status_register_read() & 0x13) == 0x01)
-                            {
-                                printf("Erasing UFM ID2\n");
-                                state = 17;
-                                Flash = 1;
-                            }
-                            if((internal_flash_status_register_read() & 0x13) == 0x00)
-                            {
-                                printf("Erase UFM ID2 Failed\n");
-                                state = 0;
-                            }
-                        break;
-#endif
-
-                            //Program
-                        case 20:
-                            for (byte = 24; byte <= 52; byte += 4)
-                            {
-#ifdef LIMESDR_MINI_V1
-                                //Take word and swap bits
-                                word  = ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+0]) << 24) & 0xFF000000;
-                                word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+1]) << 16) & 0x00FF0000;
-                                word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+2]) <<  8) & 0x0000FF00;
-                                word |= ((uint32_t)reverse(LMS_Ctrl_Packet_Rx->Data_field[byte+3]) <<  0) & 0x000000FF;
-#else
-                                //Take word
-                                p_spi_wrdata[0] = LMS_Ctrl_Packet_Rx->Data_field[byte+0];
-                                p_spi_wrdata[1] = LMS_Ctrl_Packet_Rx->Data_field[byte+1];
-                                p_spi_wrdata[2] = LMS_Ctrl_Packet_Rx->Data_field[byte+2];
-                                p_spi_wrdata[3] = LMS_Ctrl_Packet_Rx->Data_field[byte+3];
-#endif
-
-                                //Command to write into On-Chip Flash IP
-                                if(address <= CFM0EndAddress)
-                                {
-#ifdef LIMESDR_MINI_V1
-                                    *(uint32_t *)(INTERNAL_FLASH_BASE + (address << 2)) = word;
-                                    //wishbone_write32(ONCHIP_FLASH_0_DATA_BASE + (address<<2), word);
-
-                                    while((internal_flash_status_register_read() & 0x0b) == 0x02) {
-                                        //printf("Writing CFM0(%d)\n", address);
-                                    }
-
-                                    if((internal_flash_status_register_read() & 0x0b) == 0x00)
-                                    {
-                                        printf("Write to addr failed\n");
-                                        state = 0;
-                                        address = 700000;
-                                    }
-
-                                    if((internal_flash_status_register_read() & 0x0b) == 0x08)
-                                    {
-                                    };
-
-                                    // Increment address or move to CFM0 sector
-                                    if (address == UFMEndAddress) address = CFM0StartAddress;
-                                    else address += 1;
-#else
-                                    // Erase Block if we reach starting address of 64KB block
-                                    if (address % FLASH_BLOCK_SIZE == 0) {
-                                        //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
-                                        spiflash_erase(address);
-                                    }
-
-                                    //IOWR_32DIRECT(ONCHIP_FLASH_0_DATA_BASE, address, word);
-                                    //flash_op_status = MicoSPIFlash_AlignedPageProgram(spiflash, spiflash->memory_base+address, 0x4, wdata);
-                                    spiflash_page_program(address, p_spi_wrdata, 0x04);
-
-                                    address += 4;
-
-
-                                    while((0x01 & spiflash_read_status_register()) == 0x01) {
-                                        //printf("Writing CFM0(%d)\n", address);
-                                    }
-                                    //TODO: Do we need this?
-                                    if((0x02 & spiflash_read_status_register()) == 0x02)
-                                    {
-                                        //printf("Write to %d failed\n", address);
-                                        state = 0;
-                                        address = 700000;
-                                    }
-                           /*
-                                    if((IORD(ONCHIP_FLASH_0_CSR_BASE, 0) & 0x0b) == 0x08)
-                                    {
-                                    };
-                           */
-#endif
-                                }
-                                else
-                                {
-                                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                                };
-                            };
-
-                            state = 20;
-                            Flash = 0;
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-
-                            break;
-
-                            //Finish
-                        case 30:
-                            //Re-protect the sector
-                            //IOWR(ONCHIP_FLASH_0_CSR_BASE, 1, 0xffffffff);
-#ifdef LIMESDR_MINI_V1
-                            internal_flash_control_register_write(0xffffffff);
-#endif
-
-                            state = 0;
-                            Flash = 0;
-
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-
-                            break;
-
-                        default:
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                            state = 0;
-                            Flash = 0;
-                        };
-                    };
-
-                    break;
-
-                case 2: //configure FPGA from flash
-
-                    //enable boot to factory image, booting is executed after response to command is sent
-                    boot_img_en = 1;
-
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-
-
-
-                    break;
-
-                default:
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                    break;
-
-                }
-                break;
-#endif
 
                 case CMD_LMS_MCU_FW_WR:
                     printf("CMD_LMS_MCU_FW_WR\n");
