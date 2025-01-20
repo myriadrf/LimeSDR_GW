@@ -105,7 +105,7 @@ int boot_img_en = 0;
 uint16_t dac_val = 720;
 unsigned char dac_data[2];
 
-signed short int converted_val = 300;
+signed short int converted_value = 300;
 
 #ifdef LIMESDR_MINI_V1
 /**
@@ -1336,12 +1336,11 @@ int main(void) {
                         switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block)]) // ch
                         {
                             case 0: // dac val
-
-                                LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block]; //ch
-                                LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x00; //RAW //unit, power
-
-                                LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (dac_val >> 8) & 0xFF; //unsigned val, MSB byte
-                                LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = dac_val & 0xFF; //unsigned val, LSB byte
+                                LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block];
+                            // ch
+                                LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x00; // RAW //unit, power
+                                LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (dac_val >> 8) & 0xFF; // unsigned val, MSB byte
+                                LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = dac_val & 0xFF; // unsigned val, LSB byte
                                 printf("dac_val: %04x\n", dac_val);
                                 break;
 
@@ -1349,30 +1348,35 @@ int main(void) {
 
                                 i2c_wdata[0]=0x00; // Pointer = temperature register
                                 // Read temperature and recalculate
-                                spirez = i2c0_read(LM75_I2C_ADDR, i2c_wdata[0], i2c_rdata, 2, true);
+                                i2c0_read(LM75_I2C_ADDR, i2c_wdata[0], i2c_rdata, 2, true);
 
-                                converted_val = (signed short int)i2c_rdata[0];
-                                converted_val = converted_val << 8;
-                                converted_val = 10 * (converted_val >> 8);
+                                converted_value = (signed short int)i2c_rdata[0];
+                                converted_value = converted_value << 8;
+                                converted_value = 10 * (converted_value >> 8);
                                 spirez = i2c_rdata[1];
-                                if(spirez & 0x80) converted_val = converted_val + 5;
+                                if(spirez & 0x80) converted_value = converted_value + 5;
 
-                                LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block]; //ch
+                                LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block];
+                            //ch
                                 LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x50; //mC //unit, power
 
                                 LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (uint8_t) (
-                                    (converted_val >> 8)); //signed val, MSB byte
-                                LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = converted_val; //signed val, LSB byte
+                                    (converted_value >> 8) & 0xFF); //signed val, MSB byte
+                                LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (uint8_t) (converted_value & 0xFF);
+                            //signed val, LSB byte
 
                                 break;
-
                             default:
                                 cmd_errors++;
                                 break;
                         }
                     }
 
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    if (cmd_errors)
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    else
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
 
                 // COMMAND ANALOG VALUE WRITE
                     break;
@@ -1384,7 +1388,7 @@ int main(void) {
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
                         switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)]) // do something according to channel
                         {
-                            case 0:
+                            case 0: // TCXO DAC
                                 if (LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)] == 0) // RAW units?
                                 {
                                     dac_val = (LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)] << 8 ) + LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
@@ -1637,7 +1641,8 @@ int main(void) {
                     current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
                     data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
 
-                    if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) //TARGET = 3 (EEPROM)
+                    if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3))
+                    // TARGET = 3 (EEPROM)
                     {
                         if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //write data to EEPROM #1
                         {
@@ -1696,8 +1701,8 @@ int main(void) {
                                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                                     break;
                             }
-                        }
-                        else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                        } else {
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                     }
 #endif
                     break;
@@ -1708,7 +1713,8 @@ int main(void) {
                     current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
                     data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
 
-                    if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3)) //TARGET = 3 (EEPROM)
+                    if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3))
+                    /// TARGET = 3 (EEPROM)
                     {
                         if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //read data from EEPROM #1
                         {
@@ -1727,14 +1733,11 @@ int main(void) {
 
                             if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                        }
-                        else
+                        } else
                             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                    }
-                    else
+                    } else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1))
+                    // TARGET = 1 (FX3)
                     {
-                        if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1)) // TARGET = 1 (FX3)
-                        {
                             flash_page  = LMS_Ctrl_Packet_Rx->Data_field[6] << 24;
                             flash_page |= LMS_Ctrl_Packet_Rx->Data_field[7] << 16;
                             flash_page |= LMS_Ctrl_Packet_Rx->Data_field[8] << 8;
@@ -1753,13 +1756,13 @@ int main(void) {
 
                             if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                        }
-                        else
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    } else
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                     }
 #endif
 
                     break;
+
 
                 default:
                     /* This is unknown command. */
