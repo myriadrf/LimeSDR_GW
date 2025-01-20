@@ -248,7 +248,8 @@ class LMS7002Top(LiteXModule):
 
         # txiq_tst_ptrn.
         # --------------
-        self.txiq_tst_ptrn = Instance("txiq_tst_ptrn",
+        txiq_tst_ptrn_params = dict()
+        txiq_tst_ptrn_params.update(
             # Parameters.
             p_diq_width = diq_width,
 
@@ -262,12 +263,14 @@ class LMS7002Top(LiteXModule):
         )
 
         if platform.name.startswith("limesdr_mini"):
-            self.txiq_tst_ptrn.update(
+            txiq_tst_ptrn_params.update(
                 # Mode Settings.
                 i_fidm   = Constant(0, 1),            # External Frame ID mode. Frame start at fsync = 0, when 0. Frame start at fsync = 1, when 1.
                 i_ptrn_i = self.from_tstcfg_tx_tst_i,
                 i_ptrn_q = self.from_tstcfg_tx_tst_q,
             )
+
+        self.txiq_tst_ptrn = Instance("txiq_tst_ptrn", **txiq_tst_ptrn_params)
 
         self.specials += [
             MultiReg(fpgacfg_manager.tx_en,           tx_reset_n,      odomain="lms_tx"),
