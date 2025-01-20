@@ -917,6 +917,7 @@ int main(void) {
                     break;
 #endif
 
+#ifdef LIMESDR_XTRX
                 case CMD_SERIAL_WR:
 
                     copyArray(LMS_Ctrl_Packet_Rx->Data_field, tmp_serial, 24, 0, 32);
@@ -961,6 +962,7 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Data_field[2] = serial_otp_unlock_key;
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
+#endif
 
                 case CMD_LMS_RST:
                     printf("CMD_LMS_RST\n");
