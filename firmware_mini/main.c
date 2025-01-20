@@ -681,6 +681,7 @@ int main(void) {
 
         if(!(spirez & 0x01)) {
             main_gpo_write(1);
+            uint8_t i2c_buf[3];
 
             //Read packet from the FIFO
             getFifoData(glEp0Buffer_Rx, 64);
@@ -854,6 +855,10 @@ int main(void) {
 #endif
                             break;
                         case LMS_RST_ACTIVATE:
+#ifdef LIMESDR_XTRX
+                            //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
+                            //printf("LMS RESET activate...\n");
+#else
                             lms7002_top_lms_ctr_gpio_write(0x0);
 #endif
                             break;
@@ -1022,7 +1027,6 @@ int main(void) {
                     break;
 
 #if defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE)
-                case CMD_ALTERA_FPGA_GW_WR: //FPGA passive serial
                 case CMD_ALTERA_FPGA_GW_WR: // FPGA active serial
 
                     current_portion = (LMS_Ctrl_Packet_Rx->Data_field[3] << 24) | (
@@ -1336,16 +1340,42 @@ int main(void) {
                         switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block)]) // ch
                         {
                             case 0: // dac val
+#ifdef LIMESDR_XTRX
+                                //XIic_Recv(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 2, XIIC_STOP);
+                                //i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
+                                i2c0_read(I2C_DAC_ADDR, 0x0, i2c_buf, 2, true);
+#else
+                                i2c_buf[0] = (dac_val >> 8) & 0xFF;
+                                i2c_buf[1] = dac_val & 0xff;
+#endif
                                 LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block];
                             // ch
                                 LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x00; // RAW //unit, power
-                                LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (dac_val >> 8) & 0xFF; // unsigned val, MSB byte
-                                LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = dac_val & 0xFF; // unsigned val, LSB byte
-                                printf("dac_val: %04x\n", dac_val);
+                                LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = i2c_buf[0]; // unsigned val, MSB byte
+                                LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = i2c_buf[1]; // unsigned val, LSB byte
+                            // Storing volatile DAC value
+                                dac_val = ((uint16_t) i2c_buf[0]) << 8 | ((uint16_t) i2c_buf[1]);
+
                                 break;
 
                             case 1: // temperature
+#ifdef LIMESDR_XTRX
+                                //						i2c_buf[0] = 1;
+                                //						i2c_buf[1] = 0x60;
+                                //						i2c_buf[2] = 0xA0;
+                                // TMP1075 sensor performs periodical temperature readings by default
+                                // we only need to read the most recent value
+                                i2c_buf[0] = 0;
+                            //XIic_Send(XPAR_I2C_CORES_I2C1_BASEADDR,I2C_TERMO_ADDR,i2c_buf,1,XIIC_REPEATED_START);
+                            //XIic_Recv(XPAR_I2C_CORES_I2C1_BASEADDR,I2C_TERMO_ADDR,i2c_buf,2,XIIC_STOP);
+                                i2c0_read(I2C_TERMO_ADDR, i2c_buf[0], &i2c_buf[0], 2, false);
 
+                                int16_t converted_value = i2c_buf[1] | (i2c_buf[0] << 8);
+
+                                converted_value = converted_value >> 4;
+                                converted_value = converted_value * 10;
+                                converted_value = converted_value >> 4;
+#else
                                 i2c_wdata[0]=0x00; // Pointer = temperature register
                                 // Read temperature and recalculate
                                 i2c0_read(LM75_I2C_ADDR, i2c_wdata[0], i2c_rdata, 2, true);
@@ -1355,10 +1385,12 @@ int main(void) {
                                 converted_value = 10 * (converted_value >> 8);
                                 spirez = i2c_rdata[1];
                                 if(spirez & 0x80) converted_value = converted_value + 5;
+#endif
+
 
                                 LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block];
                             //ch
-                                LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x50; //mC //unit, power
+                                LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = 0x50; //0.1C //unit, power
 
                                 LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (uint8_t) (
                                     (converted_value >> 8) & 0xFF); //signed val, MSB byte
@@ -1391,6 +1423,16 @@ int main(void) {
                             case 0: // TCXO DAC
                                 if (LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)] == 0) // RAW units?
                                 {
+#ifdef LIMESDR_XTRX
+                                    i2c_buf[0] = 0x30; // addr
+                                    i2c_buf[1] = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]; // MSB
+                                    i2c_buf[2] = LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]; // LSB
+                                    // Storing volatile DAC value
+                                    dac_val = ((uint16_t) i2c_buf[1]) << 8 | ((uint16_t) i2c_buf[2]);
+                                    // Writing to DAC
+                                    //XIic_Send(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 3, XIIC_STOP);
+                                    i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
+#else // LIMESDR_MINI_V1, LIMESDR_MINI_V2
                                     dac_val = (LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)] << 8 ) + LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
                                     // Write data to the 10bit DAC
                                     dac_data[0] = (unsigned char) ((dac_val & 0x03F0) >> 4); //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
@@ -1399,6 +1441,7 @@ int main(void) {
                                     dac_spi_wrdata = ((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
                                     printf("CMD_ANALOG_VAL_WR: %04x\n", dac_spi_wrdata);
                                     dac_spi_write(dac_spi_wrdata);
+#endif
                                 } else
                                     cmd_errors++;
                                 break;
