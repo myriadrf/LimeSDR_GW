@@ -696,6 +696,21 @@ int main(void) {
                 //printf("b%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
 
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
+                case CMD_GET_INFO:
+
+                    if (!strcmp(CONFIG_PLATFORM_NAME, "limesdr_mini_v2")) {
+                        LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
+                        LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
+                    } else {
+                        LMS_Ctrl_Packet_Tx->Data_field[0] = 6;
+                        LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI;
+                    }
+                    LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
+                    LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
+                    LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
+
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
 
                 case CMD_GPIO_DIR_WR:
                     printf("CMD_GPIO_DIR_WR\n");
@@ -757,23 +772,6 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
-                case CMD_GET_INFO:
-                    fpgacfg_read(0x00, rdata);
-
-                    if (!strcmp(CONFIG_PLATFORM_NAME, "limesdr_mini_v2")) {
-                        LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
-                        LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
-                    } else {
-                        LMS_Ctrl_Packet_Tx->Data_field[0] = 6;
-                        LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI;
-                    }
-                    LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
-                    LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
-                    LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
-
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                    break;
-
                 case CMD_LMS_RST:
                     printf("CMD_LMS_RST\n");
 
@@ -795,61 +793,6 @@ int main(void) {
                             cmd_errors++;
                             break;
                     }
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                    break;
-
-                case CMD_LMS7002_WR:
-                    if (Check_many_blocks(4))
-                        break;
-
-                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                        // write reg addr
-                        sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); //set write bit
-
-                        uint32_t data = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-                        data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
-                        data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
-                        data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
-                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
-#ifdef DEBUG_LMS_SPI
-                        printf("%08lx\n", data);
-#endif
-                        cbi(data, 31);
-                        data = data & ~0xffff;
-                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
-#ifdef DEBUG_LMS_SPI
-                        printf("%08lx %08x\n", data, spi_read_val);
-#endif
-                    }
-
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                    break;
-
-                case CMD_LMS7002_RD:
-                    if (Check_many_blocks(4))
-                        break;
-
-                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-
-                        //write reg addr
-                        cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); //clear write bit
-
-                        uint32_t data;
-                        data = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
-                        data = (data << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
-                        data = data << 16;
-
-                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
-
-                       LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
-                       LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
-                       LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (spi_read_val >> 8) & 0xff;
-                       LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (spi_read_val >> 0) & 0xff;
-#ifdef DEBUG_LMS_SPI
-                       printf("%08lx %02x\n", data >> 16, spi_read_val);
-#endif
-                    }
-
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
@@ -915,6 +858,66 @@ int main(void) {
 #endif
 
                     }
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
+
+                // COMMAND LMS WRITE
+
+                case CMD_LMS7002_WR:
+                    if (Check_many_blocks(4))
+                        break;
+
+
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        // write reg addr
+                        sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); //set write bit
+
+                        uint32_t data = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
+                        data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
+                        data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
+                        data = data << 8 | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
+                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
+#ifdef DEBUG_LMS_SPI
+                        printf("%08lx\n", data);
+#endif
+                        cbi(data, 31);
+                        data = data & ~0xffff;
+                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
+#ifdef DEBUG_LMS_SPI
+                        printf("%08lx %08x\n", data, spi_read_val);
+#endif
+                    }
+
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
+
+                // COMMAND LMS READ
+
+                case CMD_LMS7002_RD:
+                    if (Check_many_blocks(4))
+                        break;
+
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+
+                        //write reg addr
+                        cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); //clear write bit
+
+                        uint32_t data;
+                        data = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)];
+                        data = (data << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
+                        data = data << 16;
+
+                        spi_read_val = lat_wishbone_spi_command(SPI_LMS7002_SELECT, data, 0);
+
+                       LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
+                       LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)];
+                       LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = (spi_read_val >> 8) & 0xff;
+                       LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = (spi_read_val >> 0) & 0xff;
+#ifdef DEBUG_LMS_SPI
+                       printf("%08lx %02x\n", data >> 16, spi_read_val);
+#endif
+                    }
+
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
