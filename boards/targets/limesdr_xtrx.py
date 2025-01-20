@@ -221,6 +221,9 @@ class BaseSoC(SoCCore):
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
+        # Define platform name constant.
+        self.add_constant(platform.name.upper())
+
         self.periphcfg = periphcfg_csr()
         self.CNTRL = CNTRL_CSR(1, 2)
         self.irq.add("CNTRL")

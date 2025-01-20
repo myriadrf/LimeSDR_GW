@@ -175,6 +175,9 @@ class BaseSoC(SoCCore):
         # Automatically jump to pre-initialized firmware.
         self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
 
+        # Define platform name constant.
+        self.add_constant(platform.name.upper())
+
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
 
