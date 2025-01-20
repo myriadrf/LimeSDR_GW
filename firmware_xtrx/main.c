@@ -888,21 +888,31 @@ int main(void) {
                     break;
 
                 case CMD_LMS_RST:
+                    printf("CMD_LMS_RST\n");
 
                     if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
                         break;
 
                     switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
                         case LMS_RST_DEACTIVATE:
+#ifdef LIMESDR_XTRX
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
                             //printf("LMS RESET deactivate...\n");
+#else
+                            lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+#endif
                             break;
                         case LMS_RST_ACTIVATE:
+#ifdef LIMESDR_XTRX
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
                             //printf("LMS RESET activate...\n");
+#else
+                            lms7002_top_lms_ctr_gpio_write(0x0);
+#endif
                             break;
 
                         case LMS_RST_PULSE:
+#ifdef LIMESDR_XTRX
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
                             read_value = lms7002_top_lms1_read() & ~(1 << CSR_LMS7002_TOP_LMS1_RESET_OFFSET);
@@ -910,6 +920,12 @@ int main(void) {
                             read_value |= (1 << CSR_LMS7002_TOP_LMS1_RESET_OFFSET);
                             lms7002_top_lms1_write(read_value);
                         //printf("LMS RST pulse...\n");
+#else
+                            lms7002_top_lms_ctr_gpio_write(0x0);
+                            asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
+                            asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
+                            lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+#endif
                             break;
                         default:
                             cmd_errors++;
