@@ -92,6 +92,19 @@ class TXPathTop(LiteXModule):
 
         unpack_bypass       = Signal()
 
+        # LiteScope probes
+        self.p2d_rd_tready   = p2d_rd_tready
+        self.p2d_rd_tlast    = p2d_rd_tlast
+        self.p2d_rd_tvalid   = p2d_rd_tvalid
+        self.p2d_wr_tvalid   = p2d_wr_tvalid
+        self.p2d_wr_tready   = p2d_wr_tready
+        self.p2d_wr_tlast    = p2d_wr_tlast
+        self.conn_buf        = Signal()
+        self.data_pad_tready = data_pad_tready
+        self.data_pad_tlast  = data_pad_tlast
+        self.data_pad_tvalid = data_pad_tvalid
+        self.curr_buf_index  = curr_buf_index
+
         # Clocks ----------------------------------------------------------------------------------
         # Sample NR FIFO (must be async with sink in RX_CLK, source iqsample, areset_n with iqpacket_areset_n)
         if platform.name in ["limesdr_mini_v1"]:
@@ -157,7 +170,12 @@ class TXPathTop(LiteXModule):
                 # FIXME: write: s_axis_domain, read: m_axis_domain. Must check PACKET_FIFO mean
                 smpl_fifo = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.SyncFIFO([("data", 128)], 256)))
                 self.comb += [
-                    smpl_fifo.reset.eq(       s_reset_n & p2d_rd_resetn[i]),
+                    smpl_fifo.reset.eq(     s_reset_n & p2d_rd_resetn[i]),
+                    smpl_fifo.sink.valid.eq(p2d_wr_tvalid[i]),
+                    p2d_wr_tready[i].eq(    smpl_fifo.sink.ready),
+                    smpl_fifo.sink.last.eq( p2d_wr_tlast[i]),
+                    smpl_fifo.sink.data.eq( p2d_wr_tdata),
+                    p2d_wr_buf_empty[i].eq( ~(smpl_fifo.level > 0)),
                 ]
             else:
                 # Sample FIFO ClockDomain
@@ -166,20 +184,25 @@ class TXPathTop(LiteXModule):
                     self.cd_smpl_fifo.clk.eq(ClockSignal(s_clk_domain)),
                     self.cd_smpl_fifo.rst.eq(ResetSignal(s_clk_domain) | (~(s_reset_n & p2d_rd_resetn[i]))),
                 ]
+                self.s_fifo = s_fifo = ResetInserter()(ClockDomainsRenamer("smpl_fifo")(stream.SyncFIFO([("data", 128)], 256)))
 
                 self.smpl_fifo = smpl_fifo = stream.ClockDomainCrossing([("data", 128)],
                     cd_from = "smpl_fifo",
                     cd_to   = m_clk_domain,
-                    depth   = 256,
+                    depth   = 4,
                 )
 
-            self.comb += [
-                # pct2data_buf_wr -> FIFO
-                smpl_fifo.sink.valid.eq(  p2d_wr_tvalid[i]),
-                p2d_wr_tready[i].eq(      smpl_fifo.sink.ready),
-                smpl_fifo.sink.last.eq(   p2d_wr_tlast[i]),
-                smpl_fifo.sink.data.eq(   p2d_wr_tdata),
+                self.comb += [
+                    s_fifo.reset.eq(           s_reset_n & p2d_rd_resetn[i]),
+                    s_fifo.sink.valid.eq(      p2d_wr_tvalid[i]),
+                    p2d_wr_tready[i].eq(       s_fifo.sink.ready),
+                    s_fifo.sink.last.eq(       p2d_wr_tlast[i]),
+                    s_fifo.sink.data.eq(       p2d_wr_tdata),
+                    p2d_wr_buf_empty[i].eq(    ~(s_fifo.level > 0)),
+                    self.s_fifo.source.connect(smpl_fifo.sink)
+                ]
 
+            self.comb += [
                 # FIFO -> pct2data_buf_rd
                 p2d_rd_tvalid[i].eq(      smpl_fifo.source.valid),
                 p2d_rd_tlast[i].eq(       smpl_fifo.source.last),
@@ -219,6 +242,7 @@ class TXPathTop(LiteXModule):
             i_SAMPLE_NR          = rx_sample_nr,
             o_PCT_LOSS_FLG       = self.pct_loss_flg,         # Goes high when a packet is dropped due to outdated timestamp, stays high until PCT_LOSS_FLG_CLR is set
             i_PCT_LOSS_FLG_CLR   = pct_loss_flg_clr,          # Clears PCT_LOSS_FLG
+            o_conn_buf_o         = self.conn_buf,
         )
 
         # Pad 12 bit samples to 16 bit samples, bypass logic if no padding is needed

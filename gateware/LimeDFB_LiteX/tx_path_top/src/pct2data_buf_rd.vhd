@@ -46,7 +46,10 @@ entity PCT2DATA_BUF_RD is
       SYNCH_DIS                     : in    std_logic;
       SAMPLE_NR                     : in    std_logic_vector(63 downto 0);
       PCT_LOSS_FLG                  : out   std_logic;
-      PCT_LOSS_FLG_CLR              : in    std_logic
+      PCT_LOSS_FLG_CLR              : in    std_logic;
+
+      -- debug
+      conn_buf_o                    : out   std_logic
    );
 end entity PCT2DATA_BUF_RD;
 
@@ -77,6 +80,7 @@ architecture ARCH of PCT2DATA_BUF_RD is
 begin
 
    CURR_BUF_INDEX <= std_logic_vector(to_unsigned(curbuf, CURBUF_WIDTH));
+   conn_buf_o     <= conn_buf;
 
    int_rst <= RESET_N and M_AXIS_ARESET_N and S_AXIS_ARESET_N;
 
