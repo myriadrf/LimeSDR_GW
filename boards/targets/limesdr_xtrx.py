@@ -643,6 +643,8 @@ class BaseSoC(SoCCore):
             self.rxtx_top.rx_path.iqsmpls_fifo_source_valid,
             self.rxtx_top.rx_path.iqsmpls_fifo_source_ready,
             self.rxtx_top.rx_path.int_clk_rst_n,
+            self.rxtx_top.rx_path.int_clk_mimo_en,
+            self.rxtx_top.rx_path.int_clk_ch_en,
         ]
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 1024,
