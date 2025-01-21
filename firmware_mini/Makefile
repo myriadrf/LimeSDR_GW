@@ -10,6 +10,7 @@ CFLAGS += -g
 CFLAGS := $(filter-out -Wmissing-prototypes -Wstrict-prototypes, $(CFLAGS))
 
 OBJECTS   = spiflash.o i2c0.o crt0.o main.o csr_access.o
+OBJECTS  += lms7002m.o
 
 all: firmware.bin
 
