@@ -653,6 +653,38 @@ class BaseSoC(SoCCore):
             csr_csv      = "analyzer.csv"
         )
 
+    def add_tx_stream_ctrl_probe(self):
+        analyzer_signals = [
+            self.rxtx_top.tx_path.sink.valid,
+            self.rxtx_top.tx_path.sink.ready,
+            self.rxtx_top.tx_path.conv_64_to_128.source.valid,
+            self.rxtx_top.tx_path.conv_64_to_128.source.ready,
+            self.rxtx_top.tx_path.smpl_fifo.sink.ready,
+            self.rxtx_top.tx_path.smpl_fifo.sink.valid,
+            self.rxtx_top.tx_path.source.valid,
+            self.rxtx_top.tx_path.source.ready,
+            self.rxtx_top.tx_path.p2d_rd_tready,
+            self.rxtx_top.tx_path.p2d_rd_tlast,
+            self.rxtx_top.tx_path.p2d_rd_tvalid,
+            self.fpgacfg.tx_en,
+            self.rxtx_top.tx_path.ext_reset_n,
+            self.rxtx_top.tx_path.data_pad_tready,
+            self.rxtx_top.tx_path.data_pad_tvalid,
+            self.rxtx_top.tx_path.data_pad_tlast,
+            self.rxtx_top.tx_path.curr_buf_index,
+            self.rxtx_top.tx_path.conn_buf,
+            self.rxtx_top.tx_path.p2d_wr_tvalid,
+            self.rxtx_top.tx_path.p2d_wr_tready,
+            self.rxtx_top.tx_path.p2d_wr_tlast,
+        ]
+
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "lms_tx",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -681,6 +713,7 @@ def main():
     probeopts.add_argument("--with-smpl-cmp-probe",       action="store_true", help="Enable RX Sample Compare Probe.")
     probeopts.add_argument("--with-rx-stream-ctrl-probe", action="store_true", help="Enable RX Stream Control Probe.")
     probeopts.add_argument("--with-rx-pct-hdr-1-probe",   action="store_true", help="Enable RX PCT HDR 1 Probe.")
+    probeopts.add_argument("--with-tx-stream-ctrl-probe", action="store_true", help="Enable TX Stream Control Probe.")
 
     args = parser.parse_args()
 
@@ -712,6 +745,10 @@ def main():
                 soc.add_rx_stream_ctrl_probe()
             if args.with_rx_pct_hdr_1_probe:
                 soc.add_rx_pct_hdr_1_probe()
+        if args.with_tx_stream_ctrl_probe:
+            assert args.with_uartbone or not args.with_bscan
+            if args.with_tx_stream_ctrl_probe:
+                soc.add_tx_stream_ctrl_probe()
 
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
