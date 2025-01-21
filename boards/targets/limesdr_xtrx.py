@@ -634,6 +634,23 @@ class BaseSoC(SoCCore):
             csr_csv      = "analyzer.csv"
         )
 
+    def add_rx_pct_hdr_1_probe(self):
+        analyzer_signals = [
+            self.rxtx_top.rx_path.sink.valid,
+            self.rxtx_top.rx_path.int_clk_smpl_nr_clr,
+            self.rxtx_top.rx_path.pct_hdr_1,
+            self.rxtx_top.rx_path.iqsmpls_fifo.source.last,
+            self.rxtx_top.rx_path.iqsmpls_fifo_source_valid,
+            self.rxtx_top.rx_path.iqsmpls_fifo_source_ready,
+            self.rxtx_top.rx_path.int_clk_rst_n,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 1024,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -661,6 +678,7 @@ def main():
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-smpl-cmp-probe",       action="store_true", help="Enable RX Sample Compare Probe.")
     probeopts.add_argument("--with-rx-stream-ctrl-probe", action="store_true", help="Enable RX Stream Control Probe.")
+    probeopts.add_argument("--with-rx-pct-hdr-1-probe",   action="store_true", help="Enable RX PCT HDR 1 Probe.")
 
     args = parser.parse_args()
 
@@ -684,12 +702,14 @@ def main():
         )
 
         # LiteScope Analyzer Probes.
-        if args.with_smpl_cmp_probe or args.with_rx_stream_ctrl_probe:
+        if args.with_smpl_cmp_probe or args.with_rx_stream_ctrl_probe or args.with_rx_pct_hdr_1_probe:
             assert args.with_uartbone or not args.with_bscan
             if args.with_smpl_cmp_probe:
                 soc.add_smpl_cmp_probe()
             if args.with_rx_stream_ctrl_probe:
                 soc.add_rx_stream_ctrl_probe()
+            if args.with_rx_pct_hdr_1_probe:
+                soc.add_rx_pct_hdr_1_probe()
 
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)

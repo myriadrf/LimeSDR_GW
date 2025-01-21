@@ -60,15 +60,15 @@ class RXPathTop(LiteXModule):
         # --------
 
         # sync.
-        s_clk_rst_n            = Signal()
-        m_clk_rst_n            = Signal()
-        int_clk_rst_n          = Signal()
-        int_clk_smpl_nr_clr    = Signal()
-        int_clk_ch_en          = Signal(2)
-        int_clk_mimo_en        = Signal()
-        mimo_en                = Signal()
-        ddr_en                 = Signal()
-        s_smpl_width           = Signal(2)
+        s_clk_rst_n              = Signal()
+        m_clk_rst_n              = Signal()
+        int_clk_rst_n            = Signal()
+        self.int_clk_smpl_nr_clr = Signal()
+        int_clk_ch_en            = Signal(2)
+        int_clk_mimo_en          = Signal()
+        mimo_en                  = Signal()
+        ddr_en                   = Signal()
+        s_smpl_width             = Signal(2)
 
         # IQ Stream Combiner To Rx Path Top.
         iq_to_bit_pack_tdata         = Signal(64)
@@ -80,7 +80,7 @@ class RXPathTop(LiteXModule):
         self.bit_pack_to_nto1_tlast  = Signal()
 
         pct_hdr_0               = Signal(64)
-        pct_hdr_1               = Signal(64)
+        self.pct_hdr_1          = Signal(64)
         one_ch                  = Signal()
 
         self.iqpacket_axis = iqpacket_axis           = stream.Endpoint([("data", 128)])
@@ -89,10 +89,10 @@ class RXPathTop(LiteXModule):
         bp_sample_nr_counter    = Signal(64)
         pkt_size                = Signal(15)
 
-        iqsmpls_fifo_sink_ready   = Signal()
-        iqsmpls_fifo_sink_valid   = Signal()
-        iqsmpls_fifo_source_valid = Signal()
-        iqsmpls_fifo_source_ready = Signal()
+        self.iqsmpls_fifo_sink_ready   = Signal()
+        self.iqsmpls_fifo_sink_valid   = Signal()
+        self.iqsmpls_fifo_source_valid = Signal()
+        self.iqsmpls_fifo_source_ready = Signal()
 
 
         self.fifo_conv    = fifo_conv = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.Converter(128, 64)))
@@ -170,7 +170,7 @@ class RXPathTop(LiteXModule):
             i_S_AXIS_TDATA  = bit_pack_to_nto1_tdata,
             i_S_AXIS_TLAST  = self.bit_pack_to_nto1_tlast,
             # AXIS Master
-            o_M_AXIS_TVALID = iqsmpls_fifo_sink_valid,
+            o_M_AXIS_TVALID = self.iqsmpls_fifo_sink_valid,
             o_M_AXIS_TDATA  = iqsmpls_fifo.sink.data,
             o_M_AXIS_TLAST  = iqsmpls_fifo.sink.last,
         )
@@ -187,8 +187,8 @@ class RXPathTop(LiteXModule):
             # AXI Stream Slave bus for IQ samples
             i_S_AXIS_IQSMPLS_ACLK     = ClockSignal(s_clk_domain),
             i_S_AXIS_IQSMPLS_ARESETN  = s_clk_rst_n,
-            i_S_AXIS_IQSMPLS_TVALID   = iqsmpls_fifo_source_valid,
-            i_S_AXIS_IQSMPLS_TREADY   = iqsmpls_fifo_source_ready,
+            i_S_AXIS_IQSMPLS_TVALID   = self.iqsmpls_fifo_source_valid,
+            i_S_AXIS_IQSMPLS_TREADY   = self.iqsmpls_fifo_source_ready,
             i_S_AXIS_IQSMPLS_TLAST    = iqsmpls_fifo.source.last,
 
             # Mode settings.
@@ -197,7 +197,7 @@ class RXPathTop(LiteXModule):
 
             # sample nr
             i_SMPL_NR_INCR            = self.sink.valid,
-            i_SMPL_NR_CLR             = int_clk_smpl_nr_clr,
+            i_SMPL_NR_CLR             = self.int_clk_smpl_nr_clr,
             i_SMPL_NR_LD              = Constant(0, 1),
             i_SMPL_NR_IN              = Constant(0, 64),
             o_SMPL_NR_OUT             = self.smpl_nr_cnt,
@@ -210,9 +210,9 @@ class RXPathTop(LiteXModule):
         self.comb += [
             one_ch.eq(int_clk_ch_en[0] ^ int_clk_ch_en[1]),
             If((int_clk_mimo_en & one_ch) | ~mimo_en,
-                pct_hdr_1.eq(Cat(0, bp_sample_nr_counter[0:-1]))
+                self.pct_hdr_1.eq(Cat(0, bp_sample_nr_counter[0:-1]))
             ).Else(
-                pct_hdr_1.eq(bp_sample_nr_counter)
+                self.pct_hdr_1.eq(bp_sample_nr_counter)
             ),
         ]
 
@@ -223,10 +223,10 @@ class RXPathTop(LiteXModule):
             i_PCT_SIZE           = pkt_size,
             # PCT_HDR_0          = x"7766554433221100",
             i_PCT_HDR_0          = pct_hdr_0,
-            i_PCT_HDR_1          = pct_hdr_1,
+            i_PCT_HDR_1          = self.pct_hdr_1,
             # AXIS Slave.
-            i_S_AXIS_TVALID      = iqsmpls_fifo_source_valid,
-            o_S_AXIS_TREADY      = iqsmpls_fifo_source_ready,
+            i_S_AXIS_TVALID      = self.iqsmpls_fifo_source_valid,
+            o_S_AXIS_TREADY      = self.iqsmpls_fifo_source_ready,
             i_S_AXIS_TDATA       = iqsmpls_fifo.source.data,
             i_S_AXIS_TLAST       = iqsmpls_fifo.source.last,
             # AXIS Master.
@@ -242,14 +242,14 @@ class RXPathTop(LiteXModule):
 
         self.comb += [
             If(int_clk_rst_n,
-               iqsmpls_fifo_sink_ready.eq(iqsmpls_fifo.sink.ready),
-               iqsmpls_fifo.sink.valid.eq(iqsmpls_fifo_sink_valid),
-               iqsmpls_fifo_source_valid.eq(iqsmpls_fifo.source.valid),
-               iqsmpls_fifo.source.ready.eq(iqsmpls_fifo_source_ready),
+               self.iqsmpls_fifo_sink_ready.eq(iqsmpls_fifo.sink.ready),
+               iqsmpls_fifo.sink.valid.eq(self.iqsmpls_fifo_sink_valid),
+               self.iqsmpls_fifo_source_valid.eq(iqsmpls_fifo.source.valid),
+               iqsmpls_fifo.source.ready.eq(self.iqsmpls_fifo_source_ready),
             ).Else(
-               iqsmpls_fifo_sink_ready.eq(0),
+               self.iqsmpls_fifo_sink_ready.eq(0),
                iqsmpls_fifo.sink.valid.eq(0),
-               iqsmpls_fifo_source_valid.eq(0),
+               self.iqsmpls_fifo_source_valid.eq(0),
                iqsmpls_fifo.source.ready.eq(1),
             )
         ]
@@ -265,6 +265,8 @@ class RXPathTop(LiteXModule):
                 cd_from = int_clk_domain,
                 cd_to   = m_clk_domain,
             )
+
+            self.int_clk_rst_n = int_clk_rst_n
 
             self.comb += [
                 fifo_iqpacket.reset.eq(~int_clk_rst_n), # axis_iqmpls_areset_n
@@ -323,17 +325,17 @@ class RXPathTop(LiteXModule):
 
         if int_clk_domain == "sys":
             self.comb += [
-                int_clk_rst_n.eq(      reset_n),
-                int_clk_ch_en.eq(      fpgacfg_manager.ch_en),
-                int_clk_mimo_en.eq(    fpgacfg_manager.mimo_int_en),
-                int_clk_smpl_nr_clr.eq(fpgacfg_manager.smpl_nr_clr),
+                int_clk_rst_n.eq(           reset_n),
+                int_clk_ch_en.eq(           fpgacfg_manager.ch_en),
+                int_clk_mimo_en.eq(         fpgacfg_manager.mimo_int_en),
+                self.int_clk_smpl_nr_clr.eq(fpgacfg_manager.smpl_nr_clr),
             ]
         else:
             self.specials += [
-                MultiReg(reset_n,                     int_clk_rst_n,       int_clk_domain, reset=1),
-                MultiReg(fpgacfg_manager.ch_en,       int_clk_ch_en,       int_clk_domain, reset=0),
-                MultiReg(fpgacfg_manager.mimo_int_en, int_clk_mimo_en,     int_clk_domain, reset=0),
-                MultiReg(fpgacfg_manager.smpl_nr_clr, int_clk_smpl_nr_clr, int_clk_domain, reset=0),
+                MultiReg(reset_n,                     int_clk_rst_n,            int_clk_domain, reset=1),
+                MultiReg(fpgacfg_manager.ch_en,       int_clk_ch_en,            int_clk_domain, reset=0),
+                MultiReg(fpgacfg_manager.mimo_int_en, int_clk_mimo_en,          int_clk_domain, reset=0),
+                MultiReg(fpgacfg_manager.smpl_nr_clr, self.int_clk_smpl_nr_clr, int_clk_domain, reset=0),
             ]
         if m_clk_domain == "sys":
             self.comb += m_clk_rst_n.eq(reset_n)
