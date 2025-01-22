@@ -104,7 +104,8 @@ begin
             else
                m_axis_tvalid_reg <= m_axis_tvalid_reg(1 downto 0) & '0';
             end if;
-         elsif (m_axis_tvalid_reg = "111") then
+         elsif ((m_axis_tvalid_reg = "111" and mimo_en = '0' and ddr_en = '0') or
+                (m_axis_tvalid_reg = "011" and mimo_en = '0' and ddr_en = '1')) then
             m_axis_tvalid_reg <= "00" & '1';
          else
             m_axis_tvalid_reg <= m_axis_tvalid_reg;
