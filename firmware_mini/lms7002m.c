@@ -10,6 +10,10 @@
 void lms_spi_write(uint16_t addr, uint16_t val) {
     uint16_t cmd;
     uint16_t dat;
+
+    /* set cs */
+    spimaster_cs_write(1);
+
     cmd = (1 << 15) | (addr & 0x7fff);
     dat = val & 0xffff;
     while ((spimaster_status_read() & 0x1) == 0);
@@ -19,6 +23,9 @@ void lms_spi_write(uint16_t addr, uint16_t val) {
 
 uint16_t lms_spi_read(uint16_t addr) {
     uint16_t recv_val;
+
+    /* set cs */
+    spimaster_cs_write(1);
 
     uint16_t cmd;
     cmd = (0 << 15) | (addr & 0x7fff);
