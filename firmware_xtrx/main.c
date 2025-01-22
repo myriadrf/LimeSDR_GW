@@ -1101,6 +1101,7 @@ int main(void) {
 
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        // write reg addr
                         sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
                         // Parse address
                         addr = LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)];
@@ -1114,7 +1115,7 @@ int main(void) {
                         printf("%04x %04x\n", addr, val);
                         cbi(addr, 15);
                         val = lms_spi_read(addr);
-                        printf("%04x %04x\n", addr, val);
+                        printf(" %04x %04x\n", addr, val);
 #endif
                     }
 
@@ -1460,7 +1461,7 @@ int main(void) {
                         //spi read
                         //write reg addr
                         addr = (0x00);                         //reg addr MSB
-                        addr = (wdata << 8) | (MCU_STATUS_REG); //reg addr LSB
+                        addr = (addr << 8) | (MCU_STATUS_REG); //reg addr LSB
                         //**ZT CyU3PSpiTransmitWords (&sc_brdg_data[0], 2);
                         //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 2, &sc_brdg_data[0], 0, NULL, 0);
 

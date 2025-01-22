@@ -257,16 +257,27 @@ void getFifoData(uint8_t *buf, uint8_t k)
 #endif
 }
 
+
+/** Checks if peripheral ID is valid.
+ Returns 1 if valid, else 0. */
+unsigned char Check_Periph_ID(unsigned char max_periph_id, unsigned char Periph_ID);
+unsigned char Check_Periph_ID(unsigned char max_periph_id, unsigned char Periph_ID) {
+    if (LMS_Ctrl_Packet_Rx->Header.Periph_ID > max_periph_id) {
+        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_INVALID_PERIPH_ID_CMD;
+        return 0;
+    } else
+        return 1;
+}
+
 /**	This function checks if all blocks could fit in data field.
-*	If blocks will not fit, function returns TRUE. */
-unsigned char Check_many_blocks (unsigned char block_size)
-{
-    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks > (sizeof(LMS_Ctrl_Packet_Tx->Data_field)/block_size))
-    {
+ *	If blocks will not fit, function returns TRUE. */
+unsigned char Check_many_blocks(unsigned char block_size);
+unsigned char Check_many_blocks(unsigned char block_size) {
+    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks > (sizeof(LMS_Ctrl_Packet_Tx->Data_field) / block_size)) {
         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
         return 1;
-    }
-    return 0;
+    } else
+        return 0;
 }
 
 #if 0
@@ -474,8 +485,8 @@ uint16_t rd_dac_val(uint16_t addr)
 }
 
 int main(void) {
-    uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
     volatile int spirez;
+    uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
     //int i2crez;
     //int k;
     uint8_t p_spi_wrdata[4];
@@ -664,8 +675,6 @@ int main(void) {
             LMS_Ctrl_Packet_Tx->Header.Data_blocks = LMS_Ctrl_Packet_Rx->Header.Data_blocks;
             LMS_Ctrl_Packet_Tx->Header.Periph_ID = LMS_Ctrl_Packet_Rx->Header.Periph_ID;
             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BUSY_CMD;
-            //if (LMS_Ctrl_Packet_Rx->Header.Command != 0)
-                //printf("b%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
 
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
                 case CMD_GET_INFO:
