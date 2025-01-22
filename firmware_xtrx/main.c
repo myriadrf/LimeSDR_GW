@@ -789,6 +789,12 @@ int main(void) {
 
         // Process received packet
         if (lms64_packet_pending) {
+            uint8_t reg_array[4];
+            uint16_t addr;
+            uint16_t val;
+            uint8_t i2c_buf[3];
+			uint32_t read_value;
+
             /* Disable CNTRL irq while processing packet */
             CNTRL_ev_enable_write(CNTRL_ev_enable_read() & ~(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET));
             irq_setmask(irq_getmask() & ~(1 << CNTRL_INTERRUPT));
@@ -796,12 +802,6 @@ int main(void) {
             lms64_packet_pending = 0;
             // printf("CNTRL PCT GOT!\n");
             uint32_t *dest = (uint32_t *) glEp0Buffer_Tx;
-
-            uint8_t reg_array[4];
-            uint16_t addr;
-            uint16_t val;
-            uint8_t i2c_buf[3];
-			uint32_t read_value;
 
             getLMS64Packet(glEp0Buffer_Rx, 64);
             // printf("RX: ");

@@ -15,6 +15,8 @@
 
 #pragma message ("**** limesdr_mini_brd_v1r0 ****")
 
+#define MAX_ID_LMS7                1
+
 //I2C devices
 #define   LM75_I2C_ADDR		0x48 //0x90
 #define EEPROM_I2C_ADDR		0x50 //0xA2

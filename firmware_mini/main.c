@@ -70,6 +70,8 @@ uint8_t MCU_retries;
 
 const unsigned int uiBlink = 1;
 
+volatile uint8_t lms64_packet_pending;
+
 uint8_t test, block, cmd_errors, glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
 tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet*)glEp0Buffer_Tx;
 tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet*)glEp0Buffer_Rx;
@@ -656,17 +658,42 @@ int main(void) {
     Configure_LM75();
 
     while (1) {
-
+#ifdef LIMESDR_XTRX
+        console_service();
+#else
         spirez = ft601_fifo_status_read();	// Read FIFO Status
+		lms64_packet_pending = !(spirez & 0x01);
+#endif
 
-        if(!(spirez & 0x01)) {
-            main_gpo_write(1);
+        // Process received packet
+        if (lms64_packet_pending) {
+            uint8_t reg_array[4];
             uint16_t addr;
             uint16_t val;
             uint8_t i2c_buf[3];
+			uint32_t read_value;
+
+#ifdef LIMESDR_XTRX
+            /* Disable CNTRL irq while processing packet */
+            CNTRL_ev_enable_write(CNTRL_ev_enable_read() & ~(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET));
+            irq_setmask(irq_getmask() & ~(1 << CNTRL_INTERRUPT));
+
+            lms64_packet_pending = 0;
+            // printf("CNTRL PCT GOT!\n");
+            uint32_t *dest = (uint32_t *) glEp0Buffer_Tx;
+
+            getLMS64Packet(glEp0Buffer_Rx, 64);
+            // printf("RX: ");
+            // for (int i = 0; i < 64; i++) {
+            //     printf("%02x ", glEp0Buffer_Rx[i]);
+            // }
+            // printf("\n");
+#else
+            main_gpo_write(1);
 
             //Read packet from the FIFO
             getFifoData(glEp0Buffer_Rx, 64);
+#endif
 
             memset(glEp0Buffer_Tx, 0, sizeof(glEp0Buffer_Tx)); // fill whole tx buffer with zeros
             cmd_errors = 0;
@@ -825,6 +852,9 @@ int main(void) {
                 case CMD_LMS_RST:
                     printf("CMD_LMS_RST\n");
 
+                    if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
+                        break;
+
                     switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
                         case LMS_RST_DEACTIVATE:
 #ifdef LIMESDR_XTRX
@@ -949,6 +979,8 @@ int main(void) {
                 // COMMAND LMS WRITE
 
                 case CMD_LMS7002_WR:
+                    if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
+                        break;
                     if (Check_many_blocks(4))
                         break;
 
