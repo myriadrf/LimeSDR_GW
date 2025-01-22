@@ -959,7 +959,7 @@ int main(void) {
                         printf("%04x %04x\n", addr, val);
                         cbi(addr, 15);
                         val = lms_spi_read(addr);
-                        printf("%04x %04x\n", addr, val);
+                        printf(" %04x %04x\n", addr, val);
 #endif
                     }
 
@@ -1511,7 +1511,7 @@ int main(void) {
                         //spi read
                         //write reg addr
                         addr = (0x00);                         //reg addr MSB
-                        addr = (wdata << 8) | (MCU_STATUS_REG); //reg addr LSB
+                        addr = (addr << 8) | (MCU_STATUS_REG); //reg addr LSB
                         //**ZT CyU3PSpiTransmitWords (&sc_brdg_data[0], 2);
                         //spirez = alt_avalon_spi_command(FPGA_SPI_BASE, SPI_LMS7002_SELECT, 2, &sc_brdg_data[0], 0, NULL, 0);
 
