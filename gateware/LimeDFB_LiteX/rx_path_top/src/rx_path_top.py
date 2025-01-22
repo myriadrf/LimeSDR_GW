@@ -81,7 +81,6 @@ class RXPathTop(LiteXModule):
 
         pct_hdr_0               = Signal(64)
         self.pct_hdr_1          = Signal(64)
-        one_ch                  = Signal()
 
         self.iqpacket_axis = iqpacket_axis           = stream.Endpoint([("data", 128)])
 
@@ -207,14 +206,7 @@ class RXPathTop(LiteXModule):
         self.drop_samples = Signal()
         self.wr_header    = Signal()
 
-        self.comb += [
-            one_ch.eq(self.int_clk_ch_en[0] ^ self.int_clk_ch_en[1]),
-            If((self.int_clk_mimo_en & one_ch) | ~self.int_clk_mimo_en,
-                self.pct_hdr_1.eq(Cat(0, bp_sample_nr_counter[0:-1]))
-            ).Else(
-                self.pct_hdr_1.eq(bp_sample_nr_counter)
-            ),
-        ]
+        self.comb += self.pct_hdr_1.eq(bp_sample_nr_counter)
 
         self.data2packets_fsm = Instance("DATA2PACKETS_FSM",
             # Clk/Reset.
