@@ -1592,6 +1592,8 @@ int main(void) {
 #endif
 
                 case CMD_MEMORY_WR:
+                    printf("CMD_MEMORY_WR\n");
+#ifdef LIMESDR_XTRX
                     // Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
                     // a workaround is implemented that uses a sufficiently high address in the configuration flash
                     // to store the DAC value
@@ -1644,10 +1646,82 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                         // printf("N \n");
                     }
+#else
+#if 0
+                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
+                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+                    if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3))
+                    // TARGET = 3 (EEPROM)
+                    {
+                        if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //write data to EEPROM #1
+                        {
+                            i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
+                            i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
+
+                            for (k=0; k<data_cnt; k++) {
+                                i2c_wdata[k+2]= LMS_Ctrl_Packet_Rx->Data_field[24+k];
+                            }
+                            i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, data_cnt+2, i2c_wdata);
+                            OpenCoresI2CMasterStop(i2c_master);
+                            MicoSleepMilliSecs(5);
+
+                            if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                        }
+                        else
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    }
+                    else
+                    {
+
+                        if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1)) // TARGET = 1 (FX3)
+                        {
+                            switch (LMS_Ctrl_Packet_Rx->Data_field[0]) //PROG_MODE
+                            {
+
+                                case 2: //PROG_MODE = 2 (write FW to flash). Note please, that this command is used just to program XO DAC value
+
+                                    flash_page = (LMS_Ctrl_Packet_Rx->Data_field[6] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[7] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[8] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[9]);
+
+                                    if (flash_page >= FLASH_USRSEC_START_ADDR) {
+                                        if (flash_page % FLASH_BLOCK_SIZE == 0 && data_cnt > 0) {
+                                            flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
+                                        }
+
+                                        for (k=0; k<data_cnt; k++) {
+                                            wdata[k] = LMS_Ctrl_Packet_Rx->Data_field[24+k];
+                                        }
+
+                                        if (data_cnt > 0) {
+                                            if(MicoSPIFlash_PageProgram(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, wdata)!= 0) cmd_errors++;
+                                        }
+                                        if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                        else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+
+                                        break;
+                                    }
+                                    else {
+                                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                        break;
+                                    }
+
+
+                                default:
+                                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                                    break;
+                            }
+                        } else {
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    }
+#endif
+#endif
 
                     break;
 
                 case CMD_MEMORY_RD:
+                    printf("CMD_MEMORY_RD\n");
+#ifdef LIMESDR_XRX
                     // Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
                     // a workaround is implemented that uses a sufficiently high address in the configuration flash
                     // to store the DAC value
@@ -1683,6 +1757,59 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                     } else
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+#else
+#if 0
+                    current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
+                    data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
+
+                    if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3))
+                    /// TARGET = 3 (EEPROM)
+                    {
+                        if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //read data from EEPROM #1
+                        {
+                            i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
+                            i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
+                            i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, 2, i2c_wdata);
+
+                            i2crez += OpenCoresI2CMasterRead(i2c_master, EEPROM_I2C_ADDR, (unsigned int) data_cnt, i2c_rdata);
+                            OpenCoresI2CMasterStop(i2c_master);
+
+                            for (k=0; k<data_cnt; k++)
+                            {
+                                LMS_Ctrl_Packet_Tx->Data_field[24+k] = i2c_rdata[k];
+
+                            }
+
+                            if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                        } else
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    } else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1))
+                    // TARGET = 1 (FX3)
+                    {
+                            flash_page  = LMS_Ctrl_Packet_Rx->Data_field[6] << 24;
+                            flash_page |= LMS_Ctrl_Packet_Rx->Data_field[7] << 16;
+                            flash_page |= LMS_Ctrl_Packet_Rx->Data_field[8] << 8;
+                            flash_page |= LMS_Ctrl_Packet_Rx->Data_field[9];
+                            //flash_page = flash_page / FLASH_PAGE_SIZE;
+
+                            //if( FlashSpiTransfer(FLASH_SPI_BASE, SPI_NR_FLASH, flash_page, FLASH_PAGE_SIZE, flash_page_data, CyTrue) != CY_U3P_SUCCESS)  cmd_errors++;//write to flash
+                            //TODO:if( FlashSpiRead(FLASH_SPI_BASE, SPI_NR_FLASH, flash_page, FLASH_PAGE_SIZE, flash_page_data) != CY_U3P_SUCCESS)  cmd_errors++;//write to flash
+
+                            if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, rdata)!= 0) cmd_errors++;
+
+                            for (k=0; k<data_cnt; k++)
+                            {
+                                LMS_Ctrl_Packet_Tx->Data_field[24+k] = rdata[k];
+                            }
+
+                            if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    } else
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    }
+#endif
+#endif
 
                     break;
 
@@ -1690,17 +1817,32 @@ int main(void) {
                 default:
                     /* This is unknown request. */
                     // isHandled = CyFalse;
+                    printf("Error: Unknown Command: 0x%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_UNKNOWN_CMD;
                     break;
             }
 
+#ifdef DEBUG_CMD
+            printf("Command: 0x%02x\n", LMS_Ctrl_Packet_Rx->Header.Command);
+#endif
+
             // Send response to the command
             // for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
+#ifdef LIMESDR_XTRX
             for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i) {
                 csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
             }
+#else
+            for (int i = 0; i < (64 / sizeof(uint32_t)); ++i) {
+                //dest_byte_reordered = ((dest[cnt] & 0x000000FF) <<24) | ((dest[cnt] & 0x0000FF00) <<8) | ((dest[cnt] & 0x00FF0000) >>8) | ((dest[cnt] & 0xFF000000) >>24);
+                dest_byte_reordered = dest[i];
+                ft601_fifo_wdata_write(dest_byte_reordered);
+                //printf("%ld\n", ft601_fifo_status_read());
+            }
+#endif
 
 
+#ifdef LIMESDR_XTRX
             // printf("TX: ");
             // for (int i = 0; i < 64; i++) {
             //     printf("%02x ", dest[i]);
@@ -1712,8 +1854,18 @@ int main(void) {
             /* Reenable CNTRL irq */
             CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
             irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
+#else
+            //gpo_val = 0x0;
+            //*gpo_reg = gpo_val;
+            main_gpo_write(0);
+#endif
         }
+#if 0
+        unsigned int gpo_reg_04_val = *gpo_reg_04;
+        unsigned int gpo_reg_08_val = *gpo_reg_08;
+#endif
 
+#ifdef LIMESDR_XTRX
         // Clock config
         if (clk_cfg_pending) {
             irq_mask = irq_getmask(); // save irq mask
@@ -1767,5 +1919,24 @@ int main(void) {
             // Reenable all previously enabled interrupts
             irq_setmask(irq_mask);
         }
+#else
+        if (iShiftLeft == 1){
+            if (iValue == 0x8) {
+                iShiftLeft = 0;
+                iValue = 0x4;
+            } else {
+                iValue = iValue << 1;
+            }
+        } else {
+            iValue = iValue >> 1;
+            if (iValue == 0) {
+                iValue = 0x02;
+                iShiftLeft = 1;
+            }
+        }
+#endif
     }
+
+    /* all done */
+    return(0);
 }
