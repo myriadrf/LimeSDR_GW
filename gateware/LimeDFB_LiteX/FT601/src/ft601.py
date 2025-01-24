@@ -161,8 +161,17 @@ class FT601(LiteXModule):
             self.EP03_fifo,
             self.EP03_conv,
             self.EP03_cdc,
-            self.source,
         )
+
+        self.comb += [
+            self.source.data.eq(          self.EP03_cdc.source.data),
+            self.source.valid.eq(         self.EP03_cdc.source.valid),
+            self.EP03_cdc.source.ready.eq(self.source.ready),
+            If(~sync_reg0[1],
+               self.source.valid.eq(         0),
+               self.EP03_cdc.source.ready.eq(1),
+            ),
+        ]
 
         self.comb += [
             # Reset.
