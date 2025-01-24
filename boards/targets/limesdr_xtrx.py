@@ -51,7 +51,7 @@ from litepcie.software import generate_litepcie_software, generate_litepcie_soft
 
 # Constants ----------------------------------------------------------------------------------------
 
-STRM0_FPGA_RX_RWIDTH = 128   # Stream PC->FPGA, rd width
+STRM0_FPGA_RX_RWIDTH = 64    # Stream PC->FPGA, rd width
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
