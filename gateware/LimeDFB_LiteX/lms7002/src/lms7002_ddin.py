@@ -83,20 +83,12 @@ class LMS7002DDIN(LiteXModule):
             # ------
             self.comb += datain.eq(Cat(pads.DIQ2_D, pads.ENABLE_IQSEL2))
 
-            if platform.name in ["limesdr_mini_v2"]:
-                # Internal registers
-                # Resync both on rising edge
-                self.sync.lms_rx += [
-                    rx_diq2_h.eq(   datain_h),
-                    datain_reg_l.eq(datain_l),
-                    #- We need to delay data captured on falling edge, in order to allign samples
-                    rx_diq2_l.eq(   datain_reg_l),
-                ]
-            else:
-                self.comb += [
-                    rx_diq2_h.eq(datain_h),
-                    rx_diq2_l.eq(datain_l),
-                ]
+            self.sync.lms_rx += [
+                rx_diq2_h.eq(   datain_h),
+                datain_reg_l.eq(datain_l),
+                #- We need to delay data captured on falling edge, in order to allign samples
+                rx_diq2_l.eq(   datain_reg_l),
+            ]
 
             self.comb += self.data_cflag.eq(Reduce("OR", gen_delay_cflag)) # OR all vector bits
 
