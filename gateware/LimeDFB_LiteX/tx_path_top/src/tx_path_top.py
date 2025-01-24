@@ -110,7 +110,7 @@ class TXPathTop(LiteXModule):
         if platform.name in ["limesdr_mini_v1"]:
             smpl_nr_fifo      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.SyncFIFO([("data", 64)], 128)))
             self.smpl_nr_fifo = smpl_nr_fifo
-            self.comb += smpl_nr_fifo.reset.eq(s_reset_n),
+            self.comb += smpl_nr_fifo.reset.eq(~s_reset_n),
         else:
             self.cd_smpl_nr_fifo  = ClockDomain()
             smpl_nr_fifo          = stream.ClockDomainCrossing([("data", 64)],
@@ -170,7 +170,7 @@ class TXPathTop(LiteXModule):
                 # FIXME: write: s_axis_domain, read: m_axis_domain. Must check PACKET_FIFO mean
                 smpl_fifo = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.SyncFIFO([("data", 128)], 256)))
                 self.comb += [
-                    smpl_fifo.reset.eq(     s_reset_n & p2d_rd_resetn[i]),
+                    smpl_fifo.reset.eq(     ~(s_reset_n & p2d_rd_resetn[i])),
                     smpl_fifo.sink.valid.eq(p2d_wr_tvalid[i]),
                     p2d_wr_tready[i].eq(    smpl_fifo.sink.ready),
                     smpl_fifo.sink.last.eq( p2d_wr_tlast[i]),
@@ -193,7 +193,7 @@ class TXPathTop(LiteXModule):
                 )
 
                 self.comb += [
-                    s_fifo.reset.eq(           s_reset_n & p2d_rd_resetn[i]),
+                    s_fifo.reset.eq(           ~(s_reset_n & p2d_rd_resetn[i])),
                     s_fifo.sink.valid.eq(      p2d_wr_tvalid[i]),
                     p2d_wr_tready[i].eq(       s_fifo.sink.ready),
                     s_fifo.sink.last.eq(       p2d_wr_tlast[i]),
@@ -237,7 +237,7 @@ class TXPathTop(LiteXModule):
 
             o_CURR_BUF_INDEX     = curr_buf_index,
 
-            i_RESET_N            = m_reset_n,                 # Unconnected for XTRX
+            i_RESET_N            = self.ext_reset_n,          # Unconnected for XTRX
             i_SYNCH_DIS          = synch_dis,                 # Disable timestamp sync
             i_SAMPLE_NR          = rx_sample_nr,
             o_PCT_LOSS_FLG       = self.pct_loss_flg,         # Goes high when a packet is dropped due to outdated timestamp, stays high until PCT_LOSS_FLG_CLR is set
@@ -249,7 +249,7 @@ class TXPathTop(LiteXModule):
         self.sample_padder = Instance("sample_padder",
             # Clk/Reset.
             i_CLK           = ClockSignal(m_clk_domain), # m_axis_domain
-            i_RESET_N       = m_reset_n,                 # Unconnected for XTRX
+            i_RESET_N       = self.ext_reset_n,          # Unconnected for XTRX
 
             # AXI Stream Slave.
             i_S_AXIS_TVALID = data_pad_tvalid,
@@ -269,7 +269,7 @@ class TXPathTop(LiteXModule):
 
         self.sample_unpack = Instance("SAMPLE_UNPACK",
             # Clk/Reset.
-            i_RESET_N       = m_reset_n,                 # Unconnected for XTRX
+            i_RESET_N       = self.ext_reset_n,          # Unconnected for XTRX
             i_AXIS_ACLK     = ClockSignal(m_clk_domain), # m_axis_domain
             i_AXIS_ARESET_N = m_reset_n,                 # m_axis_domain.a_reset_n
 
@@ -288,9 +288,18 @@ class TXPathTop(LiteXModule):
             i_CH_EN         = ch_en,
         )
 
+        if platform.name.startswith("limesdr_mini"):
+            self.specials += [
+                MultiReg(fpgacfg_manager.rx_en, s_reset_n, odomain=s_clk_domain),
+                MultiReg(fpgacfg_manager.rx_en, m_reset_n, odomain=m_clk_domain),
+            ]
+        else:
+            self.specials += [
+                MultiReg(fpgacfg_manager.tx_en, s_reset_n, odomain=s_clk_domain),
+                MultiReg(fpgacfg_manager.tx_en, m_reset_n, odomain=m_clk_domain),
+            ]
+
         self.specials += [
-            MultiReg(fpgacfg_manager.tx_en,      s_reset_n,        odomain=s_clk_domain),
-            MultiReg(fpgacfg_manager.tx_en,      m_reset_n,        odomain=m_clk_domain),
             MultiReg(fpgacfg_manager.ch_en,      ch_en,            odomain=m_clk_domain),
             MultiReg(fpgacfg_manager.smpl_width, smpl_width,       odomain=m_clk_domain),
             MultiReg(fpgacfg_manager.synch_dis,  synch_dis,        odomain=m_clk_domain),
@@ -298,6 +307,7 @@ class TXPathTop(LiteXModule):
         ]
 
         self.comb += [
+            fifo_smpl_buff.reset.eq(~(m_reset_n & self.ext_reset_n)),
             self.source.last.eq(0),
             If(smpl_width == 0b00,
                 unpack_bypass.eq(1),

@@ -272,8 +272,12 @@ class LMS7002Top(LiteXModule):
 
         self.txiq_tst_ptrn = Instance("txiq_tst_ptrn", **txiq_tst_ptrn_params)
 
+        if platform.name.startswith("limesdr_mini"):
+            self.specials += MultiReg(fpgacfg_manager.rx_en, tx_reset_n, odomain="lms_tx")
+        else:
+            self.specials += MultiReg(fpgacfg_manager.tx_en, tx_reset_n, odomain="lms_tx")
+
         self.specials += [
-            MultiReg(fpgacfg_manager.tx_en,           tx_reset_n,      odomain="lms_tx"),
             MultiReg(fpgacfg_manager.tx_ptrn_en,      tx_ptrn_en,      odomain="lms_tx"),
             MultiReg(fpgacfg_manager.tx_cnt_en,       tx_tst_data_en,  odomain="lms_tx"),
             MultiReg(fpgacfg_manager.wfm_play,        tx_mux_sel,      odomain="lms_tx"),
