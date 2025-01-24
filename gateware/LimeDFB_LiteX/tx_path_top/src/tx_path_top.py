@@ -82,8 +82,8 @@ class TXPathTop(LiteXModule):
         data_pad_tready  = Signal()
         data_pad_tlast   = Signal()
 
-        # AXI Slave 64 -> 128 (must uses s_axis_domain)
-        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(64, 128)))
+        # AXI Slave FIFO_DATA_W -> 128 (must uses s_axis_domain)
+        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(FIFO_DATA_W, 128)))
         self.conv_64_to_128 = conv_64_to_128
 
         # FIFO before unpacker
