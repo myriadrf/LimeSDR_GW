@@ -36,12 +36,16 @@ uint8_t glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
 tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet *) glEp0Buffer_Tx;
 tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *) glEp0Buffer_Rx;
 
+int boot_img_en = 0;
+
+#ifdef LIMESDR_XTRX
 // If an error points here, most likely some of the macros are invalid.
 PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
 PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
 SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LMS7002_TOP);
 // clk_ctrl_addrs is declared in regremap.h
 CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
+#endif
 
 volatile uint8_t lms64_packet_pending;
 
@@ -85,6 +89,7 @@ volatile unsigned char tmprd_serial[32] = {0};
 //#define FW_VER 3 // Added serial number into GET_INFO cmd
 #define FW_VER 5 // Firmware for Litex project
 
+#ifdef LIMESDR_XTRX
 /*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
@@ -581,6 +586,7 @@ static void console_service(void) {
     prompt();
 }
 
+#endif // LIMESDR_XTRX
 
 /** Checks if peripheral ID is valid.
  Returns 1 if valid, else 0. */
@@ -1982,7 +1988,7 @@ int main(void) {
 
                 case CMD_MEMORY_RD:
                     printf("CMD_MEMORY_RD\n");
-#ifdef LIMESDR_XRX
+#ifdef LIMESDR_XTRX
                     // Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
                     // a workaround is implemented that uses a sufficiently high address in the configuration flash
                     // to store the DAC value
