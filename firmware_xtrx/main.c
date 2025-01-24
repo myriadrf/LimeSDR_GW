@@ -785,7 +785,12 @@ int main(void) {
     prompt();
 
     while (1) {
+#ifdef LIMESDR_XTRX
         console_service();
+#else
+        spirez = ft601_fifo_status_read();	// Read FIFO Status
+		lms64_packet_pending = !(spirez & 0x01);
+#endif
 
         // Process received packet
         if (lms64_packet_pending) {
@@ -795,6 +800,7 @@ int main(void) {
             uint8_t i2c_buf[3];
 			uint32_t read_value;
 
+#ifdef LIMESDR_XTRX
             /* Disable CNTRL irq while processing packet */
             CNTRL_ev_enable_write(CNTRL_ev_enable_read() & ~(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET));
             irq_setmask(irq_getmask() & ~(1 << CNTRL_INTERRUPT));
@@ -809,6 +815,12 @@ int main(void) {
             //     printf("%02x ", glEp0Buffer_Rx[i]);
             // }
             // printf("\n");
+#else
+            main_gpo_write(1);
+
+            //Read packet from the FIFO
+            getFifoData(glEp0Buffer_Rx, 64);
+#endif
 
             memset(glEp0Buffer_Tx, 0, sizeof(glEp0Buffer_Tx)); // fill whole tx buffer with zeros
             cmd_errors = 0;
