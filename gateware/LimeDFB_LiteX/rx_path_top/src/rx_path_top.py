@@ -86,7 +86,7 @@ class RXPathTop(LiteXModule):
 
         iqpacket_wr_data_count  = Signal(9)
         bp_sample_nr_counter    = Signal(64)
-        pkt_size                = Signal(15)
+        pkt_size                = Signal(16)
 
         self.iqsmpls_fifo_sink_ready   = Signal()
         self.iqsmpls_fifo_sink_valid   = Signal()
