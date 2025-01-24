@@ -282,60 +282,6 @@ unsigned char Check_many_blocks(unsigned char block_size) {
         return 0;
 }
 
-#if 0
-void spiflash_wr_command(MicoSPIFlashCtx_t *ctx, unsigned int MSW, unsigned int LSW, unsigned int LENGTH)
-{
-     MICO_SPI_CUSTOM_MSW_BYTEWISE(ctx->control_base, MSW); 		//Most significant word
-     MICO_SPI_CUSTOM_LSW_BYTEWISE(ctx->control_base, LSW); 		//Most significant word
-     MICO_SPI_CUSTOM_LENGTH_BYTEWISE(ctx->control_base, LENGTH); 	// Write length
-     MICO_SPI_CUSTOM_RETURN_LENGTH_BYTEWISE(ctx->control_base, 0x0);
-     //Execute command
-     MICO_SPI_CUSTOM_BYTEWISE(ctx->control_base);
-}
-
-void spiflash_rd_command(MicoSPIFlashCtx_t *ctx, unsigned int MSW, unsigned int LSW,
-                         unsigned int LENGTH, unsigned int RETURN_LENGTH, unsigned int *RETURN_DATA)
-{
-    unsigned int value;
-    MICO_SPI_CUSTOM_MSW_BYTEWISE(ctx->control_base, MSW); 		//Most significant word
-    MICO_SPI_CUSTOM_LSW_BYTEWISE(ctx->control_base, LSW); 		//Most significant word
-    MICO_SPI_CUSTOM_LENGTH_BYTEWISE(ctx->control_base, LENGTH); 	// Write length
-    MICO_SPI_CUSTOM_RETURN_LENGTH_BYTEWISE(ctx->control_base, RETURN_LENGTH);
-    //Execute command
-    MICO_SPI_CUSTOM_BYTEWISE(ctx->control_base);
-    //Read received data from register
-    MICO_SPI_CUSTOM_RETURN_DATA(ctx->control_base, value);
-    *RETURN_DATA = value;
-}
-
-void spiflash_erase_primary(MicoSPIFlashCtx_t *ctx)
-{
-    int flash_op_status;
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00000000, 3);
-    /*
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00010000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00020000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00030000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00040000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00050000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00060000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00070000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00080000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00090000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x000A0000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x000B0000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x000C0000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x000D0000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x000E0000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x000F0000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00100000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00110000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00120000, 3);
-    flash_op_status = MicoSPIFlash_BlockErase(ctx, ctx->memory_base + 0x00130000, 3);
-    */
-}
-#endif
-
 /**
  * Configures LM75
  */
@@ -389,70 +335,6 @@ void Configure_LM75(void)
     busy_wait(100);
 }
 
-//
-
-void testEEPROM(void)
-{
-    int spirez;
-    uint8_t converted_val;
-    unsigned char addr;
-    unsigned char wdata[4];
-    unsigned char rdata[4]= {0xFF, 0xFF, 0xFF, 0xFF};
-    (void) converted_val;
-    (void) spirez;
-
-    /*
-    //EEPROM Test, RD from 0x0000
-    spirez = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 0);
-    spirez = I2C_write(I2C_OPENCORES_0_BASE, 0x00, 0);
-    spirez = I2C_write(I2C_OPENCORES_0_BASE, 0x00, 0);
-    */
-
-    //EEPROM Test, RD from 0x0000
-    addr = 0x00;
-    wdata[0]=0x00;
-    spirez = i2c0_write(EEPROM_I2C_ADDR, addr, wdata, 1);
-
-    /*
-    spirez = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 1);
-    converted_val = I2C_read(I2C_OPENCORES_0_BASE, 1);
-    */
-    spirez = i2c0_read(EEPROM_I2C_ADDR, addr, rdata, 1, true);
-
-    /*
-    //WR
-    spirez = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 0);
-    spirez = I2C_write(I2C_OPENCORES_0_BASE, 0x00, 0);
-    spirez = I2C_write(I2C_OPENCORES_0_BASE, 0x01, 0);
-    spirez = I2C_write(I2C_OPENCORES_0_BASE, 0x5A, 1);
-    */
-
-    //WR
-    addr = 0x00;
-    wdata[0]=0x01;
-    wdata[1]=0x5A;
-    spirez = i2c0_write(EEPROM_I2C_ADDR, addr, wdata, 2);
-
-    /*
-    //EEPROM Test, RD from 0x0001
-    spirez = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 0);
-    spirez = I2C_write(I2C_OPENCORES_0_BASE, 0x00, 0);
-    spirez = I2C_write(I2C_OPENCORES_0_BASE, 0x01, 0);
-
-    spirez = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 1);
-    converted_val = I2C_read(I2C_OPENCORES_0_BASE, 1);
-    */
-
-    //EEPROM Test, RD from 0x0001
-    addr = 0x00;
-    wdata[0]=0x01;
-    spirez = i2c0_write(EEPROM_I2C_ADDR, addr, wdata, 1);
-
-    spirez = i2c0_read(EEPROM_I2C_ADDR, addr, rdata, 1, true);
-    converted_val = rdata[0];
-
-}
-
 uint16_t rd_dac_val(uint16_t addr)
 {
     //uint8_t i2c_error;
@@ -487,10 +369,8 @@ uint16_t rd_dac_val(uint16_t addr)
 }
 
 int main(void) {
-    volatile int spirez;
+    int spirez;
     uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
-    //int i2crez;
-    //int k;
     uint8_t p_spi_wrdata[4];
 
 #ifdef CONFIG_CPU_HAS_INTERRUPT
@@ -499,103 +379,15 @@ int main(void) {
 #endif
     uart_init();
 
-#if 0
-    unsigned char test_val;
-    unsigned char value;
-#endif
-
-    //char wdata[256];
-    //char rdata[256];
     char i2c_wdata[64];
     unsigned char i2c_rdata[64];
-#if 0
-    uint16_t eeprom_dac_val;
-    uint16_t flash_dac_val;
-
-    //Flash testing
-    unsigned int FPGA_CFG_FLASH_ID;
-    unsigned int rd_status_1;
-    unsigned int rd_status_2;
-    unsigned int rd_status_3;
-    unsigned int rd_data;
-    int flash_op_status;
-    int read_status;
-    int read_data;
-#endif
 
     unsigned char iValue = 0x1;
-    //unsigned int gpio_val = 0x0;
-    //unsigned int gpo_val = 0x0;
-    //unsigned int gpio_rd_val = 0x0;
-    //unsigned int gpio_rd_val2 = 0x0;
 
     unsigned char iShiftLeft = 1;
     uint32_t dest_byte_reordered = 0;
     unsigned int dac_spi_wrdata = 0;
 
-#if 0
-    /*
-    * Names of the SPI master and slave, as
-    * defined in MSB
-    */
-    const char *const SPIM_INSTANCE_NAME = "spim_";
-
-    /* Fetch GPIO instance named "LED" */
-    MicoGPIOCtx_t *leds = (MicoGPIOCtx_t *)MicoGetDevice(LED_GPIO_INSTANCE);
-    if (leds == 0) {
-        //printf("failed to find GPIO instance named LED\r\n");
-        return(0);
-    }
-
-    /* Fetch GPIO instance named "GPIO" */
-    MicoGPIOCtx_t *gpio = (MicoGPIOCtx_t *)MicoGetDevice(GPIO_GPIO_INSTANCE);
-    if (gpio == 0) {
-        //printf("failed to find GPIO instance named GPIO\r\n");
-        return(0);
-    }
-
-    MicoGPIOCtx_t *spiflash_usrmclkts = (MicoGPIOCtx_t *)MicoGetDevice(SPI_FLASH_USRMCLKTS_INSTANCE);
-    if (spiflash_usrmclkts == 0) {
-        //printf("failed to find GPIO instance named GPIO\r\n");
-        return(0);
-    }
-
-
-    MICO_GPIO_WRITE_DATA(spiflash_usrmclkts,0x0);
-
-    unsigned int *reg = GPIO_BASE_ADDRESS;
-    unsigned int *gpo_reg = GPO_BASE_ADDRESS;
-    unsigned int *gpo_reg_04 = GPO_BASE_ADDRESS + 4;
-    unsigned int *gpo_reg_08 = GPO_BASE_ADDRESS + 8;
-
-
-    /* if we're not to blink, return immediately */
-    if (uiBlink == 0)
-        return(0);
-    MICO_GPIO_WRITE_DATA(gpio,0xFFFFFFFF);
-
-    *((volatile unsigned char *)(leds->base)) = 0xFF;
-#endif
-
-
-#if 0
-    //SPI test
-    int runs = 0;
-    int slave_address = 0x01;
-    int master_txdata = 0x0;
-    MicoSPICtx_t *pMaster;
-    /* Fetch pointers to master/slave SPI dev-ctx instances */
-    pMaster = (MicoSPICtx_t *)MicoGetDevice(SPI_INSTANCE);
-    //TODO: Remove after testing
-    int spi_rdwr = 0;
-    unsigned int spi_wrval = 0;
-
-    /* Make sure pointers are valid */
-    if(pMaster == 0){
-        //printf("Cannot use SPI Master as ctx is unidentified\n");
-    return(0);
-    }
-#endif
     // RESET FIFO once on power-up
     ft601_fifo_control_write(1);
     ft601_fifo_control_write(0);
@@ -603,19 +395,6 @@ int main(void) {
     //Reset LMS7
     lms7002_top_lms_ctr_gpio_write(0x0);
     lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
-
-    //testEEPROM(i2c_master);
-
-    // Read TCXO DAC value from EEPROM memory
-    /*
-    eeprom_dac_val = rd_dac_val(i2c_master, DAC_VAL_ADDR);
-    if (eeprom_dac_val == 0xFFFF){
-        dac_val = DAC_DEFF_VAL; //default DAC value
-    }
-    else {
-        dac_val = (uint16_t) eeprom_dac_val;
-    }
-    */
 
 #if defined(CSR_SPIFLASH_CORE_BASE)
     uint8_t spi_rdata[16];

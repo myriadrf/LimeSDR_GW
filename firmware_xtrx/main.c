@@ -86,58 +86,6 @@ volatile unsigned char tmprd_serial[32] = {0};
 #define FW_VER 5 // Firmware for Litex project
 
 /*-----------------------------------------------------------------------*/
-/* IRQ                                                                   */
-/*-----------------------------------------------------------------------*/
-
-///** IRQ example ISR. */
-//static void irq_example_isr(void)
-//{
-//	uint8_t stat;
-//
-//	/* Read the pending interrupt status. */
-//	stat = ev_pending_read();
-//
-//	/* Check if IRQ0 is pending. */
-//	if(stat & (1 << CSR_EV_STATUS_IRQ0_OFFSET)) {
-//		// printf("IRQ0!\n");
-//		/* Clear the IRQ0 pending status. */
-//		ev_pending_write((1 << CSR_EV_STATUS_IRQ0_OFFSET));
-//	}
-//
-//	/* Check if IRQ1 is pending. */
-//	if(stat & (1 << CSR_EV_STATUS_IRQ1_OFFSET)) {
-//		// uint32_t dest;
-//		// printf(" CNTRL: ");
-//		// for (int cnt = 0; cnt < 16 ; cnt++)
-//		// {
-//		// 	dest = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt*4));
-//		// 	printf("%x ", dest);
-//		// }
-//		// printf(" \n");
-//		// busy_wait_us(10000);
-//		// printf("IRQ1!\n");
-//		/* Clear the IRQ1 pending status. */
-//		ev_pending_write((1 << CSR_EV_STATUS_IRQ1_OFFSET));
-//	}
-//}
-//
-///* Initialize the IRQ example. */
-//// static void irq_example_init(void)
-//// {
-//// 	/* Clear all pending interrupts. */
-//// 	ev_pending_write(ev_pending_read());
-////
-//// 	/* Enable IRQ0 and IRQ1. */
-//// 	ev_enable_write((1 << CSR_EV_STATUS_IRQ0_OFFSET) | (1 << CSR_EV_STATUS_IRQ1_OFFSET));
-////
-//// 	/* Attach the example ISR to the interrupt. */
-//// 	irq_attach(LIME_TOP_INTERRUPT, irq_example_isr);
-////
-//// 	/* Enable the example interrupt. */
-//// 	irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
-//// }
-
-/*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
 
