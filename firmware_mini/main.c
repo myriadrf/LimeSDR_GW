@@ -95,26 +95,67 @@
 //#define DEBUG_CMD
 
 /************************** Variable Definitions *****************************/
+uint8_t block, cmd_errors;
+uint8_t glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
+tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet *) glEp0Buffer_Tx;
+tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *) glEp0Buffer_Rx;
+
 int boot_img_en = 0;
-volatile uint8_t lms64_packet_pending;
 
-uint8_t MCU_retries;
+#ifdef LIMESDR_XTRX
+// If an error points here, most likely some of the macros are invalid.
+PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
+PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
+SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LMS7002_TOP);
+// clk_ctrl_addrs is declared in regremap.h
+CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
 
-const unsigned int uiBlink = 1;
+//Flash programming variables
+volatile uint8_t flash_prog_pending = 0;
+
+uint8_t page_buffer[256]; // page buffer
+uint16_t page_buffer_cnt; // how many bytes are present in buffer
+uint64_t total_data = 0; // how much data has been transferred in total (debug value)
+uint8_t inc_data_count;
+int PAGE_SIZE = 256;
+uint8_t data_to_copy; // how much data to copy to page buffer (incase of overflow)
+uint8_t data_leftover;
+
+//Clock config variables
+volatile uint8_t clk_cfg_pending = 0;
+volatile uint8_t var_phcfg_start;
+volatile uint8_t var_pllcfg_start;
+volatile uint8_t var_pllrst_start;
 
 
-uint8_t test, block, cmd_errors, glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
-tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet*)glEp0Buffer_Tx;
-tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet*)glEp0Buffer_Rx;
+unsigned int irq_mask;
 
+uint16_t dac_val = DAC_DEFF_VAL;
+
+uint8_t serial_otp_unlock_key = 0;
+volatile unsigned char serial[32] = {0};
+volatile unsigned char tmp_serial[32] = {0};
+volatile unsigned char tmprd_serial[32] = {0};
+
+// Since there is no eeprom on the XTRX board and the flash is too large for the gw
+// we use the top of the flash instead of eeprom, thus the offset to last sector
+#define mem_write_offset 0x01FF0000
+#else
+unsigned long int last_portion, fpga_data;
 int flash_page = 0, flash_page_data_cnt = 0, flash_data_cnt_free = 0, flash_data_counter_to_copy = 0;
-//FPGA conf
-unsigned long int last_portion, current_portion, fpga_data;
-unsigned char data_cnt;
 unsigned char sc_brdg_data[4];
 unsigned char flash_page_data[FLASH_PAGE_SIZE];
 tBoard_Config_FPGA *Board_Config_FPGA = (tBoard_Config_FPGA*) flash_page_data;
 unsigned long int fpga_byte;
+
+uint32_t byte = 0;
+uint32_t byte1;
+uint32_t word = 0x0;
+uint8_t state, Flash = 0x0;
+char spiflash_wdata[4];
+uint8_t MCU_retries;
+
+const unsigned int uiBlink = 1;
 
 // Used for MAX10 Flash programming
 #ifdef LIMESDR_MINI_V1
@@ -127,18 +168,19 @@ uint32_t word;
 uint32_t CFM0StartAddress = 0x000000;
 uint32_t CFM0EndAddress   = 0x13FFFF;
 #endif
-uint32_t address = 0x0;
-uint32_t byte = 0;
-uint32_t byte1;
-uint32_t word = 0x0;
-uint8_t state, Flash = 0x0;
-char spiflash_wdata[4];
-
-
 uint16_t dac_val = 720;
 unsigned char dac_data[2];
 
 signed short int converted_value = 300;
+#endif
+
+volatile uint8_t lms64_packet_pending;
+
+//FPGA conf
+int data_cnt = 0;
+unsigned long int current_portion;
+int address;
+
 
 #ifdef LIMESDR_MINI_V1
 /**

@@ -109,17 +109,11 @@ PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_PL
 SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LMS7002_TOP);
 // clk_ctrl_addrs is declared in regremap.h
 CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
-#endif
-
-volatile uint8_t lms64_packet_pending;
 
 //Flash programming variables
 volatile uint8_t flash_prog_pending = 0;
 
 uint8_t page_buffer[256]; // page buffer
-int data_cnt = 0;
-unsigned long int current_portion;
-int address;
 uint16_t page_buffer_cnt; // how many bytes are present in buffer
 uint64_t total_data = 0; // how much data has been transferred in total (debug value)
 uint8_t inc_data_count;
@@ -146,12 +140,46 @@ volatile unsigned char tmprd_serial[32] = {0};
 // Since there is no eeprom on the XTRX board and the flash is too large for the gw
 // we use the top of the flash instead of eeprom, thus the offset to last sector
 #define mem_write_offset 0x01FF0000
+#else
+unsigned long int last_portion, fpga_data;
+int flash_page = 0, flash_page_data_cnt = 0, flash_data_cnt_free = 0, flash_data_counter_to_copy = 0;
+unsigned char sc_brdg_data[4];
+unsigned char flash_page_data[FLASH_PAGE_SIZE];
+tBoard_Config_FPGA *Board_Config_FPGA = (tBoard_Config_FPGA*) flash_page_data;
+unsigned long int fpga_byte;
 
-/* DEBUG */
-//#define DEBUG_FIFO
-//#define DEBUG_CSR_ACCESS
-//#define DEBUG_LMS_SPI
-//#define DEBUG_CMD
+uint32_t byte = 0;
+uint32_t byte1;
+uint32_t word = 0x0;
+uint8_t state, Flash = 0x0;
+char spiflash_wdata[4];
+uint8_t MCU_retries;
+
+const unsigned int uiBlink = 1;
+
+// Used for MAX10 Flash programming
+#ifdef LIMESDR_MINI_V1
+uint32_t CFM0StartAddress = 0x012800;
+uint32_t CFM0EndAddress   = 0x022FFF;
+uint32_t UFMStartAddress = 0x0;
+uint32_t UFMEndAddress   = 0x01FFF;
+uint32_t word;
+#else
+uint32_t CFM0StartAddress = 0x000000;
+uint32_t CFM0EndAddress   = 0x13FFFF;
+#endif
+uint16_t dac_val = 720;
+unsigned char dac_data[2];
+
+signed short int converted_value = 300;
+#endif
+
+volatile uint8_t lms64_packet_pending;
+
+//FPGA conf
+int data_cnt = 0;
+unsigned long int current_portion;
+int address;
 
 #ifdef LIMESDR_XTRX
 /*-----------------------------------------------------------------------*/
