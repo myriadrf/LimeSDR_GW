@@ -1056,6 +1056,8 @@ int main(void) {
     irq_setie(1);
 #endif
     uart_init();
+
+#ifdef LIMESDR_XTRX
     init_pmic();
     printf("CSR_CNTRL_BASE 0x%lx ", CSR_CNTRL_BASE);
     // irq_example_init();
@@ -1065,6 +1067,65 @@ int main(void) {
     init_vctcxo_dac();
     help();
     prompt();
+#else // LIMESDR_MINI_V1 / LIMESDR_MINI_V2
+    uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
+    uint8_t p_spi_wrdata[4];
+    char i2c_wdata[64];
+    unsigned char i2c_rdata[64];
+
+    unsigned char iValue = 0x1;
+
+    unsigned char iShiftLeft = 1;
+    uint32_t dest_byte_reordered = 0;
+    unsigned int dac_spi_wrdata = 0;
+
+    // RESET FIFO once on power-up
+    ft601_fifo_control_write(1);
+    ft601_fifo_control_write(0);
+
+    //Reset LMS7
+    lms7002_top_lms_ctr_gpio_write(0x0);
+    lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+
+#if defined(CSR_SPIFLASH_CORE_BASE)
+    uint8_t spi_rdata[16];
+    spiFlash_read(0x0, 5, spi_rdata);
+    if (spi_rdata[3] == 0xff || spi_rdata[4] == 0xff)
+        printf("SPI Flash access: Error\n");
+    else
+        printf("SPI Flash access: OK\n");
+
+    spiFlash_read(DAC_VAL_ADDR_IN_FLASH, 2, spi_rdata);
+    if ((spi_rdata[0]==0xFF) & (spi_rdata[1]==0xFF)) {
+        dac_val = DAC_DEFF_VAL;
+    }
+    else {
+        dac_val = ((uint16_t)spi_rdata[1])<<8 | ((uint16_t)spi_rdata[0]);
+    }
+#else
+    dac_val = DAC_DEFF_VAL;
+#endif
+
+    //spirez = MicoSPISetSlaveEnable(dac_spi, 1);
+    // Write initial data to the 10bit DAC
+    dac_data[0] = (unsigned char) ((dac_val & 0x03F0) >> 4); //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
+    dac_data[1] = (unsigned char) ((dac_val & 0x000F) << 4); //LSB data
+    dac_spi_wrdata = ((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
+    printf("%04x\n", dac_spi_wrdata);
+
+    dac_spi_wrdata = dac_val << 4;//((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
+    printf("%04x\n", dac_spi_wrdata);
+    //spirez= MicoSPISetSlaveEnable(dac_spi, 0x01);
+    //spirez= MicoSPITxData(dac_spi, dac_spi_wrdata, 0);
+    dac_spi_write(dac_spi_wrdata);
+
+    /* Drive mico32_busy low, high, low */
+    main_gpo_write(0);
+    main_gpo_write(1);
+    main_gpo_write(0);
+
+    Configure_LM75();
+#endif
 
     while (1) {
 #ifdef LIMESDR_XTRX

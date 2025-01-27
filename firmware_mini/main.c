@@ -1051,15 +1051,25 @@ unsigned char Check_many_blocks(unsigned char block_size) {
 
 int main(void) {
     int spirez;
-    uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
-    uint8_t p_spi_wrdata[4];
-
 #ifdef CONFIG_CPU_HAS_INTERRUPT
     irq_setmask(0);
     irq_setie(1);
 #endif
     uart_init();
 
+#ifdef LIMESDR_XTRX
+    init_pmic();
+    printf("CSR_CNTRL_BASE 0x%lx ", CSR_CNTRL_BASE);
+    // irq_example_init();
+    lms64c_init();
+    clk_cfg_irq_init();
+    init_pmic();
+    init_vctcxo_dac();
+    help();
+    prompt();
+#else // LIMESDR_MINI_V1 / LIMESDR_MINI_V2
+    uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
+    uint8_t p_spi_wrdata[4];
     char i2c_wdata[64];
     unsigned char i2c_rdata[64];
 
@@ -1115,6 +1125,7 @@ int main(void) {
     main_gpo_write(0);
 
     Configure_LM75();
+#endif
 
     while (1) {
 #ifdef LIMESDR_XTRX
