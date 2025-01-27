@@ -445,7 +445,7 @@ def main():
                 True  : "linker_main_ram.ld",
                 False : "linker_rom.ld",
             }[args.with_bios]
-            os.system(f"cd firmware_mini && make BUILD_DIR={builder.output_dir} LINKER={linker} clean all")
+            os.system(f"cd firmware_mini && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
 
     # Load Bistream.
     if args.load:
