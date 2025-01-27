@@ -9,9 +9,21 @@ ifdef DEBUG
 CFLAGS += -g -O0
 endif
 
-OBJECTS   = i2c0.o i2c1.o crt0.o main.o regremap.o lms7002m.o Xil_clk_drp.o fpga_flash_qspi.o
+CFLAGS := $(filter-out -Wmissing-prototypes -Wstrict-prototypes, $(CFLAGS))
+
+OBJECTS   = i2c0.o crt0.o main.o
+OBJECTS  += lms7002m.o
+
+ifeq ($(TARGET), LIMESDR_XTRX)
+OBJECTS += i2c1.o regremap.o Xil_clk_drp.o fpga_flash_qspi.o
+else
+OBJECTS += csr_access.o spiflash.o
+endif
 
 all: firmware.bin
+
+test:
+	echo $(OBJECTS)
 
 %.bin: %.elf
 	$(OBJCOPY) -O binary $< $@
@@ -46,6 +58,6 @@ VPATH = $(BIOS_DIRECTORY):$(BIOS_DIRECTORY)/cmds:$(CPU_DIRECTORY)
 	$(assemble)
 
 clean:
-	$(RM) $(OBJECTS) firmware.elf firmware.bin .*~ *~
+	$(RM) $(OBJECTS) firmware.elf firmware.bin .*~ *~ *.map *.d
 
 .PHONY: all clean
