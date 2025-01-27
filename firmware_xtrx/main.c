@@ -678,30 +678,6 @@ static void console_service(void) {
     prompt();
 }
 
-#endif // LIMESDR_XTRX
-
-/** Checks if peripheral ID is valid.
- Returns 1 if valid, else 0. */
-unsigned char Check_Periph_ID(unsigned char max_periph_id, unsigned char Periph_ID);
-unsigned char Check_Periph_ID(unsigned char max_periph_id, unsigned char Periph_ID) {
-    if (LMS_Ctrl_Packet_Rx->Header.Periph_ID > max_periph_id) {
-        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_INVALID_PERIPH_ID_CMD;
-        return 0;
-    } else
-        return 1;
-}
-
-/**	This function checks if all blocks could fit in data field.
- *	If blocks will not fit, function returns TRUE. */
-unsigned char Check_many_blocks(unsigned char block_size);
-unsigned char Check_many_blocks(unsigned char block_size) {
-    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks > (sizeof(LMS_Ctrl_Packet_Tx->Data_field) / block_size)) {
-        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
-        return 1;
-    } else
-        return 0;
-}
-
 /**
  * Gets 64 bytes packet
  */
@@ -812,6 +788,266 @@ void copyArray(unsigned char *source, unsigned char *destination, size_t sourceI
     memcpy(destination + destinationIndex, source + sourceIndex, count);
 }
 
+// End of functions specifics to XTRX
+#else // LIMESDR_MINI_V1 / LIMESDR_MINI_V2
+#ifdef LIMESDR_MINI_V1
+/**
+ * Bit swap in byte
+ */
+uint8_t reverse(uint8_t b)
+{
+    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+    return b;
+}
+#endif
+
+static void dac_spi_write(const uint16_t write_data)
+{
+    // register is 32bits and start sending bit 32
+    // we have to shift data to align
+    uint32_t cmd = ((uint32_t)write_data) << 16;
+    printf("%08lx\n", cmd);
+
+    /* set cs */
+    spimaster_cs_write(1 << 1);
+
+    /* Write SPI MOSI Data */
+    spimaster_mosi_write(cmd);
+
+    /* Start SPI Xfer */
+    spimaster_control_write(
+        (1  << CSR_SPIMASTER_CONTROL_START_OFFSET) |
+        (16 << CSR_SPIMASTER_CONTROL_LENGTH_OFFSET)
+    );
+
+    /* Wait SPI Xfer */
+    while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
+}
+
+/* SPIFlash ------------------------------------------------------------------*/
+#if defined(CSR_SPIFLASH_CORE_BASE)
+void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
+{
+    void *addr = (void *)SPIFLASH_BASE;
+    uint32_t real_len = length;
+    int i, ii, data_offset;
+    uint32_t rx;
+    uint32_t offset = 0;
+    // Read access is 32b: must be aligned
+    uint32_t base_addr = (rel_addr >> 2) << 2;
+    if (base_addr != rel_addr) {
+        offset = rel_addr - base_addr;
+        real_len++;
+    }
+    for (i = 0, data_offset = 0; i < real_len; i += 4) {
+        rx = *(uint32_t *)(addr + i);
+        int max = (data_offset + 4 > length) ? length - data_offset : 4;
+        for (ii = offset; ii < max; ii++) {
+            rdata[data_offset++] = (rx >> (ii * 8));
+        }
+        offset = 0;
+    }
+}
+#endif
+
+/* FIFO ----------------------------------------------------------------------*/
+int FIFO_loopback_test(int base_addr)
+{
+    unsigned int fifo_val =0;
+    int fifo_wrcnt = 0;
+    int fifo_wr_data =0;
+    int fifo_rd_cnt =0;
+    int fifo_wr_data_array[4];
+    int fifo_rd_data_array[4];
+
+    //FIFO testing
+    fifo_wrcnt = 0;
+    fifo_wr_data = 1;
+
+    //Reset FIFO
+    //printf("FIFO reset \n\n");
+    ft601_fifo_control_write(1);
+    ft601_fifo_control_write(0);
+    busy_wait(100);
+
+    while ((ft601_fifo_status_read() & 0x2) != 0x2) {
+        ft601_fifo_wdata_write(fifo_wr_data);
+        //printf("FIFO Write: %#x \n", fifo_wr_data);
+        fifo_wr_data_array[fifo_wrcnt]=fifo_wr_data;
+        fifo_wrcnt++;
+        fifo_wr_data++;
+        //busy_wait(100);
+
+    }
+    //printf("FIFO Write counter: %d \n", fifo_wrcnt);
+
+    fifo_rd_cnt=0;
+    while (!(ft601_fifo_status_read() & 0x1)) {
+        fifo_val = ft601_fifo_rdata_read();
+        fifo_rd_data_array[fifo_rd_cnt] = fifo_val;
+        //busy_wait(100);
+        //printf("FIFO Read: %#x \n", fifo_val);
+        fifo_rd_cnt++;
+    }
+    //printf("FIFO Read counter: %d \n", fifo_rd_cnt);
+
+    int i = 0;
+    if (fifo_wrcnt == fifo_rd_cnt) {
+        //printf("FIFO WR/RD counters match \n");
+        for (i =0; i < fifo_wrcnt; i++){
+            if (fifo_wr_data_array[i] != fifo_rd_data_array[i]){
+                //printf("FIFO WR/RD arrays does not match \n");
+                return(0);
+            }
+        }
+    }
+    else {
+        //printf("FIFO WR/RD counters does not match \n");
+        return(0);
+    }
+
+    return(1);
+}
+
+/**
+ * Gets 64 bytes packet from FIFO.
+ */
+
+void getFifoData(uint8_t *buf, uint8_t k);
+void getFifoData(uint8_t *buf, uint8_t k)
+{
+    uint8_t cnt = 0;
+    uint32_t* dest = (uint32_t*)buf;
+    uint32_t fifo_val = 0;
+
+#ifdef DEBUG_FIFO
+    printf("D %d\n", k);
+#endif
+    for (cnt=0; cnt<k/sizeof(uint32_t); ++cnt)
+    {
+        fifo_val = ft601_fifo_rdata_read();
+#ifdef DEBUG_FIFO
+        printf("X%08lx ", fifo_val);
+#endif
+        dest[cnt] = fifo_val; // Read Data From Fifo
+    }
+#ifdef DEBUG_FIFO
+    printf("\n");
+    printf("E\n");
+#endif
+}
+
+/**
+ * Configures LM75
+ */
+void Configure_LM75(void);
+void Configure_LM75(void)
+{
+    bool spirez;
+    unsigned char addr;
+    unsigned char wdata[4];
+    unsigned char rdata[4];
+    (void)spirez;
+
+    // OS polarity configuration
+    addr = 0x01; // Pointer = configuration register
+    wdata[0] = 0x04; //Configuration value: OS polarity = 1, Comparator/int = 0, Shutdown = 0
+    spirez = i2c0_write(LM75_I2C_ADDR, addr, wdata, 1);
+    //spirez = i2c0_write(0x60, addr, wdata, 1);
+    if (!spirez)
+        return;
+
+    // Read  back OS polarity configuration
+    addr = 0x01; // Pointer = Configuration register
+
+    spirez = i2c0_read(LM75_I2C_ADDR, addr, rdata, 1, true);
+    busy_wait(100);
+
+
+    // THYST configuration
+    addr = 0x02;	// Pointer = THYST register
+    wdata[0]=0x2D;	// Set THYST H (45)
+    wdata[1]=0;		// Set THYST L
+    spirez = i2c0_write(LM75_I2C_ADDR, addr, wdata, 2);
+
+
+    // Read  back THYST configuration
+    addr = 0x02; // Pointer = THYST
+    spirez = i2c0_read(LM75_I2C_ADDR, addr, rdata, 2, true);
+    busy_wait(100);
+
+
+    // TOS configuration
+    addr = 0x03;	// Pointer = TOS register
+    wdata[0]=0x37;	// Set TOS H (55)
+    wdata[1]=0;		// Set TOS L
+    spirez = i2c0_write(LM75_I2C_ADDR, addr, wdata, 2);
+
+
+    // Read back TOS configuration
+    addr = 0x03; // Pointer = TOS
+    spirez = i2c0_read(LM75_I2C_ADDR, addr, rdata, 2, true);
+    busy_wait(100);
+}
+
+uint16_t rd_dac_val(uint16_t addr)
+{
+    //uint8_t i2c_error;
+    int i2c_error;
+    uint8_t addr_lsb = (uint8_t) addr & 0x00FF;
+    uint8_t addr_msb = (uint8_t) (addr & 0xFF00) >> 8;
+    uint8_t eeprom_rd_val_0;
+    uint8_t eeprom_rd_val_1;
+    uint16_t rez;
+    unsigned char wdata[4];
+    unsigned char rdata[4]={0xFF, 0xFF, 0xFF, 0xFF};
+    (void) i2c_error;
+
+    /*
+    i2c_error = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 0);
+    i2c_error = I2C_write(I2C_OPENCORES_0_BASE, addr_msb, 0);
+    i2c_error = I2C_write(I2C_OPENCORES_0_BASE, addr_lsb, 0);
+    i2c_error = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 1);
+    eeprom_rd_val_0 = I2C_read(I2C_OPENCORES_0_BASE, 0);
+    eeprom_rd_val_1 = I2C_read(I2C_OPENCORES_0_BASE, 1);
+    */
+
+    wdata[0]=addr_msb;
+    wdata[1]=addr_lsb;
+    i2c_error = i2c0_write(EEPROM_I2C_ADDR, wdata[0], &wdata[1], 1);
+    i2c_error = i2c0_read(EEPROM_I2C_ADDR, wdata[0], rdata, 2, true);
+    eeprom_rd_val_0 = rdata[0];
+    eeprom_rd_val_1 = rdata[1];
+
+    rez = ((uint16_t)eeprom_rd_val_1 << 8) | eeprom_rd_val_0;
+    return rez;
+}
+
+#endif // LIMESDR_MINI_V1 / LIMESDR_MINI_V2
+
+/** Checks if peripheral ID is valid.
+ Returns 1 if valid, else 0. */
+unsigned char Check_Periph_ID(unsigned char max_periph_id, unsigned char Periph_ID);
+unsigned char Check_Periph_ID(unsigned char max_periph_id, unsigned char Periph_ID) {
+    if (LMS_Ctrl_Packet_Rx->Header.Periph_ID > max_periph_id) {
+        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_INVALID_PERIPH_ID_CMD;
+        return 0;
+    } else
+        return 1;
+}
+
+/**	This function checks if all blocks could fit in data field.
+ *	If blocks will not fit, function returns TRUE. */
+unsigned char Check_many_blocks(unsigned char block_size);
+unsigned char Check_many_blocks(unsigned char block_size) {
+    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks > (sizeof(LMS_Ctrl_Packet_Tx->Data_field) / block_size)) {
+        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
+        return 1;
+    } else
+        return 0;
+}
 
 int main(void) {
     int spirez;
