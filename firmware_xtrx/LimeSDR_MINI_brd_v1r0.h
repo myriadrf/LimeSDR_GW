@@ -22,7 +22,11 @@
 #define EEPROM_I2C_ADDR		0x50 //0xA2
 
 //get info
-#define DEV_TYPE			LMS_DEV_LIMESDRMINI_V2
+#ifdef LIMESDR_MINI_V2
+#define DEV_TYPE			LMS_DEV_MINI_V2
+#else
+#define DEV_TYPE			LMS_DEV_MINI
+#endif
 #define HW_VER				0
 #define EXP_BOARD			EXP_BOARD_UNSUPPORTED
 

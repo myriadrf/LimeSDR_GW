@@ -85,6 +85,8 @@
 //#define FW_VER				8 // Added FLASH write command protect when write count is 0
 //#define FW_VER				9 // Temporary fix for LM75 configuration
 #define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
+#else // LIMESDR_MINI_V1
+#define FW_VER 6
 #endif
 #endif
 
@@ -1175,21 +1177,9 @@ int main(void) {
 
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
                 case CMD_GET_INFO:
-
-#ifdef LIMESDR_XTRX
                     LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
-                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_XTRX;
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
                     LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
-#else
-#ifdef LIMESDR_MINI_V2
-                    LMS_Ctrl_Packet_Tx->Data_field[0] = 10; // FW_VER
-                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_MINI_V2; // DEV_TYPE
-#else
-                    LMS_Ctrl_Packet_Tx->Data_field[0] = 6; // FW_VER
-                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_MINI; // DEV_TYPE
-#endif
-                    LMS_Ctrl_Packet_Tx->Data_field[3] = 0; // HW_VER
-#endif
                     LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
 
