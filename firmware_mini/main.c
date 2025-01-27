@@ -46,7 +46,12 @@
 #define I2C_DAC_ADDR     0x4C
 #define I2C_TERMO_ADDR   0x4B
 #define LP8758_I2C_ADDR  0x60
-#else
+//#define FW_VER 1 // Initial version
+//#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
+//#define FW_VER 3 // Added serial number into GET_INFO cmd
+#define FW_VER 5 // Firmware for Litex project
+
+#else // LIMESDR_MINI_V1 / LIMESDR_MINI_V2
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
 
@@ -67,23 +72,7 @@
 #define DAC_DEFF_VAL			566			// Default TCXO DAC value loaded when EEPROM is empty
 
 #define FLASH_USRSEC_START_ADDR	0x00400000  // Start address for user space in FLASH memory
-#endif
 
-/* DEBUG */
-//#define DEBUG_FIFO
-//#define DEBUG_CSR_ACCESS
-//#define DEBUG_LMS_SPI
-//#define DEBUG_CMD
-
-/************************** Variable Definitions *****************************/
-int boot_img_en = 0;
-volatile uint8_t lms64_packet_pending;
-#ifdef LIMESDR_XTRX
-//#define FW_VER 1 // Initial version
-//#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
-//#define FW_VER 3 // Added serial number into GET_INFO cmd
-#define FW_VER 5 // Firmware for Litex project
-#else
 #ifdef LIMESDR_MINI_V2
 //get info
 //#define FW_VER				1 //Initial version
@@ -98,6 +87,16 @@ volatile uint8_t lms64_packet_pending;
 #define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
 #endif
 #endif
+
+/* DEBUG */
+//#define DEBUG_FIFO
+//#define DEBUG_CSR_ACCESS
+//#define DEBUG_LMS_SPI
+//#define DEBUG_CMD
+
+/************************** Variable Definitions *****************************/
+int boot_img_en = 0;
+volatile uint8_t lms64_packet_pending;
 
 uint8_t MCU_retries;
 

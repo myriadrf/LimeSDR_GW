@@ -46,7 +46,12 @@
 #define I2C_DAC_ADDR     0x4C
 #define I2C_TERMO_ADDR   0x4B
 #define LP8758_I2C_ADDR  0x60
-#else
+//#define FW_VER 1 // Initial version
+//#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
+//#define FW_VER 3 // Added serial number into GET_INFO cmd
+#define FW_VER 5 // Firmware for Litex project
+
+#else // LIMESDR_MINI_V1 / LIMESDR_MINI_V2
 #define SPI_LMS7002_SELECT 0x01
 #define SPI_FPGA_SELECT 0x02
 
@@ -67,6 +72,20 @@
 #define DAC_DEFF_VAL			566			// Default TCXO DAC value loaded when EEPROM is empty
 
 #define FLASH_USRSEC_START_ADDR	0x00400000  // Start address for user space in FLASH memory
+
+#ifdef LIMESDR_MINI_V2
+//get info
+//#define FW_VER				1 //Initial version
+//#define FW_VER				2 //FLASH programming added
+//#define FW_VER				3 //Temperature and Si5351C control added
+//#define FW_VER				4 //LM75 configured to control fan; I2C speed increased up to 400kHz; ADF/DAC control implementation.
+//#define FW_VER				5 //EEPROM and FLASH R/W functionality added
+//#define FW_VER				6 // DAC value read from EEPROM memory
+//#define FW_VER				7 // DAC value read from FLASH memory
+//#define FW_VER				8 // Added FLASH write command protect when write count is 0
+//#define FW_VER				9 // Temporary fix for LM75 configuration
+#define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
+#endif
 #endif
 
 /* DEBUG */
@@ -127,27 +146,6 @@ volatile unsigned char tmprd_serial[32] = {0};
 // Since there is no eeprom on the XTRX board and the flash is too large for the gw
 // we use the top of the flash instead of eeprom, thus the offset to last sector
 #define mem_write_offset 0x01FF0000
-
-#ifdef LIMESDR_XTRX
-//#define FW_VER 1 // Initial version
-//#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
-//#define FW_VER 3 // Added serial number into GET_INFO cmd
-#define FW_VER 5 // Firmware for Litex project
-#else
-#ifdef LIMESDR_MINI_V2
-//get info
-//#define FW_VER				1 //Initial version
-//#define FW_VER				2 //FLASH programming added
-//#define FW_VER				3 //Temperature and Si5351C control added
-//#define FW_VER				4 //LM75 configured to control fan; I2C speed increased up to 400kHz; ADF/DAC control implementation.
-//#define FW_VER				5 //EEPROM and FLASH R/W functionality added
-//#define FW_VER				6 // DAC value read from EEPROM memory
-//#define FW_VER				7 // DAC value read from FLASH memory
-//#define FW_VER				8 // Added FLASH write command protect when write count is 0
-//#define FW_VER				9 // Temporary fix for LM75 configuration
-#define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
-#endif
-#endif
 
 /* DEBUG */
 //#define DEBUG_FIFO
