@@ -430,7 +430,7 @@ def main():
             with_internal_flash = args.gold,
             with_uartbone       = args.with_uartbone,
             with_spi_flash      = args.with_spi_flash,
-            cpu_firmware        = None if prepare else "firmware_mini/firmware.bin",
+            cpu_firmware        = None if prepare else "firmware/firmware.bin",
         )
         # LiteScope Analyzer Probes.
         if args.with_ft601_ctrl_probe:
@@ -445,7 +445,7 @@ def main():
                 True  : "linker_main_ram.ld",
                 False : "linker_rom.ld",
             }[args.with_bios]
-            os.system(f"cd firmware_mini && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
+            os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
 
     # Load Bistream.
     if args.load:

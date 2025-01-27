@@ -1,6 +1,0 @@
-firmware.bin
-firmware.elf
-firmware.elf.map
-*.o
-*.d
-*.bin

@@ -728,7 +728,7 @@ def main():
             with_bios             = args.with_bios,
             with_uartbone         = args.with_uartbone,
             with_cpu              = True,
-            cpu_firmware          = None if prepare else "firmware_xtrx/firmware.bin",
+            cpu_firmware          = None if prepare else "firmware/firmware.bin",
             with_jtagbone         = not args.with_bscan,
             with_bscan            = args.with_bscan,
             flash_boot            = args.flash_boot,
@@ -758,7 +758,7 @@ def main():
                 True  : "linker_main_ram.ld",
                 False : "linker_rom.ld",
             }[args.with_bios]
-            os.system(f"cd firmware_xtrx && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
+            os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
 
     # Load Bistream.
     if args.load:
