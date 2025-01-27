@@ -1,46 +1,47 @@
-/*
+/**
 -- ----------------------------------------------------------------------------	
--- FILE        : LMS64C_protocol.h
--- DESCRIPTION : LMS64C - fixed lenght (64 bytes) lenght control protocol incuding 8 bytes header
--- DATE        : 2015-2024.
--- AUTHOR(s)   : Lime Microsystems
--- REVISION    : -
+-- FILE:	LMS64C_protocol.h
+-- DESCRIPTION:	LMS64C - fixed lenght (64 bytes) lenght control protocol incuding 8 bytes header
+-- DATE:	2015-2024.
+-- AUTHOR(s):	Lime Microsystems
+-- REVISION: v0r25
 -- ----------------------------------------------------------------------------
 */
 
 #ifndef _LMS64C_PROTOCOL_H_
 #define _LMS64C_PROTOCOL_H_
 
-enum eLMS_DEV
-{
-    LMS_DEV_UNKNOWN                 = 0,
-    LMS_DEV_EVB6                    = 1,
-    LMS_DEV_DIGIGREEN               = 2,
-    LMS_DEV_DIGIRED                 = 3, //2x USB3, LMS6002,
-    LMS_DEV_EVB7                    = 4,
-    LMS_DEV_ZIPPER                  = 5, //MyRiad bridge to FMC, HSMC bridge
-    LMS_DEV_SOCKETBOARD             = 6,
-    LMS_DEV_EVB7V2                  = 7,
-    LMS_DEV_STREAM                  = 8, //Altera Cyclone IV, USB3, 2x 128 MB RAM, RFDIO, FMC
-    LMS_DEV_NOVENA                  = 9, //Freescale iMX6 CPU
-    LMS_DEV_DATASPARK               = 10, //Altera Cyclone V, 2x 256 MB RAM, 2x FMC (HPC, LPC), USB3
-    LMS_DEV_RFSPARK                 = 11, //LMS7002 EVB
-    LMS_DEV_LMS6002USB              = 12, //LM6002-USB (USB stick: FX3, FPGA, LMS6002, RaspberryPi con)
-    LMS_DEV_RFESPARK                = 13, //LMS7002 EVB
-    LMS_DEV_LIMESDR                 = 14, //LimeSDR-USB, 32bit FX3, 2xRAM, LMS7
-    LMS_DEV_LIMESDR_PCIE            = 15,
-    LMS_DEV_LIMESDR_QPCIE           = 16, //2x LMS, 14 bit ADC and DAC
-    LMS_DEV_LIMESDRMINI             = 17, //FTDI + MAX10 + LMS
-    LMS_DEV_USTREAM                 = 18, //with expansion booards (uMyriad)
-    LMS_DEV_LIMESDR_SONY_PA         = 19, //stand alone board with Sony PAs, tuners
-    LMS_DEV_LIMESDR_USB_SP          = 20,
-    LMS_DEV_LMS7002M_ULTIMATE_EVB   = 21,
-    LMS_DEV_LIMENET_MICRO           = 22, //Raspberry Pi CM3(L), Ethernet, MAX10, LMS7002,
-    LMS_DEV_LIMESDR_CORE_SDR        = 23, //LMS7002, Intel Cyclone 4, RAM, GNSS
-    LMS_DEV_LIMESDR_CORE_HE         = 24, //PA board
-    LMS_DEV_LIMESDRMINI_V2          = 25, //FTDI + ECP5 + LMS
+enum eLMS_DEV {
+	LMS_DEV_UNKNOWN                 = 0,
+	LMS_DEV_EVB6                    = 1,
+	LMS_DEV_DIGIGREEN               = 2,
+	LMS_DEV_DIGIRED                 = 3, //2x USB3, LMS6002,
+	LMS_DEV_EVB7                    = 4,
+	LMS_DEV_ZIPPER                  = 5, //MyRiad bridge to FMC, HSMC bridge
+	LMS_DEV_SOCKETBOARD             = 6,
+	LMS_DEV_EVB7V2                  = 7,
+	LMS_DEV_STREAM                  = 8, //Altera Cyclone IV, USB3, 2x 128 MB RAM, RFDIO, FMC
+	LMS_DEV_NOVENA                  = 9, //Freescale iMX6 CPU
+	LMS_DEV_DATASPARK               = 10, //Altera Cyclone V, 2x 256 MB RAM, 2x FMC (HPC, LPC), USB3
+	LMS_DEV_RFSPARK                 = 11, //LMS7002 EVB
+	LMS_DEV_LMS6002USB              = 12, //LM6002-USB (USB stick: FX3, FPGA, LMS6002, RaspberryPi con)
+	LMS_DEV_RFESPARK                = 13, //LMS7002 EVB
+	LMS_DEV_LIMESDR                 = 14, //SoDeRa USB, 32bit FX3, 2xRAM, LMS7
+	LMS_DEV_SODERA_PCIE                , // ??
+	LMS_DEV_QSPARK                     , //2x LMS // ??
+	LMS_DEV_MINI                    = 17, //FTDI + MAX10 + LMS
+	LMS_DEV_ULIMESDR                    , // ??
+	LMS_DEV_LIMESDR_SONY_PA         = 19, //stand alone board with Sony PAs, tuners // ??
+	LMS_DEV_LIMESDR_USB_SP          = 20, // ??
+	LMS_DEV_LMS7002M_ULTIMATE_EVB   = 21, // ??
+	LMS_DEV_LIMENET_MICRO           = 22, //Raspberry Pi CM3(L), Ethernet, MAX10, LMS7002, // ??
+	LMS_DEV_LIMESDR_CORE_SDR        = 23, //LMS7002, Intel Cyclone 4, RAM, GNSS // ??
+	LMS_DEV_LIMESDR_CORE_HE         = 24, //PA board // ??
+	LMS_DEV_MINI_V2                 = 25, //FTDI + ECP5 + LMS
+	LMS_5GRADIO                     = 26,
+	LMS_DEV_XTRX                    = 27,
 
-    LMS_DEV_COUNT
+	LMS_DEV_COUNT
 };
 
 enum eEXP_BOARD {
@@ -62,6 +63,9 @@ enum eEXP_BOARD {
 //commands
 #define CMD_GET_INFO		0x00 //Returns some info about board and firmware
 #define CMD_WR_INFO			0x01 
+
+#define CMD_SERIAL_WR       0x03 //Write serial
+#define CMD_SERIAL_RD       0x04 //Read serial
 
 //i2c peripherals control
 #define CMD_SI5356_WR	 	0x11

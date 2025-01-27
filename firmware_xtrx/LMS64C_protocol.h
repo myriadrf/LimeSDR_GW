@@ -2,39 +2,47 @@
 -- ----------------------------------------------------------------------------	
 -- FILE:	LMS64C_protocol.h
 -- DESCRIPTION:	LMS64C - fixed lenght (64 bytes) lenght control protocol incuding 8 bytes header
--- DATE:	2016.03.22
+-- DATE:	2015-2024.
 -- AUTHOR(s):	Lime Microsystems
 -- REVISION: v0r25
--- ----------------------------------------------------------------------------	
-
+-- ----------------------------------------------------------------------------
 */
 
 #ifndef _LMS64C_PROTOCOL_H_
 #define _LMS64C_PROTOCOL_H_
 
 enum eLMS_DEV {
-	LMS_DEV_UNKNOWN, 
-	LMS_DEV_EVB6,
-	LMS_DEV_DIGIGREEN, 
-	LMS_DEV_DIGIRED, //2x USB3, LMS6002, 
-	LMS_DEV_EVB7, 
-	LMS_DEV_ZIPPER, //MyRiad bridge to FMC, HSMC bridge
-	LMS_DEV_SOCKETBOARD, 
-	LMS_DEV_EVB7V2, 
-	LMS_DEV_STREAM, //Altera Cyclone IV, USB3, 2x 128 MB RAM, RFDIO, FMC
-	LMS_DEV_NOVENA, //Freescale iMX6 CPU
-	LMS_DEV_DATASPARK, //Altera Cyclone V, 2x 256 MB RAM, 2x FMC (HPC, LPC), USB3
-	LMS_DEV_RFSPARK, //LMS7002 EVB
-	LMS_DEV_LMS6002USB, //LM6002-USB (USB stick: FX3, FPGA, LMS6002, RaspberryPi con)
-	LMS_DEV_RFESPARK, //LMS7002 EVB
-	LMS_DEV_LIMESDR, //SoDeRa USB, 32bit FX3, 2xRAM, LMS7
-	LMS_DEV_SODERA_PCIE,
-	LMS_DEV_QSPARK, //2x LMS
-	LMS_DEV_ULIMESDR,
-	LMS_DEV_MINI_v2 = 25,
-	LMS_5GRADIO = 26,
-	LMS_DEV_XTRX = 27
-	};
+	LMS_DEV_UNKNOWN                 = 0,
+	LMS_DEV_EVB6                    = 1,
+	LMS_DEV_DIGIGREEN               = 2,
+	LMS_DEV_DIGIRED                 = 3, //2x USB3, LMS6002,
+	LMS_DEV_EVB7                    = 4,
+	LMS_DEV_ZIPPER                  = 5, //MyRiad bridge to FMC, HSMC bridge
+	LMS_DEV_SOCKETBOARD             = 6,
+	LMS_DEV_EVB7V2                  = 7,
+	LMS_DEV_STREAM                  = 8, //Altera Cyclone IV, USB3, 2x 128 MB RAM, RFDIO, FMC
+	LMS_DEV_NOVENA                  = 9, //Freescale iMX6 CPU
+	LMS_DEV_DATASPARK               = 10, //Altera Cyclone V, 2x 256 MB RAM, 2x FMC (HPC, LPC), USB3
+	LMS_DEV_RFSPARK                 = 11, //LMS7002 EVB
+	LMS_DEV_LMS6002USB              = 12, //LM6002-USB (USB stick: FX3, FPGA, LMS6002, RaspberryPi con)
+	LMS_DEV_RFESPARK                = 13, //LMS7002 EVB
+	LMS_DEV_LIMESDR                 = 14, //SoDeRa USB, 32bit FX3, 2xRAM, LMS7
+	LMS_DEV_SODERA_PCIE                , // ??
+	LMS_DEV_QSPARK                     , //2x LMS // ??
+	LMS_DEV_MINI                    = 17, //FTDI + MAX10 + LMS
+	LMS_DEV_ULIMESDR                    , // ??
+	LMS_DEV_LIMESDR_SONY_PA         = 19, //stand alone board with Sony PAs, tuners // ??
+	LMS_DEV_LIMESDR_USB_SP          = 20, // ??
+	LMS_DEV_LMS7002M_ULTIMATE_EVB   = 21, // ??
+	LMS_DEV_LIMENET_MICRO           = 22, //Raspberry Pi CM3(L), Ethernet, MAX10, LMS7002, // ??
+	LMS_DEV_LIMESDR_CORE_SDR        = 23, //LMS7002, Intel Cyclone 4, RAM, GNSS // ??
+	LMS_DEV_LIMESDR_CORE_HE         = 24, //PA board // ??
+	LMS_DEV_MINI_V2                 = 25, //FTDI + ECP5 + LMS
+	LMS_5GRADIO                     = 26,
+	LMS_DEV_XTRX                    = 27,
+
+	LMS_DEV_COUNT
+};
 
 enum eEXP_BOARD {
 	EXP_BOARD_UNKNOWN, //undefined
@@ -87,6 +95,8 @@ enum eEXP_BOARD {
 #define CMD_PE636040_WR		0x41 //Writes data to PE636040 tuner
 #define CMD_PE636040_RD		0x42 //Reads data from PE636040 tuner
 
+#define CMD_GPIO_DIR_WR		0x4F //Set GPIOs direction
+#define CMD_GPIO_DIR_RD		0x50 //Reads GPIOs direction
 #define CMD_GPIO_WR			0x51 //Controls board’s GPIOs	
 #define CMD_GPIO_RD			0x52 //Reads board’s GPIOs states 
 #define CMD_ALTERA_FPGA_GW_WR		0x53
@@ -116,8 +126,6 @@ enum eEXP_BOARD {
 #define CMD_EXP_BRD_RST		0x80
 #define CMD_EXP_BRDSPI8_WR	0x81
 #define CMD_EXP_BRDSPI8_RD	0x82
-//#define CMD_EXP_BRD_FW_WR	0x8C //Writes FW to MyRiad board via SPI
-//#define CMD_EXP_BRD_FW_RD	0x8D //Reads FW from MyRiad board via SPI
 #define CMD_MEMORY_WR		0x8C
 #define CMD_MEMORY_RD		0x8D
 

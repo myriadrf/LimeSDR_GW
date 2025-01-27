@@ -789,15 +789,15 @@ int main(void) {
 
 #ifdef LIMESDR_XTRX
                     LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
-                    LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_XTRX;
                     LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
 #else
 #ifdef LIMESDR_MINI_V2
                     LMS_Ctrl_Packet_Tx->Data_field[0] = 10; // FW_VER
-                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI_V2; // DEV_TYPE
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_MINI_V2; // DEV_TYPE
 #else
                     LMS_Ctrl_Packet_Tx->Data_field[0] = 6; // FW_VER
-                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_LIMESDRMINI; // DEV_TYPE
+                    LMS_Ctrl_Packet_Tx->Data_field[1] = LMS_DEV_MINI; // DEV_TYPE
 #endif
                     LMS_Ctrl_Packet_Tx->Data_field[3] = 0; // HW_VER
 #endif
