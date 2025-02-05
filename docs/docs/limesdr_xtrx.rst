@@ -1,63 +1,96 @@
 LimeSDR XTRX
 ============
 
-This section provides information about LimeSDR XTRX gateware
+This section provides detailed information about the gateware implemented for the LimeSDR XTRX board.
 
-
-Main block diagram
+Main Block Diagram
 ------------------
 
-Top level file contains these main blocks:
+The top-level file integrates the following main blocks:
 
-    - :ref:`Soft core CPU<docs/limesdr_xtrx:soft core cpu module>` - VexRiscv CPU instance 
-    - :ref:`Lime_top<docs/limesdr_xtrx:lime_top module>` - blocks specific to lms7002m transceiver control and data transfer
-    - :ref:`Pcie_phy<docs/limesdr_xtrx:pcie_phy module>` - PCIe block with physical interface and DMA
-    - :ref:`I2C0, I2C1<docs/limesdr_xtrx:i2c0, i2c1 modules>`, :ref:`Lms_spi<docs/limesdr_xtrx:lms_spi module>` - communication interfaces to control onboard periphery
-    - :ref:`Flash<docs/limesdr_xtrx:flash module>` - FPGA configuration FLASH memory access
+- :ref:`Soft core CPU <soft_core_cpu_module>` – VexRiscv CPU instance.
+- :ref:`Lime_top Module <lime_top_module>` – Wrapper for blocks handling LMS7002M transceiver control and data transfer.
+- :ref:`PCIe PHY <pcie_phy_module>` – PCIe block with the physical interface and DMA.
+- :ref:`I2C0, I2C1 <i2c_modules>` and :ref:`Lms_spi <lms_spi_module>` – Communication interfaces for controlling onboard peripherals.
+- :ref:`Flash <flash_module>` – Module for accessing the FPGA configuration FLASH memory.
 
 .. figure:: limesdr-xtrx/images/main_block_diagram.svg
-  :width: 1000
+   :width: 1000
+   :alt: Main block diagram for LimeSDR XTRX
 
+.. _soft_core_cpu_module:
 
-Soft core CPU module
---------
+Soft core CPU Module
+--------------------
+The CPU module is a ``vexriscv_smp`` core provided by LiteX. It is specified via the ``cpu_type`` parameter for the ``SoCCore`` class, which serves as the parent class for the top-level gateware design.
 
-CPU module is a ``vexriscv_smp`` core provided by LiteX. It is implemented as a ``cpu_type`` parameter for the ``SoCCore`` class, which is 
-the parent class for the top level of the gateware design.
+The source code for the CPU can be found at:
+`LiteX VexRiscv SMP core <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/cpu/vexriscv_smp/core.py>`_
 
-The source code for the cpu can be found using `this link <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/cpu/vexriscv_smp/core.py>`__.
+.. _lime_top_module:
 
+Lime_top Module
+---------------
+The **Lime_top Module** serves as a wrapper for the LMS7002M transceiver control and data transfer blocks. Its main sub-blocks include:
 
-Lime_top module
---------
+- :ref:`LMS7002 Top Module <lms7002_top_module>` – Implements the LMS7002M PHY for digital IQ sample transmission and reception.
+- :ref:`RX Path Top Module <rx_path_top_module>` – Manages the receive path from the LMS7002M to the FPGA and host, packing IQ samples into packets and generating timestamps.
+- :ref:`TX Path Top Module <tx_path_top_module>` – Manages the transmit path from the host through the FPGA to the LMS7002M, unpacking IQ sample packets and handling stream synchronization with timestamps.
 
-Block **lime_top** is a wrapper file for specific lms7002m transceiver control and data transfer blocks. Main blocks are following:
+.. _lms7002_top_module:
 
-    - :external+limedfb:ref:`lms7002_top <docs/lms7002_top/readme:lms7002_top>` - lms7002 IC phy for sending/receiving digital IQ samples.
-    - :external+limedfb:ref:`rx_path_top <docs/rx_path_top/readme:rx_path_top>` - receive path (LMS7002M -> FPGA -> HOST), responsible for packing IQ samples into packets and timestamp generation.
-    - :external+limedfb:ref:`tx_path_top <docs/tx_path_top/readme:tx_path_top>` - transmit path (HOST -> FPGA -> LMS7002M), responsible for unpacking received packets into IQ samples and stream synchronization with timestamp.
+LMS7002 Top Module
+~~~~~~~~~~~~~~~~~~
+This module implements the LMS7002M PHY for transmitting and receiving digital IQ samples. (Detailed documentation should be provided in this section.)
+
+.. _rx_path_top_module:
+
+RX Path Top Module
+~~~~~~~~~~~~~~~~~~
+This module handles the receive path from the LMS7002M to the FPGA and host, including IQ sample packetization and timestamp generation.
+
+.. _tx_path_top_module:
+
+TX Path Top Module
+~~~~~~~~~~~~~~~~~~
+This module manages the transmit path from the host through the FPGA to the LMS7002M, including unpacking of IQ samples and stream synchronization.
 
 .. figure:: limesdr-xtrx/images/limetop_block_diagram.svg
-  :width: 1000
+   :width: 1000
+   :alt: Lime_top block diagram
 
-Pcie_phy module
---------
+.. _pcie_phy_module:
 
-**Pcie_phy** is an instance of ``S7PCIEPHY`` class, which is part of LitePCIe. Source code for LitePCIe can be found using `this link <https://github.com/enjoy-digital/litepcie>`__.
+PCIe PHY Module
+---------------
+The **PCIe PHY** module is an instantiation of the ``S7PCIEPHY`` class from LitePCIe. It provides the physical layer for the PCIe interface, including DMA support.
 
-I2C0, I2C1 modules
---------
+The source code for LitePCIe is available at:
+`LitePCIe on GitHub <https://github.com/enjoy-digital/litepcie>`_
 
-**I2C0** and **I2C1** modules are instances of ``I2CMaster`` class provided by LiteX. Source code for the class can be found using `this link <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/bitbang.py>`__.
+.. _i2c_modules:
 
-Lms_spi module
---------
+I2C Modules
+-----------
+The **I2C0** and **I2C1** modules are instances of the ``I2CMaster`` class provided by LiteX. They are used for controlling onboard peripherals via the I2C protocol.
 
-**Lms_spi** module is an instance of ``SPIMaster`` class provided by LiteX.  Source code for the class can be found using `this link <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi/spi_master.py>`__.
+The source code can be found here:
+`I2CMaster in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/bitbang.py>`_
 
-Flash module
---------
+.. _lms_spi_module:
 
-**Flash** module is an instance of ``S7SPIFlash`` class provided by LiteX.  Source code for the class can be found using `this link <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi_flash.py>`__.
+LMS SPI Module
+--------------
+The **Lms_spi** module is an instantiation of the ``SPIMaster`` class from LiteX. It handles SPI communication with the LMS7002M transceiver.
 
+Source code:
+`SPIMaster in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi/spi_master.py>`_
 
+.. _flash_module:
+
+Flash Module
+------------
+The **Flash** module is implemented using the ``S7SPIFlash`` class provided by LiteX. It enables access to the FPGA configuration FLASH memory.
+
+Source code:
+`S7SPIFlash in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi_flash.py>`_
