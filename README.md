@@ -302,3 +302,12 @@ at the target level but `rxtx_top.py` remains used to instanciates both submodul
      few process remains. **Question**: this logic may/must be converted to LiteX
 2. **New Additions and Modifications**
    - `iq_stream_combiner.vhd` has been modified to correctly handle *SISO* mode
+
+
+## Documentation build
+
+```bash
+pip3 install sphinx sphinx_rtd_theme sphinx_tabs myst_parser
+cd docs
+make html
+```
