@@ -1,5 +1,5 @@
 LimeSDR XTRX
-====================
+============
 
 This section provides information about LimeSDR XTRX gateware
 
