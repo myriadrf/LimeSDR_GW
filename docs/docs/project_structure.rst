@@ -1,29 +1,27 @@
-=========================
 Project Structure
-=========================
+=================
 
 Overview
-========
-This FPGA gateware project leverages the **LiteX** framework to create and manage the top-level design for various FPGA boards. The project integrates both custom application-specific logic, written in VHDL/Verilog, and pre-designed LiteX components such as **LitePCIe**, **VexriscV** softcore CPUs, and communication interfaces (**I2C**, **SPI**). Each FPGA board has its own unique platform and top-level files, allowing for flexibility and scalability across different hardware platforms.
+--------
+This FPGA gateware project leverages the **LiteX** framework to build and manage top-level designs for multiple FPGA boards. It integrates custom hardware logic (written in VHDL/Verilog) with pre-designed LiteX components such as **LitePCIe**, **VexriscV** softcore CPUs, and various communication interfaces (**I2C**, **SPI**, etc.). The design is modular, scalable, and adaptable to support different hardware targets and for rapid prototyping, easy maintenance, and future extensibility to other platforms.
 
-An overview of the folders and files contained in the project repository can be found in this section. The structure is organized to facilitate FPGA gateware development.
-
-Root Directory
-==============
-The main directories and files are organized as follows:
+Repository Structure
+--------------------
+The repository is organized into distinct directories for board-specific configurations, firmware, gateware, and software. An of the key directories and files is provided below:
 
 .. code-block:: bash
 
    / (root)
    ├── boards/
-      ├── targets/
-         ├── limesdr_xtrx.py
-      ├── platforms/
-         ├── fairwaves_xtrx_platform.py
-         ├── limesdr_xtrx_platform.py
-      ├── prog/
-         ├── digilent_hs2.cfg
-         ├── limesdr_xtrx.cfg
+   │   ├── platforms/
+   │   │   ├── fairwaves_xtrx_platform.py
+   │   │   ├── limesdr_xtrx_platform.py
+   │   │   ├── limesdr_mini_v1_platform.py
+   │   │   └── limesdr_mini_v2_platform.py
+   │   └── targets/
+   │       ├── limesdr_xtrx.py
+   │       ├── limesdr_mini_v1.py
+   │       └── limesdr_mini_v2.py
    ├── docs/
    ├── firmware/
    ├── gateware/
@@ -33,45 +31,29 @@ The main directories and files are organized as follows:
    └── .gitignore
 
 Directory Details
-=================
+-----------------
 
-boards/ 
--------
+**boards/**
+  - **platforms/**: Contains board-specific I/O constraints and configuration files.
+  - **targets/**: Contains integration scripts that define the build process for each board, orchestrating the instantiation of LiteX cores, peripheral components, the CPU, and its associated firmware.
 
-Contans targets/ subdirectory with project build scripts, platform/ subdirectory with platform-specific I/O constraints, prog/ subdirectory with programming cable configuration files.
+**docs/**
+  - Contains all project documentation, including design descriptions, user guides, and tutorials. This folder provides detailed instructions on how to build, customize, and deploy the FPGA designs.
 
-doc/
-----
+**firmware/**
+  - Hosts the firmware code that runs on the softcore CPU. It includes drivers and application-specific logic used to initialize and manage the FPGA hardware.
 
-This directory contains project documentation files. These include design descriptions, user manuals, and guides for using the project.
+**gateware/**
+  - Contains the FPGA hardware description files (Verilog/VHDL/LiteX). This directory defines the custom logic, interconnects, and integration with LiteX components for core processing and peripheral management.
 
-firmware/
----------
+Additional Files
+----------------
 
-This directory contains firmware code for softcore CPU in LimeSDR GW project. 
+**riscv_jtag_tunneled.tcl**
+  - A TCL script used for automating JTAG debugging with the RISC-V softcore. It streamlines tasks such as setting breakpoints and managing JTAG connections.
 
-gateware/
----------
+**README.md**
+  - Provides an introduction to the project, build instructions, and links to additional documentation.
 
-The gateware directory contains FPGA-related files, such as Verilog or VHDL code. These files define the hardware logic and structure programmed into the FPGA chip. 
-
-software/
--------------
-
-This folder includes software applications that interface with or control the hardware. Any code or programs to communicate with the FPGA or to control peripherals via drivers.
-
-File Details
-============
-
-riscv_jtag_tunneled.tcl
------------------------
-
-A TCL script that handles tunneling for debugging via JTAG using a RISC-V processor. This script may be used to automate specific tasks in the debugging process, like setting breakpoints or managing JTAG connections.
-
-README.rst
----------
-The `README.rst` file provides an overview of the project, explaining its purpose, how to use it, and links to further documentation.
-
-.gitignore
-----------
-Specifies which files and directories should be ignored by version control, typically used to exclude build outputs or temporary files.
+**.gitignore**
+  - Lists files and directories that should be ignored by version control (e.g., temporary files and build outputs).
