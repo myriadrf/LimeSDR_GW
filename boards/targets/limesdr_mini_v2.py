@@ -489,7 +489,7 @@ def main():
     if args.toolchain == "diamond":
         os.system(f"./limesdr_mini_v2_bitstream.py")
     else:
-        golden = soc.platform.name + "_golden.bit"
+        golden = f"tools/{soc.platform.name}_golden.bit"
         user   = builder.get_bitstream_filename(mode="sram", ext=".bit")
         cmd = f"ecpmulti --flashsize 128 --input {golden} --input {user} --address 0x00280000 limesdr_mini_v2.bin"
         os.system(cmd)
