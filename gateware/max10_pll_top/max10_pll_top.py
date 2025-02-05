@@ -1,7 +1,7 @@
 #
-# This file is part of LimeSDR-Mini-v2_GW.
+# This file is part of LimeSDR_GW.
 #
-# Copyright (c) 2024 Lime Microsystems.
+# Copyright (c) 2024-2025 Lime Microsystems.
 #
 # SPDX-License-Identifier: Apache-2.0
 

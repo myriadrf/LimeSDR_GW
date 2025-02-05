@@ -1,8 +1,9 @@
 #
-# This file is part of LiteX-XTRX.
+# This file is part of LimeSDR_GW.
 #
-# Copyright (c) 2021-2024 Enjoy-Digital <enjoy-digital.fr>
-# SPDX-License-Identifier: BSD-2-Clause
+# Copyright (c) 2024-2025 Lime Microsystems.
+#
+# SPDX-License-Identifier: Apache-2.0
 
 from migen import *
 
