@@ -24,7 +24,7 @@ Soft core CPU Module
 The CPU module is a ``vexriscv`` core provided by LiteX. It is specified via the ``cpu_type`` parameter for the ``SoCCore`` class, which serves as the parent class for the top-level gateware design.
 
 The source code for the CPU can be found at:
-`LiteX VexRiscv SMP core <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/cpu/vexriscv/core.py>`_
+`LiteX VexRiscv core <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/cpu/vexriscv/core.py>`_
 
 .. _lime_top_module:
 
