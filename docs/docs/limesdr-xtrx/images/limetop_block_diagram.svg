@@ -88,7 +88,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="13999" y="9999" width="4003" height="3003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 16000,13000 L 14000,13000 14000,10000 18000,10000 18000,13000 16000,13000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 16000,13000 L 14000,13000 14000,10000 18000,10000 18000,13000 16000,13000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="14783" y="11648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">lms7002_top</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="14783" y="11648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">LMS7002 Top</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
@@ -96,7 +96,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="8999" y="9999" width="3003" height="1003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 10500,11000 L 9000,11000 9000,10000 12000,10000 12000,11000 10500,11000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 10500,11000 L 9000,11000 9000,10000 12000,10000 12000,11000 10500,11000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="9376" y="10648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">rx_path_top</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="9376" y="10648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">RX Path Top</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
@@ -104,7 +104,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="8999" y="11999" width="3003" height="1003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 10500,13000 L 9000,13000 9000,12000 12000,12000 12000,13000 10500,13000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 10500,13000 L 9000,13000 9000,12000 12000,12000 12000,13000 10500,13000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="9387" y="12648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">tx_path_top</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="9387" y="12648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">TX Path Top</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">

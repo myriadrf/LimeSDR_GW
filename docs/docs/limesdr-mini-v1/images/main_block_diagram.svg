@@ -89,7 +89,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="9999" y="9999" width="4003" height="3003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 12000,13000 L 10000,13000 10000,10000 14000,10000 14000,13000 12000,13000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 12000,13000 L 10000,13000 10000,10000 14000,10000 14000,13000 12000,13000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="10643" y="11648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">Soft core CPU</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="10643" y="11648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">RISC-V CPU</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
@@ -97,7 +97,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="5999" y="9999" width="2003" height="1003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 7000,11000 L 6000,11000 6000,10000 8000,10000 8000,11000 7000,11000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 7000,11000 L 6000,11000 6000,10000 8000,10000 8000,11000 7000,11000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="6552" y="10648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">I2C0</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="6552" y="10648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">I2C-0</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
@@ -105,7 +105,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="5999" y="11999" width="2003" height="1003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 7000,13000 L 6000,13000 6000,12000 8000,12000 8000,13000 7000,13000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 7000,13000 L 6000,13000 6000,12000 8000,12000 8000,13000 7000,13000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="6552" y="12648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">I2C1</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="6552" y="12648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">I2C-1</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
@@ -113,7 +113,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="15999" y="9999" width="2003" height="1003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 17000,11000 L 16000,11000 16000,10000 18000,10000 18000,11000 17000,11000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 17000,11000 L 16000,11000 16000,10000 18000,10000 18000,11000 17000,11000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="16283" y="10648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">lms_spi</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="16133" y="10648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">LMS SPI</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
@@ -121,7 +121,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="15999" y="11999" width="2003" height="1003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 17000,13000 L 16000,13000 16000,12000 18000,12000 18000,13000 17000,13000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 17000,13000 L 16000,13000 16000,12000 18000,12000 18000,13000 17000,13000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="16552" y="12648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">flash</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="16552" y="12648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">Flash</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
@@ -129,7 +129,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="5999" y="13999" width="4003" height="3003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 8000,17000 L 6000,17000 6000,14000 10000,14000 10000,17000 8000,17000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 8000,17000 L 6000,17000 6000,14000 10000,14000 10000,17000 8000,17000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="7198" y="15648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">lime_top</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="7198" y="15648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">Lime Top</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
@@ -137,7 +137,7 @@
     <rect class="BoundingBox" stroke="none" fill="none" x="13999" y="13999" width="4003" height="3003"/>
     <path fill="rgb(114,159,207)" stroke="none" d="M 16000,17000 L 14000,17000 14000,14000 18000,14000 18000,17000 16000,17000 Z"/>
     <path fill="none" stroke="rgb(52,101,164)" d="M 16000,17000 L 14000,17000 14000,14000 18000,14000 18000,17000 16000,17000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="15149" y="15648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">pcie_phy</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400"><tspan class="TextPosition" x="15149" y="15648"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">FT601 PHY</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.LineShape">
@@ -158,7 +158,7 @@
    <g id="id12">
     <rect class="BoundingBox" stroke="none" fill="none" x="19973" y="14973" width="2055" height="1055"/>
     <path fill="none" stroke="rgb(0,0,0)" stroke-width="53" stroke-linejoin="round" d="M 21000,16000 L 20000,16000 20000,15000 22000,15000 22000,16000 21000,16000 Z"/>
-    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="282px" font-weight="400"><tspan class="TextPosition" x="20685" y="15599"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">PCIe</tspan></tspan></tspan></text>
+    <text class="SVGTextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="282px" font-weight="400"><tspan class="TextPosition" x="20685" y="15599"><tspan fill="rgb(0,0,0)" stroke="none" style="white-space: pre">FT601</tspan></tspan></tspan></text>
    </g>
   </g>
   <g class="com.sun.star.drawing.CustomShape">
