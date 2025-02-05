@@ -95,7 +95,7 @@ begin
             if (S_AXIS_TKEEP = x"FF") then
                m_axis_tvalid_reg <= "111";
             elsif (S_AXIS_TKEEP = x"0F"  or  S_AXIS_TKEEP = x"F0") then
-               if ((m_axis_tvalid_reg = "111" and mimo_en = '0' and ddr_en = '0') or
+               if ((m_axis_tvalid_reg = "111" and (mimo_en = '1' or (mimo_en = '0' and ddr_en = '0'))) or
                    (m_axis_tvalid_reg = "011" and mimo_en = '0' and ddr_en = '1')) then
                   m_axis_tvalid_reg <= "00" & '1';
                else
@@ -104,7 +104,7 @@ begin
             else
                m_axis_tvalid_reg <= m_axis_tvalid_reg(1 downto 0) & '0';
             end if;
-         elsif ((m_axis_tvalid_reg = "111" and mimo_en = '0' and ddr_en = '0') or
+         elsif ((m_axis_tvalid_reg = "111" and (mimo_en = '1' or (mimo_en = '0' and ddr_en = '0'))) or
                 (m_axis_tvalid_reg = "011" and mimo_en = '0' and ddr_en = '1')) then
             m_axis_tvalid_reg <= "00" & '1';
          else
