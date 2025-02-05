@@ -40,12 +40,12 @@ from litepcie.phy.s7pciephy import S7PCIEPHY
 
 from litescope import LiteScopeAnalyzer
 
-from gateware.aux                             import AUX
-from gateware.fpgacfg                         import FPGACfg
-from gateware.GpioTop                         import GpioTop
-from gateware.rxtx_top                        import RXTXTop
+from gateware.aux      import AUX
+from gateware.fpgacfg  import FPGACfg
+from gateware.GpioTop  import GpioTop
+from gateware.rxtx_top import RXTXTop
 
-from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
+from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top import LMS7002Top
 
 from gateware.xtrx_rfsw import xtrx_rfsw
 
@@ -416,9 +416,9 @@ class BaseSoC(SoCCore):
 
         #self.comb += [
         #    self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
-        #    self.general_periph.ep03_active.eq(self.ft601.rd_active),
-        #    self.general_periph.ep83_active.eq(self.ft601.wr_active),
         #]
+
+        # RXTX Top ---------------------------------------------------------------------------------
 
         self.rxtx_top = RXTXTop(platform, self.fpgacfg,
             # TX parameters
@@ -448,10 +448,6 @@ class BaseSoC(SoCCore):
             # LMS7002 <-> RXTX Top.
             self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
 
-            # FT601 <-> RXTX Top.
-            #self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
-            #self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.rxtx_top.rx_en),
-
             # General Periph <-> RXTX Top.
             #self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_path.tx_txant_en),
 
@@ -459,20 +455,19 @@ class BaseSoC(SoCCore):
             #self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
         ]
 
-        # LMS7002 -> RX Path -> FT601 Pipeline.
+        # LMS7002 -> RX Path -> PCIe DMA Pipeline.
         self.rx_pipeline = stream.Pipeline(
             self.lms7002_top.source,
             self.rxtx_top.rx_path.sink,
         )
         self.comb += self.rxtx_top.rx_path.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
-        # FT601 -> TX Path -> LMS7002 Pipeline.
+        # PCIE DMA -> TX Path -> LMS7002 Pipeline.
         self.comb += [
             self.pcie_dma0.source.connect(self.rxtx_top.tx_path.sink, omit=["ready"]),
             self.pcie_dma0.source.ready.eq((self.rxtx_top.tx_path.sink.ready & self.fpgacfg.tx_en) | ~self.pcie_dma0.reader.enable),
         ]
         self.tx_pipeline = stream.Pipeline(
-        #    self.ft601.source,
             self.rxtx_top.tx_path.source,
             self.lms7002_top.sink,
         )

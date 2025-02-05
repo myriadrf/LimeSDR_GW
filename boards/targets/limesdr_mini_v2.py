@@ -31,9 +31,9 @@ from litespi.phy.generic import LiteSPIPHY
 
 from litescope import LiteScopeAnalyzer
 
-from gateware.fpgacfg             import FPGACfg
-from gateware.pllcfg              import PLLCfg
-from gateware.rxtx_top            import RXTXTop
+from gateware.fpgacfg  import FPGACfg
+from gateware.pllcfg   import PLLCfg
+from gateware.rxtx_top import RXTXTop
 
 from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
 from gateware.LimeDFB_LiteX.general.busy_delay                import BusyDelay
@@ -263,6 +263,7 @@ class BaseSoC(SoCCore):
         ]
 
         # RXTX Top ---------------------------------------------------------------------------------
+
         if with_rx_tx_top:
             self.rxtx_top = RXTXTop(platform, self.fpgacfg,
                 # TX parameters

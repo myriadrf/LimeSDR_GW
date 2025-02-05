@@ -266,6 +266,7 @@ class BaseSoC(SoCCore):
         ]
 
         # RXTX Top ---------------------------------------------------------------------------------
+
         if with_rx_tx_top:
             self.rxtx_top = RXTXTop(platform, self.fpgacfg,
                 # TX parameters
