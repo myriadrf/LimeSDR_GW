@@ -1,11 +1,9 @@
 #
-# This file is part of LiteX-Boards.
+# This file is part of LimeSDR_GW and adapted from LiteX-Boards XTRX platform file.
 #
-# Copyright (c) 2021-2024 Florent Kermarrec <florent@enjoy-digital.fr>
-# Copyright (c) 2024 Gwenhael Goavec-Merou <gwenhael@enjoy-digital.fr>
-# SPDX-License-Identifier: BSD-2-Clause
-
-# https://www.crowdsupply.com/lime-micro/limesdr-xtrx
+# Copyright (c) 2024-2025 Lime Microsystems.
+#
+# SPDX-License-Identifier: Apache-2.0
 
 from litex.build.generic_platform import *
 from litex.build.xilinx import Xilinx7SeriesPlatform

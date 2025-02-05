@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
 #
-# This file is part of LimeSDR-Mini-v2_GW.
+# This file is part of LimeSDR_GW.
 #
-# Copyright (c) 2024 Lime Microsystems.
+# Copyright (c) 2024-2025 Lime Microsystems.
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# Build/Use:
-# ./limesdr_mini_v1.py --csr-csv=csr.csv --build --load
-
+import os
+import sys
 import math
 
 from migen import *
