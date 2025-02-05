@@ -96,8 +96,6 @@ source_library/
 
 *.recovery
 
-LimeSDR-Mini_lms7_trx/mico32_workspace/
-LimeSDR-Mini_lms7_trx/mico32_patform/platform1/syntmp
 LimeSDR-Mini_lms7_trx/proj/impl1
 LimeSDR-Mini_lms7_trx/proj/sim
 

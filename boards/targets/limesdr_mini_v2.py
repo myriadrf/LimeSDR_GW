@@ -192,16 +192,16 @@ class BaseSoC(SoCCore):
 
             self.add_spi_flash(mode="1x", clk_freq=100_000, module=W25Q128JV(Codes.READ_1_1_1), with_master=True)
 
-        # mico32_busy(gpo) & busy_delay ------------------------------------------------------------
+        # cpu_busy(gpo) & busy_delay ---------------------------------------------------------------
         self._gpo = CSRStorage(description="GPO interface", fields=[
-            CSRField("mico32_busy", size=1, offset=0, description="CPU state.", values=[
+            CSRField("cpu_busy", size=1, offset=0, description="CPU state.", values=[
                 ("``0b0``", "IDLE."),
                 ("``0b1``", "BUSY."),
             ])
         ])
 
         self.busy_delay  = BusyDelay(platform, "sys", 25, 100)
-        self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.mico32_busy)
+        self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.cpu_busy)
 
         # FPGA Cfg ---------------------------------------------------------------------------------
         revision_pads = platform.request("revision")
@@ -257,7 +257,7 @@ class BaseSoC(SoCCore):
         )
 
         self.comb += [
-            self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
+            self.general_periph.led1_cpu_busy.eq(self.busy_delay.busy_out),
             self.general_periph.ep03_active.eq(self.ft601.rd_active),
             self.general_periph.ep83_active.eq(self.ft601.wr_active),
         ]

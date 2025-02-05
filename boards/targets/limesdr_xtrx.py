@@ -415,7 +415,7 @@ class BaseSoC(SoCCore):
         #)
 
         #self.comb += [
-        #    self.general_periph.led1_mico32_busy.eq(self.busy_delay.busy_out),
+        #    self.general_periph.led1_cpu_busy.eq(self.busy_delay.busy_out),
         #]
 
         # RXTX Top ---------------------------------------------------------------------------------

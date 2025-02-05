@@ -42,7 +42,7 @@ entity general_periph_top_wrapper is
 
       -- Dual colour LEDs
       -- LED1 (Clock and PLL lock status)
-      led1_mico32_busy     : in     std_logic;
+      led1_cpu_busy        : in     std_logic;
       led1_ctrl            : in     std_logic_vector(2 downto 0);
       led1_g               : out    std_logic;
       led1_r               : out    std_logic;
@@ -112,7 +112,7 @@ begin
 
           -- Dual colour LEDs
           -- LED1 (Clock and PLL lock status)
-          led1_mico32_busy     => led1_mico32_busy,
+          led1_cpu_busy        => led1_cpu_busy,
           led1_ctrl            => led1_ctrl,
           led1_g               => led1_g,
           led1_r               => led1_r,

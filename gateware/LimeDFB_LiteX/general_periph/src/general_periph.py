@@ -38,7 +38,7 @@ class GeneralPeriphTop(LiteXModule):
         self.periph_output_ovrd_1  = Signal(16)
         self.periph_output_val_1   = Signal(16)
 
-        self.led1_mico32_busy      = Signal()
+        self.led1_cpu_busy         = Signal()
         self.led1_ctrl             = Signal(3)
         self.led2_ctrl             = Signal(3)
         self.fx3_led_ctrl          = Signal(3)
@@ -90,7 +90,7 @@ class GeneralPeriphTop(LiteXModule):
 
             # Dual colour LEDs
             # LED1 (Clock and PLL lock status)
-            i_led1_mico32_busy      = self.led1_mico32_busy,
+            i_led1_cpu_busy         = self.led1_cpu_busy,
             i_led1_ctrl             = self.led1_ctrl,
             o_led1_g                = platform.request("FPGA_LED1_G"),
             o_led1_r                = platform.request("FPGA_LED1_R"),

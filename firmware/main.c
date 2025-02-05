@@ -1121,7 +1121,7 @@ int main(void) {
     //spirez= MicoSPITxData(dac_spi, dac_spi_wrdata, 0);
     dac_spi_write(dac_spi_wrdata);
 
-    /* Drive mico32_busy low, high, low */
+    /* Drive cpu_busy low, high, low */
     main_gpo_write(0);
     main_gpo_write(1);
     main_gpo_write(0);

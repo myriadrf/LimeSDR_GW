@@ -32,7 +32,7 @@ entity general_periph_top is
       
       -- Dual colour LEDs
       -- LED1 (Clock and PLL lock status)
-      led1_mico32_busy     : in     std_logic;
+      led1_cpu_busy        : in     std_logic;
       led1_ctrl            : in     std_logic_vector(2 downto 0);
       led1_g               : out    std_logic;
       led1_r               : out    std_logic;
@@ -95,8 +95,6 @@ signal inst5_dir_1                  : std_logic_vector(N_GPIO-1 downto 0);
 signal inst5_out_val_0              : std_logic_vector(N_GPIO-1 downto 0);
 signal inst5_out_val_1              : std_logic_vector(N_GPIO-1 downto 0);
 
-signal led1_mico32_busy_delayed     : std_logic;
-
 begin
    
 -- ----------------------------------------------------------------------------
@@ -128,7 +126,7 @@ begin
    FPGA_LED1_cntrl_inst2 : entity work.FPGA_LED_ctrl
    port map(
       --input ports
-			led_r_in   		=> NOT led1_mico32_busy,
+			led_r_in   		=> NOT led1_cpu_busy,
 			led_g_in   		=> inst0_beat,
 			led_ctrl		 	=> led1_ctrl,
         --output ports 
