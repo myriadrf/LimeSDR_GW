@@ -16,6 +16,7 @@ from litex.soc.cores.clock import *
 
 from litescope import LiteScopeAnalyzer
 
+# Clk Cfg Regs -------------------------------------------------------------------------------------
 
 class ClkCfgRegs(LiteXModule):
     def __init__(self):
@@ -66,6 +67,7 @@ class ClkCfgRegs(LiteXModule):
         self.Auto_PHcfg_smpls = CSRStorage(size=16, reset=0xEFFF,
                                            description="Number of samples to use during auto phase configuration")
 
+# Xilinx LMS MM-------------------------------------------------------------------------------------
 
 class XilinxLmsMMCM(LiteXModule):
     def __init__(self, platform, speedgrade, max_freq, mclk, fclk, logic_cd):
@@ -102,6 +104,8 @@ class XilinxLmsMMCM(LiteXModule):
 
         self.comb += fclk.eq(self.cd_clkout0.clk)
 
+# Clk Mux ------------------------------------------------------------------------------------------
+
 class ClkMux(LiteXModule):
     def __init__(self, i0, i1, o, sel):
 
@@ -119,6 +123,8 @@ class ClkMux(LiteXModule):
             i_S0        = ~sel,
             i_S1        = sel,
         )
+
+# Clk Dly Fxd --------------------------------------------------------------------------------------
 
 class ClkDlyFxd(LiteXModule):
     def __init__(self, i, o, dly_val=31, refclk_freq=200):

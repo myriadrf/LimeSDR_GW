@@ -23,7 +23,7 @@ from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect                import stream
 from litex.soc.interconnect.csr            import *
 
-from gateware.common     import FIFOInterface, add_vhd2v_converter
+from gateware.common import add_vhd2v_converter
 
 from gateware.LimeDFB_LiteX.general.busy_delay import BusyDelay
 

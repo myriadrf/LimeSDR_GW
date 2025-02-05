@@ -15,7 +15,7 @@ from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect.csr            import CSRStatus, CSRStorage, CSRField
 from litex.soc.interconnect                import stream
 
-from gateware.common              import *
+from gateware.common import *
 
 # RX Path Top --------------------------------------------------------------------------------------
 

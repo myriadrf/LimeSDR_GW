@@ -11,6 +11,8 @@ from litex.gen import *
 
 from litex.soc.interconnect.csr import *
 
+# GPIO Top -----------------------------------------------------------------------------------------
+
 class GpioTop(LiteXModule):
     def __init__(self, platform, pads):
         self.GPIO_DIR     = Signal(len(pads))

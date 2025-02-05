@@ -6,12 +6,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from migen import *
+
+from litex.gen import *
+
 from litex.soc.interconnect.axi import *
 from litex.soc.interconnect.csr import *
 
-
-from litescope import LiteScopeAnalyzer
-
+# XTRX RFSW ----------------------------------------------------------------------------------------
 
 class xtrx_rfsw(LiteXModule):
     def __init__(self, platform, pads):
@@ -41,7 +42,7 @@ class xtrx_rfsw(LiteXModule):
         # Add sources
         platform.add_source("./gateware/tdd_control.vhd")
 
-        # create misc signals
+        # Create misc signals
         self.AUTO_IN        = Signal()
         self.TDD_OUT        = Signal()
 

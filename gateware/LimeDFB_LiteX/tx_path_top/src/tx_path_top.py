@@ -18,7 +18,7 @@ from litex.soc.interconnect                import stream
 
 from gateware.common import *
 
-# RX Path Top --------------------------------------------------------------------------------------
+# TX Path Top --------------------------------------------------------------------------------------
 
 class TXPathTop(LiteXModule):
     def __init__(self, platform, fpgacfg_manager=None,

@@ -11,7 +11,7 @@ from litex.gen import *
 
 from litex.soc.interconnect.csr import *
 
-from gateware.common            import add_vhd2v_converter
+from gateware.common import add_vhd2v_converter
 
 # General Periph Top -------------------------------------------------------------------------------
 
