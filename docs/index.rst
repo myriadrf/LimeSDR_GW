@@ -7,31 +7,63 @@
    docs/gw_description
    docs/build_project
    docs/modify_project
-   
 
 Introduction
-========================
+============
 
 LimeSDR GW project
--------------------------------
+------------------
 
-The LimeSDR family of boards, known for their flexibility and high performance in Software Defined Radio (SDR) applications, rely on sophisticated FPGA gateware to manage the seamless integration of various hardware components. This project focuses on the development and customization of FPGA gateware for LimeSDR boards using the LiteX framework, a versatile toolchain designed to facilitate the creation and integration of reusable RTL (Register-Transfer Level) blocks. More information about LiteX Framework can be found `here <https://github.com/enjoy-digital/litex>`_ .
+The LimeSDR family of boards, renowned for their flexibility and high performance in Software Defined Radio (SDR) applications, rely on sophisticated FPGA gateware to seamlessly integrate various hardware components. This project focuses on developing and customizing FPGA gateware for LimeSDR boards using the [LiteX framework](https://github.com/enjoy-digital/litex), a versatile toolchain for creating and integrating reusable RTL blocks.
 
-LiteX serves as the backbone of this project, providing a high-level platform that simplifies the complex task of connecting RTL blocks within the FPGA. By leveraging LiteX, we can efficiently design, simulate, and deploy gateware that caters to the specific needs of LimeSDR boards, ensuring optimal performance and flexibility across a wide range of applications. The LiteX framework not only supports the integration of standard components but also allows for the customization of interfaces, protocols, and data processing units, making it an ideal choice for developing sophisticated SDR solutions.
+Leveraging LiteX as its backbone, the project efficiently connects multiple RTL blocks within the FPGA, enabling tailored design, simulation, and deployment of gateware. This approach supports rapid prototyping, straightforward maintenance, and future extensibility across diverse hardware targets.
 
-This project aims to create a modular, extensible gateware architecture that can be easily adapted to various configurations and use cases within the LimeSDR ecosystem. Through this approach, we seek to enhance the capabilities of LimeSDR boards, enabling them to meet the growing demands of modern wireless communication systems.
+Supported Boards
+----------------
 
-Supported boards
--------------------------------
+.. table:: Supported Boards
 
-Currently supported LimeSDR Family boards are listed in the Table 1.
+   +----------------------+---------------------+-----------------------------------------------+
+   | **Board**            | **Hardware Version**| **Description**                               |
+   +======================+=====================+===============================================+
+   | LimeSDR XTRX         | Starting from v1.2  | Small form factor mini PCIe SDR board.        |
+   +----------------------+---------------------+-----------------------------------------------+
+   | LimeSDR Mini V1      | v1.x                | Small form factor USB SDR board.              |
+   +----------------------+---------------------+-----------------------------------------------+
+   | LimeSDR Mini V2      | v2.x                | Small form factor USB SDR board.              |
+   +----------------------+---------------------+-----------------------------------------------+
 
-.. table:: Table 1. Board components
+Board-Specific Toolchain Support
+--------------------------------
+Each board uses a toolchain tailored to its FPGA architecture and design constraints:
 
-  +-------------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
-  | **Board**                                                   | **Hardware Version**  | **Description**                                                                |
-  +-------------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
-  | :ref:`LimeSDR XTRX <docs/limesdr_xtrx:LimeSDR XTRX>`        | Starting from v1.2    | Small form factor mini PCIe expansion SDR board.                               |
-  +-------------------------------------------------------------+-----------------------+--------------------------------------------------------------------------------+
+- **LimeSDR XTRX**: Uses Xilinx Vivado for synthesis and place-and-route, optimizing performance for Artix7 devices. Future support with an open source flow (OpenXC7) is anticipated.
+- **LimeSDR Mini V1**: Utilizes GHDL for VHDL-to-Verilog conversion in combination with Altera's Quartus for synthesis and implementation, meeting its specific FPGA requirements.
+- **LimeSDR Mini V2**: Fully supports an open source flow using GHDL, Yosys, and nextpnr, demonstrating the potential for a completely open source development process.
 
+Open Source Tools
+-----------------
 
+The project leverages a suite of open source tools to ensure flexibility and community-driven development:
+
+.. table:: Open Source Tools
+
+   +----------------------+------------------------------------------------------------+
+   | **Tool**             | **Link**                                                   |
+   +======================+============================================================+
+   | LiteX                | https://github.com/enjoy-digital/litex                     |
+   +----------------------+------------------------------------------------------------+
+   | VexRiscv             | https://github.com/SpinalHDL/VexRiscv                      |
+   +----------------------+------------------------------------------------------------+
+   | OpenOCD              | https://openocd.org/                                       |
+   +----------------------+------------------------------------------------------------+
+   | OpenFPGALoader       | https://github.com/trabucayre/openFPGALoader               |
+   +----------------------+------------------------------------------------------------+
+   | GHDL                 | https://github.com/ghdl/ghdl                               |
+   +----------------------+------------------------------------------------------------+
+   | Yosys                | https://github.com/YosysHQ/yosys                           |
+   +----------------------+------------------------------------------------------------+
+   | nextpnr              | https://github.com/YosysHQ/nextpnr                         |
+   +----------------------+------------------------------------------------------------+
+
+These tools enable the project to perform everything from synthesis and simulation to debugging and programming, all while maintaining a commitment to open source development where possible.
