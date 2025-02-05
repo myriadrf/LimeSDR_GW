@@ -54,6 +54,10 @@ TX Path Top Module
 ~~~~~~~~~~~~~~~~~~
 This module manages the transmit path from the host through the FPGA to the LMS7002M, including unpacking of IQ samples and stream synchronization.
 
+.. figure:: limesdr-mini-v2/images/limetop_block_diagram.svg
+   :width: 1000
+   :alt: Lime_top block diagram
+
 .. _pcie_phy_module:
 
 PCIe PHY Module
