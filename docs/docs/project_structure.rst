@@ -18,9 +18,8 @@ The repository is organized into several key directories, each serving a specifi
    ├── docs/               <-- Documentation (design descriptions, build instructions, modification guidelines, etc.).
    ├── firmware/           <-- Firmware source code for the softcore CPU (drivers and application-specific logic).
    ├── gateware/           <-- FPGA hardware description files (Verilog/VHDL/LiteX) for custom logic and interconnects.
-   ├── software/           <-- Host-side applications and drivers for interfacing with the FPGA hardware.
    ├── riscv_jtag_tunneled.tcl  <-- TCL script for automating JTAG debugging.
-   ├── README.rst          <-- Project overview and documentation links.
+   ├── README.md           <-- Project overview and documentation links.
    └── .gitignore          <-- Files and directories ignored by version control.
 
 Key Highlights
