@@ -91,13 +91,13 @@ To build the gateware for the **limesdr_mini_v2** board, use the following comma
 
 .. code:: bash
 
-   python3 -m boards.targets.limesdr_mini_v2 --build [--with-bios] [--with-spi-flash] [--load] [--write] [--toolchain=TOOLCHAIN] [--cable <cable>]
+   python3 -m boards.targets.limesdr_mini_v2 --build [--with-bios] [--without-spi-flash] [--load] [--write] [--toolchain=TOOLCHAIN] [--cable <cable>]
 
 **Options:**
 
-- ``--toolchain=TOOLCHAIN``: Specify either **diamond** or **trellis** (default is **diamond**).
+- ``--toolchain=TOOLCHAIN``: Specify either **diamond** or **trellis** (default is **trellis**).
 - ``--with-bios``: Enables LiteX BIOS.
-- ``--with-spi-flash``: Enables SPI Flash support (only working with the trellis toolchain).
+- ``--without-spi-flash``: Disables SPI Flash support (only working with the trellis toolchain).
 - ``--load``: Loads the bitstream into SRAM.
 - ``--write``: Programs the bitstream into SPI FLASH.
 - ``--cable``: Specifies the JTAG cable.
