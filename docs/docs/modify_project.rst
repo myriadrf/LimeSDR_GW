@@ -55,13 +55,14 @@ To avoid conflicting assignments, you must disconnect the **lms7002_top** master
 
 .. code-block:: python
 
-    # RX Path
-    self.rx_path = rx_path_top(platform)
-    self.comb += self.rx_path.RESET_N.eq(self.lms7002.tx_en.storage)
-
+    # LMS7002 -> RX Path -> PCIe DMA Pipeline.
     # Disconnect RX path AXIS slave from LMS7002 AXIS master
-    # self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls)
-    self.comb += self.rx_path.s_axis_iqsmpls.areset_n.eq(self.lms7002.tx_en.storage)
+    #self.rx_pipeline = stream.Pipeline(
+    #    self.lms7002_top.source,
+    #    self.rxtx_top.rx_path.sink,
+    #)
+
+    self.comb += self.rxtx_top.rx_path.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
 Instantiating the FFT Wrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,28 +74,13 @@ Next, instantiate the FFT wrapper and create two new AXI-Stream interfaces. You 
     # Import the AXIStreamInterface definition
     from litex.soc.interconnect.axi import AXIStreamInterface
 
-    # Define layouts for the FFT AXI Stream interfaces.
-    s_axis_layout = [
-        ("data", max(1, 64)),
-        ("areset_n", 1),
-        ("keep", max(1, 64//8)),
-    ]
-    m_axis_layout = [
-        ("data", max(1, 64)),
-        ("areset_n", 1),
-        ("keep", max(1, 64//8)),
-    ]
+    # define Reset signal and adds a MultiReg
+    fft_reset_n = Signal()
+    self.specials += MultiReg(self.fpgacfg.tx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
+
     # Declare FFT AXI Stream interfaces.
-    self.fft_s_axis = AXIStreamInterface(
-        data_width   = 64,
-        layout       = s_axis_layout,
-        clock_domain = self.lms7002.axis_m.clock_domain,
-    )
-    self.fft_m_axis = AXIStreamInterface(
-        data_width   = 64,
-        layout       = m_axis_layout,
-        clock_domain = self.lms7002.axis_m.clock_domain
-    )
+    self.fft_s_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
+    self.fft_m_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
 
 Adding Sources and Instantiating the FFT Module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,8 +91,8 @@ Add the FFT sources to the project and instantiate the module as follows:
 
     # Instantiate the FFT wrapper.
     self.specials += Instance("fft_wrap",
-        i_CLK           = ClockSignal(self.lms7002.axis_m.clock_domain),
-        i_RESET_N       = self.lms7002.tx_en.storage,
+        i_CLK           = ClockSignal(self.lms7002_top.source.clock_domain),
+        i_RESET_N       = fft_reset_n,
         i_S_AXIS_TVALID = self.fft_s_axis.valid,
         i_S_AXIS_TDATA  = self.fft_s_axis.data,
         o_S_AXIS_TREADY = self.fft_s_axis.ready,
@@ -118,7 +104,6 @@ Add the FFT sources to the project and instantiate the module as follows:
         o_M_AXIS_TLAST  = self.fft_m_axis.last,
         o_M_AXIS_TKEEP  = self.fft_m_axis.keep,
     )
-
     # Add FFT sources to the platform.
     platform.add_source("./gateware/examples/fft/fft.v")
     platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
@@ -130,10 +115,11 @@ Finally, connect the FFT module between **lms7002_top** and **rx_path_top**. Use
 
 .. code-block:: python
 
+    # LMS7002 -> FFT -> RX Path -> PCIe DMA Pipeline.
     # Connect the LMS7002 master interface to the FFT wrapper slave interface
-    self.comb += self.lms7002.axis_m.connect(self.fft_s_axis, omit={"areset_n"})
+    self.comb += self.lms7002_top.source.connect(self.fft_s_axis)
     # Connect the FFT wrapper master interface to the RX path slave interface
-    self.comb += self.fft_m_axis.connect(self.rx_path.s_axis_iqsmpls, omit={"areset_n"})
+    self.comb += self.fft_m_axis.connect(self.rxtx_top.rx_path.sink)
 
 After these modifications, build the project and program the board as described in :ref:`Building the project<docs/build_project:building and loading the gateware>`.
 
