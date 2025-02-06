@@ -13,12 +13,15 @@ import argparse
 
 from migen import *
 
+from migen.genlib.cdc import MultiReg
+
 from litex.gen import *
 
 from boards.platforms import limesdr_xtrx_platform
 
-from litex.soc.interconnect.csr import *
 from litex.soc.interconnect     import stream
+from litex.soc.interconnect.csr import *
+from litex.soc.interconnect.axi import AXIStreamInterface
 
 from litex.soc.integration.soc      import *
 from litex.soc.integration.soc_core import *
@@ -161,6 +164,7 @@ class BaseSoC(SoCCore):
         with_cpu              = True, cpu_firmware=None,
         with_jtagbone         = True,
         with_bscan            = False,
+        with_fft              = False,
         flash_boot            = False,
         gold_img              = False,
         firmware_flash_offset = 0x220000,
@@ -435,6 +439,37 @@ class BaseSoC(SoCCore):
             rx_m_clk_domain        = "sys",
         )
 
+        # FFT --------------------------------------------------------------------------------------
+
+        if with_fft:
+            # define Reset signal and adds a MultiReg
+            fft_reset_n = Signal()
+            self.specials += MultiReg(self.fpgacfg.tx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
+
+            # Declare FFT AXI Stream interfaces.
+            self.fft_s_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
+            self.fft_m_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
+
+            # Instantiate the FFT wrapper.
+            self.specials += Instance("fft_wrap",
+                i_CLK           = ClockSignal(self.lms7002_top.source.clock_domain),
+                i_RESET_N       = fft_reset_n,
+                i_S_AXIS_TVALID = self.fft_s_axis.valid,
+                i_S_AXIS_TDATA  = self.fft_s_axis.data,
+                o_S_AXIS_TREADY = self.fft_s_axis.ready,
+                i_S_AXIS_TLAST  = self.fft_s_axis.last,
+                i_S_AXIS_TKEEP  = self.fft_s_axis.keep,
+                o_M_AXIS_TDATA  = self.fft_m_axis.data,
+                o_M_AXIS_TVALID = self.fft_m_axis.valid,
+                i_M_AXIS_TREADY = self.fft_m_axis.ready,
+                o_M_AXIS_TLAST  = self.fft_m_axis.last,
+                o_M_AXIS_TKEEP  = self.fft_m_axis.keep,
+            )
+
+            # Add FFT sources to the platform.
+            platform.add_source("./gateware/examples/fft/fft.v")
+            platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
+
         self.comb += [
             # LMS7002 <-> TstTop.
             # FIXME
@@ -455,11 +490,19 @@ class BaseSoC(SoCCore):
             #self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
         ]
 
-        # LMS7002 -> RX Path -> PCIe DMA Pipeline.
-        self.rx_pipeline = stream.Pipeline(
-            self.lms7002_top.source,
-            self.rxtx_top.rx_path.sink,
-        )
+        if with_fft:
+            # LMS7002 -> FFT -> RX Path -> PCIe DMA Pipeline.
+            # Connect the LMS7002 master interface to the FFT wrapper slave interface
+            self.comb += self.lms7002_top.source.connect(self.fft_s_axis)
+            # Connect the FFT wrapper master interface to the RX path slave interface
+            self.comb += self.fft_m_axis.connect(self.rxtx_top.rx_path.sink)
+        else:
+            # LMS7002 -> RX Path -> PCIe DMA Pipeline.
+            self.rx_pipeline = stream.Pipeline(
+                self.lms7002_top.source,
+                self.rxtx_top.rx_path.sink,
+            )
+
         self.comb += self.rxtx_top.rx_path.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
         # PCIE DMA -> TX Path -> LMS7002 Pipeline.
@@ -705,6 +748,9 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
 
+    # Examples.
+    parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
+
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-smpl-cmp-probe",       action="store_true", help="Enable RX Sample Compare Probe.")
@@ -728,6 +774,7 @@ def main():
             cpu_firmware          = None if prepare else "firmware/firmware.bin",
             with_jtagbone         = not args.with_bscan,
             with_bscan            = args.with_bscan,
+            with_fft              = args.with_fft,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,
             firmware_flash_offset = args.firmware_flash_offset,
