@@ -105,7 +105,7 @@ Add the FFT sources to the project and instantiate the module as follows:
 
     # Instantiate the FFT wrapper.
     self.specials += Instance("fft_wrap",
-        i_CLK           = ClockSignal(self.lms7002.axis_m.
+        i_CLK           = ClockSignal(self.lms7002.axis_m.clock_domain),
         i_RESET_N       = self.lms7002.tx_en.storage,
         i_S_AXIS_TVALID = self.fft_s_axis.valid,
         i_S_AXIS_TDATA  = self.fft_s_axis.data,
