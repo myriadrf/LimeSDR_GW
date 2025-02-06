@@ -192,9 +192,10 @@ class TXPathTop(LiteXModule):
                 ))
 
                 self.smpl_fifo = smpl_fifo = stream.ClockDomainCrossing([("data", 128)],
-                    cd_from = "smpl_fifo",
-                    cd_to   = m_clk_domain,
-                    depth   = 4,
+                    cd_from         = "smpl_fifo",
+                    cd_to           = m_clk_domain,
+                    depth           = 4,
+                    with_common_rst = True,
                 )
 
                 self.comb += [
