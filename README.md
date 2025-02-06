@@ -29,12 +29,6 @@ present/installed.
    - Why not simplify this by using a CDC (Clock Domain Crossing) in the
      communication interface module and a second CDC in `lms7002_top` to bridge
      the `sys` clock with `lms_tx`/`lms_rx`?
-4. **Tests**
-   Unlike *limesdr_xtrx*, *limesdr_mini* have a *test_data_dd.vhd* module and,
-   for Rx and Tx (*lms7002* module) a mux with more options. Is this test remains
-   relevant or may be removed to align all 3 boards?
-5. **VCTCXO_TAMER**
-   Why not using LiteUART instead of a VHDL implementation?
 
 ## Status
 
@@ -106,19 +100,10 @@ present/installed.
    - Currently, the `tx_en` or `rx_en` signals are used as resets, but the approach
      varies depending on the board.
    - A more unified and consistent reset strategy is required across all boards.
-1. **Input/Output Data Stream Delays (limesdr_mini_v1)**
+3. **Input/Output Data Stream Delays (limesdr_mini_v1)**
    - For *limesdr_mini_v1*, input and output data stream delays are not fully managed.
    - The LiteX PLL module must be enhanced to support dynamic phase configuration,
      which would allow better handling of data stream alignment.
-2. **Support for limesdr_xtrx**
-   - The *limesdr_xtrx* target is currently a proof of concept.
-   - Full support is required to bring its status to parity with *LimeSDR_GW*,
-     ensuring the same level of stability, feature set, and testing coverage.
-3. **Firmware merge**
-   - *limesdr_mini_v1* and *limesdr_mini_v2* have one firmware (`firmware_mini`),
-     *limesdr_xtrx* has another firmware (`firmware_xtrx`). A common firmware, or
-     at least a common codebase may simplify future evolutions
-   - before merge memory map may need to be unified
 
 ## LimeSDR_GW / LimeDFB hash
 
