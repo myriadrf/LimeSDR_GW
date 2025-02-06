@@ -13,8 +13,9 @@ from migen.genlib.cdc import MultiReg
 
 from litex.gen import *
 
-from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect                import stream
+from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
+from litex.soc.interconnect.packet         import PacketFIFO
 
 from gateware.common import *
 
@@ -184,7 +185,11 @@ class TXPathTop(LiteXModule):
                     self.cd_smpl_fifo.clk.eq(ClockSignal(s_clk_domain)),
                     self.cd_smpl_fifo.rst.eq(ResetSignal(s_clk_domain) | (~(s_reset_n & p2d_rd_resetn[i]))),
                 ]
-                self.s_fifo = s_fifo = ResetInserter()(ClockDomainsRenamer("smpl_fifo")(stream.SyncFIFO([("data", 128)], 256)))
+                self.s_fifo = s_fifo = ClockDomainsRenamer("smpl_fifo")(PacketFIFO([("data", 128)],
+                    payload_depth = 256,
+                    param_depth   = 1,
+                    buffered      = False,
+                ))
 
                 self.smpl_fifo = smpl_fifo = stream.ClockDomainCrossing([("data", 128)],
                     cd_from = "smpl_fifo",
@@ -193,12 +198,11 @@ class TXPathTop(LiteXModule):
                 )
 
                 self.comb += [
-                    s_fifo.reset.eq(           ~(s_reset_n & p2d_rd_resetn[i])),
                     s_fifo.sink.valid.eq(      p2d_wr_tvalid[i]),
                     p2d_wr_tready[i].eq(       s_fifo.sink.ready),
                     s_fifo.sink.last.eq(       p2d_wr_tlast[i]),
                     s_fifo.sink.data.eq(       p2d_wr_tdata),
-                    p2d_wr_buf_empty[i].eq(    ~(s_fifo.level > 0)),
+                    p2d_wr_buf_empty[i].eq(    ~(s_fifo.payload_fifo.level > 0)),
                     self.s_fifo.source.connect(smpl_fifo.sink)
                 ]
 
