@@ -18,8 +18,8 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'LimeSDR FPGA Gateware'
-copyright = '2024, Lime Microsystems Ltd'
+project = 'LimeSDR FPGA Gateware (LimeSDR_GW)'
+copyright = '2024-2025, Lime Microsystems Ltd'
 author = 'Lime Microsystems'
 
 # The full version, including alpha/beta/rc tags
@@ -94,8 +94,8 @@ html_theme_options = {
     'navigation_depth': 4
 }
 
-#html_logo = 'images/MyriadRF_logo_200w.png'
-#html_favicon = 'images/MyriadRF_favicon_34x34.png'
+html_logo = 'images/Lime_logo_200w.png'
+html_favicon = 'images/Lime_favicon_34x34.png'
 
 html_show_sphinx = False
 
