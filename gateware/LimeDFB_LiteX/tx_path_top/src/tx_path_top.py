@@ -265,7 +265,7 @@ class TXPathTop(LiteXModule):
             # AXI Stream Master.
             o_M_AXIS_TDATA  = fifo_smpl_buff.sink.data,
             o_M_AXIS_TVALID = fifo_smpl_buff.sink.valid,
-            o_M_AXIS_TREADY = fifo_smpl_buff.sink.ready,
+            i_M_AXIS_TREADY = fifo_smpl_buff.sink.ready,
             o_M_AXIS_TLAST  = fifo_smpl_buff.sink.last,
 
             # Control.
