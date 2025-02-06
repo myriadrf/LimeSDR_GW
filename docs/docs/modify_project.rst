@@ -1,171 +1,185 @@
-=========================
-Modifying the project
-=========================
+Modifying the Project
+=====================
+
+This section describes how to modify the gateware and firmware of the project. It explains where the source files are located and provides an example of adding a custom module (a fixed-point FFT) to the LimeSDR XTRX design.
 
 Gateware
-----------------------
-Gateware sources are split among multiple folders. The folders are:
+--------
+The gateware sources are organized into several folders:
 
-* **boards/targets** - python LiteX files containing board specific top level gateware descriptions
-* **boards/platforms** - python LiteX files containing platform constraints, such as pin locations and IO standards
-* **gateware** - module descriptions, hdl files
+- **boards/targets**
+  Python LiteX files that contain board-specific top-level gateware descriptions.
+- **boards/platforms**
+  Python LiteX files that define platform constraints, such as pin locations and I/O standards.
+- **gateware**
+  HDL source files and module descriptions.
 
-Example
-^^^^^^^^^^^^^^^^^^^^^^
-To make the process of adding a custom module to the project easier to understand, an example is provided for LimeSDR XTRX.
-This example will add a fixed point FFT module in the data receive path, so that results of the fourier transform are packed into packets
-instead of RF samples.
+Example: Adding an FFT Module
+-----------------------------
+To make it easier to understand how to add a custom module, an example is provided for the LimeSDR XTRX. In this example, a fixed-point FFT module is inserted in the data receive path so that the results of the Fourier transform are packed into packets instead of raw RF samples.
 
-If you are not interested in modifying the code yourself, but want to try out the FFT module, you can modify the **boards/targets/limesdr_xtrx.py** file to use the **LimeTop_fft** 
-file instead of the regular **LimeTop** file like so:
+If you want to try out the FFT module without modifying too much code, you can change the top-level gateware file in **boards/targets/limesdr_xtrx.py**. Replace the standard **LimeTop** import with the FFT-enabled version by modifying the file as follows:
 
 .. code-block:: python
 
-        # Lime Top Level -------------------------------------------------------------------
-        # from gateware.LimeTop import LimeTop
-        # fft example
-        from gateware.examples.fft.LimeTop_fft import LimeTop
+    # Lime Top Level
+    # from gateware.LimeTop import LimeTop
+    # fft example
+    from gateware.examples.fft.LimeTop_fft import LimeTop
 
-All sources required for the example can be found in **gateware/examples/fft**. The files contained there are:
+All sources required for the example are located in **gateware/examples/fft**. The folder contains:
 
-* **fixedpointfft.py** - modified version of a fixed point FFT module from `amlib`_ repository.
-* **fft.v** - verilog source file, pregenerated from **fixedpointfft.py**.
-* **fft_wrap.vhd** - VHDL wrapper for **fft.v** with a basic AXI-STREAM interface.
-* **LimeTop_fft.py** - modified version of regular **LimeTop.py** used in the project. Contains all changes discussed in this example.
-* **limesdr_fft_samples.grc** - gnu radio file containg blocks that properly scale, shift and display FFT data received from the board.
+- **fixedpointfft.py**
+  A modified fixed-point FFT module based on the `amlib`_ repository.
+- **fft.v**
+  The Verilog source file (pre-generated from **fixedpointfft.py**).
+- **fft_wrap.vhd**
+  A VHDL wrapper for **fft.v** that provides a basic AXI-STREAM interface.
+- **LimeTop_fft.py**
+  A modified version of **LimeTop.py** used in the project, incorporating the FFT module.
+- **limesdr_fft_samples.grc**
+  A GNU Radio file containing blocks that scale, shift, and display the FFT data received from the board.
 
-In order to calculate an FFT from received samples and pack resulting data into packets we must first identify the right location for the FFT module.
-According to information found in `LimeSDR XTRX gateware description`_, raw samples are received by **lms7002_top** and passed to **rx_path_top** for packing.
-That means that in order to reuse sample packing logic, the FFT module has to be inserted between **lms7002_top** and **rx_path_top**.
+In the standard design (see the `LimeSDR XTRX gateware description`_), raw samples are received by **lms7002_top** and then passed to **rx_path_top** for packetization. To reuse this logic and insert the FFT module, the FFT module should be placed between **lms7002_top** and **rx_path_top**.
 
-Below is a block diagram of the structure we want to achieve. New elements are shown in green, elements to be removed are crossed out in red.
+Below is a block diagram showing the desired structure. New elements are highlighted in green, and elements to be removed are marked in red.
 
 .. figure:: limesdr-xtrx/images/limetop_block_diagram_fft.svg
-  :width: 1000
+   :width: 1000
+   :alt: Block diagram showing FFT module insertion
 
-To avoid conflicting assignments, we must disconnect the **lms7002_top** master interface from the **rx_path_top** slave interface.
-This is done by commenting the relevant *connect* command as seen in a code snippet below:
+Disconnecting Existing Connections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
-
-        # RX Path
-        self.rx_path = rx_path_top(platform)
-        self.comb += self.rx_path.RESET_N.eq(self.lms7002.tx_en.storage)
-
-        # Connect RX path AXIS slave to lms7002 AXIS master
-        # The line below is commented to disconnect the RX path from the LMS7002
-        # self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls)
-        self.comb += self.rx_path.s_axis_iqsmpls.areset_n.eq(self.lms7002.tx_en.storage)
-
-The next step is to instantiate the fft wrapper and create two new AXI Stream interfaces for it.
-The interface declarations can be copy-pasted from any other module. In this case it can be done like this:
+To avoid conflicting assignments, you must disconnect the **lms7002_top** master interface from the **rx_path_top** slave interface. For example, in **boards/targets/limesdr_xtrx.py**, comment out the connection line as shown:
 
 .. code-block:: python
 
-        # import AXIStreamInterface description
-        from litex.soc.interconnect.axi import AXIStreamInterface
-        # describe layouts for s_axis and m_axis interfaces for fft wrapper
-        # definitions copied from rx_path_top to ensure same layout
-        s_axis_layout = [("data", max(1, 64))]
-        s_axis_layout += [("areset_n", 1)]
-        s_axis_layout += [("keep", max(1, 64//8))]
-        #
-        m_axis_layout = [("data", max(1, 64))]
-        m_axis_layout += [("areset_n", 1)]
-        m_axis_layout += [("keep", max(1, 64//8))]
-        # declare fft interfaces
-        self.fft_s_axis = AXIStreamInterface(data_width=64, layout=s_axis_layout, clock_domain=self.lms7002.axis_m.clock_domain)
-        self.fft_m_axis = AXIStreamInterface(data_width=64, layout=m_axis_layout, clock_domain=self.lms7002.axis_m.clock_domain)
+    # RX Path
+    self.rx_path = rx_path_top(platform)
+    self.comb += self.rx_path.RESET_N.eq(self.lms7002.tx_en.storage)
 
-The sources for the module need to be added and the module instantiated. Detailed instructions on how to instantiate a non-LiteX 
-module in a LiteX project can be found in the `Litex documentation`_, in this example it is done like this:
+    # Disconnect RX path AXIS slave from LMS7002 AXIS master
+    # self.comb += self.lms7002.axis_m.connect(self.rx_path.s_axis_iqsmpls)
+    self.comb += self.rx_path.s_axis_iqsmpls.areset_n.eq(self.lms7002.tx_en.storage)
 
-.. code-block:: python
-        
-        # add fft and wrapper to sources
-        platform.add_source("./gateware/examples/fft/fft.v")
-        platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
+Instantiating the FFT Wrapper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        # assign fft wrapper ports to appropriate interfaces
-        self.fft_params = dict()
-        self.fft_params.update(
-            i_CLK = ClockSignal(self.lms7002.axis_m.clock_domain),
-            i_RESET_N = self.lms7002.tx_en.storage,
-            i_S_AXIS_TVALID = self.fft_s_axis.valid,
-            i_S_AXIS_TDATA = self.fft_s_axis.data,
-            o_S_AXIS_TREADY = self.fft_s_axis.ready,
-            i_S_AXIS_TLAST = self.fft_s_axis.last,
-            i_S_AXIS_TKEEP = self.fft_s_axis.keep,
-            #
-            o_M_AXIS_TDATA = self.fft_m_axis.data,
-            o_M_AXIS_TVALID = self.fft_m_axis.valid,
-            i_M_AXIS_TREADY = self.fft_m_axis.ready,
-            o_M_AXIS_TLAST = self.fft_m_axis.last,
-            o_M_AXIS_TKEEP = self.fft_m_axis.keep
-        )
-        # instantiate fft wrapper
-        self.specials += Instance("fft_wrap", **self.fft_params)
-
-Finally, the newly instantiated module needs to connected both to **lms7002_top** and **rx_path_top** modules. The syntax for that is 
-the same as the connection between **lms7002_top** and **rx_path_top** that was commented out at the beginning of the example, except for the added *omit={"areset_n"}*,
-because the fft wrapper does not have specified ports. The code can be seen below:
+Next, instantiate the FFT wrapper and create two new AXI-Stream interfaces. You can copy the interface declarations from another module. For example:
 
 .. code-block:: python
 
-        # connect the lms7002 master interface to the fft wrapper slave interface
-        self.comb += self.lms7002.axis_m.connect(self.fft_s_axis,omit={"areset_n"})
-        # connect the fft wrapper master interface to the rx_path slave interface
-        self.comb += self.fft_m_axis.connect(self.rx_path.s_axis_iqsmpls,omit={"areset_n"})
+    # Import the AXIStreamInterface definition
+    from litex.soc.interconnect.axi import AXIStreamInterface
 
-After performing these modifications, build the project, and program the board, as described in :ref:`Building the project<docs/build_project:building and loading the gateware>`.
+    # Define layouts for the FFT AXI Stream interfaces.
+    s_axis_layout = [
+        ("data", max(1, 64)),
+        ("areset_n", 1),
+        ("keep", max(1, 64//8)),
+    ]
+    m_axis_layout = [
+        ("data", max(1, 64)),
+        ("areset_n", 1),
+        ("keep", max(1, 64//8)),
+    ]
+    # Declare FFT AXI Stream interfaces.
+    self.fft_s_axis = AXIStreamInterface(
+        data_width   = 64,
+        layout       = s_axis_layout,
+        clock_domain = self.lms7002.axis_m.clock_domain,
+    )
+    self.fft_m_axis = AXIStreamInterface(
+        data_width   = 64,
+        layout       = m_axis_layout,
+        clock_domain = self.lms7002.axis_m.clock_domain
+    )
 
-The FFT calculated by the module can be seen using the **limesdr_fft_samples.grc** file provided with the example.
-To be able to use the file please make sure you have up to date versions of GNU Radio and LimeSuiteNG installed.
+Adding Sources and Instantiating the FFT Module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Below is a screenshot of how the fft looks when run with gnuradio.
+Add the FFT sources to the project and instantiate the module as follows:
+
+.. code-block:: python
+
+    # Instantiate the FFT wrapper.
+    self.specials += Instance("fft_wrap",
+        i_CLK           = ClockSignal(self.lms7002.axis_m.
+        i_RESET_N       = self.lms7002.tx_en.storage,
+        i_S_AXIS_TVALID = self.fft_s_axis.valid,
+        i_S_AXIS_TDATA  = self.fft_s_axis.data,
+        o_S_AXIS_TREADY = self.fft_s_axis.ready,
+        i_S_AXIS_TLAST  = self.fft_s_axis.last,
+        i_S_AXIS_TKEEP  = self.fft_s_axis.keep,
+        o_M_AXIS_TDATA  = self.fft_m_axis.data,
+        o_M_AXIS_TVALID = self.fft_m_axis.valid,
+        i_M_AXIS_TREADY = self.fft_m_axis.ready,
+        o_M_AXIS_TLAST  = self.fft_m_axis.last,
+        o_M_AXIS_TKEEP  = self.fft_m_axis.keep,
+    )
+
+    # Add FFT sources to the platform.
+    platform.add_source("./gateware/examples/fft/fft.v")
+    platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
+
+Connecting the FFT Module
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, connect the FFT module between **lms7002_top** and **rx_path_top**. Use the same connection syntax as before (with the added *omit={"areset_n"}* for the FFT wrapper):
+
+.. code-block:: python
+
+    # Connect the LMS7002 master interface to the FFT wrapper slave interface
+    self.comb += self.lms7002.axis_m.connect(self.fft_s_axis, omit={"areset_n"})
+    # Connect the FFT wrapper master interface to the RX path slave interface
+    self.comb += self.fft_m_axis.connect(self.rx_path.s_axis_iqsmpls, omit={"areset_n"})
+
+After these modifications, build the project and program the board as described in :ref:`Building the project<docs/build_project:building and loading the gateware>`.
+
+The FFT results can be observed using the **limesdr_fft_samples.grc** file provided with the example. Ensure that you have up-to-date versions of GNU Radio and LimeSuiteNG installed.
 
 .. figure:: limesdr-xtrx/images/gnuradio_fft.png
-  :width: 1000
-
+   :width: 1000
+   :alt: Screenshot of FFT output in GNU Radio
 
 .. _amlib: https://github.com/amaranth-farm/amlib
 .. _LimeSDR XTRX gateware description: https://limesdrgw.myriadrf.org/docs/limesdr_xtrx
 .. _LiteX documentation: https://github.com/enjoy-digital/litex/wiki/Reuse-a-(System)Verilog,-VHDL,-Amaranth,-Spinal-HDL,-Chisel-core
 
 Firmware
-----------------------
+--------
+The firmware sources are located in the ``firmware`` folder and are built using the provided ``Makefile``. The gateware project must be built at least once to generate the necessary sources and headers for firmware compilation. When the gateware is built, the firmware is automatically compiled, so manual compilation is not required.
 
-The firmware sources can be found in the ``firmware`` folder. The firmware can be built
-using the ``Makefile`` provided in the same folder.
-
-In order to successfully compile, the gateware project needs to be built at least once to generate
-required sources and headers.
-
-When building gateware, the firmware gets compiled automatically, it is not required to compile it manually.
-
-Debug tools
-----------------------
-
+Debug Tools
+-----------
 **Firmware Debug through GDB over JTAG**
 
-To build and load a gateware with a debug interface:
+To build and load a gateware with a debug interface, run:
 
-.. code:: bash
+.. code-block:: bash
 
-   ./limesdr_xtrx.py --with-bscan --build --load --flash
+    ./limesdr_xtrx.py --with-bscan --build --load --flash
 
-   # Load firmware through serial:
-   litex_term /dev/ttyUSBx --kernel firmware/firmware.bin
+Then, load the firmware through serial:
 
-   # Run OpenOCD with one of the specified configurations:
-   openocd -f ./digilent_hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
-   or
-   openocd -f ./openocd_xc7_ft2232.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
+.. code-block:: bash
 
-   # Connect GDB for debugging:
-   gdb-multiarch -q firmware/firmware.elf -ex "target extended-remote localhost:3333"
+    litex_term /dev/ttyUSBx --kernel firmware/firmware.bin
 
-Note that instead of using GDB directly, Eclipse IDE can be configured
-to debug code in a more user-friendly way. Follow this guide to
-configure Eclipse IDE: `Using Eclipse to run and debug the
-software <https://github.com/SpinalHDL/VexRiscv?tab=readme-ov-file#using-eclipse-to-run-and-debug-the-software>`__
+Run OpenOCD with one of the configurations:
+
+.. code-block:: bash
+
+    openocd -f ./digilent_hs2.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
+    # or
+    openocd -f ./openocd_xc7_ft2232.cfg -c "set TAP_NAME xc7.tap" -f ./riscv_jtag_tunneled.tcl
+
+Finally, connect GDB for debugging:
+
+.. code-block:: bash
+
+    gdb-multiarch -q firmware/firmware.elf -ex "target extended-remote localhost:3333"
+
+For a more user-friendly debugging experience, you can also configure Eclipse IDE. Refer to the guide:
+`Using Eclipse to run and debug the software <https://github.com/SpinalHDL/VexRiscv?tab=readme-ov-file#using-eclipse-to-run-and-debug-the-software>`_.
