@@ -34,7 +34,7 @@ Additionally, the required FPGA toolchain depends on the target board:
 
 - **For limesdr_mini_v2:**
 
-  **Diamond** or **Yosys/nextPNR/Trellis** is required (default is Diamond).
+  **Diamond** or **Yosys/nextPNR/Trellis** is required (default is trellis).
   Consult your chosen toolchain’s documentation for installation details.
 
 Cloning the Repository
