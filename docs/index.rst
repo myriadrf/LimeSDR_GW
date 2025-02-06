@@ -38,7 +38,7 @@ Board-Specific Toolchain Support
 Each board uses a toolchain tailored to its FPGA architecture and design constraints:
 
 - **LimeSDR XTRX**: Uses Xilinx Vivado for synthesis and place-and-route, optimizing performance for Artix7 devices. Future support with an open source flow (OpenXC7) is anticipated.
-- **LimeSDR Mini V1**: Utilizes GHDL for VHDL-to-Verilog conversion in combination with Altera's Quartus for synthesis and implementation, meeting its specific FPGA requirements.
+- **LimeSDR Mini V1**: Uses Altera's Quartus for synthesis and implementation, meeting its specific FPGA requirements.
 - **LimeSDR Mini V2**: Fully supports an open source flow using GHDL, Yosys, and nextpnr, demonstrating the potential for a completely open source development process.
 
 Open Source Tools
