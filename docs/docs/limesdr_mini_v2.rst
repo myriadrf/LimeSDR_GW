@@ -10,7 +10,7 @@ The top-level file integrates the following main blocks:
 - :ref:`Soft core CPU Module <soft_core_cpu_module>` – VexRiscv CPU instance.
 - :ref:`Lime_top Module <lime_top_module>` – Wrapper for blocks handling LMS7002M transceiver control and data transfer.
 - :ref:`PCIe PHY Module <pcie_phy_module>` – PCIe block with the physical interface and DMA.
-- :ref:`I2C Modules <i2c_modules>` and :ref:`Lms_spi Module <lms_spi_module>` – Communication interfaces for controlling onboard peripherals.
+- :ref:`I2C Module <i2c_modules>` and :ref:`Lms_spi Module <lms_spi_module>` – Communication interfaces for controlling onboard peripherals.
 - :ref:`Flash Module <flash_module>` – Module for accessing the FPGA configuration FLASH memory.
 
 .. figure:: limesdr-mini-v2/images/main_block_diagram.svg
@@ -69,9 +69,9 @@ The source code for LitePCIe is available at:
 
 .. _i2c_modules:
 
-I2C Modules
+I2C Module
 -----------
-The **I2C0** and **I2C1** modules are instances of the ``I2CMaster`` class provided by LiteX. They are used for controlling onboard peripherals via the I2C protocol.
+The **I2C0** module is an instance of the ``I2CMaster`` class provided by LiteX. It is used for controlling onboard peripherals via the I2C protocol.
 
 The source code can be found here:
 `I2CMaster in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/bitbang.py>`_
