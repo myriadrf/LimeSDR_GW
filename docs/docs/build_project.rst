@@ -100,7 +100,7 @@ To build the gateware for the **limesdr_mini_v2** board, use the following comma
 - ``--without-spi-flash``: Disables SPI Flash support (only working with the trellis toolchain).
 - ``--load``: Loads the bitstream into SRAM.
 - ``--write``: Programs the bitstream into SPI FLASH.
-- ``--cable``: Specifies the JTAG cable.
+- ``--cable``: Specifies the JTAG cable (default is *ft2232*; see ``openFPGALoader --list-cables`` for options).
 
 *Before building, ensure that your chosen FPGA toolchain (Diamond or Yosys/nextPNR/Trellis) is installed.*
 
