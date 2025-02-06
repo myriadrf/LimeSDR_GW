@@ -51,19 +51,19 @@ The project leverages a suite of open source tools to ensure flexibility and com
    +----------------------+------------------------------------------------------------+
    | **Tool**             | **Link**                                                   |
    +======================+============================================================+
+   | GHDL                 | https://github.com/ghdl/ghdl                               |
+   +----------------------+------------------------------------------------------------+
    | LiteX                | https://github.com/enjoy-digital/litex                     |
    +----------------------+------------------------------------------------------------+
-   | VexRiscv             | https://github.com/SpinalHDL/VexRiscv                      |
-   +----------------------+------------------------------------------------------------+
-   | OpenOCD              | https://openocd.org/                                       |
+   | nextpnr              | https://github.com/YosysHQ/nextpnr                         |
    +----------------------+------------------------------------------------------------+
    | OpenFPGALoader       | https://github.com/trabucayre/openFPGALoader               |
    +----------------------+------------------------------------------------------------+
-   | GHDL                 | https://github.com/ghdl/ghdl                               |
+   | OpenOCD              | https://openocd.org/                                       |
+   +----------------------+------------------------------------------------------------+
+   | VexRiscv             | https://github.com/SpinalHDL/VexRiscv                      |
    +----------------------+------------------------------------------------------------+
    | Yosys                | https://github.com/YosysHQ/yosys                           |
-   +----------------------+------------------------------------------------------------+
-   | nextpnr              | https://github.com/YosysHQ/nextpnr                         |
    +----------------------+------------------------------------------------------------+
 
 These tools enable the project to perform everything from synthesis and simulation to debugging and programming, all while maintaining a commitment to open source development where possible.
