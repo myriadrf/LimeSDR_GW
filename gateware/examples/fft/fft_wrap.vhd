@@ -56,7 +56,13 @@ signal in_q           : std_logic_vector(11 downto 0);
 attribute DONT_TOUCH : string;
 attribute DONT_TOUCH of instfft: label is "TRUE";
 
+signal slv_gnd        : std_logic_vector(12 downto 0);
+signal sl_gnd         : std_logic;
 begin
+    --Avoid errors with VHDL <-> Verilog (type of aggregate cannot be determined without context)
+    slv_gnd <= (others => '0');
+    sl_gnd  <= '0';
+
     --Provide A channel data to fft input
     in_i <= S_AXIS_TDATA(15 downto 4);
     in_q <= S_AXIS_TDATA(31 downto 20);
@@ -64,7 +70,7 @@ begin
     instfft : entity work.fft
     port map(
         clk => clk,
-        rst => '0',
+        rst => sl_gnd,
         in_i => in_i,
         in_q => in_q,
         out_real => out_real,
@@ -75,10 +81,10 @@ begin
         start => done,
         done => done,
         --Window function upload unused
-        wf_start => '0',
-        wf_strobe => '0',
-        wf_real => (others => '0'),
-        wf_imag => (others => '0'),
+        wf_start => sl_gnd,
+        wf_strobe => sl_gnd,
+        wf_real => slv_gnd,
+        wf_imag => slv_gnd,
         --
         wr_state       => wr_state,
         wr_state_valid => wr_state_valid
