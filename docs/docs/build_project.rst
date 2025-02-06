@@ -73,14 +73,15 @@ To build the gateware for the **limesdr_mini_v1** board, use the following comma
 
 .. code:: bash
 
-   python3 -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--without-spi-flash] [--load] [--cable <cable>]
+   python3 -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--with-spi-flash] [--load] [--write] [--cable <cable>]
 
 **Options:**
 
 - ``--with-bios``: Enables LiteX BIOS.
-- ``--without-spi-flash``: Disables SPI Flash support.
+- ``--with-spi-flash``: Enables SPI Flash support.
 - ``--load``: Loads the bitstream into SRAM.
-- ``--cable``: Specifies the JTAG cable if required.
+- ``--write``: Programs the bitstream into Internal FLASH memory.
+- ``--cable``: Specifies the JTAG cable if required (default is *ft2232*; see ``openFPGALoader --list-cables`` for options).
 
 *Before building, ensure that Quartus is installed and configured.*
 
