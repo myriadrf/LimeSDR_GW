@@ -179,9 +179,9 @@ _io = [
         Subsignal("mosi", Pins("W16"), Misc("PULLDOWN=True")),
         Subsignal("miso", Pins("W15"), Misc("PULLDOWN=True")),
 
-     # IOStandard/Slew Rate.
-     IOStandard("LVCMOS33"),
-     Misc("SLEW=FAST"),
+        # IOStandard/Slew Rate.
+        IOStandard("LVCMOS25"),
+        Misc("SLEW=FAST"),
      ),
 
     # SIM.
