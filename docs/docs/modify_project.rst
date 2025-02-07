@@ -147,7 +147,7 @@ To build and load a gateware with a debug interface, run:
 
 .. code-block:: bash
 
-    ./limesdr_xtrx.py --with-bscan --build --load --flash
+    python3 -m boards.targets.limesdr_xtrx --with-bscan --build --load --flash
 
 Then, load the firmware through serial:
 
