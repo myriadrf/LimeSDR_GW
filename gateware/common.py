@@ -37,7 +37,7 @@ def FromFPGACfg():
 
 # VHD2VConverter Wrapper ---------------------------------------------------------------------------
 def add_vhd2v_converter(platform, instance, files=[], force_convert=None):
-    force_convert = {True: LiteXContext.platform.vhd2v_force, False: force_convert}[force_convert is None]
+    force_convert = {True: platform.vhd2v_force, False: force_convert}[force_convert is None]
     return VHD2VConverter(platform,
         instance      = instance,
         work_package  = "work",
