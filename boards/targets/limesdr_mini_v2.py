@@ -31,15 +31,9 @@ from litespi.phy.generic import LiteSPIPHY
 
 from litescope import LiteScopeAnalyzer
 
-from gateware.fpgacfg  import FPGACfg
-from gateware.pllcfg   import PLLCfg
-from gateware.rxtx_top import RXTXTop
+from gateware.LimeTop                       import LimeTop
 
-from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
-from gateware.LimeDFB_LiteX.general.busy_delay                import BusyDelay
-from gateware.LimeDFB_LiteX.general_periph.src.general_periph import GeneralPeriphTop
-from gateware.LimeDFB_LiteX.FT601.src.ft601                   import FT601
-from gateware.LimeDFB_LiteX.self_test.src.tst_top             import TstTop
+from gateware.LimeDFB_LiteX.FT601.src.ft601 import FT601
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -71,11 +65,13 @@ class _CRG(LiteXModule):
         self.cd_por   = ClockDomain()
         self.cd_sys   = ClockDomain()
         self.cd_ft601 = ClockDomain()
+        self.cd_lmk  = ClockDomain()
 
         # # #
 
         # Clk.
-        self.ft_clk = platform.request("FT_CLK")
+        self.ft_clk  = platform.request("FT_CLK")
+        self.lmk_clk = platform.request("LMK_CLK")
 
         # Power-on-Clk/Rst.
         por_count = Signal(4)
@@ -104,6 +100,9 @@ class _CRG(LiteXModule):
         # FT601 Clk/Rst.
         self.comb     += self.cd_ft601.clk.eq(self.ft_clk),
         self.specials += AsyncResetSynchronizer(self.cd_ft601, ~por_done)
+
+        # LMK_CLK
+        self.comb += self.cd_lmk.clk.eq(self.lmk_clk)
 
 # BaseSoC ------------------------------------------------------------------------------------------
 
@@ -192,24 +191,25 @@ class BaseSoC(SoCCore):
 
             self.add_spi_flash(mode="1x", clk_freq=100_000, module=W25Q128JV(Codes.READ_1_1_1), with_master=True)
 
-        # cpu_busy(gpo) & busy_delay ---------------------------------------------------------------
-        self._gpo = CSRStorage(description="GPO interface", fields=[
-            CSRField("cpu_busy", size=1, offset=0, description="CPU state.", values=[
-                ("``0b0``", "IDLE."),
-                ("``0b1``", "BUSY."),
-            ])
-        ])
+        # LimeTop ----------------------------------------------------------------------------------
 
-        self.busy_delay  = BusyDelay(platform, "sys", 25, 100)
-        self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.cpu_busy)
+        self.limetop  = LimeTop(platform,
+            LMS_DIQ_WIDTH      = LMS_DIQ_WIDTH,
+            sink_width         = STRM0_FPGA_RX_RWIDTH,
+            sink_clk_domain    = "sys",
+            source_width       = STRM0_FPGA_TX_WWIDTH,
+            source_clk_domain  = "sys",
+            TX_N_BUFF          = TX_N_BUFF,
+            TX_PCT_SIZE        = TX_PCT_SIZE,
+            TX_IN_PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
+            with_rx_tx_top     = with_rx_tx_top,
 
-        # FPGA Cfg ---------------------------------------------------------------------------------
-        revision_pads = platform.request("revision")
-        self.fpgacfg  = FPGACfg(platform, board_id=0x0011, major_rev=2, compile_rev=7, pads=revision_pads)
-        self.comb += self.fpgacfg.pwr_src.eq(0)
-
-        # PLL Cfg ----------------------------------------------------------------------------------
-        self.pllcfg = PLLCfg()
+            # FPGACFG.
+            board_id           = 0x0011,
+            major_rev          = 2,
+            compile_rev        = 7,
+            revision_pads      = platform.request("revision"),
+        )
 
         # FT601 ------------------------------------------------------------------------------------
         self.ft601 = FT601(self.platform, platform.request("FT"),
@@ -229,110 +229,12 @@ class BaseSoC(SoCCore):
             m_clk_domain       = "sys",
         )
 
-        # LMS7002 Top ------------------------------------------------------------------------------
-        self.lms7002_top = LMS7002Top(
-            platform        = platform,
-            pads            = platform.request("LMS"),
-            hw_ver          = revision_pads.HW_VER,
-            add_csr         = True,
-            fpgacfg_manager = self.fpgacfg,
-            pllcfg_manager  = self.pllcfg,
-            diq_width       = LMS_DIQ_WIDTH,
-        )
-
-        # Tst Top / Clock Test ---------------------------------------------------------------------
-        self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
-
-        # General Periph ---------------------------------------------------------------------------
-
-        gpio_pads     = platform.request("FPGA_GPIO")
-        #egpio_pads    = platform.request("FPGA_EGPIO")
-
-        self.general_periph = GeneralPeriphTop(platform,
-            revision_pads = revision_pads,
-            gpio_pads     = gpio_pads,
-            gpio_len      = len(gpio_pads),
-            egpio_pads    = None,
-            egpio_len     = 2,
-        )
-
         self.comb += [
-            self.general_periph.led1_cpu_busy.eq(self.busy_delay.busy_out),
-            self.general_periph.ep03_active.eq(self.ft601.rd_active),
-            self.general_periph.ep83_active.eq(self.ft601.wr_active),
-        ]
-
-        # RXTX Top ---------------------------------------------------------------------------------
-
-        if with_rx_tx_top:
-            self.rxtx_top = RXTXTop(platform, self.fpgacfg,
-                # TX parameters
-                TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
-                TX_N_BUFF              = TX_N_BUFF,
-                TX_IN_PCT_SIZE         = TX_PCT_SIZE,
-                TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
-                TX_IN_PCT_DATA_W       = STRM0_FPGA_RX_RWIDTH,
-                tx_s_clk_domain        = "sys",
-
-                # RX parameters
-                RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
-                rx_int_clk_domain      = "sys",
-                rx_m_clk_domain        = "sys",
-            )
-
-            self.comb += [
-                # LMS7002 <-> TstTop.
-                self.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
-                self.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
-                self.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
-
-                # LMS7002 <-> PLLCFG
-                self.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
-
-                # LMS7002 <-> RXTX Top.
-                self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
-
-                # FT601 <-> RXTX Top.
-                self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.rxtx_top.rx_pct_fifo_aclrn_req),
-                self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.rxtx_top.rx_en),
-
-                # General Periph <-> RXTX Top.
-                self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_path.tx_txant_en),
-
-                # General Periph <-> LMS7002
-                self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
-            ]
-
-            # LMS7002 -> RX Path -> FT601 Pipeline.
-            self.rx_pipeline = stream.Pipeline(
-                self.lms7002_top.source,
-                self.rxtx_top.rx_path,
-                self.ft601.sink,
-            )
-
-            # FT601 -> TX Path -> LMS7002 Pipeline.
-            self.tx_pipeline = stream.Pipeline(
-                self.ft601.source,
-                self.rxtx_top.tx_path,
-                self.lms7002_top.sink,
-            )
-
-        # RF Switches ------------------------------------------------------------------------------
-
-        rfsw_pads  = platform.request("RFSW")
-        tx_lb_pads = platform.request("TX_LB")
-
-        self.gpio = CSRStorage(16, reset=0b0001000101000100) # fpgacfg @23
-        self.comb += [
-            # RF Switch.
-            rfsw_pads.RX_V1.eq(self.gpio.storage[8]),
-            rfsw_pads.RX_V2.eq(self.gpio.storage[9]),
-            rfsw_pads.TX_V1.eq(self.gpio.storage[12]),
-            rfsw_pads.TX_V2.eq(self.gpio.storage[13]),
-
-            # TX
-            tx_lb_pads.AT.eq(  self.gpio.storage[1]),
-            tx_lb_pads.SH.eq(  self.gpio.storage[2]),
+            self.ft601.source.connect(self.limetop.sink),
+            self.limetop.source.connect(self.ft601.sink),
+            # FT601 <-> RXTX Top.
+            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.rxtx_top.rx_pct_fifo_aclrn_req),
+            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
         ]
 
         # Timing Constraints -----------------------------------------------------------------------

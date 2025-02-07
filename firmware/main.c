@@ -1086,8 +1086,8 @@ int main(void) {
     ft601_fifo_control_write(0);
 
     //Reset LMS7
-    lms7002_top_lms_ctr_gpio_write(0x0);
-    lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+    limetop_lms7002_top_lms_ctr_gpio_write(0x0);
+    limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
 
 #if defined(CSR_SPIFLASH_CORE_BASE)
     uint8_t spi_rdata[16];
@@ -1122,9 +1122,9 @@ int main(void) {
     dac_spi_write(dac_spi_wrdata);
 
     /* Drive cpu_busy low, high, low */
-    main_gpo_write(0);
-    main_gpo_write(1);
-    main_gpo_write(0);
+    limetop_gpo_write(0);
+    limetop_gpo_write(1);
+    limetop_gpo_write(0);
 
     Configure_LM75();
 #endif
@@ -1161,7 +1161,7 @@ int main(void) {
             // }
             // printf("\n");
 #else
-            main_gpo_write(1);
+            limetop_gpo_write(1);
 
             //Read packet from the FIFO
             getFifoData(glEp0Buffer_Rx, 64);
@@ -1321,7 +1321,7 @@ int main(void) {
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
                             //printf("LMS RESET deactivate...\n");
 #else
-                            lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+                            limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
 #endif
                             break;
                         case LMS_RST_ACTIVATE:
@@ -1329,7 +1329,7 @@ int main(void) {
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
                             //printf("LMS RESET activate...\n");
 #else
-                            lms7002_top_lms_ctr_gpio_write(0x0);
+                            limetop_lms7002_top_lms_ctr_gpio_write(0x0);
 #endif
                             break;
 
@@ -1343,10 +1343,10 @@ int main(void) {
                             lms7002_top_lms1_write(read_value);
                         //printf("LMS RST pulse...\n");
 #else
-                            lms7002_top_lms_ctr_gpio_write(0x0);
+                            limetop_lms7002_top_lms_ctr_gpio_write(0x0);
                             asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
                             asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
-                            lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+                            limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
 #endif
                             break;
                         default:
@@ -2503,7 +2503,7 @@ int main(void) {
 #else
             //gpo_val = 0x0;
             //*gpo_reg = gpo_val;
-            main_gpo_write(0);
+            limetop_gpo_write(0);
 #endif
         }
 #if 0
