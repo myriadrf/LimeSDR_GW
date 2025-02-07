@@ -13,16 +13,15 @@ from litex.build.openfpgaloader import OpenFPGALoader
 
 _io = [
     # Clk/Rst.
-    ("clk26", 0, Pins("N17"), IOStandard("LVCMOS33")),
+    ("clk60", 0, Pins("C16"), IOStandard("LVCMOS25")),
 
     # Leds.
-    ("user_led", 0, Pins("N18"),  IOStandard("LVCMOS33")),
-    ("user_led", 1, Pins("V19"),  IOStandard("LVCMOS33")),
-    ("user_led2", 0, Pins("G3 M2 G2"),  IOStandard("LVCMOS33")),
+    ("user_led", 0, Pins("N18"),  IOStandard("LVCMOS25")),
+    ("user_led2", 0, Pins("G3 M2 G2"),  IOStandard("LVCMOS33")), # GPIO LED
 
     # PCIe.
     ("pcie_x1", 0,
-        Subsignal("rst_n", Pins("T3"), IOStandard("LVCMOS33"), Misc("PULLUP=TRUE")),
+        Subsignal("rst_n", Pins("T3"), IOStandard("LVCMOS25"), Misc("PULLUP=TRUE")),
         Subsignal("clk_p", Pins("B8")),
         Subsignal("clk_n", Pins("A8")),
         Subsignal("rx_p",  Pins("B6")),
@@ -32,7 +31,7 @@ _io = [
     ),
 
     ("pcie_x2", 0,
-        Subsignal("rst_n", Pins("T3"), IOStandard("LVCMOS33"), Misc("PULLUP=TRUE")),
+        Subsignal("rst_n", Pins("T3"), IOStandard("LVCMOS25"), Misc("PULLUP=TRUE")),
         Subsignal("clk_p", Pins("B8")),
         Subsignal("clk_n", Pins("A8")),
         Subsignal("rx_p",  Pins("B6 B4")),
@@ -50,17 +49,17 @@ _io = [
         Subsignal("usb_nxt",  Pins("A18")),
         Subsignal("usb_nrst", Pins("M18"), Misc("PULLDOWN=True")),
         Subsignal("usb_26m",  Pins("E19")),
-        IOStandard("LVCMOS33")
+        IOStandard("LVCMOS25")
     ),
 
     # SPIFlash.
-    ("flash_cs_n", 0, Pins("K19"), IOStandard("LVCMOS33")),
+    ("flash_cs_n", 0, Pins("K19"), IOStandard("LVCMOS25")),
     ("flash", 0,
         Subsignal("mosi", Pins("D18")),
         Subsignal("miso", Pins("D19")),
         Subsignal("wp",   Pins("G18")),
         Subsignal("hold", Pins("F18")),
-        IOStandard("LVCMOS33")
+        IOStandard("LVCMOS25")
     ),
     ("spiflash", 0,
         Subsignal("cs_n", Pins("K19")),
@@ -68,18 +67,21 @@ _io = [
         Subsignal("miso", Pins("D19")),
         Subsignal("wp",   Pins("G18")),
         Subsignal("hold", Pins("F18")),
-        IOStandard("LVCMOS33")
+        IOStandard("LVCMOS25")
     ),
+
+    # Power-Down.
+    ("pwrdwn_n", 0, Pins("R19"), IOStandard("LVCMOS25")),
 
     # I2C buses.
     ("i2c", 0,
-        Subsignal("scl", Pins("M1"), Misc("PULLUP=True")),
-        Subsignal("sda", Pins("N1"), Misc("PULLUP=True")),
-        IOStandard("LVCMOS33"),
-    ),
-    ("i2c", 1,
         Subsignal("scl", Pins("U14"), Misc("PULLUP=True")),
         Subsignal("sda", Pins("U15"), Misc("PULLUP=True")),
+        IOStandard("LVCMOS25"),
+    ),
+    ("i2c", 1,
+        Subsignal("scl", Pins("M1"), Misc("PULLUP=True")),
+        Subsignal("sda", Pins("N1"), Misc("PULLUP=True")),
         IOStandard("LVCMOS33"),
     ),
 
@@ -100,38 +102,39 @@ _io = [
 
     # GPS.
     ("gps", 0,
-        Subsignal("rst", Pins("U18"), IOStandard("LVCMOS33")),
-        Subsignal("pps", Pins("P3"),  Misc("PULLDOWN=True")),
-        #Subsignal("tx" , Pins("N2"),  Misc("PULLUP=True")),
-        #Subsignal("rx" , Pins("L1"),  Misc("PULLUP=True")),
-        Subsignal("hw_s",Pins("L18"), IOStandard("LVCMOS33")),
-        Subsignal("fix", Pins("R18"), IOStandard("LVCMOS33")),
+        Subsignal("rst_n", Pins("L18"), IOStandard("LVCMOS25")),
+        Subsignal("pps",   Pins("P3"),  Misc("PULLDOWN=True")),
+        #Subsignal("rx" ,  Pins("N2"),  Misc("PULLUP=True")),
+        #Subsignal("tx" ,  Pins("L1"),  Misc("PULLUP=True")),
         IOStandard("LVCMOS33")
     ),
 
     # GPS Serial.
     ("gps_serial", 0,
-        Subsignal("tx", Pins("N2"), Misc("PULLUP=True")),
-        Subsignal("rx", Pins("L1"), Misc("PULLUP=True")),
+        Subsignal("rx" ,  Pins("N2"),  Misc("PULLUP=True")),
+        Subsignal("tx" ,  Pins("L1"),  Misc("PULLUP=True")),
         IOStandard("LVCMOS33")
-     ),
+    ),
 
     # VCTCXO.
     ("vctcxo", 0,
         Subsignal("en",  Pins("R19"), Misc("PULLUP=True")),
         Subsignal("sel", Pins("V17"), Misc("PULLDOWN=True")), # ext_clk
         Subsignal("clk", Pins("N17"), Misc("PULLDOWN=True")),
-        IOStandard("LVCMOS33")
+        IOStandard("LVCMOS25")
     ),
 
-    # GPIO (X12, 8-pin FPC connector)
-    ("gpio", 0, Pins("H1 J1 K2 L2"), IOStandard("LVCMOS33")),
+    # GPIO
+    #("gpio", 0, Pins("H2 J2 N3 H1 J1 K2 L2"), IOStandard("LVCMOS33")),
+    ("gpio", 0, Pins("N3 H1 J1 K2 L2"), IOStandard("LVCMOS33")), # H2, J2: Serial
 
     # AUX.
     ("aux", 0,
+        Subsignal("iovcc_sel",  Pins("V19")),
         Subsignal("en_smsigio", Pins("D17")),
+        Subsignal("option",     Pins("V14")),
         Subsignal("gpio13",     Pins("T17")),
-        IOStandard("LVCMOS33")
+        IOStandard("LVCMOS25")
     ),
 
     # RF-Switches / SKY13330, SKY13384.
@@ -150,46 +153,21 @@ _io = [
         Subsignal("TXEN",              Pins("W19")),
 
         # RX-Interface (LMS -> FPGA).
-        Subsignal("diq1_0",  Pins("J17"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"), Drive("4")),
-        Subsignal("diq1_1",  Pins("H17"), IOStandard("LVCMOS33"), Misc("SLEW=FAST"), Drive("16")),
-        Subsignal("diq1_2",  Pins("H19"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"), Drive("4")),
-        Subsignal("diq1_3",  Pins("K17"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"), Drive("4")),
-        Subsignal("diq1_4",  Pins("G17"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"), Drive("4")),
-        Subsignal("diq1_5",  Pins("V16"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"), Drive("4")),
-        Subsignal("diq1_6",  Pins("J19"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"), Drive("4")),
-        Subsignal("diq1_7",  Pins("M19"), IOStandard("LVCMOS33"), Misc("SLEW=FAST"), Drive("16")),
-        Subsignal("diq1_8",  Pins("P17"), IOStandard("LVCMOS33"), Misc("SLEW=FAST"), Drive("16")),
-        Subsignal("diq1_9",  Pins("N19"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"), Drive("4")),
-        Subsignal("diq1_10", Pins("U17"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"), Drive("4")),
-        Subsignal("diq1_11", Pins("U16"), IOStandard("LVTTL"),    Misc("SLEW=FAST"), Drive("24")),
-        #  Subsignal("diq1_0", Pins("J17") ,IOStandard("LVCMOS33")  ,),
-        #  Subsignal("diq1_1", Pins("H17") ,IOStandard("LVCMOS33")  ),
-        #  Subsignal("diq1_2", Pins("H19") ,IOStandard("LVCMOS33")  ),
-        #  Subsignal("diq1_3", Pins("K17") ,IOStandard("LVCMOS33")  ),
-        #  Subsignal("diq1_4", Pins("G17") ,IOStandard("LVCMOS33")  ),
-        #  Subsignal("diq1_5", Pins("V16") ,IOStandard("LVCMOS33")  ),
-        #  Subsignal("diq1_6", Pins("J19") ,IOStandard("LVCMOS33")  ),
-        #  Subsignal("diq1_7", Pins("M19") ,IOStandard("LVCMOS33")  ),
-        #  Subsignal("diq1_8", Pins("P17") ,IOStandard("LVCMOS33")  ),
-        #  Subsignal("diq1_9", Pins("N19") ,IOStandard("LVCMOS33")  ),
-        #  Subsignal("diq1_10", Pins("U17"), IOStandard("LVCMOS33") ),
-        #  Subsignal("diq1_11", Pins("U16"), IOStandard("LVTTL")     ),
-
-        #Subsignal("DIQ1_D",            Pins("J17 H17 H19 K17 G17 V16 J19 M19 P17 N19 U17 U16")),
-        Subsignal("TXNRX1",            Pins("V15"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW"), Drive("4")),
-        Subsignal("ENABLE_IQSEL1",     Pins("P19"), IOStandard("LVCMOS33"), Misc("SLEW=FAST"), Drive("16")),
+        Subsignal("DIQ1_D",            Pins("J19 H17 G17 K17 H19 U16 J17 P19 U17 N19 V15 V16")),
+        Subsignal("TXNRX1",            Pins("M19")),
+        Subsignal("ENABLE_IQSEL1",     Pins("P17")),
         Subsignal("MCLK1",             Pins("L17")),
-        Subsignal("FCLK1",             Pins("G19"), IOStandard("LVTTL"), Misc("SLEW=FAST"), Drive("24")),
+        Subsignal("FCLK1",             Pins("G19")),
 
         # RX-Interface (FPGA -> LMS).
-        Subsignal("DIQ2_D",            Pins("W2 U2 U3 V3 V4 V2 V5 W4 V8 U4 U8 U7")),
-        Subsignal("TXNRX2_or_CLK_SEL", Pins("U5")),
-        Subsignal("ENABLE_IQSEL2",     Pins("W7")),
+        Subsignal("DIQ2_D",            Pins("W2 U2 V3 V4 V5 W7 V2 W4 U5 V8 U7 U8")),
+        Subsignal("TXNRX2_or_CLK_SEL", Pins("U4")),
+        Subsignal("ENABLE_IQSEL2",     Pins("U3")),
         Subsignal("MCLK2",             Pins("W5")),
         Subsignal("FCLK2",             Pins("W6")),
 
         # IOStandard/Slew Rate.
-        IOStandard("LVCMOS33"),
+        IOStandard("LVCMOS25"),
         Misc("SLEW=FAST"),
     ),
 
@@ -213,7 +191,7 @@ _io = [
         Subsignal("clk",     Pins("T1")),
         Subsignal("reset",   Pins("R2")),
         Subsignal("data",    Pins("T2")),
-        IOStandard("LVCMOS33")
+        IOStandard("LVCMOS25")
     ),
 
     # GPIO Serial.
@@ -227,11 +205,17 @@ _io = [
 # Platform -----------------------------------------------------------------------------------------
 
 class Platform(Xilinx7SeriesPlatform):
-    default_clk_name   = "clk26"
-    default_clk_period = 1e9/26e6
+    default_clk_name   = "clk60"
+    default_clk_period = 1e9/60e6
 
-    def __init__(self, toolchain="vivado"):
-        Xilinx7SeriesPlatform.__init__(self, "xc7a50tcpg236-2", _io, toolchain=toolchain)
+    def __init__(self, variant="xc7a50t", toolchain="vivado"):
+        assert variant in ["xc7a35t", "xc7a50t"]
+        self.variant = variant
+        device = {
+            "xc7a35t" : "xc7a35tcpg236-3",
+            "xc7a50t" : "xc7a50tcpg236-2",
+        }[variant]
+        Xilinx7SeriesPlatform.__init__(self, device, _io, toolchain=toolchain)
 
         self.toolchain.bitstream_commands = [
             "set_property BITSTREAM.CONFIG.UNUSEDPIN Pulldown [current_design]",
@@ -260,8 +244,8 @@ class Platform(Xilinx7SeriesPlatform):
         ]
 
     def create_programmer(self, cable="digilent_hs2"):
-        return OpenFPGALoader(cable=cable, fpga_part=f"xc7a50tcpg236", freq=10e6)
+        return OpenFPGALoader(cable=cable, fpga_part=f"{self.variant}cpg236", freq=10e6)
 
     def do_finalize(self, fragment):
         Xilinx7SeriesPlatform.do_finalize(self, fragment)
-        self.add_period_constraint(self.lookup_request("clk26", loose=True), 1e9/26e6)
+        self.add_period_constraint(self.lookup_request("clk60", loose=True), 1e9/60e6)
