@@ -17,7 +17,7 @@ from migen.genlib.cdc import MultiReg
 
 from litex.gen import *
 
-from boards.platforms import limesdr_xtrx_platform
+from boards.platforms import limesdr_xtrx_platform, fairwaves_xtrx_platform
 
 from litex.soc.interconnect     import stream
 from litex.soc.interconnect.csr import *
@@ -68,9 +68,14 @@ class CRG(LiteXModule):
         self.cd_xo_fpga = ClockDomain()
 
         # # #
-        self.clk26 = platform.request("clk26")
+        if platform.default_clk_name == "clk26":
+            self.clk26 = platform.request("clk26")
 
-        self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
+            self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
+        else: # Fairwaves XTRX
+            self.clk60 = platform.request("clk60")
+
+            self.comb += self.cd_xo_fpga.clk.eq(self.clk60)
 
         # Clk / Rst.
         clk125 = ClockSignal("pcie")
@@ -167,8 +172,8 @@ class BaseSoC(SoCCore):
 
         # Platform ---------------------------------------------------------------------------------
         platform = {
-            #"fairwaves_cs"  : fairwaves_xtrx_platform.Platform(variant="xc7a35t"),
-            #"fairwaves_pro" : fairwaves_xtrx_platform.Platform(variant="xc7a50t"),
+            "fairwaves_cs"  : fairwaves_xtrx_platform.Platform(variant="xc7a35t"),
+            "fairwaves_pro" : fairwaves_xtrx_platform.Platform(variant="xc7a50t"),
             "limesdr"       : limesdr_xtrx_platform.Platform()
         }[board]
 
