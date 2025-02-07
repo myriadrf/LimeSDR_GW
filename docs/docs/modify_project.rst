@@ -18,14 +18,11 @@ Example: Adding an FFT Module
 -----------------------------
 To make it easier to understand how to add a custom module, an example is provided for the LimeSDR XTRX. In this example, a fixed-point FFT module is inserted in the data receive path so that the results of the Fourier transform are packed into packets instead of raw RF samples.
 
-If you want to try out the FFT module without modifying too much code, you can change the top-level gateware file in **boards/targets/limesdr_xtrx.py**. Replace the standard **LimeTop** import with the FFT-enabled version by modifying the file as follows:
+If you want to try out the FFT module without modifying code, you could build the target with the following command:
 
-.. code-block:: python
+.. code-block:: bash
 
-    # Lime Top Level
-    # from gateware.LimeTop import LimeTop
-    # fft example
-    from gateware.examples.fft.LimeTop_fft import LimeTop
+   python3 -m boards.targets.limesdr_xtrx --build --with-fft [--load] [--write] [--cable <cable>]
 
 All sources required for the example are located in **gateware/examples/fft**. The folder contains:
 
@@ -51,7 +48,7 @@ Below is a block diagram showing the desired structure. New elements are highlig
 Disconnecting Existing Connections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To avoid conflicting assignments, you must disconnect the **lms7002_top** master interface from the **rx_path_top** slave interface. For example, in **boards/targets/limesdr_xtrx.py**, comment out the connection line as shown:
+To avoid conflicting assignments, you must disconnect the **lms7002_top** master interface from the **rx_path_top** slave interface. For example, in **gateware/LimeTop.py**, comment out the connection line as shown:
 
 .. code-block:: python
 
@@ -61,8 +58,13 @@ To avoid conflicting assignments, you must disconnect the **lms7002_top** master
     #    self.lms7002_top.source,
     #    self.rxtx_top.rx_path.sink,
     #)
+    # LMS7002 -> RX Path -> PCIe DMA Pipeline.
+    self.rx_pipeline = stream.Pipeline(
+        self.lms7002_top.source,
+        self.rxtx_top.rx_path.sink,
+    )
 
-    self.comb += self.rxtx_top.rx_path.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
+    # VCTCXO -----------------------------------------------------------------------------------
 
 Instantiating the FFT Wrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
