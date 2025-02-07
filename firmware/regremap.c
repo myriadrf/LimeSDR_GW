@@ -12,43 +12,43 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
 
     switch (addr) {
         case 0x0:
-            value = fpgacfg_board_id_read();
+            value = lime_top_fpgacfg_board_id_read();
             break;
         case 0x1:
-            value = fpgacfg_major_rev_read();
+            value = lime_top_fpgacfg_major_rev_read();
             break;
         case 0x2:
-            value = fpgacfg_compile_rev_read();
+            value = lime_top_fpgacfg_compile_rev_read();
             break;
         case 0x3:
             value = 0x2;
             break;
         case 0x5:
-            value = lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
-            value = value | ((lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
+            value = lime_top_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
+            value = value | ((lime_top_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
             break;
         case 0x7:
-            value = fpgacfg_ch_en_read();
+            value = lime_top_fpgacfg_ch_en_read();
             break;
         case 0x8:
-            value = fpgacfg_reg08_read() & (0x3 | (1 << 7) | (1 << 8) | (1 << 9)); 
+            value = lime_top_fpgacfg_reg08_read() & (0x3 | (1 << 7) | (1 << 8) | (1 << 9)); 
             break;
         case 0xA:
-            tmp = fpgacfg_reg10_read();
+            tmp = lime_top_fpgacfg_reg10_read();
             value = (tmp >> 1) & 0x01;
-            value |= rfsw_control_rfsw_rx_read() << 2;
-            value |= rfsw_control_rfsw_tx_read() << 4;
-            value |= rfsw_control_tdd_manual_val_read() << 5;
-            value |= rfsw_control_tdd_auto_en_read() << 6;
-            value |= rfsw_control_tdd_invert_read() << 7;
+            value |= lime_top_rfsw_control_rfsw_rx_read() << 2;
+            value |= lime_top_rfsw_control_rfsw_tx_read() << 4;
+            value |= lime_top_rfsw_control_tdd_manual_val_read() << 5;
+            value |= lime_top_rfsw_control_tdd_auto_en_read() << 6;
+            value |= lime_top_rfsw_control_tdd_invert_read() << 7;
             value |= (tmp & 0x200);
-            value |= rfsw_control_rfsw_auto_en_read() << 11;
+            value |= lime_top_rfsw_control_rfsw_auto_en_read() << 11;
             break;
         case 0x18:
-            value = fpgacfg_reg10_read();
+            value = lime_top_fpgacfg_reg10_read();
             break;
         case 0x19:
-            value = rxtx_top_rx_path_pkt_size_read();
+            value = lime_top_rxtx_top_rx_path_pkt_size_read();
             break;
         case 0x20:
             value = csr_read_simple(clk_ctrl_addrs.c1_phase);
@@ -136,49 +136,49 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
 
     switch (addr) {
         case 0x3:
-            fpgacfg_reserved_03_write(value);
+            lime_top_fpgacfg_reserved_03_write(value);
             break;
         case 0x05:
-            lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
-            lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
+            lime_top_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
+            lime_top_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
             break;
         case 0x7:
-            fpgacfg_ch_en_write(value);
+            lime_top_fpgacfg_ch_en_write(value);
             break;
         case 0x8:
-            reg = fpgacfg_reg08_read();
-            reg &= ~((1 << CSR_FPGACFG_REG08_SYNCH_DIS_OFFSET) |
-                (1 << CSR_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
-                (1 << CSR_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
+            reg = lime_top_fpgacfg_reg08_read();
+            reg &= ~((1 << CSR_LIME_TOP_FPGACFG_REG08_SYNCH_DIS_OFFSET) |
+                (1 << CSR_LIME_TOP_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
+                (1 << CSR_LIME_TOP_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
             reg |= (value & 0x03); // smpl_width
             reg |= (value & 0x80); // trxiq_pulse
             reg |= (value & 0x100); // mimo_int_en
             reg |= (value & 0x200); // sync_dis
-            fpgacfg_reg08_write(reg);
+            lime_top_fpgacfg_reg08_write(reg);
             break;
         case 0xA:
             reg =  (value & 0x001) << 0; // rx_en
             reg |= (value & 0x001) << 1; // tx_en
             reg |= (value & 0x200) << 0; // test_ptrn_en
-            fpgacfg_reg10_write(reg);
+            lime_top_fpgacfg_reg10_write(reg);
             //lime_top_lms7002_tx_en_write(value);
             //lime_top_lms7002_rx_en_write(value);
-            rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
-            rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
-            rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
-            rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
-            rfsw_control_tdd_invert_write((value & 0x80) >> 7);
+            lime_top_rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
+            lime_top_rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
+            lime_top_rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
+            lime_top_rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
+            lime_top_rfsw_control_tdd_invert_write((value & 0x80) >> 7);
             //lime_top_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
-            rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
+            lime_top_rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
             break;
         case 0x13:
             printf("13\n");
             break;
         case 0x18:
-            fpgacfg_reg18_write(value);
+            lime_top_fpgacfg_reg18_write(value);
             break;
         case 0x19:
-            rxtx_top_rx_path_pkt_size_write(value);
+            lime_top_rxtx_top_rx_path_pkt_size_write(value);
             break;
         case 0x20:
             csr_write_simple(value & 0x1FF, clk_ctrl_addrs.c1_phase);

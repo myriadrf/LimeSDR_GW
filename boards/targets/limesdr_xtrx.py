@@ -44,13 +44,8 @@ from litepcie.phy.s7pciephy import S7PCIEPHY
 from litescope import LiteScopeAnalyzer
 
 from gateware.aux      import AUX
-from gateware.fpgacfg  import FPGACfg
 from gateware.GpioTop  import GpioTop
-from gateware.rxtx_top import RXTXTop
-
-from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top import LMS7002Top
-
-from gateware.xtrx_rfsw import xtrx_rfsw
+from gateware.LimeTop  import LimeTop
 
 from litepcie.software import generate_litepcie_software, generate_litepcie_software_headers
 
@@ -385,166 +380,43 @@ class BaseSoC(SoCCore):
             "-asynchronous"
         )
 
-        # FPGA Cfg ---------------------------------------------------------------------------------
-        self.fpgacfg  = FPGACfg(platform, board_id=27, major_rev=2, compile_rev=25)
+        # LimeTOP ----------------------------------------------------------------------------------
+        self.lime_top = LimeTop(platform,
+            # Configuration.
+            LMS_DIQ_WIDTH        = 12,
+            sink_width           = 64,
+            sink_clk_domain      = "sys",
+            source_width         = 64,
+            source_clk_domain    = "sys",
+            TX_N_BUFF            = 5,
+            TX_PCT_SIZE          = 4096,
+            TX_IN_PCT_HDR_SIZE   = 16,
 
-        # PLL Cfg ----------------------------------------------------------------------------------
-        #self.pllcfg = PLLCfg()
+            with_rx_tx_top       = True,
+            with_fft             = with_fft,
 
-        # LMS7002 Top ------------------------------------------------------------------------------
-        self.lms7002_top = LMS7002Top(
-            platform           = platform,
-            pads               = platform.request("LMS"),
-            hw_ver             = Constant(0, 4),
-            add_csr            = True,
-            fpgacfg_manager    = self.fpgacfg,
-            diq_width          = LMS_DIQ_WIDTH,
-            invert_input_clock = True,
+            # FPGACFG.
+            board_id             = 27,
+            major_rev            = 2,
+            compile_rev          = 25,
+            revision_pads        = None,
         )
 
-        # Tst Top / Clock Test ---------------------------------------------------------------------
-        #self.tst_top = TstTop(platform, self.crg.ft_clk, platform.request("LMK_CLK"))
-
-        # General Periph ---------------------------------------------------------------------------
-
-        #gpio_pads     = platform.request("FPGA_GPIO")
-        ##egpio_pads    = platform.request("FPGA_EGPIO")
-
-        #self.general_periph = GeneralPeriphTop(platform,
-        #    revision_pads = Constant(0, 4),
-        #    gpio_pads     = gpio_pads,
-        #    gpio_len      = len(gpio_pads),
-        #    egpio_pads    = None,
-        #    egpio_len     = 2,
-        #)
-
-        #self.comb += [
-        #    self.general_periph.led1_cpu_busy.eq(self.busy_delay.busy_out),
-        #]
-
-        # RXTX Top ---------------------------------------------------------------------------------
-
-        self.rxtx_top = RXTXTop(platform, self.fpgacfg,
-            # TX parameters
-            TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
-            TX_N_BUFF              = TX_N_BUFF,
-            TX_IN_PCT_SIZE         = TX_PCT_SIZE,
-            TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
-            TX_IN_PCT_DATA_W       = STRM0_FPGA_RX_RWIDTH,
-            tx_s_clk_domain        = "sys",
-
-            # RX parameters
-            RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
-            rx_int_clk_domain      = "sys",
-            rx_m_clk_domain        = "sys",
-        )
-
-        # FFT --------------------------------------------------------------------------------------
-
-        if with_fft:
-            # define Reset signal and adds a MultiReg
-            fft_reset_n = Signal()
-            self.specials += MultiReg(self.fpgacfg.tx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
-
-            # Declare FFT AXI Stream interfaces.
-            self.fft_s_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
-            self.fft_m_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
-
-            # Instantiate the FFT wrapper.
-            self.specials += Instance("fft_wrap",
-                i_CLK           = ClockSignal(self.lms7002_top.source.clock_domain),
-                i_RESET_N       = fft_reset_n,
-                i_S_AXIS_TVALID = self.fft_s_axis.valid,
-                i_S_AXIS_TDATA  = self.fft_s_axis.data,
-                o_S_AXIS_TREADY = self.fft_s_axis.ready,
-                i_S_AXIS_TLAST  = self.fft_s_axis.last,
-                i_S_AXIS_TKEEP  = self.fft_s_axis.keep,
-                o_M_AXIS_TDATA  = self.fft_m_axis.data,
-                o_M_AXIS_TVALID = self.fft_m_axis.valid,
-                i_M_AXIS_TREADY = self.fft_m_axis.ready,
-                o_M_AXIS_TLAST  = self.fft_m_axis.last,
-                o_M_AXIS_TKEEP  = self.fft_m_axis.keep,
-            )
-
-            # Add FFT sources to the platform.
-            platform.add_source("./gateware/examples/fft/fft.v")
-            platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
-
-        self.comb += [
-            # LMS7002 <-> TstTop.
-            # FIXME
-            #self.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
-            #self.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
-            #self.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
-
-            # LMS7002 <-> PLLCFG
-            #self.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls),
-
-            # LMS7002 <-> RXTX Top.
-            self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en),
-
-            # General Periph <-> RXTX Top.
-            #self.general_periph.tx_txant_en.eq(self.rxtx_top.tx_path.tx_txant_en),
-
-            # General Periph <-> LMS7002
-            #self.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
-        ]
-
-        if with_fft:
-            # LMS7002 -> FFT -> RX Path -> PCIe DMA Pipeline.
-            # Connect the LMS7002 master interface to the FFT wrapper slave interface
-            self.comb += self.lms7002_top.source.connect(self.fft_s_axis)
-            # Connect the FFT wrapper master interface to the RX path slave interface
-            self.comb += self.fft_m_axis.connect(self.rxtx_top.rx_path.sink)
-        else:
-            # LMS7002 -> RX Path -> PCIe DMA Pipeline.
-            self.rx_pipeline = stream.Pipeline(
-                self.lms7002_top.source,
-                self.rxtx_top.rx_path.sink,
-            )
-
-        self.comb += self.rxtx_top.rx_path.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
+        self.comb += self.lime_top.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
         # PCIE DMA -> TX Path -> LMS7002 Pipeline.
         self.comb += [
-            self.pcie_dma0.source.connect(self.rxtx_top.tx_path.sink, omit=["ready"]),
-            self.pcie_dma0.source.ready.eq((self.rxtx_top.tx_path.sink.ready & self.fpgacfg.tx_en) | ~self.pcie_dma0.reader.enable),
+            self.pcie_dma0.source.connect(self.lime_top.sink, omit=["ready"]),
+            self.pcie_dma0.source.ready.eq((self.lime_top.sink.ready & self.lime_top.fpgacfg.tx_en) | ~self.pcie_dma0.reader.enable),
         ]
-        self.tx_pipeline = stream.Pipeline(
-            self.rxtx_top.tx_path.source,
-            self.lms7002_top.sink,
-        )
 
-        self.comb += self.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
+        self.comb += self.lime_top.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
 
         # LMS SPI -----------------------------------------------------------------------------------
+
         self.add_spi_master(name="spimaster", pads=platform.request("lms7002m_spi"), data_width=32, spi_clk_freq=1e6)
 
-        # VCTCXO -----------------------------------------------------------------------------------
-
-        vctcxo_pads = platform.request("vctcxo")
-        self.comb += vctcxo_pads.sel.eq(self.fpgacfg.ext_clk)
-        self.comb += vctcxo_pads.en.eq(self.fpgacfg.tcxo_en)
-
-        # RF Switches ------------------------------------------------------------------------------
-
-        rfsw_pads = platform.request("rf_switches")
-
-        self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
-        #self.comb += rfsw_pads.tx.eq(1)
-
         # Interrupt --------------------------------------------------------------------------------
-        class LimeTop(LiteXModule):
-            def __init__(self, lms7002_clk):
-                self.ev = EventManager()
-                self.ev.clk_ctrl_irq = EventSourceProcess()
-                self.ev.finalize()
-
-                self.comb += self.ev.clk_ctrl_irq.trigger.eq((lms7002_clk.CLK_CTRL.PHCFG_START.re  & lms7002_clk.CLK_CTRL.PHCFG_START.storage == 1)
-                    | (lms7002_clk.CLK_CTRL.PLLCFG_START.re & lms7002_clk.CLK_CTRL.PLLCFG_START.storage == 1)
-                    | (lms7002_clk.CLK_CTRL.PLLRST_START.re & lms7002_clk.CLK_CTRL.PLLRST_START.storage == 1) )
-
-        self.lime_top = LimeTop(self.lms7002_top.lms7002_clk)
 
         self.irq.add("lime_top")
 
@@ -552,21 +424,22 @@ class BaseSoC(SoCCore):
         from litex.soc.cores.uart import UARTPHY
         from litex.soc.cores.uart import UART
 
-        gps_pads = platform.request("gps")
+        gps_pads       = platform.request("gps")
         gnss_uart_pads = self.platform.request("gps_serial", loose=True)
-        gnss_uart_phy = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
-        pcie_uart0 = UART(gnss_uart_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
+        gnss_uart_phy  = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
+        pcie_uart0     = UART(gnss_uart_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
         self.add_module(name=f"PCIE_UART0_phy", module=gnss_uart_phy)
         self.add_module(name="PCIE_UART0", module=pcie_uart0)
 
         # CLK Tests --------------------------------------------------------------------------------
+
         from gateware.LimeDFB.self_test.clk_no_ref_test import clk_no_ref_test
         from gateware.LimeDFB.self_test.singl_clk_with_ref_test import singl_clk_with_ref_test
         self.sys_clock_test = clk_no_ref_test(platform=platform,test_clock_domain="sys")
         self.comb += self.sys_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         self.lms_clock_test = singl_clk_with_ref_test(platform=platform,test_clock_domain="xo_fpga"
-                                                      , ref_clock_domain="sys")
+            , ref_clock_domain="sys")
         self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         # VCTCXO tamer
@@ -582,14 +455,17 @@ class BaseSoC(SoCCore):
         ]
 
         # Define a layout for vctcxo_tamer_pads
-        vctcxo_tamer_layout = [("tune_ref", 1)]  # 1-bit wide signal for tune_ref
-        vctcxo_tamer_pads = Record(vctcxo_tamer_layout)
-        vctcxo_tamer_pads.tune_ref =self.pps_internal
+        vctcxo_tamer_layout        = [("tune_ref", 1)]  # 1-bit wide signal for tune_ref
+        vctcxo_tamer_pads          = Record(vctcxo_tamer_layout)
+        vctcxo_tamer_pads.tune_ref = self.pps_internal
 
         from gateware.LimeDFB.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
-        self.vctcxo_tamer = vctcxo_tamer_top(platform=platform, vctcxo_tamer_pads=vctcxo_tamer_pads, clk100_domain="sys", vctcxo_clk_domain="xo_fpga")
+        self.vctcxo_tamer = vctcxo_tamer_top(platform=platform,
+            vctcxo_tamer_pads = vctcxo_tamer_pads,
+            clk100_domain     = "sys",
+            vctcxo_clk_domain = "xo_fpga"
+        )
         self.comb += self.vctcxo_tamer.RESET_N.eq(self.crg.pll.locked)
-
 
         vctcxo_tamer_serial_layout = [("rx", 1),
                                       ("tx", 1)]  # 1-bit wide signal for tune_ref
@@ -598,7 +474,7 @@ class BaseSoC(SoCCore):
         self.comb += self.vctcxo_tamer.UART_RX.eq(vctcxo_tamer_serial_pads.tx)
 
         pcie_uart1_phy = UARTPHY(vctcxo_tamer_serial_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
-        pcie_uart1 = UART(pcie_uart1_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
+        pcie_uart1     = UART(pcie_uart1_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
         self.add_module(name=f"PCIE_UART1_phy", module=pcie_uart1_phy)
         self.add_module(name="PCIE_UART1", module=pcie_uart1)
 

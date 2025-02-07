@@ -15,13 +15,15 @@ from migen import *
 
 from litex.gen import *
 
-from litex.soc.interconnect                import stream
-from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
-from litex.soc.interconnect.csr            import *
+from litex.soc.interconnect                  import stream
+from litex.soc.interconnect.axi.axi_stream   import AXIStreamInterface
+from litex.soc.interconnect.csr              import *
+from litex.soc.interconnect.csr_eventmanager import *
 
-from gateware.fpgacfg  import FPGACfg
-from gateware.pllcfg   import PLLCfg
-from gateware.rxtx_top import RXTXTop
+from gateware.fpgacfg   import FPGACfg
+from gateware.pllcfg    import PLLCfg
+from gateware.rxtx_top  import RXTXTop
+from gateware.xtrx_rfsw import xtrx_rfsw
 
 from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
 from gateware.LimeDFB_LiteX.general.busy_delay                import BusyDelay
@@ -43,6 +45,7 @@ class LimeTop(LiteXModule):
         TX_IN_PCT_HDR_SIZE   = 16,
 
         with_rx_tx_top       = True,
+        with_fft             = False,
 
         # FPGACFG.
         board_id             = 0x0011,
@@ -93,10 +96,14 @@ class LimeTop(LiteXModule):
             self.pllcfg = None
 
         # LMS7002 Top ------------------------------------------------------------------------------
-        self.lms7002_top = LMS7002Top(
+        if revision_pads is None:
+            hw_ver = Constant(0, 4)
+        else:
+            hw_ver = revision_pads.HW_VER
+        self.lms7002_top = lms7002_top = LMS7002Top(
             platform        = platform,
             pads            = platform.request("LMS"),
-            hw_ver          = {True: Constant(0, 4), False:revision_pads.HW_VER}[revision_pads==None],
+            hw_ver          = hw_ver,
             add_csr         = True,
             fpgacfg_manager = self.fpgacfg,
             pllcfg_manager  = self.pllcfg,
@@ -181,6 +188,57 @@ class LimeTop(LiteXModule):
                 self.lms7002_top.sink,
             )
 
+        # FFT --------------------------------------------------------------------------------------
+
+        if with_fft:
+            # define Reset signal and adds a MultiReg
+            fft_reset_n = Signal()
+            self.specials += MultiReg(self.fpgacfg.tx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
+
+            # Declare FFT AXI Stream interfaces.
+            self.fft_s_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
+            self.fft_m_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
+
+            # Instantiate the FFT wrapper.
+            self.specials += Instance("fft_wrap",
+                i_CLK           = ClockSignal(self.lms7002_top.source.clock_domain),
+                i_RESET_N       = fft_reset_n,
+                i_S_AXIS_TVALID = self.fft_s_axis.valid,
+                i_S_AXIS_TDATA  = self.fft_s_axis.data,
+                o_S_AXIS_TREADY = self.fft_s_axis.ready,
+                i_S_AXIS_TLAST  = self.fft_s_axis.last,
+                i_S_AXIS_TKEEP  = self.fft_s_axis.keep,
+                o_M_AXIS_TDATA  = self.fft_m_axis.data,
+                o_M_AXIS_TVALID = self.fft_m_axis.valid,
+                i_M_AXIS_TREADY = self.fft_m_axis.ready,
+                o_M_AXIS_TLAST  = self.fft_m_axis.last,
+                o_M_AXIS_TKEEP  = self.fft_m_axis.keep,
+            )
+
+            # Add FFT sources to the platform.
+            platform.add_source("./gateware/examples/fft/fft.v")
+            platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
+
+        if with_fft:
+            # LMS7002 -> FFT -> RX Path -> PCIe DMA Pipeline.
+            # Connect the LMS7002 master interface to the FFT wrapper slave interface
+            self.comb += self.lms7002_top.source.connect(self.fft_s_axis)
+            # Connect the FFT wrapper master interface to the RX path slave interface
+            self.comb += self.fft_m_axis.connect(self.rxtx_top.rx_path.sink)
+        else:
+            # LMS7002 -> RX Path -> PCIe DMA Pipeline.
+            self.rx_pipeline = stream.Pipeline(
+                self.lms7002_top.source,
+                self.rxtx_top.rx_path.sink,
+            )
+
+        # VCTCXO -----------------------------------------------------------------------------------
+
+        if not platform.name.startswith("limesdr_mini"):
+            vctcxo_pads = platform.request("vctcxo")
+            self.comb  += vctcxo_pads.sel.eq(self.fpgacfg.ext_clk)
+            self.comb  += vctcxo_pads.en.eq(self.fpgacfg.tcxo_en)
+
         # RF Switches ------------------------------------------------------------------------------
 
         if platform.name.startswith("limesdr_mini"):
@@ -200,6 +258,14 @@ class LimeTop(LiteXModule):
                 tx_lb_pads.SH.eq(  self.gpio.storage[2]),
             ]
         else:
-            rfsw_pads = platform.request("rf_switches")
+            rfsw_pads         = platform.request("rf_switches")
             self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
+            #self.comb += rfsw_pads.tx.eq(1)
+
+        # Interrupt --------------------------------------------------------------------------------
+
+        self.comb += self.ev.clk_ctrl_irq.trigger.eq((lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.storage == 1)
+            | (lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.storage == 1)
+            | (lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.storage == 1) )
+
 

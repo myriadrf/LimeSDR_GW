@@ -106,11 +106,11 @@ int boot_img_en = 0;
 
 #ifdef LIMESDR_XTRX
 // If an error points here, most likely some of the macros are invalid.
-PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
-PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
-SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LMS7002_TOP);
+PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
+PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
+SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIME_TOP_LMS7002_TOP);
 // clk_ctrl_addrs is declared in regremap.h
-CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
+CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
 
 //Flash programming variables
 volatile uint8_t flash_prog_pending = 0;
@@ -1337,10 +1337,10 @@ int main(void) {
 #ifdef LIMESDR_XTRX
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
-                            read_value = lms7002_top_lms1_read() & ~(1 << CSR_LMS7002_TOP_LMS1_RESET_OFFSET);
-                            lms7002_top_lms1_write(read_value);
-                            read_value |= (1 << CSR_LMS7002_TOP_LMS1_RESET_OFFSET);
-                            lms7002_top_lms1_write(read_value);
+                            read_value = lime_top_lms7002_top_lms1_read() & ~(1 << CSR_LIME_TOP_LMS7002_TOP_LMS1_RESET_OFFSET);
+                            lime_top_lms7002_top_lms1_write(read_value);
+                            read_value |= (1 << CSR_LIME_TOP_LMS7002_TOP_LMS1_RESET_OFFSET);
+                            lime_top_lms7002_top_lms1_write(read_value);
                         //printf("LMS RST pulse...\n");
 #else
                             limetop_lms7002_top_lms_ctr_gpio_write(0x0);
