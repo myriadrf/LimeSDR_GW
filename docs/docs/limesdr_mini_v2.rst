@@ -9,7 +9,7 @@ The top-level file integrates the following main blocks:
 
 - :ref:`Soft core CPU Module <soft_core_cpu_module>` – VexRiscv CPU instance.
 - :ref:`Lime_top Module <lime_top_module>` – Wrapper for blocks handling LMS7002M transceiver control and data transfer.
-- :ref:`PCIe PHY Module <pcie_phy_module>` – PCIe block with the physical interface and DMA.
+- :ref:`FT601 PHY Module <ft601_phy_module>` – Handles control and data stream endpoints between CPU, streaming interface, and FT601 device.
 - :ref:`I2C Module <i2c_modules>` and :ref:`Lms_spi Module <lms_spi_module>` – Communication interfaces for controlling onboard peripherals.
 - :ref:`Flash Module <flash_module>` – Module for accessing the FPGA configuration FLASH memory.
 
@@ -58,14 +58,17 @@ This module manages the transmit path from the host through the FPGA to the LMS7
    :width: 1000
    :alt: Lime_top block diagram
 
-.. _pcie_phy_module:
+.. _ft601_phy_module:
 
-PCIe PHY Module
----------------
-The **PCIe PHY** module is an instantiation of the ``S7PCIEPHY`` class from LitePCIe. It provides the physical layer for the PCIe interface, including DMA support.
+FT601 PHY Module
+----------------
+The **FT601 PHY** module serves as a wrapper for both the logical and physical interfaces
+of the FT601 device. It provides the following endpoints and FIFOs:
 
-The source code for LitePCIe is available at:
-`LitePCIe on GitHub <https://github.com/enjoy-digital/litepcie>`_
+- **Control (PC → FPGA)**: Handles configuration commands from the PC to the FPGA.
+- **Control (FPGA → PC)**: Enables register readback and status reporting from the FPGA to the PC.
+- **TX Data Path (PC → LMS7002)**: Transfers transmission data from the PC to the LMS7002.
+- **RX Data Path (LMS7002 → PC)**: Transfers received data from the LMS7002 to the PC.
 
 .. _i2c_modules:
 
