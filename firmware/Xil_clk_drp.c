@@ -176,9 +176,12 @@ void SetMMCM_CLKREG(PLL_ADDRS *addresses, uint8_t DIVIDE, uint32_t PHASE, uint16
 int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SMPL_CMP_ADDRS *smpl_cmp_addrs) {
     uint8_t phase_mux;
     uint8_t delay_time;
-    uint8_t PhaseMin = 0;
-    uint8_t PhaseMax = 0;
-    uint8_t PhaseMiddle;
+    uint16_t PhaseMin = 0;
+    uint16_t PhaseMax = 0;
+    uint16_t PhaseMinBest = 0;
+    uint16_t PhaseMaxBest = 0;
+    uint8_t PhaseWindowFound = 0;
+    uint16_t PhaseMiddle;
 
     uint8_t cmp_error;
     uint32_t timeout = 0;
@@ -188,12 +191,15 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
     // Sum counter values to get effective divider value
     max_phase = (max_phase & 0xFF) + ((max_phase >> 8) & 0xFF);
     // Calculate max phase index
+    // *8 for 360 degree phase, to avoid missing phase windows
+    // overlapping 0 phase we increase it to 540 degrees
+    uint16_t max_phase_long = max_phase * 12;
     max_phase = max_phase * 8;
+
 
     typedef enum state {
         PHASE_MIN,
-        PHASE_MAX,
-        PHASE_DONE
+        PHASE_MAX
     } state_t;
 
     state_t phase_state = PHASE_MIN;
@@ -201,9 +207,10 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
     // Set initial configuration
     Update_MMCM_CFG(pll_addresses, ctrl_addresses);
 
-    for (uint16_t i = 0; i <= max_phase; i++) {
-        phase_mux = (i & 0x7);
-        delay_time = i >> 3;
+    for (uint16_t i = 0; i <= max_phase_long; i++) {
+        // make sure written values are valid
+        phase_mux = ((i%max_phase) & 0x7);
+        delay_time = (i%max_phase) >> 3;
 
         csr_write_simple(1, pll_addresses->reset);
         Write_MMCM_DRP(pll_addresses, PowerReg_7Series, 0xffff);
@@ -248,6 +255,7 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
             case PHASE_MIN:
                 if (cmp_error == 0) {
                     PhaseMin = i;
+                    // printf("PhaseMin = %d\n", PhaseMin);
                     phase_state = PHASE_MAX;
                 }
                 break;
@@ -255,33 +263,52 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
             case PHASE_MAX:
                 if (cmp_error == 1) {
                     PhaseMax = i - 1;
-                    phase_state = PHASE_DONE;
+                    // If no window is yet found, this is the best one
+                    if (PhaseWindowFound == 0) {
+                        PhaseMinBest = PhaseMin;
+                        PhaseMaxBest = PhaseMax;
+                        PhaseWindowFound = 1;
+                    }
+                    else {
+                        // If a better window is found, replace old one
+                        if ((PhaseMax-PhaseMin) > (PhaseMaxBest-PhaseMinBest)) {
+                            PhaseMinBest = PhaseMin;
+                            PhaseMaxBest = PhaseMax;
+                        }
+                    }
+                    // printf("PhaseMax = %d\n", PhaseMax);
+                    phase_state = PHASE_MIN;
                 }
                 break;
-
-            case PHASE_DONE:
-                PhaseMiddle = (PhaseMin + PhaseMax) / 2;
-                phase_mux = (PhaseMiddle & 0x7);
-                delay_time = PhaseMiddle >> 3;
-
-                csr_write_simple(1, pll_addresses->reset);
-                Write_MMCM_DRP(pll_addresses, PowerReg_7Series, 0xffff);
-                SetPhase_DRP(pll_addresses, phase_mux, delay_time, ClkReg1_CLKOUT1, ClkReg2_CLKOUT1);
-                csr_write_simple(0, pll_addresses->reset);
-
-            //			 Wait for lock before continuing
-                while (csr_read_simple(pll_addresses->locked) == 0) {
-                    busy_wait_us(1);
-                    timeout++;
-                    if (timeout > timeout_limit) {
-                        return AUTO_PH_MMCM_CFG_TIMEOUT;
-                    }
-                }
-
-
-                return AUTO_PH_MMCM_CFG_SUCCESS;
         }
     }
-    // All phase values were checked and no good values found
-    return AUTO_PH_MMCM_CFG_FAILURE;
+    // Check results
+    if (PhaseWindowFound == 0) {
+        // All phase values were checked and no good values found
+        return AUTO_PH_MMCM_CFG_FAILURE;
+    }
+    // If function did not return yet, means we have found a valid phase window and can set it
+    PhaseMiddle = (PhaseMinBest + PhaseMaxBest) / 2;
+    // printf("PhaseMiddle = %d\n", PhaseMiddle);
+    // make sure written values are valid
+    PhaseMiddle = PhaseMiddle % max_phase;
+    phase_mux = (PhaseMiddle & 0x7);
+    delay_time = PhaseMiddle >> 3;
+
+    csr_write_simple(1, pll_addresses->reset);
+    Write_MMCM_DRP(pll_addresses, PowerReg_7Series, 0xffff);
+    SetPhase_DRP(pll_addresses, phase_mux, delay_time, ClkReg1_CLKOUT1, ClkReg2_CLKOUT1);
+    csr_write_simple(0, pll_addresses->reset);
+
+    //			 Wait for lock before continuing
+    while (csr_read_simple(pll_addresses->locked) == 0) {
+        busy_wait_us(1);
+        timeout++;
+        if (timeout > timeout_limit) {
+            return AUTO_PH_MMCM_CFG_TIMEOUT;
+        }
+    }
+
+
+    return AUTO_PH_MMCM_CFG_SUCCESS;
 }
