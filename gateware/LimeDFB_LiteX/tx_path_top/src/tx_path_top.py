@@ -58,7 +58,7 @@ class TXPathTop(LiteXModule):
         # Synchro
         rx_sample_nr     = Signal(64)
         ch_en            = Signal(2)
-        smpl_width       = Signal()
+        smpl_width       = Signal(2)
         synch_dis        = Signal()
 
         pct_loss_flg_clr = Signal()
