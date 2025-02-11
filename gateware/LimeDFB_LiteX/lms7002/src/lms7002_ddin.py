@@ -83,7 +83,7 @@ class LMS7002DDIN(LiteXModule):
             # ------
             self.comb += datain.eq(Cat(pads.DIQ2_D, pads.ENABLE_IQSEL2))
 
-            if not platform.name in ["limesdr_mini_v1"]:
+            if platform.name in ["limesdr_mini_v2"]:
                 # Internal registers
                 # Resync both on rising edge
                 self.sync.lms_rx += [
