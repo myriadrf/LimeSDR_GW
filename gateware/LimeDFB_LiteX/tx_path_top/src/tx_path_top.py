@@ -128,7 +128,7 @@ class TXPathTop(LiteXModule):
             ]
 
         self.comb += [
-            conv_64_to_128.reset.eq(     ~(s_reset_n & self.ext_reset_n)),
+            conv_64_to_128.reset.eq(     ~s_reset_n),
             conv_64_to_128.sink.last.eq( 0), # FIXME: something else?
 
             conv_64_to_128.sink.data.eq( self.sink.data),
@@ -164,7 +164,7 @@ class TXPathTop(LiteXModule):
             o_M_AXIS_TLAST    = p2d_wr_tlast,
 
             i_BUF_EMPTY       = p2d_wr_buf_empty,
-            i_RESET_N         = {True: s_reset_n, False: self.ext_reset_n}[platform.name.startswith("limesdr_mini")],
+            i_RESET_N         = self.ext_reset_n,
         )
 
         cases = {}
@@ -210,7 +210,7 @@ class TXPathTop(LiteXModule):
             # p_G_FIFO_DEPTH          = fifo_depth,
             # p_G_DATA_WIDTH          = data_width        ,
             # s_axis
-            i_s_axis_aresetn        = (s_reset_n & p2d_rd_resetn[i]),
+            i_s_axis_aresetn        = (s_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
             i_s_axis_aclk           = ClockSignal(s_clk_domain),
             i_s_axis_tvalid         = p2d_wr_tvalid[i],
             o_s_axis_tready         = p2d_wr_tready[i],
@@ -218,7 +218,7 @@ class TXPathTop(LiteXModule):
             i_s_axis_tkeep          = Replicate(1,tkeep_width),
             i_s_axis_tlast          = p2d_wr_tlast[i],
             # m_axis
-            i_m_axis_aresetn  = (s_reset_n & p2d_rd_resetn[i]),
+            i_m_axis_aresetn  = (s_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
             i_m_axis_aclk     = ClockSignal(m_clk_domain),
             o_m_axis_tvalid   = p2d_rd_tvalid[i],
             i_m_axis_tready   = p2d_rd_tready[i],
