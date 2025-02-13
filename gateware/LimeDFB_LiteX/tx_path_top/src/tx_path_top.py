@@ -108,6 +108,9 @@ class TXPathTop(LiteXModule):
         self.data_pad_tdata  = data_pad_tdata
         self.curr_buf_index  = curr_buf_index
 
+        self.s_reset_n = s_reset_n
+        self.m_reset_n = m_reset_n
+
         # Clocks ----------------------------------------------------------------------------------
         # Sample NR FIFO (must be async with sink in RX_CLK, source iqsample, areset_n with iqpacket_areset_n)
         if platform.name in ["limesdr_mini_v1"]:
@@ -321,8 +324,8 @@ class TXPathTop(LiteXModule):
             ]
         else:
             self.specials += [
-                MultiReg(fpgacfg_manager.tx_en, s_reset_n, odomain=s_clk_domain),
-                MultiReg(fpgacfg_manager.tx_en, m_reset_n, odomain=m_clk_domain),
+                MultiReg(fpgacfg_manager.rx_en, s_reset_n, odomain=s_clk_domain),
+                MultiReg(fpgacfg_manager.rx_en, m_reset_n, odomain=m_clk_domain),
             ]
 
         self.specials += [
@@ -333,7 +336,7 @@ class TXPathTop(LiteXModule):
         ]
 
         self.comb += [
-            fifo_smpl_buff.reset.eq(~(m_reset_n & self.ext_reset_n)),
+            fifo_smpl_buff.reset.eq(~self.ext_reset_n),
             self.source.last.eq(0),
             If(smpl_width == 0b00,
                 unpack_bypass.eq(1),
