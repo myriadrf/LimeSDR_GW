@@ -15,7 +15,7 @@
 		<user_name>Page_1</user_name>
 		<page_flags>2</page_flags>
 		<bit0>
-			<sof_filename>build/limesdr_mini_v1_blink/gateware/limesdr_mini_v1_blink.sof<compress_bitstream>1</compress_bitstream></sof_filename> 
+			<sof_filename>build/limesdr_mini_v1_golden/gateware/limesdr_mini_v1.sof<compress_bitstream>1</compress_bitstream></sof_filename> 
 		</bit0>
 	</sof_data>
 	<version>9</version>

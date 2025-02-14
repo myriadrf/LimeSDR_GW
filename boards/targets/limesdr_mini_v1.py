@@ -179,7 +179,7 @@ class BaseSoC(SoCCore):
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
 
         # Internal Flash ---------------------------------------------------------------------------
-        self.internal_flash = Max10OnChipFlash(platform, cpu_firmware)
+        self.internal_flash = Max10OnChipFlash(platform, {True:cpu_firmware, False: None}[flash_boot])
 
         internal_flash_region = SoCRegion(
                 origin = 0x100000, # keep original addr
@@ -489,7 +489,7 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
     parser.add_argument("--with-spi-flash", action="store_true", help="Enable SPI Flash (MMAPed).")
-    parser.add_argument("--goldgen",        action="store_true", help="Build golden image instead of user")
+    parser.add_argument("--golden",         action="store_true", help="Build golden image instead of user")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -532,7 +532,10 @@ def main():
             assert args.with_uartbone
             soc.add_dual_cfg_probe()
         # Builder.
-        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        output_dir = os.path.abspath(os.path.join("build", soc.platform.name))
+        if args.golden:
+            output_dir = output_dir + "_golden"
+        builder = Builder(soc, output_dir=output_dir, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
         # Firmware build.
         if prepare:
