@@ -118,10 +118,11 @@ class TXPathTop(LiteXModule):
             self.smpl_nr_fifo = smpl_nr_fifo
             self.comb += smpl_nr_fifo.reset.eq(~s_reset_n),
         else:
+            #TODO: check if reset is needed here
             self.cd_smpl_nr_fifo  = ClockDomain()
             smpl_nr_fifo          = stream.ClockDomainCrossing([("data", 64)],
                 cd_from = "smpl_nr_fifo",
-                cd_to   = s_clk_domain,
+                cd_to   = m_clk_domain,
                 depth   = 128,
             )
             self.smpl_nr_fifo     = smpl_nr_fifo
