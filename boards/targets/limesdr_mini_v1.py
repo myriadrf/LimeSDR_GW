@@ -107,6 +107,7 @@ class BaseSoC(SoCCore):
         with_bios      = False,
         with_rx_tx_top = False,
         with_lms7002   = False,
+        flash_boot     = False,
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
@@ -134,6 +135,11 @@ class BaseSoC(SoCCore):
             integrated_rom_init      = []
             integrated_main_ram_size = 0x3800
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+        elif flash_boot:
+            integrated_rom_size      = 0
+            integrated_rom_init      = []
+            integrated_main_ram_size = 0
+            integrated_main_ram_init = []
         else:
             integrated_rom_size      = 0x4000
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
@@ -160,7 +166,8 @@ class BaseSoC(SoCCore):
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
         # Automatically jump to pre-initialized firmware.
-        self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
+        if not flash_boot:
+            self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
 
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
@@ -172,13 +179,24 @@ class BaseSoC(SoCCore):
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
 
         # Internal Flash ---------------------------------------------------------------------------
-        self.internal_flash = Max10OnChipFlash(platform)
+        self.internal_flash = Max10OnChipFlash(platform, cpu_firmware)
 
         internal_flash_region = SoCRegion(
                 origin = 0x100000, # keep original addr
                 size   = 0x8C000,
                 mode   = "rwx")
         self.bus.add_slave("internal_flash", self.internal_flash.bus, internal_flash_region)
+
+        if flash_boot:
+            self.bus.add_region("rom", SoCRegion(
+                origin = self.bus.regions["internal_flash"].origin,
+                size   = 32768,
+                linker = True)
+            )
+
+            # Automatically jump to pre-initialized firmware.
+            self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
+            self.cpu.set_reset_address(self.bus.regions["rom"].origin)
 
         # Max10 Dual Cfg ---------------------------------------------------------------------------
         self.dual_cfg = Max10DualCfg(platform)
@@ -471,6 +489,7 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
     parser.add_argument("--with-spi-flash", action="store_true", help="Enable SPI Flash (MMAPed).")
+    parser.add_argument("--goldgen",        action="store_true", help="Build golden image instead of user")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -481,6 +500,9 @@ def main():
 
     args = parser.parse_args()
 
+    cpu_firmware = "firmware_mini/firmware" + {True: ".bin", False: ".hex"}[args.golden]
+    cpu_firmware = os.path.join(os.path.abspath(os.path.dirname(".")), cpu_firmware)
+
     # Build SoC.
     for run in range(2):
         prepare = (run == 0)
@@ -489,9 +511,12 @@ def main():
         soc = BaseSoC(
             toolchain      = args.toolchain,
             with_bios      = args.with_bios,
+            with_rx_tx_top = not args.golden,
+            with_lms7002   = not args.golden,
+            flash_boot     = not args.golden,
             with_uartbone  = args.with_uartbone,
             with_spi_flash = args.with_spi_flash,
-            cpu_firmware   = None if prepare else "firmware_mini/firmware.bin",
+            cpu_firmware   = None if prepare else cpu_firmware,
         )
         # LiteScope Analyzer Probes.
         if args.with_ft601_ctrl_probe:
