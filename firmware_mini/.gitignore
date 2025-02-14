@@ -4,3 +4,4 @@ firmware.elf.map
 *.o
 *.d
 *.bin
+*.hex
