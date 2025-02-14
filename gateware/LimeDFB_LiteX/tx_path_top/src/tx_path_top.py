@@ -174,9 +174,11 @@ class TXPathTop(LiteXModule):
 
         # local variables to avoid mismatch between
         # data_width and tkeep_width
-        data_width = 128
+        packet_mode = True
+        data_width  = 128
         tkeep_width = int(data_width/8)
-        fifo_depth = 256
+        fifo_depth  = 256
+
         force_convert = platform.vhd2v_force
         # May be problematic if we need to use fifo somewhere else
         self.fifo_src_conv =  VHD2VConverter(platform,
@@ -187,12 +189,17 @@ class TXPathTop(LiteXModule):
                                           "gateware/LimeDFB/axis_fifo/src/wptr_handler.vhd",
                                           "gateware/LimeDFB/axis_fifo/src/rptr_handler.vhd",
                                           "gateware/LimeDFB/axis_fifo/src/ram_mem_wrapper.vhd",
+                                          # VHD2VConverter is not able to convert this file.
+                                          # OK because it is not used in "Generic" implementation
+                                          #"gateware/LimeDFB/axis_fifo/src/xilinx_simple_dual_port_2_clock_ram.vhd",
                                           "gateware/LimeDFB/cdc/src/cdc_sync_bit.vhd",
                                           "gateware/LimeDFB/cdc/src/cdc_sync_bus.vhd",
                                           ],
                               params= {
-                                  'p_G_FIFO_DEPTH':fifo_depth,
-                                  'p_G_DATA_WIDTH':data_width
+                                  'p_G_VENDOR'      : "GENERIC", # Only "GENERIC" supported for now
+                                  'p_G_PACKET_MODE' : "true" if packet_mode else "false",
+                                  'p_g_DATA_WIDTH'  : data_width,
+                                  'p_g_FIFO_DEPTH'  : fifo_depth,
                               },
                               top_entity='axis_fifo'
                               )
@@ -200,7 +207,9 @@ class TXPathTop(LiteXModule):
         # -1 to fix off by one error
         for i in range(BUFF_COUNT):
             usedw_width = math.ceil(math.log2(fifo_depth))
-            self.wr_usedw = Signal(usedw_width)
+            self.wr_usedw = Signal(usedw_width+1)
+            self.rd_usedw = Signal(usedw_width + 1)
+            self.p2d_rd_tkeep = Signal(tkeep_width)
             sample_data_out = Signal(data_width)
 
             self.packet_buf = Instance("axis_fifo",
@@ -210,8 +219,8 @@ class TXPathTop(LiteXModule):
             # p_G_PACKET_MODE         = True,
             # p_G_VENDOR              = "GENERIC",
             #### These are provided to vhd2vconverter
-            # p_G_FIFO_DEPTH          = fifo_depth,
-            # p_G_DATA_WIDTH          = data_width        ,
+            #p_G_FIFO_DEPTH          = fifo_depth,
+            #p_G_DATA_WIDTH          = data_width        ,
             # s_axis
             i_s_axis_aresetn        = (s_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
             i_s_axis_aclk           = ClockSignal(s_clk_domain),
@@ -226,10 +235,10 @@ class TXPathTop(LiteXModule):
             o_m_axis_tvalid   = p2d_rd_tvalid[i],
             i_m_axis_tready   = p2d_rd_tready[i],
             o_m_axis_tdata    = sample_data_out,
-            o_m_axis_tkeep    = None, # open, unused
+            o_m_axis_tkeep    = self.p2d_rd_tkeep, # open, unused
             o_m_axis_tlast    = p2d_rd_tlast[i],
             # usedw
-            o_rdusedw         = None, # open, unused
+            o_rdusedw         = self.rd_usedw, # open, unused
             o_wrusedw         = self.wr_usedw
             )
 
