@@ -78,10 +78,10 @@
   <parameter name="READ_BURST_MODE" value="Incrementing" />
   <parameter name="SECTOR_ACCESS_MODE">Read and write,Read and write,Read and write,Read and write,Read and write</parameter>
   <parameter name="autoInitializationFileName">$${FILENAME}_onchip_flash_0</parameter>
-  <parameter name="initFlashContent" value="false" />
-  <parameter name="initializationFileName">altera_onchip_flash.hex</parameter>
+  <parameter name="initFlashContent" value="INITFLASHCONTENT" />
+  <parameter name="initializationFileName">UFM_HEX</parameter>
   <parameter name="initializationFileNameForSim">altera_onchip_flash.dat</parameter>
-  <parameter name="useNonDefaultInitFile" value="false" />
+  <parameter name="useNonDefaultInitFile" value="USENONDEFAULTINITFILE" />
  </module>
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
