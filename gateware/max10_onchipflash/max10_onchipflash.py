@@ -7,10 +7,12 @@
 
 import os
 
-from shutil import which
+from shutil import which, copyfile
 import subprocess
 
 from migen import *
+
+from litex.build import tools
 
 from litex.gen import *
 
@@ -20,7 +22,7 @@ from litex.soc.interconnect.csr import CSRStatus, CSRStorage
 # Max10 OnChipFlash --------------------------------------------------------------------------------
 
 class Max10OnChipFlash(LiteXModule):
-    def __init__(self, platform):
+    def __init__(self, platform, ufm_hex):
 
         self.bus               = wishbone.Interface(data_width=32, adr_width=18)
 
@@ -30,6 +32,8 @@ class Max10OnChipFlash(LiteXModule):
         self._control_register = CSRStorage(32, description="On-Chip Flash Control Register.")
 
         self.platform          = platform
+
+        self.ufm_hex           = ufm_hex
 
         # # #
 
@@ -131,20 +135,31 @@ class Max10OnChipFlash(LiteXModule):
         )
 
     def do_finalize(self):
-
         curr_dir = os.path.abspath(os.path.dirname(__file__))
 
-        qsys_file = os.path.join(curr_dir, "max10_onchipflash.qsys")
-        self.platform.add_ip(qsys_file)
+        # Updates firmware path.
+        qsys_src = os.path.join(curr_dir, "max10_onchipflash_template.qsys")
+        qsys_dst = os.path.join(curr_dir, "max10_onchipflash.qsys")
+        copyfile(qsys_src, qsys_dst)
+
+        if self.ufm_hex is not None:
+            tools.replace_in_file(qsys_dst, "INITFLASHCONTENT", "true")
+            tools.replace_in_file(qsys_dst, "UFM_HEX", self.ufm_hex)
+            tools.replace_in_file(qsys_dst, "USENONDEFAULTINITFILE", "true")
+        else:
+            tools.replace_in_file(qsys_dst, "INITFLASHCONTENT", "false")
+            tools.replace_in_file(qsys_dst, "UFM_HEX", "altera_onchip_flash.hex")
+            tools.replace_in_file(qsys_dst, "USENONDEFAULTINITFILE", "false")
+
+        self.platform.add_ip(qsys_dst)
 
         if which("qsys-edit") is None:
             msg = "Unable to find Quartus toolchain, please:\n"
             msg += "- Add Quartus toolchain to your $PATH."
             raise OSError(msg)
 
-        command = f"qsys-generate --synthesis {qsys_file}"
+        command = f"qsys-generate --synthesis {qsys_dst}"
 
         ret = subprocess.run(command, shell=True)
         if ret.returncode != 0:
             raise OSError("Error occured during Quartus's script execution.")
-
