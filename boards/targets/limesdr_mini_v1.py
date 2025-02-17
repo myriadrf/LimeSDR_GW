@@ -101,12 +101,13 @@ class _CRG(LiteXModule):
 
 class BaseSoC(SoCCore):
     def __init__(self, sys_clk_freq=40e6, cpu_type="vexriscv", toolchain="quartus",
-        with_bios           = False,
-        with_rx_tx_top      = True,
-        with_internal_flash = False,
-        with_uartbone       = False,
-        with_spi_flash      = False,
-        cpu_firmware        = None,
+        with_bios      = False,
+        with_rx_tx_top = False,
+        with_lms7002   = False,
+        flash_boot     = False,
+        with_uartbone  = False,
+        with_spi_flash = False,
+        cpu_firmware   = None,
         **kwargs):
 
         # Platform ---------------------------------------------------------------------------------
@@ -131,6 +132,11 @@ class BaseSoC(SoCCore):
             integrated_rom_init      = []
             integrated_main_ram_size = 0x3800
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+        elif flash_boot:
+            integrated_rom_size      = 0
+            integrated_rom_init      = []
+            integrated_main_ram_size = 0
+            integrated_main_ram_init = []
         else:
             integrated_rom_size      = 0x4000
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
@@ -155,7 +161,8 @@ class BaseSoC(SoCCore):
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
         # Automatically jump to pre-initialized firmware.
-        self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
+        if not flash_boot:
+            self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
 
         # Define platform name constant.
         self.add_constant(platform.name.upper())
@@ -170,14 +177,24 @@ class BaseSoC(SoCCore):
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
 
         # Internal Flash ---------------------------------------------------------------------------
-        if with_internal_flash:
-            self.internal_flash = Max10OnChipFlash(platform)
+        self.internal_flash = Max10OnChipFlash(platform, {True:cpu_firmware, False: None}[flash_boot])
 
-            internal_flash_region = SoCRegion(
-                    origin = 0x100000, # keep original addr
-                    size   = 0x8C000,
-                    mode   = "rwx")
-            self.bus.add_slave("internal_flash", self.internal_flash.bus, internal_flash_region)
+        internal_flash_region = SoCRegion(
+                origin = 0x100000, # keep original addr
+                size   = 0x8C000,
+                mode   = "rwx")
+        self.bus.add_slave("internal_flash", self.internal_flash.bus, internal_flash_region)
+
+        if flash_boot:
+            self.bus.add_region("rom", SoCRegion(
+                origin = self.bus.regions["internal_flash"].origin,
+                size   = 32768,
+                linker = True)
+            )
+
+            # Automatically jump to pre-initialized firmware.
+            self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
+            self.cpu.set_reset_address(self.bus.regions["rom"].origin)
 
         # Max10 Dual Cfg ---------------------------------------------------------------------------
         self.dual_cfg = Max10DualCfg(platform)
@@ -199,7 +216,7 @@ class BaseSoC(SoCCore):
         revision_pads = platform.request("revision")
         revision_pads.BOM_VER = Cat(revision_pads.BOM_VER0, revision_pads.BOM_VER1, revision_pads.BOM_VER2)
 
-        self.limetop  = LimeTop(platform,
+        self.limetop  = LimeTop(self, platform,
             LMS_DIQ_WIDTH      = LMS_DIQ_WIDTH,
             sink_width         = STRM0_FPGA_RX_RWIDTH,
             sink_clk_domain    = "sys",
@@ -238,10 +255,14 @@ class BaseSoC(SoCCore):
         self.comb += [
             self.ft601.source.connect(self.limetop.sink),
             self.limetop.source.connect(self.ft601.sink),
-            # FT601 <-> RXTX Top.
-            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.rxtx_top.rx_pct_fifo_aclrn_req),
-            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
         ]
+
+        if with_rx_tx_top:
+            self.comb += [
+                # FT601 <-> RXTX Top.
+                self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.rxtx_top.rx_pct_fifo_aclrn_req),
+                self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
+            ]
 
         # Timing Constraints -----------------------------------------------------------------------
 
@@ -318,7 +339,7 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
     parser.add_argument("--with-spi-flash", action="store_true", help="Enable SPI Flash (MMAPed).")
-    parser.add_argument("--gold",           action="store_true", help="Build golden image instead of user")
+    parser.add_argument("--golden",         action="store_true", help="Build golden image instead of user")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -326,26 +347,33 @@ def main():
 
     args = parser.parse_args()
 
+    cpu_firmware = "firmware/firmware" + {True: ".bin", False: ".hex"}[args.golden]
+    cpu_firmware = os.path.join(os.path.abspath(os.path.dirname(".")), cpu_firmware)
+
     # Build SoC.
     for run in range(2):
         prepare = (run == 0)
         build   = ((run == 1) & args.build)
         # SoC.
         soc = BaseSoC(
-            toolchain           = args.toolchain,
-            with_bios           = args.with_bios,
-            with_rx_tx_top      = not args.gold,
-            with_internal_flash = args.gold,
-            with_uartbone       = args.with_uartbone,
-            with_spi_flash      = args.with_spi_flash,
-            cpu_firmware        = None if prepare else "firmware/firmware.bin",
+            toolchain      = args.toolchain,
+            with_bios      = args.with_bios,
+            with_rx_tx_top = not args.golden,
+            with_lms7002   = not args.golden,
+            flash_boot     = not args.golden,
+            with_uartbone  = args.with_uartbone,
+            with_spi_flash = args.with_spi_flash,
+            cpu_firmware   = None if prepare else cpu_firmware,
         )
         # LiteScope Analyzer Probes.
         if args.with_ft601_ctrl_probe:
             assert args.with_uartbone
             soc.add_ft601_ctrl_probe()
         # Builder.
-        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        output_dir = os.path.abspath(os.path.join("build", soc.platform.name))
+        if args.golden:
+            output_dir = output_dir + "_golden"
+        builder = Builder(soc, output_dir=output_dir, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
         # Firmware build.
         if prepare:
