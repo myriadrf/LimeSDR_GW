@@ -33,7 +33,7 @@ from gateware.LimeDFB_LiteX.self_test.src.tst_top             import TstTop
 # LimeTop ------------------------------------------------------------------------------------------
 
 class LimeTop(LiteXModule):
-    def __init__(self, platform,
+    def __init__(self, soc, platform,
         # Configuration.
         LMS_DIQ_WIDTH        = 12,
         sink_width           = 128,
@@ -44,6 +44,7 @@ class LimeTop(LiteXModule):
         TX_PCT_SIZE          = 4096,
         TX_IN_PCT_HDR_SIZE   = 16,
 
+        with_lms7002         = True,
         with_rx_tx_top       = True,
         with_fft             = False,
 
@@ -96,19 +97,21 @@ class LimeTop(LiteXModule):
             self.pllcfg = None
 
         # LMS7002 Top ------------------------------------------------------------------------------
-        if revision_pads is None:
-            hw_ver = Constant(0, 4)
-        else:
-            hw_ver = revision_pads.HW_VER
-        self.lms7002_top = lms7002_top = LMS7002Top(
-            platform        = platform,
-            pads            = platform.request("LMS"),
-            hw_ver          = hw_ver,
-            add_csr         = True,
-            fpgacfg_manager = self.fpgacfg,
-            pllcfg_manager  = self.pllcfg,
-            diq_width       = LMS_DIQ_WIDTH,
-        )
+        if with_lms7002:
+            soc.add_constant("WITH_LMS7002")
+            if revision_pads is None:
+                hw_ver = Constant(0, 4)
+            else:
+                hw_ver = revision_pads.HW_VER
+            self.lms7002_top = lms7002_top = LMS7002Top(
+                platform        = platform,
+                pads            = platform.request("LMS"),
+                hw_ver          = hw_ver,
+                add_csr         = True,
+                fpgacfg_manager = self.fpgacfg,
+                pllcfg_manager  = self.pllcfg,
+                diq_width       = LMS_DIQ_WIDTH,
+            )
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
 
@@ -225,7 +228,7 @@ class LimeTop(LiteXModule):
             self.comb += self.lms7002_top.source.connect(self.fft_s_axis)
             # Connect the FFT wrapper master interface to the RX path slave interface
             self.comb += self.fft_m_axis.connect(self.rxtx_top.rx_path.sink)
-        else:
+        elif with_lms7002 and with_rx_tx_top: # Disabled for golden LimeSDR Mini v1
             # LMS7002 -> RX Path -> PCIe DMA Pipeline.
             self.rx_pipeline = stream.Pipeline(
                 self.lms7002_top.source,

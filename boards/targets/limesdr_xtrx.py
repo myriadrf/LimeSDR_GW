@@ -386,7 +386,7 @@ class BaseSoC(SoCCore):
         )
 
         # LimeTOP ----------------------------------------------------------------------------------
-        self.lime_top = LimeTop(platform,
+        self.lime_top = LimeTop(self, platform,
             # Configuration.
             LMS_DIQ_WIDTH        = 12,
             sink_width           = 64,

@@ -193,7 +193,7 @@ class BaseSoC(SoCCore):
 
         # LimeTop ----------------------------------------------------------------------------------
 
-        self.limetop  = LimeTop(platform,
+        self.limetop  = LimeTop(self, platform,
             LMS_DIQ_WIDTH      = LMS_DIQ_WIDTH,
             sink_width         = STRM0_FPGA_RX_RWIDTH,
             sink_clk_domain    = "sys",
