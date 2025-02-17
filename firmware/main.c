@@ -854,6 +854,39 @@ void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 }
 #endif
 
+/* Dual Boot -----------------------------------------------------------------*/
+#ifdef DUAL_CFG_BASE
+/**
+ * Triggers another configuration
+ */
+void boot_from_flash(void)
+{
+    uint32_t reg;
+    //set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 0
+    //wishbone_write32(DUAL_BOOT_0_BASE+(1<<2), 0x00000001);
+    reg = 0x00000001;
+
+    //set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 1
+    //IOWR(DUAL_BOOT_0_BASE, 1, 0x00000003);
+    reg = 0x00000003;
+
+    *(uint32_t *)(DUAL_CFG_BASE + (1 << 2)) = reg;
+
+    /*wait while core is busy*/
+    while(1) {
+        reg = *(uint32_t *)(DUAL_CFG_BASE + (3 << 2));
+        cdelay(2000);
+        if (reg != 0x01)
+            break;
+    }
+
+    //Trigger reconfiguration to selected Image
+    //wishbone_write32(DUAL_BOOT_0_BASE+(0<<2), 0x00000001);
+    reg = 0x00000001;
+    *(uint32_t *)(DUAL_CFG_BASE + (0 << 2)) = reg;
+}
+#endif
+
 /* FIFO ----------------------------------------------------------------------*/
 int FIFO_loopback_test(int base_addr)
 {
@@ -2510,6 +2543,12 @@ int main(void) {
             //gpo_val = 0x0;
             //*gpo_reg = gpo_val;
             limetop_gpo_write(0);
+#ifdef DUAL_CFG_BASE
+            // If boot from flash CMD is executed FPGA GW is loaded from internal FLASH (image 1)
+            if(boot_img_en == 1) {
+                boot_from_flash();
+            }
+#endif
 #endif
         }
 #if 0
