@@ -1123,9 +1123,13 @@ int main(void) {
     ft601_fifo_control_write(1);
     ft601_fifo_control_write(0);
 
+#ifdef WITH_LMS7002
     //Reset LMS7
     limetop_lms7002_top_lms_ctr_gpio_write(0x0);
     limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+#else
+	printf("Golden Bitstream\n");
+#endif
 
 #if defined(CSR_SPIFLASH_CORE_BASE)
     uint8_t spi_rdata[16];
@@ -1349,6 +1353,7 @@ int main(void) {
 
                 case CMD_LMS_RST:
                     printf("CMD_LMS_RST\n");
+#ifdef WITH_LMS7002
 
                     if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
                         break;
@@ -1391,6 +1396,7 @@ int main(void) {
                             cmd_errors++;
                             break;
                     }
+#endif
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
