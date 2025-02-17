@@ -1439,6 +1439,7 @@ int main(void) {
                 // COMMAND LMS WRITE
 
                 case CMD_LMS7002_WR:
+#ifdef WITH_LMS7002
                     if (!Check_Periph_ID(MAX_ID_LMS7, LMS_Ctrl_Packet_Rx->Header.Periph_ID))
                         break;
                     if (Check_many_blocks(4))
@@ -1463,6 +1464,7 @@ int main(void) {
                         printf(" %04x %04x\n", addr, val);
 #endif
                     }
+#endif
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
@@ -1470,6 +1472,7 @@ int main(void) {
                 // COMMAND LMS READ
 
                 case CMD_LMS7002_RD:
+#ifdef WITH_LMS7002
                     if (Check_many_blocks(4))
                         break;
 
@@ -1492,6 +1495,7 @@ int main(void) {
                        printf("%04x %04x\n", addr, val);
 #endif
                     }
+#endif
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
@@ -2021,6 +2025,7 @@ int main(void) {
 #if defined(LIMESDR_MINI_V1) | defined(LIMESDR_MINI_V2)
                 case CMD_LMS_MCU_FW_WR:
                     printf("CMD_LMS_MCU_FW_WR\n");
+#ifdef WITH_LMS7002
                     current_portion = LMS_Ctrl_Packet_Rx->Data_field[1];
 
                     //check if portions are send in correct order
@@ -2233,6 +2238,7 @@ int main(void) {
                     else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 
                     //**ZT Modify_BRDSPI16_Reg_bits (FPGA_SPI_REG_LMS1_LMS2_CTRL, LMS1_SS, LMS1_SS, 1); //Disable LMS's SPI
+#endif
 
                     break;
 #endif
