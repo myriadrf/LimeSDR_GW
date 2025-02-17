@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include <generated/csr.h>
+#include <generated/soc.h>
 
 #include "csr_access.h"
 
@@ -63,9 +64,11 @@ void fpgacfg_write(uint16_t addr, uint8_t *wdata)
 	case 0x12:
 		limetop_fpgacfg_spi_ss_write(value);
 		break;
+#ifdef WITH_LMS7002
 	case 0x13:
 		limetop_lms7002_top_lms1_write(value);
 		break;
+#endif
 	case 0x17:
 		limetop_gpio_write(value);
 		break;
@@ -146,9 +149,11 @@ void fpgacfg_read(uint16_t addr, uint8_t *rdata)
 	case 0x12:
 		value = limetop_fpgacfg_spi_ss_read();
 		break;
+#ifdef WITH_LMS7002
 	case 0x13:
 		value = limetop_lms7002_top_lms1_read();
 		break;
+#endif
 	case 0x17:
 		value = limetop_gpio_read();
 		break;
@@ -177,9 +182,11 @@ void pllcfg_write(uint16_t addr, uint8_t *wdata)
 
 	switch (addr)
 	{
+#ifdef WITH_LMS7002
 	case 0x3:
 		limetop_lms7002_top_reg03_write(value);
 		break;
+#endif
 	/* 0x4-0x12 - No present on XTRX/LimeMSDR-Mini */
 	case 0x4:
 	case 0x5:
@@ -211,9 +218,11 @@ void pllcfg_read(uint16_t addr, uint8_t *rdata)
 
 	switch (addr)
 	{
+#ifdef WITH_LMS7002
 	case 0x01:
 		value = limetop_lms7002_top_reg01_read();
 		break;
+#endif
 	case 0x02:
 		value = limetop_pllcfg_pll_lock_read();
 		break;
