@@ -62,7 +62,8 @@ present/installed.
 
 **Limitations**:
 - **PLL Calibration / Delays**: Not used. The LiteX implementation of the Altera PLL module needs improvement.
-- **SPI Flash**: Not tested.
+- The same bitstream can't be used for both Golden and operational: one bitstream must be build for Golden,
+  and a second for operational. See section **LimeSDR Mini v1 Boot**.
 
 #### limesdr_mini_v2
 
@@ -138,13 +139,15 @@ Go back to *LimeSDR-Mini-v2_GW*. Scrip to use depends on target board:
 
 ```bash
 # Build the Gateware
-python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--without-spi-flash] [--load]
+python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--without-spi-flash] [--load] [--golden]
 ```
 
 Where:
 - `--with-bios` enables *LiteX bios* (requires more resources)
 - `--with-spi-flash` to disable SPI Flash support
 - `--load` to write bitstream
+- `--golden` to create the Golden bitstream (without RX/TX Path nor LMS7002 Modules to reduces
+  size since it uses ROM)
 
 ### limesdr_mini_v2
 
@@ -173,6 +176,46 @@ Where:
 - `--with-bios` enables *LiteX bios*
 - `--load` to load the bitstream (Volatile memory)
 - `--write` to write the bitstream (SPI Flash)
+
+
+## LimeSDR Mini v1 Boot
+
+This section explains why two distinct bitstreams are required:
+- one for the **Golden** bitstream
+- one for the **Operational** bitstream.
+
+### MAX10 Limitations in Dual Image Configuration Mode
+
+The Intel MAX10 FPGA has certain restrictions in *Dual Image Configuration Mode*:
+- **RAM cannot be used as ROM**, leading to increased resource usage. This limits
+  the available features in the gateware, which is why the LMS7002 transceiver and
+  RX/TX paths are disabled in the Golden bitstream.
+- **Preinitialized ROM can only be configured once**. If the operational bitstream
+  relies on ROM, the Golden bitstream cannot.
+
+The solution to bypass these limitations is:
+- using *UFM* section (internal flash) to store firmware for operational: no ROM are
+  used allowing a full featured gateware
+- using *ROM* only for Golden: this bitstream will be able to erases/reprograms internal flash
+  but has nothing related to the RF
+
+Operational bitstream can't be used to reprogram internal_flash because firmware is
+executed directly from the Flash, but this one will be erased during the update sequence.
+
+### Solution
+
+To work around these limitations:
+- The **UFM (User Flash Memory) section** is used to store firmware for the operational
+  bitstream. Since no ROM is required, this allows for a fully featured gateware and
+  let **Golden bitstream** using ROM.
+- **ROM is used only for the Golden bitstream**, which is responsible for erasing
+  and reprogramming the internal flash but does not interact with RF functionality.
+
+### Why the Operational Bitstream Cannot Reprogram Internal Flash
+
+The operational bitstream cannot be used for internal flash reprogramming because
+its firmware runs directly from flash memory. During an update, this memory is
+erased, making it unavailable for execution.
 
 ## Tests
 
