@@ -226,6 +226,7 @@ class BaseSoC(SoCCore):
             TX_PCT_SIZE        = TX_PCT_SIZE,
             TX_IN_PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
             with_rx_tx_top     = with_rx_tx_top,
+            with_lms7002       = with_lms7002,
 
             # FPGACFG.
             board_id           = 0x0011,
