@@ -18,3 +18,8 @@ vivado_*
 docs/_build/
 docs/venv/
 /software/
+
+LimeSDR-Mini_lms7_trx_HW_1.2.map
+LimeSDR-Mini_lms7_trx_HW_1.2.pof
+LimeSDR-Mini_lms7_trx_HW_1.2.svf
+*.rpd
