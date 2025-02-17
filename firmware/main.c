@@ -95,6 +95,7 @@
 //#define DEBUG_CSR_ACCESS
 //#define DEBUG_LMS_SPI
 //#define DEBUG_CMD
+//#define DEBUG_INTERNAL_FLASH
 
 /************************** Variable Definitions *****************************/
 uint8_t block, cmd_errors;
@@ -829,10 +830,14 @@ static void dac_spi_write(const uint16_t write_data)
 }
 
 /* SPIFlash ------------------------------------------------------------------*/
-#if defined(CSR_SPIFLASH_CORE_BASE)
+#if defined(CSR_SPIFLASH_CORE_BASE) | defined(CSR_INTERNAL_FLASH_BASE)
 void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 {
+#ifdef CSR_SPIFLASH_CORE_BASE
     void *addr = (void *)SPIFLASH_BASE;
+#else
+    void *addr = (void *)INTERNAL_FLASH_BASE;
+#endif
     uint32_t real_len = length;
     int i, ii, data_offset;
     uint32_t rx;
@@ -844,7 +849,7 @@ void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
         real_len++;
     }
     for (i = 0, data_offset = 0; i < real_len; i += 4) {
-        rx = *(uint32_t *)(addr + i);
+        rx = *(uint32_t *)(addr + base_addr + i);
         int max = (data_offset + 4 > length) ? length - data_offset : 4;
         for (ii = offset; ii < max; ii++) {
             rdata[data_offset++] = (rx >> (ii * 8));
@@ -1697,39 +1702,51 @@ int main(void) {
                                     if((internal_flash_status_register_read() & 0x13) == 0x10)
                                     {
                                         internal_flash_control_register_write(0xf67fffff);
+#ifdef DEBUG_INTERNAL_FLASH
                                         printf("CFM0 Erased\n");
+#endif
                                         state = 13;
                                         Flash = 1;
                                     }
                                     if((internal_flash_status_register_read() & 0x13) == 0x01)
                                     {
+#ifdef DEBUG_INTERNAL_FLASH
                                         printf("Erasing CFM0\n");
+#endif
                                         state = 11;
                                         Flash = 1;
                                     }
                                     if((internal_flash_status_register_read() & 0x13) == 0x00)
                                     {
+#ifdef DEBUG_INTERNAL_FLASH
                                         printf("Erase CFM0 Failed\n");
+#endif
                                         state = 0;
                                     }
 #else
                                     //if ((0x03 & MicoSPIFlash_StatusRead (spiflash)) == 0)
                                     if ((0x03 & spiflash_read_status_register()) == 0)
                                     {
-                                        //printf("CFM0 Erased\n");
-                                        //printf("Enter Programming file.\n");
+#ifdef DEBUG_INTERNAL_FLASH
+                                        printf("CFM0 Erased\n");
+                                        printf("Enter Programming file.\n");
+#endif
                                         state = 20;
                                         Flash = 1;
                                     }
                                     if((0x01 & spiflash_read_status_register()) == 0x01)
                                     {
-                                        //printf("Erasing CFM0\n");
+#ifdef DEBUG_INTERNAL_FLASH
+                                        printf("Erasing CFM0\n");
+#endif
                                         state = 11;
                                         Flash = 1;
                                     }
                                     if((0x02 & spiflash_read_status_register()) == 0x02)
                                     {
-                                        //printf("Erase CFM0 Failed\n");
+#ifdef DEBUG_INTERNAL_FLASH
+                                        printf("Erase CFM0 Failed\n");
+#endif
                                         state = 0;
                                     }
 #endif
@@ -1752,19 +1769,25 @@ int main(void) {
                                     if((internal_flash_status_register_read() & 0x13) == 0x10)
                                     {
                                         internal_flash_control_register_write(0xf67fffff);
-                                        //printf("UFM ID1 Erased\n");
+#ifdef DEBUG_INTERNAL_FLASH
+                                        printf("UFM ID1 Erased\n");
+#endif
                                         state = 16;
                                         Flash = 1;
                                     }
                                     if((internal_flash_status_register_read() & 0x13) == 0x01)
                                     {
-                                        //printf("Erasing UFM ID1\n");
+#ifdef DEBUG_INTERNAL_FLASH
+                                        printf("Erasing UFM ID1\n");
+#endif
                                         state = 14;
                                         Flash = 1;
                                     }
                                     if((internal_flash_status_register_read() & 0x13) == 0x00)
                                     {
-                                        //printf("Erase UFM ID1 Failed\n");
+#ifdef DEBUG_INTERNAL_FLASH
+                                        printf("Erase UFM ID1 Failed\n");
+#endif
                                         state = 0;
                                     }
                                     break;
@@ -1785,19 +1808,25 @@ int main(void) {
                                     if((internal_flash_status_register_read() & 0x13) == 0x10)
                                     {
                                         internal_flash_control_register_write(0xf67fffff);
+#ifdef DEBUG_INTERNAL_FLASH
                                         printf("UFM ID2 Erased\n");
+#endif
                                         state = 20;
                                         Flash = 1;
                                     }
                                     if((internal_flash_status_register_read() & 0x13) == 0x01)
                                     {
+#ifdef DEBUG_INTERNAL_FLASH
                                         printf("Erasing UFM ID2\n");
+#endif
                                         state = 17;
                                         Flash = 1;
                                     }
                                     if((internal_flash_status_register_read() & 0x13) == 0x00)
                                     {
+#ifdef DEBUG_INTERNAL_FLASH
                                         printf("Erase UFM ID2 Failed\n");
+#endif
                                         state = 0;
                                     }
                                     break;
@@ -1834,7 +1863,9 @@ int main(void) {
 
                                     if((internal_flash_status_register_read() & 0x0b) == 0x00)
                                     {
+#ifdef DEBUG_INTERNAL_FLASH
                                         printf("Write to addr failed\n");
+#endif
                                         state = 0;
                                         address = 700000;
                                     }
