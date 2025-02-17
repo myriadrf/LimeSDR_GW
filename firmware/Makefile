@@ -20,10 +20,10 @@ else
 OBJECTS += csr_access.o spiflash.o
 endif
 
-all: firmware.bin
+all: firmware.bin firmware.hex
 
-test:
-	echo $(OBJECTS)
+%.hex: %.bin
+	srec_cat $< -binary -o $@ -Intel
 
 %.bin: %.elf
 	$(OBJCOPY) -O binary $< $@
