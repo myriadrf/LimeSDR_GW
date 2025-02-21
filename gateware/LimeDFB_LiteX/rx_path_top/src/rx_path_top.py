@@ -84,7 +84,7 @@ class RXPathTop(LiteXModule):
 
         self.iqpacket_axis = iqpacket_axis           = stream.Endpoint([("data", 128)])
 
-        iqpacket_wr_data_count  = Signal(9)
+        iqpacket_wr_data_count  = Signal(10)
         bp_sample_nr_counter    = Signal(64)
         pkt_size                = Signal(16)
 
@@ -310,8 +310,8 @@ class RXPathTop(LiteXModule):
             ]
         else:
             self.specials += [
-                MultiReg(reset_n,                     s_clk_rst_n,                s_clk_domain, reset=1),
-                MultiReg(s_clk_rst_n,                 self.rx_pct_fifo_aclrn_req, s_clk_domain, reset=1),
+                MultiReg(reset_n,                     s_clk_rst_n,                s_clk_domain, reset=0),
+                MultiReg(s_clk_rst_n,                 self.rx_pct_fifo_aclrn_req, s_clk_domain, reset=0),
                 MultiReg(fpgacfg_manager.mimo_int_en, mimo_en,                    s_clk_domain),
                 MultiReg(fpgacfg_manager.ddr_en,      ddr_en,                     s_clk_domain),
                 MultiReg(fpgacfg_manager.smpl_width,  s_smpl_width,               s_clk_domain),
@@ -326,7 +326,7 @@ class RXPathTop(LiteXModule):
             ]
         else:
             self.specials += [
-                MultiReg(reset_n,                     int_clk_rst_n,            int_clk_domain, reset=1),
+                MultiReg(reset_n,                     int_clk_rst_n,            int_clk_domain, reset=0),
                 MultiReg(fpgacfg_manager.ch_en,       self.int_clk_ch_en,       int_clk_domain, reset=0),
                 MultiReg(fpgacfg_manager.mimo_int_en, self.int_clk_mimo_en,     int_clk_domain, reset=0),
                 MultiReg(fpgacfg_manager.smpl_nr_clr, self.int_clk_smpl_nr_clr, int_clk_domain, reset=0),
