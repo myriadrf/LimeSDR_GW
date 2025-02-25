@@ -67,6 +67,7 @@ architecture ARCH of PCT2DATA_BUF_WR is
 
    signal rd_cnt                    : unsigned(15 downto 0);                      --! Read counter
    signal rd_cnt_max                : unsigned(15 downto 0);                      --! Maximum read counter
+    signal m_axis_tvalid_int         : std_logic_vector(G_BUFF_COUNT - 1 downto 0);
 
    constant C_RD_RATIO              : integer := (S_AXIS_TDATA'left+1) / 8;       --! Read ratio (Number of bytes in bus)
 
@@ -86,7 +87,6 @@ begin
          state <= RESET_STATE;
       elsif rising_edge(AXIS_ACLK) then
          -- Reset output signals
-         M_AXIS_TLAST <= (others => '0');
          conn_buf     <= '0';
 
          case state is
@@ -125,11 +125,6 @@ begin
                   end if;
                   
                end if;
-               
-               if (rd_cnt >= (rd_cnt_max - 1)) then
-                    -- this will only be read during the last cycle
-                    M_AXIS_TLAST(curbuf) <= '1';
-               end if;
 
             when SW_BUF =>
                -- Reset read counter
@@ -157,10 +152,14 @@ begin
    S_AXIS_TREADY <= M_AXIS_TREADY(curbuf) when conn_buf = '1' else
                     '0';
 
-   GEN_ASSIGN_VALID : for i in 0 to G_BUFF_COUNT - 1 generate
-      M_AXIS_TVALID(i) <= S_AXIS_TVALID when (curbuf=i and conn_buf='1') else
-                          '0';
-   end generate GEN_ASSIGN_VALID;
+    GEN_ASSIGN_VALID : for i in 0 to G_BUFF_COUNT - 1 generate
+        m_axis_tvalid_int(i) <= S_AXIS_TVALID when (curbuf=i and conn_buf='1') else
+            '0';
+            M_AXIS_TLAST(i) <= m_axis_tvalid_int(i) when (curbuf=i and (rd_cnt >= (rd_cnt_max - 1))) else
+                '0';
+        end generate GEN_ASSIGN_VALID;
+
+    M_AXIS_TVALID <= m_axis_tvalid_int;
 
 end architecture ARCH;
 
