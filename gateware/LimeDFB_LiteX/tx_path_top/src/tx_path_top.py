@@ -30,7 +30,8 @@ class TXPathTop(LiteXModule):
         FIFO_DATA_W       = 128,
         rx_clk_domain     = "lms_rx",
         m_clk_domain      = "lms_tx",
-        s_clk_domain      = "lms_tx"
+        s_clk_domain      = "lms_tx",
+        input_buff_size   = 0
         ):
 
         assert fpgacfg_manager is not None
@@ -75,7 +76,7 @@ class TXPathTop(LiteXModule):
 
         curr_buf_index   = Signal(math.ceil(math.log2(BUFF_COUNT)))
 
-        p2d_wr_buf_empty = Signal(BUFF_COUNT)
+        self.p2d_wr_buf_empty = p2d_wr_buf_empty = Signal(BUFF_COUNT)
 
         data_pad_tvalid  = Signal()
         data_pad_tdata   = Signal(128)
@@ -85,6 +86,11 @@ class TXPathTop(LiteXModule):
         # AXI Slave FIFO_DATA_W -> 128 (must uses s_axis_domain)
         conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(FIFO_DATA_W, 128)))
         self.conv_64_to_128 = conv_64_to_128
+
+        # Input data buffer (128 bit)
+        input_buff = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.SyncFIFO([("data", 128)], depth=int(input_buff_size/128), buffered=True)))
+        # input_buff = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.SyncFIFO([("data", 128)], depth=32, buffered=False)))
+        self.input_buff = input_buff
 
         # FIFO before unpacker
         fifo_smpl_buff      = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.SyncFIFO([("data", 128)], 16)))
@@ -144,6 +150,13 @@ class TXPathTop(LiteXModule):
             smpl_nr_fifo.sink.valid.eq(  smpl_nr_fifo.sink.ready),
             rx_sample_nr.eq(             smpl_nr_fifo.source.data),
             smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid),
+
+            # input_buff
+            input_buff.reset.eq(~s_reset_n),
+            input_buff.sink.data.eq(     conv_64_to_128.source.data),
+            input_buff.sink.last.eq(     conv_64_to_128.source.last),
+            input_buff.sink.valid.eq(    conv_64_to_128.source.valid),
+            conv_64_to_128.source.ready.eq(input_buff.sink.ready),
         ]
 
         self.pct2data_buf_wr = Instance("PCT2DATA_BUF_WR",
@@ -155,10 +168,10 @@ class TXPathTop(LiteXModule):
             i_S_AXIS_ARESET_N = s_reset_n,                    # s_axis_domain.a_reset_n
 
             # AXI Stream Slave
-            i_S_AXIS_TVALID   = conv_64_to_128.source.valid,
-            i_S_AXIS_TDATA    = conv_64_to_128.source.data,
-            o_S_AXIS_TREADY   = conv_64_to_128.source.ready,
-            i_S_AXIS_TLAST    = conv_64_to_128.source.last,
+            i_S_AXIS_TVALID   = input_buff.source.valid,
+            i_S_AXIS_TDATA    = input_buff.source.data,
+            o_S_AXIS_TREADY   = input_buff.source.ready,
+            i_S_AXIS_TLAST    = input_buff.source.last,
 
             # AXI Stream Master
             i_M_AXIS_ARESET_N = s_reset_n,                    # s_axis_domain.a_reset_n
