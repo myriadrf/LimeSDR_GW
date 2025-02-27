@@ -85,6 +85,11 @@ begin
       if (int_rst = '0') then
          -- Reset state
          state <= RESET_STATE;
+         -- Reset counters and current buffer
+         rd_cnt     <= (others => '0');
+         rd_cnt_max <= (others => '0');
+         curbuf     <= 0;
+         conn_buf   <= '0';
       elsif rising_edge(AXIS_ACLK) then
          -- Reset output signals
          conn_buf     <= '0';
