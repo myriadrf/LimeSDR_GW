@@ -122,12 +122,12 @@ begin
                 end if;
 				
 			when state2 =>
-                if (M_AXIS_TREADY = '1' and M_AXIS_TVALID = '1') or data_sent = '1' then
+                if M_AXIS_TREADY = '1' and M_AXIS_TVALID = '1' then
                     data_sent <= '1';
                 end if;
                 if S_AXIS_TVALID = '1'  then
                     m_axis_tvalid_int <= '1';
-                    if M_AXIS_TREADY = '1' and M_AXIS_TVALID = '1' then
+                    if (M_AXIS_TREADY = '1' and M_AXIS_TVALID = '1')  or data_sent = '1' then
                         state     <= state3;
                         data_sent <= '0';
                         if S_AXIS_TLAST = '1' then

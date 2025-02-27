@@ -115,7 +115,10 @@ class FT601(LiteXModule):
         #EP03_fifo_wusedw  = Signal(11)
 
         # EP83 fifo signals
+        EP83_FIFO_data_reg = Signal(32)
+        self.EP83_FIFO_data_reg = EP83_FIFO_data_reg
         EP83_fifo_rdusedw = Signal(FIFORD_SIZE(EP83_wwidth, FT_data_width, EP83_wrusedw_width))
+        self.EP83_fifo_rdusedw = EP83_fifo_rdusedw
         sync_reg0         = Signal(2)
 
         # arbiter signals
@@ -235,7 +238,7 @@ class FT601(LiteXModule):
             i_EP03_fifo_wrempty = EP03_rdy,
 
             # Stream EP FPGA->PC.
-            i_EP83_fifo_data    = self.EP83_conv.source.data,
+            i_EP83_fifo_data    = EP83_FIFO_data_reg,
             o_EP83_fifo_rd      = self.EP83_fifo_status.busy_in,
             i_EP83_fifo_rdusedw = EP83_fifo_rdusedw,
 
@@ -353,7 +356,10 @@ class FT601(LiteXModule):
 
             # EP83 Fifo.
             # ----------
-            self.EP83_conv.source.ready.eq(self.EP83_fifo_status.busy_in),
+            #self.EP83_conv.source.ready.eq(self.EP83_fifo_status.busy_in),
+            If( (self.EP83_conv.source.valid == 0b1) & (self.EP83_conv.source.ready == 0b1),
+                EP83_FIFO_data_reg.eq(self.EP83_conv.source.data),
+            ),
 
             If(self.stream_fifo_pc_fpga_reset_n == 0b0,
                 sync_reg0.eq(0b00),
@@ -366,6 +372,8 @@ class FT601(LiteXModule):
                 EP03_rdy.eq(1),
             )
         ]
+
+        self.comb += self.EP83_conv.source.ready.eq(self.EP83_fifo_status.busy_in)
 
         self.ft601_arbiter_conv = add_vhd2v_converter(self.platform,
             instance = self.ft601_arbiter,

@@ -13,9 +13,8 @@ from migen.genlib.cdc import MultiReg
 
 from litex.gen import *
 
-from litex.soc.interconnect                import stream
 from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
-from litex.soc.interconnect.packet         import PacketFIFO
+from litex.soc.interconnect                import stream
 
 from gateware.common import *
 
@@ -31,7 +30,8 @@ class TXPathTop(LiteXModule):
         FIFO_DATA_W       = 128,
         rx_clk_domain     = "lms_rx",
         m_clk_domain      = "lms_tx",
-        s_clk_domain      = "lms_tx"
+        s_clk_domain      = "lms_tx",
+        input_buff_size   = 0
         ):
 
         assert fpgacfg_manager is not None
@@ -76,7 +76,7 @@ class TXPathTop(LiteXModule):
 
         curr_buf_index   = Signal(math.ceil(math.log2(BUFF_COUNT)))
 
-        p2d_wr_buf_empty = Signal(BUFF_COUNT)
+        self.p2d_wr_buf_empty = p2d_wr_buf_empty = Signal(BUFF_COUNT)
 
         data_pad_tvalid  = Signal()
         data_pad_tdata   = Signal(128)
@@ -87,6 +87,11 @@ class TXPathTop(LiteXModule):
         conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(FIFO_DATA_W, 128)))
         self.conv_64_to_128 = conv_64_to_128
 
+        # Input data buffer (128 bit)
+        input_buff = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.SyncFIFO([("data", 128)], depth=int(input_buff_size/128), buffered=True)))
+        # input_buff = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.SyncFIFO([("data", 128)], depth=32, buffered=False)))
+        self.input_buff = input_buff
+
         # FIFO before unpacker
         fifo_smpl_buff      = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.SyncFIFO([("data", 128)], 16)))
         self.fifo_smpl_buff = fifo_smpl_buff
@@ -94,6 +99,8 @@ class TXPathTop(LiteXModule):
         unpack_bypass       = Signal()
 
         # LiteScope probes
+        self.smpl_width      = smpl_width
+        self.unpack_bypass   = unpack_bypass
         self.p2d_rd_tready   = p2d_rd_tready
         self.p2d_rd_tlast    = p2d_rd_tlast
         self.p2d_rd_tvalid   = p2d_rd_tvalid
@@ -104,7 +111,11 @@ class TXPathTop(LiteXModule):
         self.data_pad_tready = data_pad_tready
         self.data_pad_tlast  = data_pad_tlast
         self.data_pad_tvalid = data_pad_tvalid
+        self.data_pad_tdata  = data_pad_tdata
         self.curr_buf_index  = curr_buf_index
+
+        self.s_reset_n = s_reset_n
+        self.m_reset_n = m_reset_n
 
         # Clocks ----------------------------------------------------------------------------------
         # Sample NR FIFO (must be async with sink in RX_CLK, source iqsample, areset_n with iqpacket_areset_n)
@@ -113,10 +124,11 @@ class TXPathTop(LiteXModule):
             self.smpl_nr_fifo = smpl_nr_fifo
             self.comb += smpl_nr_fifo.reset.eq(~s_reset_n),
         else:
+            #TODO: check if reset is needed here
             self.cd_smpl_nr_fifo  = ClockDomain()
             smpl_nr_fifo          = stream.ClockDomainCrossing([("data", 64)],
                 cd_from = "smpl_nr_fifo",
-                cd_to   = s_clk_domain,
+                cd_to   = m_clk_domain,
                 depth   = 128,
             )
             self.smpl_nr_fifo     = smpl_nr_fifo
@@ -126,7 +138,7 @@ class TXPathTop(LiteXModule):
             ]
 
         self.comb += [
-            conv_64_to_128.reset.eq(     ~(s_reset_n & self.ext_reset_n)),
+            conv_64_to_128.reset.eq(     ~s_reset_n),
             conv_64_to_128.sink.last.eq( 0), # FIXME: something else?
 
             conv_64_to_128.sink.data.eq( self.sink.data),
@@ -138,6 +150,13 @@ class TXPathTop(LiteXModule):
             smpl_nr_fifo.sink.valid.eq(  smpl_nr_fifo.sink.ready),
             rx_sample_nr.eq(             smpl_nr_fifo.source.data),
             smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid),
+
+            # input_buff
+            input_buff.reset.eq(~s_reset_n),
+            input_buff.sink.data.eq(     conv_64_to_128.source.data),
+            input_buff.sink.last.eq(     conv_64_to_128.source.last),
+            input_buff.sink.valid.eq(    conv_64_to_128.source.valid),
+            conv_64_to_128.source.ready.eq(input_buff.sink.ready),
         ]
 
         self.pct2data_buf_wr = Instance("PCT2DATA_BUF_WR",
@@ -149,10 +168,10 @@ class TXPathTop(LiteXModule):
             i_S_AXIS_ARESET_N = s_reset_n,                    # s_axis_domain.a_reset_n
 
             # AXI Stream Slave
-            i_S_AXIS_TVALID   = conv_64_to_128.source.valid,
-            i_S_AXIS_TDATA    = conv_64_to_128.source.data,
-            o_S_AXIS_TREADY   = conv_64_to_128.source.ready,
-            i_S_AXIS_TLAST    = conv_64_to_128.source.last,
+            i_S_AXIS_TVALID   = input_buff.source.valid,
+            i_S_AXIS_TDATA    = input_buff.source.data,
+            o_S_AXIS_TREADY   = input_buff.source.ready,
+            i_S_AXIS_TLAST    = input_buff.source.last,
 
             # AXI Stream Master
             i_M_AXIS_ARESET_N = s_reset_n,                    # s_axis_domain.a_reset_n
@@ -162,60 +181,88 @@ class TXPathTop(LiteXModule):
             o_M_AXIS_TLAST    = p2d_wr_tlast,
 
             i_BUF_EMPTY       = p2d_wr_buf_empty,
-            i_RESET_N         = {True: s_reset_n, False: self.ext_reset_n}[platform.name.startswith("limesdr_mini")],
+            i_RESET_N         = self.ext_reset_n,
         )
 
         cases = {}
+
+        # local variables to avoid mismatch between
+        # data_width and tkeep_width
+        packet_mode = True
+        data_width  = 128
+        tkeep_width = int(data_width/8)
+        fifo_depth  = 256
+
+        force_convert = platform.vhd2v_force
+        # May be problematic if we need to use fifo somewhere else
+        self.fifo_src_conv =  VHD2VConverter(platform,
+                              work_package  = "work",
+                              force_convert = True,#force_convert,
+                              add_instance  = False,
+                              files    = ["gateware/LimeDFB/axis_fifo/src/axis_fifo.vhd",
+                                          "gateware/LimeDFB/axis_fifo/src/wptr_handler.vhd",
+                                          "gateware/LimeDFB/axis_fifo/src/rptr_handler.vhd",
+                                          "gateware/LimeDFB/axis_fifo/src/ram_mem_wrapper.vhd",
+                                          # VHD2VConverter is not able to convert this file.
+                                          # OK because it is not used in "Generic" implementation
+                                          #"gateware/LimeDFB/axis_fifo/src/xilinx_simple_dual_port_2_clock_ram.vhd",
+                                          "gateware/LimeDFB/cdc/src/cdc_sync_bit.vhd",
+                                          "gateware/LimeDFB/cdc/src/cdc_sync_bus.vhd",
+                                          ],
+                              params= {
+                                  'p_G_VENDOR'      : "GENERIC", # Only "GENERIC" supported for now
+                                  'p_G_PACKET_MODE' : "true" if packet_mode else "false",
+                                  'p_g_DATA_WIDTH'  : data_width,
+                                  'p_g_FIFO_DEPTH'  : fifo_depth,
+                              },
+                              top_entity='axis_fifo'
+                              )
+
+        # -1 to fix off by one error
         for i in range(BUFF_COUNT):
-            if platform.name in ["limesdr_mini_v1"]:
-                # FIXME: write: s_axis_domain, read: m_axis_domain. Must check PACKET_FIFO mean
-                smpl_fifo = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.SyncFIFO([("data", 128)], 256)))
-                self.comb += [
-                    smpl_fifo.reset.eq(     ~(s_reset_n & p2d_rd_resetn[i])),
-                    smpl_fifo.sink.valid.eq(p2d_wr_tvalid[i]),
-                    p2d_wr_tready[i].eq(    smpl_fifo.sink.ready),
-                    smpl_fifo.sink.last.eq( p2d_wr_tlast[i]),
-                    smpl_fifo.sink.data.eq( p2d_wr_tdata),
-                    p2d_wr_buf_empty[i].eq( ~(smpl_fifo.level > 0)),
-                ]
-            else:
-                # Sample FIFO ClockDomain
-                self.cd_smpl_fifo = ClockDomain()
-                self.comb += [
-                    self.cd_smpl_fifo.clk.eq(ClockSignal(s_clk_domain)),
-                    self.cd_smpl_fifo.rst.eq(ResetSignal(s_clk_domain) | (~(s_reset_n & p2d_rd_resetn[i]))),
-                ]
-                self.s_fifo = s_fifo = ClockDomainsRenamer("smpl_fifo")(PacketFIFO([("data", 128)],
-                    payload_depth = 256,
-                    param_depth   = 1,
-                    buffered      = False,
-                ))
+            usedw_width = math.ceil(math.log2(fifo_depth))
+            self.wr_usedw = Signal(usedw_width+1)
+            self.rd_usedw = Signal(usedw_width + 1)
+            self.p2d_rd_tkeep = Signal(tkeep_width)
+            sample_data_out = Signal(data_width)
 
-                self.smpl_fifo = smpl_fifo = stream.ClockDomainCrossing([("data", 128)],
-                    cd_from         = "smpl_fifo",
-                    cd_to           = m_clk_domain,
-                    depth           = 4,
-                    with_common_rst = True,
-                )
+            self.packet_buf = Instance("axis_fifo",
+            # Parameters
+            #   vhd2v converter seems to have trouble with boolean and string parameters
+            #   but default values are good here
+            # p_G_PACKET_MODE         = True,
+            # p_G_VENDOR              = "GENERIC",
+            #### These are provided to vhd2vconverter
+            #p_G_FIFO_DEPTH          = fifo_depth,
+            #p_G_DATA_WIDTH          = data_width        ,
+            # s_axis
+            i_s_axis_aresetn        = (s_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
+            i_s_axis_aclk           = ClockSignal(s_clk_domain),
+            i_s_axis_tvalid         = p2d_wr_tvalid[i],
+            o_s_axis_tready         = p2d_wr_tready[i],
+            i_s_axis_tdata          = p2d_wr_tdata,
+            i_s_axis_tkeep          = Replicate(1,tkeep_width),
+            i_s_axis_tlast          = p2d_wr_tlast[i],
+            # m_axis
+            i_m_axis_aresetn  = (s_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
+            i_m_axis_aclk     = ClockSignal(m_clk_domain),
+            o_m_axis_tvalid   = p2d_rd_tvalid[i],
+            i_m_axis_tready   = p2d_rd_tready[i],
+            o_m_axis_tdata    = sample_data_out,
+            o_m_axis_tkeep    = self.p2d_rd_tkeep, # open, unused
+            o_m_axis_tlast    = p2d_rd_tlast[i],
+            # usedw
+            o_rdusedw         = self.rd_usedw, # open, unused
+            o_wrusedw         = self.wr_usedw
+            )
 
-                self.comb += [
-                    s_fifo.sink.valid.eq(      p2d_wr_tvalid[i]),
-                    p2d_wr_tready[i].eq(       s_fifo.sink.ready),
-                    s_fifo.sink.last.eq(       p2d_wr_tlast[i]),
-                    s_fifo.sink.data.eq(       p2d_wr_tdata),
-                    p2d_wr_buf_empty[i].eq(    ~(s_fifo.payload_fifo.level > 0)),
-                    self.s_fifo.source.connect(smpl_fifo.sink)
-                ]
-
-            self.comb += [
-                # FIFO -> pct2data_buf_rd
-                p2d_rd_tvalid[i].eq(      smpl_fifo.source.valid),
-                p2d_rd_tlast[i].eq(       smpl_fifo.source.last),
-                smpl_fifo.source.ready.eq(p2d_rd_tready[i]),
+            self.comb +=[
+                p2d_wr_buf_empty[i].eq(self.wr_usedw == 0)
             ]
 
-            cases[i] = p2d_rd_tdata.eq(smpl_fifo.source.data)
+            cases[i] = p2d_rd_tdata.eq(sample_data_out)
 
+        # Mux data input for p2d_rd
         self.comb += Case(curr_buf_index, cases)
 
         self.pct2data_buf_rd = Instance("PCT2DATA_BUF_RD",
@@ -300,8 +347,8 @@ class TXPathTop(LiteXModule):
             ]
         else:
             self.specials += [
-                MultiReg(fpgacfg_manager.tx_en, s_reset_n, odomain=s_clk_domain),
-                MultiReg(fpgacfg_manager.tx_en, m_reset_n, odomain=m_clk_domain),
+                MultiReg(fpgacfg_manager.rx_en, s_reset_n, odomain=s_clk_domain),
+                MultiReg(fpgacfg_manager.rx_en, m_reset_n, odomain=m_clk_domain),
             ]
 
         self.specials += [
@@ -312,7 +359,7 @@ class TXPathTop(LiteXModule):
         ]
 
         self.comb += [
-            fifo_smpl_buff.reset.eq(~(m_reset_n & self.ext_reset_n)),
+            fifo_smpl_buff.reset.eq(~self.ext_reset_n),
             self.source.last.eq(0),
             If(smpl_width == 0b00,
                 unpack_bypass.eq(1),

@@ -56,7 +56,7 @@ STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
 TX_PCT_SIZE          = 4096  # TX packet size in bytes
-TX_N_BUFF            = 4     # N 4KB buffers in TX interface (2 OR 4)
+TX_N_BUFF            = 2     # N 4KB buffers in TX interface (2 OR 4)
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -393,9 +393,10 @@ class BaseSoC(SoCCore):
             sink_clk_domain      = "sys",
             source_width         = 64,
             source_clk_domain    = "sys",
-            TX_N_BUFF            = 5,
+            TX_N_BUFF            = TX_N_BUFF,
             TX_PCT_SIZE          = 4096,
             TX_IN_PCT_HDR_SIZE   = 16,
+            tx_buffer_size       = 0,
 
             with_rx_tx_top       = True,
             with_fft             = with_fft,

@@ -207,9 +207,11 @@ class BaseSoC(SoCCore):
             # FPGACFG.
             board_id           = 0x0011,
             major_rev          = 2,
-            compile_rev        = 7,
+            compile_rev        = 8,
             revision_pads      = platform.request("revision"),
         )
+
+        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en)
 
         # FT601 ------------------------------------------------------------------------------------
         self.ft601 = FT601(self.platform, platform.request("FT"),
@@ -233,7 +235,7 @@ class BaseSoC(SoCCore):
             self.ft601.source.connect(self.limetop.sink),
             self.limetop.source.connect(self.ft601.sink),
             # FT601 <-> RXTX Top.
-            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.rxtx_top.rx_pct_fifo_aclrn_req),
+            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.rxtx_top.rx_en),
             self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
         ]
 

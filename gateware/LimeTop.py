@@ -43,6 +43,7 @@ class LimeTop(LiteXModule):
         TX_N_BUFF            = 5,
         TX_PCT_SIZE          = 4096,
         TX_IN_PCT_HDR_SIZE   = 16,
+        tx_buffer_size       = 0,
 
         with_lms7002         = True,
         with_rx_tx_top       = True,
@@ -149,6 +150,7 @@ class LimeTop(LiteXModule):
                 TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
                 TX_IN_PCT_DATA_W       = sink_width,
                 tx_s_clk_domain        = "sys",
+                tx_buffer_size         = tx_buffer_size,
 
                 # RX parameters
                 RX_IQ_WIDTH            = LMS_DIQ_WIDTH,

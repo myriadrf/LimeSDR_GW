@@ -37,7 +37,7 @@ entity DATA2PACKETS_FSM is
       M_AXIS_TDATA         : out   std_logic_vector(127 downto 0);
       M_AXIS_TLAST         : out   std_logic;
       -- Misc
-      WR_DATA_COUNT_AXIS   : in    std_logic_vector(8 downto 0);
+      WR_DATA_COUNT_AXIS   : in    std_logic_vector(9 downto 0);
 
       DBG_DROP_SAMPLES : out std_logic;
       DBG_WR_HEADER    : out std_logic
