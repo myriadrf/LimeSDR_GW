@@ -385,7 +385,7 @@ def main():
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
 
     # Prepare pof/rpd files.
-    if os.path.exists(os.path.join(output_dir + "_golden", "gateware/limesdr_mini_v1.sof"))
+    if os.path.exists(os.path.join(output_dir + "_golden", "gateware/limesdr_mini_v1.sof")):
         os.system("quartus_cpf -c gateware/gen_pof_file.cof")
         os.system("quartus_cpf -c -q 25MHz -g 3.3 -n p LimeSDR-Mini_lms7_trx_HW_1.2.pof LimeSDR-Mini_lms7_trx_HW_1.2.svf")
     else:
