@@ -58,6 +58,6 @@ VPATH = $(BIOS_DIRECTORY):$(BIOS_DIRECTORY)/cmds:$(CPU_DIRECTORY)
 	$(assemble)
 
 clean:
-	$(RM) *.o firmware.elf firmware.bin .*~ *~ *.map *.d
+	$(RM) *.o firmware.elf firmware.bin firmware.hex .*~ *~ *.map *.d
 
 .PHONY: all clean
