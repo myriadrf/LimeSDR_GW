@@ -52,7 +52,9 @@ present/installed.
 
 #### **limesdr_mini_v1**
 
-- **Build Tool**: *Quartus*
+- **Build Tool**: *Quartus*, *srec_cat* to convert `firmware.bin` to
+  `firmware.hex` (intel Format required by quartus to store firmware into *UFM
+  sections*
 - **Detection**: Board is correctly detected with `limeDevice -f`.
 - **Rx Path**:
   - Validated with *GQRX* appimage (via *LimeSuite*).
