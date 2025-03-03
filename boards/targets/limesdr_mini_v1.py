@@ -383,6 +383,7 @@ def main():
                 False : "linker_rom.ld",
             }[args.with_bios]
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
+            assert os.path.exists(cpu_firmware), f"Error: {cpu_firmware} not available"
 
     # Prepare pof/rpd files.
     if os.path.exists(os.path.join(output_dir + "_golden", "gateware/limesdr_mini_v1.sof")):
