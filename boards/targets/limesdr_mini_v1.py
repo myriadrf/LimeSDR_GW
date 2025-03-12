@@ -54,7 +54,7 @@ STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
 TX_PCT_SIZE          = 4096  # TX packet size in bytes
-TX_N_BUFF            = 4     # N 4KB buffers in TX interface (2 OR 4)
+TX_N_BUFF            = 2     # N 4KB buffers in TX interface (2 OR 4)
 
 C_EP02_RDUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_RX_SIZE / (CTRL0_FPGA_RX_RWIDTH // 8)))) + 1
 C_EP82_WRUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_TX_SIZE / (CTRL0_FPGA_TX_WWIDTH // 8)))) + 1
@@ -260,6 +260,7 @@ class BaseSoC(SoCCore):
 
         if with_rx_tx_top:
             self.comb += [
+                self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en),
                 # FT601 <-> RXTX Top.
                 self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.rxtx_top.rx_pct_fifo_aclrn_req),
                 self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
