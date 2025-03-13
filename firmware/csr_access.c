@@ -188,6 +188,43 @@ void pllcfg_write(uint16_t addr, uint8_t *wdata)
 		break;
 #endif
 	/* 0x4-0x12 - No present on XTRX/LimeMSDR-Mini */
+#ifdef LIMESDR_MINI_V1
+	case 0x4:
+		limetop_pllcfg_cnt_phase_write(value);
+		break;
+	case 0x5:
+		limetop_pllcfg_reg05_write(value);
+		break;
+	case 0x6:
+		limetop_pllcfg_reg06_write(value);
+		break;
+	case 0x7:
+		limetop_pllcfg_reg07_write(value);
+		break;
+	case 0x8:
+		break;
+	case 0xa:
+		limetop_pllcfg_n_cnt_write(value);
+		break;
+	case 0xb:
+		limetop_pllcfg_m_cnt_write(value);
+		break;
+	case 0xe:
+		limetop_pllcfg_c0_cnt_write(value);
+		break;
+	case 0xf:
+		limetop_pllcfg_c1_cnt_write(value);
+		break;
+	case 0x10:
+		limetop_pllcfg_c2_cnt_write(value);
+		break;
+	case 0x11:
+		limetop_pllcfg_c3_cnt_write(value);
+		break;
+	case 0x12:
+		limetop_pllcfg_c4_cnt_write(value);
+		break;
+#else
 	case 0x4:
 	case 0x5:
 	case 0x6:
@@ -201,6 +238,7 @@ void pllcfg_write(uint16_t addr, uint8_t *wdata)
 	case 0x11:
 	case 0x12:
 		break;
+#endif
 	case 0x1E:
 		limetop_pllcfg_auto_phcfg_smpls_write(value);
 		break;
@@ -248,6 +286,43 @@ void tstcfg_write(uint16_t addr, uint8_t *wdata)
 	case 0x3:
 		limetop_tst_top_test_frc_err_write(value);
 		break;
+#ifdef LIMESDR_MINI_V1
+	case 0x4:
+		value = limetop_pllcfg_cnt_phase_read();
+		break;
+	case 0x5:
+		value = limetop_pllcfg_reg05_read();
+		break;
+	case 0x6:
+		value = limetop_pllcfg_reg06_read();
+		break;
+	case 0x7:
+		value = limetop_pllcfg_reg07_read();
+		break;
+	case 0x8:
+		break;
+	case 0xa:
+		value = limetop_pllcfg_n_cnt_read();
+		break;
+	case 0xb:
+		value = limetop_pllcfg_m_cnt_read();
+		break;
+	case 0xe:
+		value = limetop_pllcfg_c0_cnt_read();
+		break;
+	case 0xf:
+		value = limetop_pllcfg_c1_cnt_read();
+		break;
+	case 0x10:
+		value = limetop_pllcfg_c2_cnt_read();
+		break;
+	case 0x11:
+		value = limetop_pllcfg_c3_cnt_read();
+		break;
+	case 0x12:
+		value = limetop_pllcfg_c4_cnt_read();
+		break;
+#endif
 	case 0x1D:
 		limetop_tst_top_tx_tst_i_write(value);
 		break;
