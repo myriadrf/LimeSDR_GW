@@ -333,7 +333,6 @@ def main():
     # Build/Load/Utilities.
     parser.add_argument("--build",     action="store_true", help="Build bitstream.")
     parser.add_argument("--toolchain", default="quartus",   help="FPGA toolchain.", choices=["quartus"])
-    parser.add_argument("--load",      action="store_true", help="Load bitstream.")
     parser.add_argument("--flash",     action="store_true", help="Flash bitstream.")
     parser.add_argument("--cable",     default="ft2232",    help="JTAG cable.")
 
@@ -390,18 +389,17 @@ def main():
     if os.path.exists(os.path.join(output_dir + "_golden", "gateware/limesdr_mini_v1.sof")):
         os.system("quartus_cpf -c gateware/gen_pof_file.cof")
         os.system("quartus_cpf -c -q 25MHz -g 3.3 -n p LimeSDR-Mini_lms7_trx_HW_1.2.pof LimeSDR-Mini_lms7_trx_HW_1.2.svf")
+
+        # Flash Bitstream.
+        if args.flash:
+            prog = soc.platform.create_programmer(cable=args.cable)
+            prog.flash(0, "LimeSDR-Mini_lms7_trx_HW_1.2.svf")
+
     else:
         print("RPD/POF: Disabled. Missing Golden bitstream")
 
-    # Load Bistream.
-    if args.load:
-        prog = soc.platform.create_programmer(cable=args.cable)
-        prog.load_bitstream(builder.get_bitstream_filename(mode="sram", ext=".svf"))
-
-    # Flash Bitstream.
-    if args.flash:
-        prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(0, builder.get_bitstream_filename(mode="sram", ext=".svf"))
+        if args.flash:
+            print("Can't flash bitstream: Please build golden before.")
 
 if __name__ == "__main__":
     main()

@@ -141,7 +141,7 @@ Go back to *LimeSDR-Mini-v2_GW*. Scrip to use depends on target board:
 
 ```bash
 # Build the Gateware
-python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--with-spi-flash] [--golden]
+python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--with-spi-flash] [--golden] [--flash]
 ```
 
 Where:
@@ -149,6 +149,7 @@ Where:
 - `--with-spi-flash` to enable SPI Flash support
 - `--golden` to create the Golden bitstream (without RX/TX Path nor LMS7002 Modules to reduces
   size since it uses ROM)
+- `--flash` to write *Golden* and *User* Bitstreams (requires to have both bitstreams build.
 
 Since the Operational bitstream executes firmware from internal flash, the `--load` option
 is not supported.
@@ -162,6 +163,8 @@ To update the LimeSDR Mini v1, follow this sequence:
 To write the new image:
 - **Full update:**
   ```sh
+  python -m boards.targets.limesdr_mini_v1 --flash
+  # Or
   openFPGALoader -c [cable] LimeSDR-Mini_lms7_trx_HW_1.2.svf
   ```
 - **Operational bitstream and firmware update only:**
