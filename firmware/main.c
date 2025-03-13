@@ -92,7 +92,7 @@
 
 /* DEBUG */
 //#define DEBUG_FIFO
-//#define DEBUG_CSR_ACCESS
+#define DEBUG_CSR_ACCESS
 //#define DEBUG_LMS_SPI
 //#define DEBUG_CMD
 //#define DEBUG_INTERNAL_FLASH
@@ -2400,6 +2400,7 @@ int main(void) {
 
                         if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1)) // TARGET = 1 (FX3)
                         {
+#ifdef CSR_SPIFLASH_CORE_BASE
                             switch (LMS_Ctrl_Packet_Rx->Data_field[0]) //PROG_MODE
                             {
 
@@ -2408,7 +2409,6 @@ int main(void) {
                                     flash_page = (LMS_Ctrl_Packet_Rx->Data_field[6] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[7] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[8] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[9]);
 
                                     if (flash_page >= FLASH_USRSEC_START_ADDR) {
-#if 1
                                         if (flash_page % FLASH_BLOCK_SIZE == 0 && data_cnt > 0) {
                                             //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
 											spiflash_erase(flash_page);
@@ -2425,7 +2425,6 @@ int main(void) {
                                         if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                                         else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 
-#endif
                                         break;
                                     }
                                     else {
@@ -2438,6 +2437,9 @@ int main(void) {
                                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                                     break;
                             }
+#else
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+#endif
                         } else {
                             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                         }
@@ -2515,6 +2517,7 @@ int main(void) {
                     } else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1))
                     // TARGET = 1 (FX3)
                     {
+#ifdef CSR_SPIFLASH_CORE_BASE
                             flash_page  = LMS_Ctrl_Packet_Rx->Data_field[6] << 24;
                             flash_page |= LMS_Ctrl_Packet_Rx->Data_field[7] << 16;
                             flash_page |= LMS_Ctrl_Packet_Rx->Data_field[8] << 8;
@@ -2534,6 +2537,9 @@ int main(void) {
 
                             if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+#else
+                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+#endif
                     } else {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                     }
