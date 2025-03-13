@@ -10,6 +10,7 @@
 import os
 import sys
 import math
+from shutil import which
 
 from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
@@ -393,6 +394,10 @@ def main():
     if args.toolchain == "diamond":
         os.system(f"./limesdr_mini_v2_bitstream.py")
     else:
+        if which("srec_cat") is None:
+            msg = "Unable to find srec_cat tool, please:\n"
+            msg += "- Install srecord package."
+            raise OSError(msg)
         golden = f"tools/{soc.platform.name}_golden.bit"
         user   = builder.get_bitstream_filename(mode="sram", ext=".bit")
         cmd = f"ecpmulti --flashsize 128 --input {golden} --input {user} --address 0x00280000 limesdr_mini_v2.bin"
