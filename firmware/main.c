@@ -22,8 +22,8 @@
 #include "i2c0.h"
 #include "lms7002m.h"
 #include "LMS64C_protocol.h"
-#ifdef LIMESDR_XTRX
 #include <libbase/uart.h>
+#ifdef LIMESDR_XTRX
 #include <libbase/console.h>
 #include "i2c1.h"
 #include "fpga_flash_qspi.h"
@@ -2369,7 +2369,6 @@ int main(void) {
                         // printf("N \n");
                     }
 #else
-#if 0
                     current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
                     data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
 
@@ -2378,6 +2377,7 @@ int main(void) {
                     {
                         if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //write data to EEPROM #1
                         {
+#if 0
                             i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
                             i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
 
@@ -2390,6 +2390,7 @@ int main(void) {
 
                             if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+#endif
                         }
                         else
                             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
@@ -2407,20 +2408,24 @@ int main(void) {
                                     flash_page = (LMS_Ctrl_Packet_Rx->Data_field[6] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[7] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[8] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[9]);
 
                                     if (flash_page >= FLASH_USRSEC_START_ADDR) {
+#if 1
                                         if (flash_page % FLASH_BLOCK_SIZE == 0 && data_cnt > 0) {
-                                            flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
+                                            //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
+											spiflash_erase(flash_page);
                                         }
 
-                                        for (k=0; k<data_cnt; k++) {
-                                            wdata[k] = LMS_Ctrl_Packet_Rx->Data_field[24+k];
-                                        }
+                                        //for (int k=0; k<data_cnt; k++) {
+                                        //    wdata[k] = LMS_Ctrl_Packet_Rx->Data_field[24+k];
+                                        //}
 
                                         if (data_cnt > 0) {
-                                            if(MicoSPIFlash_PageProgram(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, wdata)!= 0) cmd_errors++;
+                                            //if(MicoSPIFlash_PageProgram(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, wdata)!= 0) cmd_errors++;
+                                            if(!spiflash_page_program(flash_page, &LMS_Ctrl_Packet_Rx->Data_field[24], (unsigned int)data_cnt)) cmd_errors++;
                                         }
                                         if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                                         else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
 
+#endif
                                         break;
                                     }
                                     else {
@@ -2435,8 +2440,8 @@ int main(void) {
                             }
                         } else {
                             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                        }
                     }
-#endif
 #endif
 
                     break;
@@ -2480,7 +2485,6 @@ int main(void) {
                     } else
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
 #else
-#if 0
                     current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[2] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
                     data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
 
@@ -2489,6 +2493,7 @@ int main(void) {
                     {
                         if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //read data from EEPROM #1
                         {
+#if 0
                             i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
                             i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
                             i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, 2, i2c_wdata);
@@ -2504,6 +2509,7 @@ int main(void) {
 
                             if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+#endif
                         } else
                             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                     } else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1))
@@ -2518,19 +2524,19 @@ int main(void) {
                             //if( FlashSpiTransfer(FLASH_SPI_BASE, SPI_NR_FLASH, flash_page, FLASH_PAGE_SIZE, flash_page_data, CyTrue) != CY_U3P_SUCCESS)  cmd_errors++;//write to flash
                             //TODO:if( FlashSpiRead(FLASH_SPI_BASE, SPI_NR_FLASH, flash_page, FLASH_PAGE_SIZE, flash_page_data) != CY_U3P_SUCCESS)  cmd_errors++;//write to flash
 
-                            if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, rdata)!= 0) cmd_errors++;
+                            //if(MicoSPIFlash_PageRead(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, rdata)!= 0) cmd_errors++;
+                            spiFlash_read(flash_page, data_cnt, &LMS_Ctrl_Packet_Tx->Data_field[24]);
 
-                            for (k=0; k<data_cnt; k++)
-                            {
-                                LMS_Ctrl_Packet_Tx->Data_field[24+k] = rdata[k];
-                            }
+                            //for (k=0; k<data_cnt; k++)
+                            //{
+                            //    LMS_Ctrl_Packet_Tx->Data_field[24+k] = rdata[k];
+                            //}
 
                             if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                    } else
+                    } else {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                     }
-#endif
 #endif
 
                     break;
