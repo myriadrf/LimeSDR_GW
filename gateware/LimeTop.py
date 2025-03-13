@@ -112,6 +112,7 @@ class LimeTop(LiteXModule):
                 fpgacfg_manager = self.fpgacfg,
                 pllcfg_manager  = self.pllcfg,
                 diq_width       = LMS_DIQ_WIDTH,
+                with_max10_pll  = True,
             )
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
