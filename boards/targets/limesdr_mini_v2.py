@@ -416,13 +416,14 @@ def main():
 
     # Flash Golden Bitstream.
     if args.flash_golden:
+        golden = f"tools/{soc.platform.name}_golden.bit"
         prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(0x00140000, soc.platform.name + "_golden.bit")
+        prog.flash(0x00140000, golden)
 
     # Flash User Bitstream.
     if args.flash_user:
         prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(0x00280000, soc.platform.name + ".bit")
+        prog.flash(0x00280000, builder.get_bitstream_filename(mode="sram", ext=".bit"))
 
 if __name__ == "__main__":
     main()
