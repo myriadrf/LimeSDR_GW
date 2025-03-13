@@ -141,7 +141,7 @@ Go back to *LimeSDR-Mini-v2_GW*. Scrip to use depends on target board:
 
 ```bash
 # Build the Gateware
-python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--without-spi-flash] [--golden]
+python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--with-spi-flash] [--golden]
 ```
 
 Where:
@@ -173,16 +173,40 @@ To write the new image:
 
 ```bash
 # Build the Gateware
-python -m boards.targets.limesdr_mini_v2 --build [--with-bios] [--with-spi-flash] [--load] [--write] [--toolchain=TOOLCHAIN]
+python -m boards.targets.limesdr_mini_v2 --build [--with-bios] [--without-spi-flash] [--load] [--flash] [--flash-user] [--flash-golden] [--cable] [--toolchain=TOOLCHAIN]
 ```
 
 Where:
 
-- `TOOLCHAIN` may be **diamond** or **trellis** (default: **diamond**)
+- `TOOLCHAIN` may be **diamond** or **trellis** (default: **trellis**)
 - `--with-bios` enables *LiteX bios*
-- `--with-spi-flash` enables SPI Flash support (only working with **trellis** toolchain)
-- `--load` to load the bitstream (Volatile memory)
-- `--write` to write the bitstream (SPI Flash)
+- `--without-spi-flash` disables SPI Flash support (only working with **trellis** toolchain)
+- `--load` to load the bitstream into volatile memory
+- `--flash` writes the bitstream to SPI Flash
+- `--flash-golden` flashes the golden bitstream (fallback) at address `0x00140000`
+- `--flash-user` flashes the user bitstream (operational) at address `0x00280000`
+
+#### Golden/Operational bitstreams
+
+- The **Golden bitstream** is provided in the repository at `tools/limesdr_mini_v2_golden.bit`
+- The **User bitstream** is built using the command mentionned above
+
+After generating the User bitstream, the repository's root directory contains:
+- `limesdr_mini_v2.bin`: A composite image containing both golden and user bitstreams. The FPGA will attempt to load
+  the User bitstream first and fall back to the Golden bitstream if loading fails.
+- `limesdr_mini_v2.mcs`: the same file as `limesdr_mini_v2.bin`, but in **Intel Hex** (`iHex`) format.
+
+
+**Flashing Instructions**
+
+- To write **User bitstream** without **User**/**Golden** Support:
+  `python -m boards.targets.limesdr_mini_v2 --flash`
+- To write the **User bitstream** (assuming it's already built):
+  `python -m boards.targets.limesdr_mini_v2 --flash-user`
+- to write **Golden bitstream**:
+  `python -m boards.targets.limesdr_mini_v2 --flash-golden`
+- To write the **full Flash image**:
+  `openFPGALoader --c CABLE limesdr_mini_v2.mcs`
 
 ### limesdr_xtrx
 
