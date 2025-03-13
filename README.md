@@ -149,7 +149,7 @@ Where:
 - `--with-spi-flash` to enable SPI Flash support
 - `--golden` to create the Golden bitstream (without RX/TX Path nor LMS7002 Modules to reduces
   size since it uses ROM)
-- `--flash` to write *Golden* and *User* Bitstreams (requires to have both bitstreams build.
+- `--flash` to write *Golden* and *User* Bitstreams (requires to have both bitstreams build).
 
 Since the Operational bitstream executes firmware from internal flash, the `--load` option
 is not supported.
