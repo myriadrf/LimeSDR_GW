@@ -146,7 +146,7 @@ python -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--with-spi-flash
 
 Where:
 - `--with-bios` enables *LiteX bios* (requires more resources)
-- `--with-spi-flash` to disable SPI Flash support
+- `--with-spi-flash` to enable SPI Flash support
 - `--golden` to create the Golden bitstream (without RX/TX Path nor LMS7002 Modules to reduces
   size since it uses ROM)
 
