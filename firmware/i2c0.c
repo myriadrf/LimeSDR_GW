@@ -120,6 +120,49 @@ void i2c0_reset(void) {
  * Read slave memory over I2C0 starting at given address
  *
  * First writes the memory starting address, then reads the data:
+ *   START WR(slaveaddr) WR(addr) ... STOP START RD(data) RD(data) ... STOP
+ * Some chips require that after transmiting the address, there will be no STOP in between:
+ *   START WR(slaveaddr) WR(addr) ... START WR(slaveaddr) RD(data) RD(data) ... STOP
+ */
+bool i2c0_read_multi_addr(unsigned char slave_addr, unsigned char *addr, unsigned int addr_len, unsigned char *data, unsigned int len, bool send_stop) {
+    int i;
+
+    i2c0_start();
+
+    if (!i2c0_transmit_byte(I2C0_ADDR_WR(slave_addr))) {
+        i2c0_stop();
+        return false;
+    }
+
+    for (i = 0; i < addr_len; i++) {
+        if (!i2c0_transmit_byte(addr[i])) {
+            i2c0_stop();
+            return false;
+        }
+    }
+
+    if (send_stop) {
+        i2c0_stop();
+    }
+    i2c0_start();
+
+    if (!i2c0_transmit_byte(I2C0_ADDR_RD(slave_addr))) {
+        i2c0_stop();
+        return false;
+    }
+    for (i = 0; i < len; ++i) {
+        data[i] = i2c0_receive_byte(i != len - 1);
+    }
+
+    i2c0_stop();
+
+    return true;
+}
+
+/*
+ * Read slave memory over I2C0 starting at given address
+ *
+ * First writes the memory starting address, then reads the data:
  *   START WR(slaveaddr) WR(addr) STOP START WR(slaveaddr) RD(data) RD(data) ... STOP
  * Some chips require that after transmiting the address, there will be no STOP in between:
  *   START WR(slaveaddr) WR(addr) START WR(slaveaddr) RD(data) RD(data) ... STOP

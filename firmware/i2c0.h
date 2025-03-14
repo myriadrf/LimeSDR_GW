@@ -21,6 +21,8 @@ bool i2c0_write(unsigned char slave_addr, unsigned char addr, const unsigned cha
 
 bool i2c0_read(unsigned char slave_addr, unsigned char addr, unsigned char *data, unsigned int len, bool send_stop);
 
+bool i2c0_read_multi_addr(unsigned char slave_addr, unsigned char *addr, unsigned int addr_len, unsigned char *data, unsigned int len, bool send_stop);
+
 bool i2c0_poll(unsigned char slave_addr);
 
 void i2c0_scan(void);
