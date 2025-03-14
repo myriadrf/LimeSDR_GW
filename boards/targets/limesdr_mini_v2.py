@@ -240,6 +240,11 @@ class BaseSoC(SoCCore):
             self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
         ]
 
+        # Connect stream indication 
+        self.comb += [
+            self.limetop.wr_active.eq(self.ft601.wr_active),
+            self.limetop.rd_active.eq(self.ft601.rd_active),
+        ]
         # Timing Constraints -----------------------------------------------------------------------
 
         # FIXME: Improve, minimal for now.
