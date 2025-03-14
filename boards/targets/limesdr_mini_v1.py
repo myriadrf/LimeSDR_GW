@@ -325,6 +325,18 @@ class BaseSoC(SoCCore):
             csr_csv      = "analyzer.csv"
         )
 
+    def add_i2c0_signals_probe(self):
+        analyzer_signals = [
+            self.i2c0.pads.scl,
+            self.i2c0.pads.sda,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 2048,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -344,7 +356,8 @@ def main():
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
-    probeopts.add_argument("--with-ft601-ctrl-probe",      action="store_true", help="Enable FT601 Ctrl Probe.")
+    probeopts.add_argument("--with-ft601-ctrl-probe",   action="store_true", help="Enable FT601 Ctrl Probe.")
+    probeopts.add_argument("--with-i2c0-signals-probe", action="store_true", help="Enable I2C0 SDA/SCL Probe.")
 
     args = parser.parse_args()
 
@@ -370,6 +383,9 @@ def main():
         if args.with_ft601_ctrl_probe:
             assert args.with_uartbone
             soc.add_ft601_ctrl_probe()
+        if args.with_i2c0_signals_probe:
+            assert args.with_uartbone
+            soc.add_i2c0_signals_probe()
         # Builder.
         output_dir = os.path.abspath(os.path.join("build", soc.platform.name))
         if args.golden:
