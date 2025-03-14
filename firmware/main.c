@@ -92,7 +92,7 @@
 
 /* DEBUG */
 //#define DEBUG_FIFO
-#define DEBUG_CSR_ACCESS
+//#define DEBUG_CSR_ACCESS
 //#define DEBUG_LMS_SPI
 //#define DEBUG_CMD
 //#define DEBUG_INTERNAL_FLASH
@@ -2375,22 +2375,22 @@ int main(void) {
                     if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3))
                     // TARGET = 3 (EEPROM)
                     {
+                        printf("TGT 3\n");
                         if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //write data to EEPROM #1
                         {
-#if 0
-                            i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
-                            i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
+                            printf("I2C Write\n");
+                            i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[9];
+                            printf("%02x\n", LMS_Ctrl_Packet_Rx->Data_field[8]);
+                            printf("%02x\n", i2c_wdata[0]);
 
-                            for (k=0; k<data_cnt; k++) {
-                                i2c_wdata[k+2]= LMS_Ctrl_Packet_Rx->Data_field[24+k];
+                            for (int k=0; k<data_cnt; k++) {
+                                i2c_wdata[k+1]= LMS_Ctrl_Packet_Rx->Data_field[24+k];
+                                printf("%02x\n", i2c_wdata[k+1]);
                             }
-                            i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, data_cnt+2, i2c_wdata);
-                            OpenCoresI2CMasterStop(i2c_master);
-                            MicoSleepMilliSecs(5);
-
-                            if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            if (!i2c0_write(EEPROM_I2C_ADDR, LMS_Ctrl_Packet_Rx->Data_field[8], i2c_wdata, data_cnt + 1))
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-#endif
+                            cdelay(5000);
                         }
                         else
                             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
@@ -2407,11 +2407,12 @@ int main(void) {
                                 case 2: //PROG_MODE = 2 (write FW to flash). Note please, that this command is used just to program XO DAC value
 
                                     flash_page = (LMS_Ctrl_Packet_Rx->Data_field[6] << 24) | (LMS_Ctrl_Packet_Rx->Data_field[7] << 16) | (LMS_Ctrl_Packet_Rx->Data_field[8] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[9]);
+                                    printf("%08x\n", flash_page);
 
                                     if (flash_page >= FLASH_USRSEC_START_ADDR) {
                                         if (flash_page % FLASH_BLOCK_SIZE == 0 && data_cnt > 0) {
                                             //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
-											spiflash_erase(flash_page);
+                                            spiflash_erase(flash_page);
                                         }
 
                                         //for (int k=0; k<data_cnt; k++) {
@@ -2421,6 +2422,9 @@ int main(void) {
                                         if (data_cnt > 0) {
                                             //if(MicoSPIFlash_PageProgram(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, wdata)!= 0) cmd_errors++;
                                             if(!spiflash_page_program(flash_page, &LMS_Ctrl_Packet_Rx->Data_field[24], (unsigned int)data_cnt)) cmd_errors++;
+                                            for (int i = 0; i < data_cnt; i++) {
+                                                printf("%02x\n", LMS_Ctrl_Packet_Rx->Data_field[24+i]);
+                                            }
                                         }
                                         if(cmd_errors) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                                         else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
@@ -2493,11 +2497,22 @@ int main(void) {
                     if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 3))
                     /// TARGET = 3 (EEPROM)
                     {
+                        printf("TGT3\n");
                         if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //read data from EEPROM #1
                         {
-#if 0
                             i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
                             i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
+                            printf("%02x %02x\n", i2c_wdata[0], i2c_wdata[1]);
+#if 1
+                            if (!i2c0_read_multi_addr(EEPROM_I2C_ADDR, i2c_wdata, 2, i2c_rdata, data_cnt, 0))
+                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                            for (int k=0; k<data_cnt; k++)
+                            {
+                                LMS_Ctrl_Packet_Tx->Data_field[24+k] = i2c_rdata[k];
+                                printf("%02x\n", i2c_rdata[k]);
+                            }
+#else
                             i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, 2, i2c_wdata);
 
                             i2crez += OpenCoresI2CMasterRead(i2c_master, EEPROM_I2C_ADDR, (unsigned int) data_cnt, i2c_rdata);
