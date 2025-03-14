@@ -188,7 +188,7 @@ class BaseSoC(SoCCore):
         if flash_boot:
             self.bus.add_region("rom", SoCRegion(
                 origin = self.bus.regions["internal_flash"].origin,
-                size   = 32768,
+                size   = 32768 * 2,
                 linker = True)
             )
 

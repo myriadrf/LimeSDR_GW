@@ -392,7 +392,7 @@ def main():
 
     # Prepare User/Golden bitstream.
     if args.toolchain == "diamond":
-        os.system(f"./limesdr_mini_v2_bitstream.py")
+        os.system(f"./tools/limesdr_mini_v2_bitstream.py")
     else:
         if which("srec_cat") is None:
             msg = "Unable to find srec_cat tool, please:\n"
