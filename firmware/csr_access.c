@@ -185,6 +185,9 @@ void pllcfg_write(uint16_t addr, uint8_t *wdata)
 #ifdef WITH_LMS7002
 	case 0x3:
 		limetop_lms7002_top_reg03_write(value);
+#ifdef LIMESDR_MINI_V1
+		limetop_pllcfg_reg03_write(value);
+#endif
 		break;
 #endif
 	/* 0x4-0x12 - No present on XTRX/LimeMSDR-Mini */
@@ -258,14 +261,26 @@ void pllcfg_read(uint16_t addr, uint8_t *rdata)
 	{
 #ifdef WITH_LMS7002
 	case 0x01:
+#ifdef LIMESDR_MINI_V1
+		value = limetop_pllcfg_reg01_read();
+#else
 		value = limetop_lms7002_top_reg01_read();
+#endif
 		break;
 #endif
 	case 0x02:
+#ifdef LIMESDR_MINI_V1
 		value = limetop_pllcfg_pll_lock_read();
+#else
+		value = limetop_pllcfg_pll_lock_read();
+#endif
 		break;
 	case 0x05:
+#ifdef LIMESDR_MINI_V1
+		value = limetop_pllcfg_reg05_read();
+#else
 		value = 0b110110000;
+#endif
 		break;
 	default:
 		printf("Read error: unhandled register %d\n", addr);
