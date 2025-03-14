@@ -2379,15 +2379,15 @@ int main(void) {
                         if(LMS_Ctrl_Packet_Rx->Data_field[0] == 0) //write data to EEPROM #1
                         {
                             printf("I2C Write\n");
-                            i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[9];
-                            printf("%02x\n", LMS_Ctrl_Packet_Rx->Data_field[8]);
-                            printf("%02x\n", i2c_wdata[0]);
+                            i2c_wdata[0] = LMS_Ctrl_Packet_Rx->Data_field[8];
+                            i2c_wdata[1] = LMS_Ctrl_Packet_Rx->Data_field[9];
+                            printf("%02x %02x\n", i2c_wdata[0], i2c_wdata[1]);
 
                             for (int k=0; k<data_cnt; k++) {
-                                i2c_wdata[k+1]= LMS_Ctrl_Packet_Rx->Data_field[24+k];
-                                printf("%02x\n", i2c_wdata[k+1]);
+                                i2c_wdata[k+2]= LMS_Ctrl_Packet_Rx->Data_field[24+k];
+                                printf("%02x\n", i2c_wdata[k+2]);
                             }
-                            if (!i2c0_write(EEPROM_I2C_ADDR, LMS_Ctrl_Packet_Rx->Data_field[8], i2c_wdata, data_cnt + 1))
+                            if (!i2c0_write_no_addr(EEPROM_I2C_ADDR, i2c_wdata, data_cnt + 2))
                                 LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                             cdelay(5000);
@@ -2504,7 +2504,7 @@ int main(void) {
                             i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
                             printf("%02x %02x\n", i2c_wdata[0], i2c_wdata[1]);
 #if 1
-                            if (!i2c0_read_multi_addr(EEPROM_I2C_ADDR, i2c_wdata, 2, i2c_rdata, data_cnt, 0))
+                            if (!i2c0_read_multi_addr(EEPROM_I2C_ADDR, i2c_wdata, 2, i2c_rdata, data_cnt, false))
                                 LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                             for (int k=0; k<data_cnt; k++)
