@@ -128,6 +128,7 @@ bool i2c0_read_multi_addr(unsigned char slave_addr, unsigned char *addr, unsigne
     int i;
 
     i2c0_start();
+    printf("R: ");
 
     if (!i2c0_transmit_byte(I2C0_ADDR_WR(slave_addr))) {
         i2c0_stop();
@@ -135,6 +136,7 @@ bool i2c0_read_multi_addr(unsigned char slave_addr, unsigned char *addr, unsigne
     }
 
     for (i = 0; i < addr_len; i++) {
+        printf("%02x ", addr[i]);
         if (!i2c0_transmit_byte(addr[i])) {
             i2c0_stop();
             return false;
@@ -152,7 +154,9 @@ bool i2c0_read_multi_addr(unsigned char slave_addr, unsigned char *addr, unsigne
     }
     for (i = 0; i < len; ++i) {
         data[i] = i2c0_receive_byte(i != len - 1);
+        printf("%02x ", data[i]);
     }
+    printf("\n");
 
     i2c0_stop();
 
@@ -193,6 +197,37 @@ bool i2c0_read(unsigned char slave_addr, unsigned char addr, unsigned char *data
     for (i = 0; i < len; ++i) {
         data[i] = i2c0_receive_byte(i != len - 1);
     }
+
+    i2c0_stop();
+
+    return true;
+}
+
+/*
+ * Write slave memory over I2C0 starting at given address
+ *
+ * First writes the memory starting address, then writes the data:
+ *   START WR(slaveaddr) WR(data) WR(data) ... STOP
+ */
+bool i2c0_write_no_addr(unsigned char slave_addr, const unsigned char *data, unsigned int len) {
+    int i;
+
+    i2c0_start();
+    printf("W: ");
+
+    if (!i2c0_transmit_byte(I2C0_ADDR_WR(slave_addr))) {
+        printf("KO\n");
+        //i2c0_stop();
+        //return false;
+    }
+    for (i = 0; i < len; ++i) {
+        printf("%02x ", data[i]);
+        if (!i2c0_transmit_byte(data[i])) {
+            //i2c0_stop();
+            //return false;
+        }
+    }
+    printf("\n");
 
     i2c0_stop();
 
