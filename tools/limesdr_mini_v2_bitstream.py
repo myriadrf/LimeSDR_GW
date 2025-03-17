@@ -13,7 +13,6 @@ print(f"Script Path: {script_path}")
 device                  = "LFE5U-45F"
 bit_file_name           = "limesdr_mini_v2.bit"
 golden_bit_file_name    = "limesdr_mini_v2_golden.bit" # Previous non-LiteX golden bitstream.
-alternate_bit_file_name = "limesdr_mini_v2.bit"
 mcs_output_file_name    = "limesdr_mini_v2.mcs"
 impl_dir                = "build/limesdr_mini_v2/gateware"
 

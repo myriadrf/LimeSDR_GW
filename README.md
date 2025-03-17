@@ -185,9 +185,9 @@ Where:
 - `--with-bios` enables *LiteX bios*
 - `--without-spi-flash` disables SPI Flash support (only working with **trellis** toolchain)
 - `--load` to load the bitstream into volatile memory
-- `--flash` writes the bitstream to SPI Flash
+- `--flash` writes the MCS combo bitstream to SPI Flash (full update User + Golden)
 - `--flash-golden` flashes the golden bitstream (fallback) at address `0x00140000`
-- `--flash-user` flashes the user bitstream (operational) at address `0x00280000`
+- `--flash-user` flashes the user bitstream (operational/primary) at address `0x00000000`
 
 #### Golden/Operational bitstreams
 
@@ -197,19 +197,20 @@ Where:
 After generating the User bitstream, the repository's root directory contains:
 - `limesdr_mini_v2.bin`: A composite image containing both golden and user bitstreams. The FPGA will attempt to load
   the User bitstream first and fall back to the Golden bitstream if loading fails.
-- `limesdr_mini_v2.mcs`: the same file as `limesdr_mini_v2.bin`, but in **Intel Hex** (`iHex`) format.
+- `tools/limesdr_mini_v2.mcs`: the same file as `limesdr_mini_v2.bin`, but in **Intel Hex** (`iHex`) format.
 
+**Note**: Due to limitations in `prjtrellis`, Lattice Diamond toolchain must be
+installed and in `$PATH` to generates the `tools/limesdr_mini_v2.mcs`
+**Note**: Due to limitations in `prjtrellis`, the Lattice Diamond toolchain must be installed and included in `$PATH` to generate `tools/limesdr_mini_v2.mcs`.
 
 **Flashing Instructions**
 
-- To write **User bitstream** without **User**/**Golden** Support:
+- To write **MCS bitstream** (**full Flash image**) which combines **User** and **Golden** Bitstreams:
   `python -m boards.targets.limesdr_mini_v2 --flash`
 - To write the **User bitstream** (assuming it's already built):
   `python -m boards.targets.limesdr_mini_v2 --flash-user`
 - to write **Golden bitstream**:
   `python -m boards.targets.limesdr_mini_v2 --flash-golden`
-- To write the **full Flash image**:
-  `openFPGALoader --c CABLE limesdr_mini_v2.mcs`
 
 ### limesdr_xtrx
 
