@@ -345,7 +345,7 @@ def main():
     parser.add_argument("--build",        action="store_true", help="Build bitstream.")
     parser.add_argument("--toolchain",    default="trellis",   help="Build toolchain.", choices=["diamond", "trellis"])
     parser.add_argument("--load",         action="store_true", help="Load bitstream.")
-    parser.add_argument("--flash",        action="store_true", help="Flash bitstream.")
+    parser.add_argument("--flash",        action="store_true", help="Flash Golden and User bitstreams using the MCS file.")
     parser.add_argument("--flash-user",   action="store_true", help="Flash User bitstream.")
     parser.add_argument("--flash-golden", action="store_true", help="Flash Golden bitstream.")
     parser.add_argument("--cable",        default="ft2232",    help="JTAG cable.")
@@ -396,28 +396,23 @@ def main():
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
 
     # Prepare User/Golden bitstream.
-    if args.toolchain == "diamond":
-        os.system(f"./tools/limesdr_mini_v2_bitstream.py")
+    if which("ddtcmd") is None:
+        msg = "\nUnable to find Diamond ddtcmd tool, please:\n"
+        msg += "- Add Diamond toolchain to your $PATH.\n"
+        msg += "\nCannot generate the MCS file.\n"
+        print(msg)
     else:
-        if which("srec_cat") is None:
-            msg = "Unable to find srec_cat tool, please:\n"
-            msg += "- Install srecord package."
-            raise OSError(msg)
-        golden = f"tools/{soc.platform.name}_golden.bit"
-        user   = builder.get_bitstream_filename(mode="sram", ext=".bit")
-        cmd = f"ecpmulti --flashsize 128 --input {golden} --input {user} --address 0x00280000 limesdr_mini_v2.bin"
-        os.system(cmd)
-        os.system("srec_cat limesdr_mini_v2.bin -Binary -Bit_Reverse=2 -Byte-Swap -o limesdr_mini_v2.mcs -Intel")
+        os.system(f"./tools/limesdr_mini_v2_bitstream.py")
 
     # Load Bistream.
     if args.load:
         prog = soc.platform.create_programmer(cable=args.cable)
         prog.load_bitstream(builder.get_bitstream_filename(mode="sram", ext=".bit"))
 
-    # Flash Bitstream.
+    # Flash Bitstreams (User + Golden).
     if args.flash:
         prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(0, builder.get_bitstream_filename(mode="sram", ext=".bit"))
+        prog.flash(0, "tools/limesdr_mini_v2.mcs")
 
     # Flash Golden Bitstream.
     if args.flash_golden:
@@ -428,7 +423,7 @@ def main():
     # Flash User Bitstream.
     if args.flash_user:
         prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(0x00280000, builder.get_bitstream_filename(mode="sram", ext=".bit"))
+        prog.flash(0, builder.get_bitstream_filename(mode="sram", ext=".bit"))
 
 if __name__ == "__main__":
     main()

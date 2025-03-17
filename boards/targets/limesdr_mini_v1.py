@@ -132,16 +132,19 @@ class BaseSoC(SoCCore):
             integrated_rom_init      = []
             integrated_main_ram_size = 0x3800
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+            integrated_sram_ram_size = 0x400
         elif flash_boot:
             integrated_rom_size      = 0
             integrated_rom_init      = []
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
+            integrated_sram_ram_size = 0x800
         else:
             integrated_rom_size      = 0x4000
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
+            integrated_sram_ram_size = 0x400
 
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
@@ -150,7 +153,7 @@ class BaseSoC(SoCCore):
             cpu_variant              = cpu_variant,
             integrated_rom_size      = integrated_rom_size,
             integrated_rom_init      = integrated_rom_init,
-            integrated_sram_ram_size = 0x0200,
+            integrated_sram_ram_size = integrated_sram_ram_size,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
             with_uartbone            = with_uartbone,
@@ -325,6 +328,18 @@ class BaseSoC(SoCCore):
             csr_csv      = "analyzer.csv"
         )
 
+    def add_i2c0_signals_probe(self):
+        analyzer_signals = [
+            self.i2c0.pads.scl,
+            self.i2c0.pads.sda,
+        ]
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 2048,
+            clock_domain = "sys",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -344,7 +359,8 @@ def main():
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
-    probeopts.add_argument("--with-ft601-ctrl-probe",      action="store_true", help="Enable FT601 Ctrl Probe.")
+    probeopts.add_argument("--with-ft601-ctrl-probe",   action="store_true", help="Enable FT601 Ctrl Probe.")
+    probeopts.add_argument("--with-i2c0-signals-probe", action="store_true", help="Enable I2C0 SDA/SCL Probe.")
 
     args = parser.parse_args()
 
@@ -370,6 +386,9 @@ def main():
         if args.with_ft601_ctrl_probe:
             assert args.with_uartbone
             soc.add_ft601_ctrl_probe()
+        if args.with_i2c0_signals_probe:
+            assert args.with_uartbone
+            soc.add_i2c0_signals_probe()
         # Builder.
         output_dir = os.path.abspath(os.path.join("build", soc.platform.name))
         if args.golden:
