@@ -128,16 +128,16 @@ bool i2c0_read_multi_addr(unsigned char slave_addr, unsigned char *addr, unsigne
     int i;
 
     i2c0_start();
-    printf("R: ");
 
     if (!i2c0_transmit_byte(I2C0_ADDR_WR(slave_addr))) {
+        printf("RKO\n");
         i2c0_stop();
         return false;
     }
 
     for (i = 0; i < addr_len; i++) {
-        printf("%02x ", addr[i]);
         if (!i2c0_transmit_byte(addr[i])) {
+            printf("RAKO\n");
             i2c0_stop();
             return false;
         }
@@ -149,14 +149,13 @@ bool i2c0_read_multi_addr(unsigned char slave_addr, unsigned char *addr, unsigne
     i2c0_start();
 
     if (!i2c0_transmit_byte(I2C0_ADDR_RD(slave_addr))) {
+        printf("RA2KO\n");
         i2c0_stop();
         return false;
     }
     for (i = 0; i < len; ++i) {
         data[i] = i2c0_receive_byte(i != len - 1);
-        printf("%02x ", data[i]);
     }
-    printf("\n");
 
     i2c0_stop();
 
@@ -213,21 +212,19 @@ bool i2c0_write_no_addr(unsigned char slave_addr, const unsigned char *data, uns
     int i;
 
     i2c0_start();
-    printf("W: ");
 
     if (!i2c0_transmit_byte(I2C0_ADDR_WR(slave_addr))) {
-        printf("KO\n");
-        //i2c0_stop();
-        //return false;
+        printf("WKO\n");
+        i2c0_stop();
+        return false;
     }
     for (i = 0; i < len; ++i) {
-        printf("%02x ", data[i]);
         if (!i2c0_transmit_byte(data[i])) {
-            //i2c0_stop();
-            //return false;
+            printf("WAKO\n");
+            i2c0_stop();
+            return false;
         }
     }
-    printf("\n");
 
     i2c0_stop();
 
