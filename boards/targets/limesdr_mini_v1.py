@@ -100,6 +100,24 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
+
+    def add_uartbone_mod(self, name="uartbone", clk_freq=None, baudrate=115200, cd="sys", with_dynamic_baudrate=False, uart_pads=None):
+    # Imports.
+        from litex.soc.cores import uart
+
+        # Core.
+        if clk_freq is None:
+            clk_freq = self.sys_clk_freq
+        self.check_if_exists(name)
+        uartbone_phy = uart.UARTPHY(uart_pads, clk_freq, baudrate, with_dynamic_baudrate=with_dynamic_baudrate)
+        uartbone     = uart.UARTBone(
+            phy           = uartbone_phy,
+            clk_freq      = clk_freq,
+            cd            = cd,
+            address_width = self.bus.address_width)
+        self.add_module(name=f"{name}_phy", module=uartbone_phy)
+        self.add_module(name=name,          module=uartbone)
+        self.bus.add_master(name=name, master=uartbone.wishbone)
     def __init__(self, sys_clk_freq=40e6, cpu_type="vexriscv", toolchain="quartus",
         with_bios      = False,
         with_rx_tx_top = False,
@@ -153,9 +171,14 @@ class BaseSoC(SoCCore):
             integrated_sram_ram_size = 0x0200,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
-            with_uartbone            = with_uartbone,
-            uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
+            with_uart                = False, #needs to be false to be able to add uart manually
+            # with_uartbone            = with_uartbone,
+            # uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
+        serial_signals = Record(layout=[("tx", 1), ("rx", 1)])
+        self.add_uart(name="uart", uart_name={True: "crossover", False:"serial"}[with_uartbone], baudrate=115200, fifo_depth=16, with_dynamic_baudrate=False, uart_pads=serial_signals)
+        if with_uartbone:
+            self.add_uartbone_mod(baudrate=115200, with_dynamic_baudrate=False, uart_pads=serial_signals)
 
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
@@ -234,6 +257,12 @@ class BaseSoC(SoCCore):
             compile_rev        = 30,
             revision_pads      = revision_pads,
         )
+        # Assign UART signals to general periph
+        self.comb += [
+            self.limetop.general_periph.gpio_out_val[8].eq(serial_signals.tx),
+            serial_signals.rx.eq(self.limetop.general_periph.gpio_in_val[9]),
+            ]
+
 
         # FT601 ------------------------------------------------------------------------------------
         self.ft601 = FT601(self.platform, platform.request("FT"),

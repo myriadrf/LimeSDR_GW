@@ -413,6 +413,9 @@ void periphcfg_read(uint16_t addr, uint8_t *rdata)
 
 	switch (addr)
 	{
+    case 0x0:
+        value = limetop_general_periph_board_gpio_OVRD_read();
+        break;
 	case 0x2:
 		value = limetop_general_periph_board_gpio_RD_read();
 		break;

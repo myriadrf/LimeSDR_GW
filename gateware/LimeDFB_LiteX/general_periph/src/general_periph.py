@@ -53,16 +53,30 @@ class GeneralPeriphTop(LiteXModule):
 
         # Signals.
         # --------
-        gpio_out_val = Signal(N_GPIO)
+        # TODO: Rethink this. Currently some signals are assigned in top
+        #       Maybe move all of them to top?
+        self.gpio_out_val = Signal(N_GPIO)
 
         self.comb += [
-            gpio_out_val[8:10].eq(0),
-            gpio_out_val[7].eq(~self.ep03_active),
-            gpio_out_val[6].eq(1),
-            gpio_out_val[5].eq(1),
-            gpio_out_val[4].eq(~self.ep83_active),
-            gpio_out_val[1:4].eq(0),
-            gpio_out_val[0].eq(self.tx_txant_en),
+            # self.gpio_out_val[9].eq(0),
+            # self.gpio_out_val[8].eq(self.egpio_val[0]),
+            self.gpio_out_val[7].eq(~self.ep03_active),
+            self.gpio_out_val[6].eq(1),
+            self.gpio_out_val[5].eq(1),
+            self.gpio_out_val[4].eq(~self.ep83_active),
+            self.gpio_out_val[1:4].eq(0),
+            self.gpio_out_val[0].eq(self.tx_txant_en),
+        ]
+
+        self.gpio_in_val = Signal(N_GPIO)
+        self.comb += [
+            # self.egpio_val[1].eq(self.gpio_in_val[9]),
+        ]
+
+        gpio_dir = Signal(N_GPIO)
+        self.comb += [
+            gpio_dir[9].eq(0),
+            gpio_dir[0:9].eq(Replicate(1,9)),
         ]
 
         # General_periph_top wrapper (required due to record).
@@ -113,9 +127,9 @@ class GeneralPeriphTop(LiteXModule):
             o_led3_r               = Open(),
 
             # GPIO
-            i_gpio_dir             = Replicate(1, N_GPIO),
-            i_gpio_out_val         = gpio_out_val,
-            o_gpio_rd_val          = Open(N_GPIO),
+            i_gpio_dir             = gpio_dir,
+            i_gpio_out_val         = self.gpio_out_val,
+            o_gpio_rd_val          = self.gpio_in_val,
             io_gpio                = gpio_pads,
             io_egpio               = egpio_pads if egpio_pads is not None else Open(egpio_len),
 
@@ -148,7 +162,7 @@ class GeneralPeriphTop(LiteXModule):
             self.add_csr()
 
     def add_csr(self):
-        self._board_gpio_OVRD      = CSRStorage(16, reset=0xf) # 0
+        self._board_gpio_OVRD      = CSRStorage(16, reset=0xffff) # 0
         self._board_gpio_RD        = CSRStatus(16)             # 2
         self._board_gpio_DIR       = CSRStorage(16)            # 4
         self._board_gpio_VAL       = CSRStorage(16)            # 6
