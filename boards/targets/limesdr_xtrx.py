@@ -403,8 +403,8 @@ class BaseSoC(SoCCore):
 
             # FPGACFG.
             board_id             = 27,
-            major_rev            = 2,
-            compile_rev          = 25,
+            major_rev            = 3,
+            compile_rev          = 0,
             revision_pads        = None,
         )
 
