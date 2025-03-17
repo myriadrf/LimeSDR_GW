@@ -27,7 +27,6 @@ shutil.copyfile(source_bit_file, destination_bit_file)
 ddtcmd_device  = device
 ddtcmd_if      = destination_bit_file
 ddtcmd_golden  = os.path.join(script_path, golden_bit_file_name)
-ddtcmd_altfile = os.path.join(script_path, alternate_bit_file_name)
 ddtcmd_of      = os.path.join(script_path, mcs_output_file_name)
 
 # Launching Lattice Diamond Deployment Tool
@@ -35,17 +34,13 @@ print("Launching Lattice Diamond Deployment Tool 3.12, make sure it is added to 
 try:
     subprocess.run([
         "ddtcmd",
-        "-oft",       "-advanced",
+        "-oft",       "-boot",
         "-dev",       ddtcmd_device,
-        "-if",        ddtcmd_if,
+        "-primary",   ddtcmd_if,
         "-format",    "int",
         "-flashsize", "128",
         "-golden",    ddtcmd_golden,
         "-goldenadd", "0x00140000",
-        "-multi",     "1",
-        "-altfile",   ddtcmd_altfile,
-        "-address",   "0x00280000",
-        "-next",      "prim",
         "-of",        ddtcmd_of
     ], check=True)
     print("ddtcmd execution completed successfully.")
