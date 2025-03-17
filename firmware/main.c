@@ -1034,8 +1034,6 @@ void Configure_LM75(void)
 
 uint16_t rd_dac_val(uint16_t addr)
 {
-    //uint8_t i2c_error;
-    int i2c_error;
     uint8_t addr_lsb = (uint8_t) addr & 0x00FF;
     uint8_t addr_msb = (uint8_t) (addr & 0xFF00) >> 8;
     uint8_t eeprom_rd_val_0;
@@ -1043,21 +1041,11 @@ uint16_t rd_dac_val(uint16_t addr)
     uint16_t rez;
     unsigned char wdata[4];
     unsigned char rdata[4]={0xFF, 0xFF, 0xFF, 0xFF};
-    (void) i2c_error;
-
-    /*
-    i2c_error = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 0);
-    i2c_error = I2C_write(I2C_OPENCORES_0_BASE, addr_msb, 0);
-    i2c_error = I2C_write(I2C_OPENCORES_0_BASE, addr_lsb, 0);
-    i2c_error = I2C_start(I2C_OPENCORES_0_BASE, EEPROM_I2C_ADDR, 1);
-    eeprom_rd_val_0 = I2C_read(I2C_OPENCORES_0_BASE, 0);
-    eeprom_rd_val_1 = I2C_read(I2C_OPENCORES_0_BASE, 1);
-    */
 
     wdata[0]=addr_msb;
     wdata[1]=addr_lsb;
-    i2c_error = i2c0_write(EEPROM_I2C_ADDR, wdata[0], &wdata[1], 1);
-    i2c_error = i2c0_read(EEPROM_I2C_ADDR, wdata[0], rdata, 2, true);
+    if (!i2c0_read_multi_addr(EEPROM_I2C_ADDR, wdata, 2, rdata, 2, false))
+        printf("Error during TCXO DAC value read\n");
     eeprom_rd_val_0 = rdata[0];
     eeprom_rd_val_1 = rdata[1];
 
@@ -1147,7 +1135,19 @@ int main(void) {
         dac_val = ((uint16_t)spi_rdata[1])<<8 | ((uint16_t)spi_rdata[0]);
     }
 #else
+#ifdef LIMESDR_MINI_V1
+    // Read TCXO DAC value from EEPROM memory
+    uint16_t eeprom_dac_val;
+    eeprom_dac_val = rd_dac_val(DAC_VAL_ADDR);
+    if (eeprom_dac_val == 0xFFFF){
+        dac_val = DAC_DEFF_VAL; //default DAC value
+    }
+    else {
+        dac_val = (unsigned char) eeprom_dac_val;
+    }
+#else
     dac_val = DAC_DEFF_VAL;
+#endif
 #endif
 
     //spirez = MicoSPISetSlaveEnable(dac_spi, 1);
@@ -2503,7 +2503,6 @@ int main(void) {
                             i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
                             i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
                             printf("%02x %02x\n", i2c_wdata[0], i2c_wdata[1]);
-#if 1
                             if (!i2c0_read_multi_addr(EEPROM_I2C_ADDR, i2c_wdata, 2, i2c_rdata, data_cnt, false))
                                 LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
@@ -2512,21 +2511,6 @@ int main(void) {
                                 LMS_Ctrl_Packet_Tx->Data_field[24+k] = i2c_rdata[k];
                                 printf("%02x\n", i2c_rdata[k]);
                             }
-#else
-                            i2crez = OpenCoresI2CMasterWrite(i2c_master, EEPROM_I2C_ADDR, 2, i2c_wdata);
-
-                            i2crez += OpenCoresI2CMasterRead(i2c_master, EEPROM_I2C_ADDR, (unsigned int) data_cnt, i2c_rdata);
-                            OpenCoresI2CMasterStop(i2c_master);
-
-                            for (k=0; k<data_cnt; k++)
-                            {
-                                LMS_Ctrl_Packet_Tx->Data_field[24+k] = i2c_rdata[k];
-
-                            }
-
-                            if(i2crez) LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                            else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-#endif
                         } else
                             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                     } else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1))
