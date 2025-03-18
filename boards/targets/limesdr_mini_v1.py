@@ -401,7 +401,11 @@ def main():
                 True  : "linker_main_ram.ld",
                 False : "linker_rom.ld",
             }[args.with_bios]
-            os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
+            is_golden = {
+                True  : 1,
+                False : 0,
+            }[args.golden]
+            os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} GOLDEN={is_golden} clean all")
             assert os.path.exists(cpu_firmware), f"Error: {cpu_firmware} not available"
 
     # Prepare pof/rpd files.

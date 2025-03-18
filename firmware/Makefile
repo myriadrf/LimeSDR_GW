@@ -20,6 +20,12 @@ else
 OBJECTS += csr_access.o spiflash.o
 endif
 
+ifeq ($(TARGET), LIMESDR_MINI_V1)
+ifeq ($(GOLDEN), 0)
+CFLAGS += -O0
+endif
+endif
+
 all: firmware.bin firmware.hex
 
 %.hex: %.bin
