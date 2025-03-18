@@ -1181,13 +1181,14 @@ int main(void) {
 
         // Process received packet
         if (lms64_packet_pending) {
-            uint8_t reg_array[4];
             uint16_t addr;
             uint16_t val;
             uint8_t i2c_buf[3];
-			uint32_t read_value;
 
 #ifdef LIMESDR_XTRX
+            uint8_t reg_array[4];
+            uint32_t read_value;
+
             /* Disable CNTRL irq while processing packet */
             CNTRL_ev_enable_write(CNTRL_ev_enable_read() & ~(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET));
             irq_setmask(irq_getmask() & ~(1 << CNTRL_INTERRUPT));
@@ -2384,7 +2385,7 @@ int main(void) {
                                 i2c_wdata[k+2]= LMS_Ctrl_Packet_Rx->Data_field[24+k];
                             }
                             cdelay(5000); // Be sure EEPROM is READY/IDLE.
-                            if (!i2c0_write_no_addr(EEPROM_I2C_ADDR, i2c_wdata, data_cnt + 2))
+                            if (!i2c0_write_no_addr(EEPROM_I2C_ADDR, (unsigned char *)i2c_wdata, data_cnt + 2))
                                 LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                             cdelay(5000);
@@ -2498,8 +2499,8 @@ int main(void) {
                         {
                             i2c_wdata[0]= LMS_Ctrl_Packet_Rx->Data_field[8];
                             i2c_wdata[1]= LMS_Ctrl_Packet_Rx->Data_field[9];
-                            cdelay(5000); // Be sure EEPROM is READY/IDLE.
-                            if (!i2c0_read_multi_addr(EEPROM_I2C_ADDR, i2c_wdata, 2, i2c_rdata, data_cnt, false))
+                            cdelay(50000); // Be sure EEPROM is READY/IDLE.
+                            if (!i2c0_read_multi_addr(EEPROM_I2C_ADDR, (unsigned char *)i2c_wdata, 2, (unsigned char *)i2c_rdata, data_cnt, false))
                                 LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             else LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                             for (int k=0; k<data_cnt; k++)
