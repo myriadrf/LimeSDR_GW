@@ -133,9 +133,16 @@ class LimeTop(LiteXModule):
                 egpio_pads    = None,
                 egpio_len     = 2,
             )
-
+            # TODO: This should probably be moved to top level
+            if platform.name.startswith("limesdr_mini_v1"):
+                self.comb +=[
+                    self.general_periph.led1_r_in.eq(self.lms7002_top.lms7002_clk.pll_locked),
+                ]
+            else:
+                self.comb +=[
+                    self.general_periph.led1_r_in.eq(~self.busy_delay.busy_out),
+                ]
             self.comb += [
-                self.general_periph.led1_cpu_busy.eq(self.busy_delay.busy_out),
                 self.general_periph.ep03_active.eq(self.rd_active),
                 self.general_periph.ep83_active.eq(self.wr_active),
             ]
