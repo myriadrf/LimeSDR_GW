@@ -207,8 +207,8 @@ class BaseSoC(SoCCore):
 
             # FPGACFG.
             board_id           = 0x0011,
-            major_rev          = 2,
-            compile_rev        = 8,
+            major_rev          = 3,
+            compile_rev        = 0,
             revision_pads      = platform.request("revision"),
         )
 
