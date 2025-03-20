@@ -89,6 +89,9 @@ begin
 	if RESET_N = '0' or BYPASS = '1' then
 		state <= state0;
 		state_reg <= state0;
+		m_axis_tvalid_int <='0';
+		m_axis_tlast_int  <='0';
+		packet_end        <='0';
 	elsif rising_edge(CLK) then
 	    state_reg <= state;
 		m_axis_tvalid_int <= '0';
