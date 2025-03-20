@@ -90,6 +90,9 @@ begin
       if (int_rst = '0') then
          state              <= RESET_STATE;
          S_AXIS_BUF_RESET_N <= (others => '0');
+         s_axis_tready_override <= '0';
+         conn_buf               <= '0';
+         curbuf                 <= 0;
       elsif rising_edge(AXIS_ACLK) then
          S_AXIS_BUF_RESET_N     <= (others => '1');
          s_axis_tready_override <= '0';
