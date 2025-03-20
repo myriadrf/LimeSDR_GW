@@ -134,7 +134,7 @@ class TXPathTop(LiteXModule):
             self.smpl_nr_fifo     = smpl_nr_fifo
             self.comb += [
                 self.cd_smpl_nr_fifo.clk.eq(ClockSignal(rx_clk_domain)),
-                self.cd_smpl_nr_fifo.rst.eq(ResetSignal(rx_clk_domain) | (~(s_reset_n & self.ext_reset_n))),
+                self.cd_smpl_nr_fifo.rst.eq( (~(s_reset_n & self.ext_reset_n))),
             ]
 
         self.comb += [
