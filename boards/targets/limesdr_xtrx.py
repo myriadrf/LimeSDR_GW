@@ -177,6 +177,11 @@ class BaseSoC(SoCCore):
             "limesdr"       : limesdr_xtrx_platform.Platform()
         }[board]
 
+        if gold_img:
+            platform.toolchain.additional_commands += platform.gold_img_commands
+        else:
+            platform.toolchain.additional_commands += platform.user_img_commands
+
         platform.name        = "limesdr_xtrx"
         platform.vhd2v_force = False
 
@@ -403,8 +408,9 @@ class BaseSoC(SoCCore):
 
             # FPGACFG.
             board_id             = 27,
-            major_rev            = 3,
-            compile_rev          = 0,
+            # GOLD image can be recocgnized by 0xDEAD in major and compile revisions
+            major_rev            =  3 if ~gold_img else 0xDEAD,
+            compile_rev          =  0 if ~gold_img else 0xDEAD,
             revision_pads        = None,
         )
 
@@ -685,6 +691,9 @@ def main():
                 False : "linker_rom.ld",
             }[args.with_bios]
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
+            bistream_output_dir = "bitstream/{}".format(soc.get_build_name())
+            if not os.path.exists(bistream_output_dir):
+                os.makedirs(bistream_output_dir)
 
     # Load Bistream.
     if args.load:
@@ -692,9 +701,15 @@ def main():
         prog.load_bitstream(os.path.join(builder.gateware_dir, soc.build_name + ".bit"))
 
     # Flash Bitstream.
+    ## Note: enable_quad option is needed because, bitstream is generated with SPIx4 config mode
     if args.flash:
-        prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(0, os.path.join(builder.gateware_dir, soc.build_name + ".bin"))
+        if args.gold:
+            prog = soc.platform.create_programmer(cable=args.cable)
+            prog.flash(0, os.path.join(bistream_output_dir, soc.build_name + "_golden" + ".bin"), enable_quad=True)
+        else: #user img
+            # TODO: move user img address to a global variable somewhere instead of hardcoding
+            prog = soc.platform.create_programmer(cable=args.cable)
+            prog.flash(0X00220000, os.path.join(bistream_output_dir, soc.build_name + "_user" + ".bin"), enable_quad=True)
 
     # Flash Firmware.
     if args.flash_boot and args.flash:

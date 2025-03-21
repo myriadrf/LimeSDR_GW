@@ -1545,7 +1545,7 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
-#if defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE)
+#if defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE) || defined(CSR_FLASH_BASE)
                 case CMD_ALTERA_FPGA_GW_WR: // FPGA active serial
 
                     current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (
