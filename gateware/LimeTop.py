@@ -12,7 +12,7 @@ import sys
 import math
 
 from migen import *
-
+from migen.genlib.cdc import MultiReg
 from litex.gen import *
 
 from litex.soc.interconnect                  import stream
@@ -29,6 +29,10 @@ from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
 from gateware.LimeDFB_LiteX.general.busy_delay                import BusyDelay
 from gateware.LimeDFB_LiteX.general_periph.src.general_periph import GeneralPeriphTop
 from gateware.LimeDFB_LiteX.self_test.src.tst_top             import TstTop
+
+from gateware.examples.fft.LimeFFT                            import LimeFFT
+
+from gateware.common import *
 
 # LimeTop ------------------------------------------------------------------------------------------
 
@@ -62,6 +66,8 @@ class LimeTop(LiteXModule):
 
         self.rd_active = Signal() # From FT601
         self.wr_active = Signal() # From FT601
+
+        self.platform              = platform
 
         if not platform.name.startswith("limesdr_mini"):
             self.ev = EventManager()
@@ -187,12 +193,34 @@ class LimeTop(LiteXModule):
                 # LMS7002 <-> PLLCFG
                 self.comb += self.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls)
 
-            # LMS7002 -> RX Path -> Sink Pipeline.
-            self.rx_pipeline = stream.Pipeline(
-                self.lms7002_top.source,
-                self.rxtx_top.rx_path,
-                self.source,
-            )
+            # FFT example --------------------------------------------------------------------------------------
+            if with_fft:
+                # define Reset signal and adds a MultiReg
+                fft_reset_n = Signal()
+                self.specials += MultiReg(self.fpgacfg.rx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
+
+                self.fft_example = LimeFFT(platform=platform,
+                                           sink_clk_domain=self.lms7002_top.source.clock_domain,
+                                           source_clk_domain=self.lms7002_top.source.clock_domain)
+
+                self.comb += self.fft_example.reset.eq(~fft_reset_n)
+
+
+            # LMS7002 -> [LimeFFT example] -> RX Path -> Sink Pipeline.
+            if with_lms7002 and with_rx_tx_top and with_fft:
+                # LMS7002 -> RX Path -> Sink Pipeline.
+                self.rx_pipeline = stream.Pipeline(
+                    self.lms7002_top,
+                    self.fft_example,
+                    self.rxtx_top.rx_path,
+                    self.source,
+                )
+            elif with_lms7002 and with_rx_tx_top:
+                self.rx_pipeline = stream.Pipeline(
+                    self.lms7002_top,
+                    self.rxtx_top.rx_path,
+                    self.source,
+                )
 
             # Source -> TX Path -> LMS7002 Pipeline.
             self.tx_pipeline = stream.Pipeline(
@@ -201,49 +229,6 @@ class LimeTop(LiteXModule):
                 self.lms7002_top.sink,
             )
 
-        # FFT --------------------------------------------------------------------------------------
-
-        if with_fft:
-            # define Reset signal and adds a MultiReg
-            fft_reset_n = Signal()
-            self.specials += MultiReg(self.fpgacfg.tx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
-
-            # Declare FFT AXI Stream interfaces.
-            self.fft_s_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
-            self.fft_m_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
-
-            # Instantiate the FFT wrapper.
-            self.specials += Instance("fft_wrap",
-                i_CLK           = ClockSignal(self.lms7002_top.source.clock_domain),
-                i_RESET_N       = fft_reset_n,
-                i_S_AXIS_TVALID = self.fft_s_axis.valid,
-                i_S_AXIS_TDATA  = self.fft_s_axis.data,
-                o_S_AXIS_TREADY = self.fft_s_axis.ready,
-                i_S_AXIS_TLAST  = self.fft_s_axis.last,
-                i_S_AXIS_TKEEP  = self.fft_s_axis.keep,
-                o_M_AXIS_TDATA  = self.fft_m_axis.data,
-                o_M_AXIS_TVALID = self.fft_m_axis.valid,
-                i_M_AXIS_TREADY = self.fft_m_axis.ready,
-                o_M_AXIS_TLAST  = self.fft_m_axis.last,
-                o_M_AXIS_TKEEP  = self.fft_m_axis.keep,
-            )
-
-            # Add FFT sources to the platform.
-            platform.add_source("./gateware/examples/fft/fft.v")
-            platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
-
-        if with_fft:
-            # LMS7002 -> FFT -> RX Path -> PCIe DMA Pipeline.
-            # Connect the LMS7002 master interface to the FFT wrapper slave interface
-            self.comb += self.lms7002_top.source.connect(self.fft_s_axis)
-            # Connect the FFT wrapper master interface to the RX path slave interface
-            self.comb += self.fft_m_axis.connect(self.rxtx_top.rx_path.sink)
-        elif with_lms7002 and with_rx_tx_top: # Disabled for golden LimeSDR Mini v1
-            # LMS7002 -> RX Path -> PCIe DMA Pipeline.
-            self.rx_pipeline = stream.Pipeline(
-                self.lms7002_top.source,
-                self.rxtx_top.rx_path.sink,
-            )
 
         # VCTCXO -----------------------------------------------------------------------------------
 

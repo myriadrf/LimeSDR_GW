@@ -58,6 +58,33 @@ attribute DONT_TOUCH of instfft: label is "TRUE";
 
 signal slv_gnd        : std_logic_vector(12 downto 0);
 signal sl_gnd         : std_logic;
+
+component fft is
+    port (
+        clk         : in std_logic;
+        rst         : in std_logic;
+        in_i        : in std_logic_vector(11 downto 0);
+        in_q        : in std_logic_vector(11 downto 0);
+        out_real    : out std_logic_vector(20 downto 0);
+        out_imag    : out std_logic_vector(20 downto 0);
+        strobe_in   : in std_logic;
+        strobe_out  : out std_logic;
+        --Connecting done to start makes fft module run continuously
+        start       : in  std_logic;
+        done        : out std_logic;
+        --Window function upload unused
+        wf_start    : in std_logic;
+        wf_strobe   : in std_logic;   
+        wf_real     : in std_logic_vector(12 downto 0);
+        wf_imag     : in std_logic_vector(12 downto 0);
+        --
+        wr_state            : out std_logic;
+        wr_state_valid      : out std_logic
+        
+    );
+end component;
+
+
 begin
     --Avoid errors with VHDL <-> Verilog (type of aggregate cannot be determined without context)
     slv_gnd <= (others => '0');
@@ -67,7 +94,7 @@ begin
     in_i <= S_AXIS_TDATA(15 downto 4);
     in_q <= S_AXIS_TDATA(31 downto 20);
 
-    instfft : entity work.fft
+    instfft : fft
     port map(
         clk => clk,
         rst => sl_gnd,
