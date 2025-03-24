@@ -114,6 +114,7 @@ class BaseSoC(SoCCore):
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
+        with_fft       = False,
         **kwargs):
 
         # Assert Diamond Limitations ---------------------------------------------------------------
@@ -205,6 +206,7 @@ class BaseSoC(SoCCore):
             TX_IN_PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
             with_rx_tx_top     = with_rx_tx_top,
 
+            with_fft           = with_fft,
             # FPGACFG.
             board_id           = 0x0011,
             major_rev          = 3,
@@ -357,6 +359,9 @@ def main():
     parser.add_argument("--cpu-type",          default="vexriscv",  help="Select CPU.", choices=[
         "vexriscv", "picorv32", "fazyrv", "firev"]),
 
+    # Examples.
+    parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
+
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-ft601-ctrl-probe",      action="store_true", help="Enable FT601 Ctrl Probe.")
@@ -376,6 +381,7 @@ def main():
             with_uartbone  = args.with_uartbone,
             with_spi_flash = not args.without_spi_flash,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
+            with_fft       = args.with_fft,
         )
         # LiteScope Analyzer Probes.
         if args.with_ft601_ctrl_probe or args.with_rxdatapath_probe:
