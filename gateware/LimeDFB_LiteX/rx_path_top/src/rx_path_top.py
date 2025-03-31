@@ -117,16 +117,13 @@ class RXPathTop(LiteXModule):
             ]
 
         # AXI Stream packager (removes null bytes from axi stream)
-        # Combine IQ samples into full 64bit bus
+        # Combine IQ samples into full 64bit bus, relies on S_AXIS_TKEEP signal
         # In mimo Mode: AI AQ BI BQ
         # In siso Mode: AI AQ AI AQ
         self.iq_stream_combiner = Instance("IQ_STREAM_COMBINER",
             # Clk/Reset.
             i_CLK               = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK
             i_RESET_N           = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN
-            # Mode Settings.
-            i_ddr_en            = ddr_en,
-            i_mimo_en           = mimo_en,
             # AXI Stream Slave
             i_S_AXIS_TVALID     = self.sink.valid,
             o_S_AXIS_TREADY     = self.sink.ready,

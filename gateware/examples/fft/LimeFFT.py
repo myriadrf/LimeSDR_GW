@@ -29,25 +29,51 @@ class LimeFFT(LiteXModule):
         source_clk_domain   ="sys",
         ):
 
-        self.sink      = AXIStreamInterface(sink_width,   clock_domain=sink_clk_domain)
-        self.source    = AXIStreamInterface(source_width, clock_domain=source_clk_domain)
+        self.sink      = AXIStreamInterface(sink_width, sink_width//8, clock_domain=sink_clk_domain)
+        self.source    = AXIStreamInterface(source_width, source_width//8, clock_domain=source_clk_domain)
 
         self.reset = Signal()
+        buffer_rst = Signal()
+
+        self.buffer_rst = buffer_rst
+
+        self.debug_wr_cnt = Signal(16)
+
+        # Input data buffer (128 bit)
+        self.input_buff = ResetInserter()(ClockDomainsRenamer(source_clk_domain)(stream.SyncFIFO([("data", sink_width), ("keep", sink_width//8)], depth=512, buffered=True)))
+        self.output_buff = ResetInserter()(ClockDomainsRenamer(source_clk_domain)(
+            stream.SyncFIFO([("data", source_width), ("keep", source_width // 8)], depth=16, buffered=True)))
+
+        self.comb += [
+            self.input_buff.reset.eq(self.reset),
+            self.input_buff.sink.valid.eq(self.sink.valid),
+            self.sink.ready.eq(self.input_buff.sink.ready),
+            self.input_buff.sink.data.eq(self.sink.data),
+            self.input_buff.sink.keep.eq(self.sink.keep),
+
+            self.output_buff.reset.eq(self.reset),
+            self.source.valid.eq(self.output_buff.source.valid),
+            self.output_buff.source.ready.eq(self.source.ready),
+            self.source.data.eq(self.output_buff.source.data),
+            self.source.keep.eq(self.output_buff.source.keep),
+            self.source.last.eq(self.output_buff.source.last),
+            ]
 
         # Instantiate the FFT wrapper.
         self.fft_wrap = Instance("fft_wrap",
                                  i_CLK              = ClockSignal(source_clk_domain),
                                  i_RESET_N          = ~self.reset,
-                                 i_S_AXIS_TVALID    = self.sink.valid,
-                                 i_S_AXIS_TDATA     = self.sink.data,
-                                 o_S_AXIS_TREADY    = self.sink.ready,
-                                 i_S_AXIS_TLAST     = self.sink.last,
-                                 i_S_AXIS_TKEEP     = self.sink.keep,
-                                 o_M_AXIS_TDATA     = self.source.data,
-                                 o_M_AXIS_TVALID    = self.source.valid,
-                                 i_M_AXIS_TREADY    = self.source.ready,
-                                 o_M_AXIS_TLAST     = self.source.last,
-                                 o_M_AXIS_TKEEP     = self.source.keep,
+                                 i_S_AXIS_TVALID    = self.input_buff.source.valid,
+                                 i_S_AXIS_TDATA     = self.input_buff.source.data,
+                                 o_S_AXIS_TREADY    = self.input_buff.source.ready,
+                                 i_S_AXIS_TLAST     = self.input_buff.source.last,
+                                 i_S_AXIS_TKEEP     = self.input_buff.source.keep,
+                                 o_M_AXIS_TDATA     = self.output_buff.sink.data,
+                                 o_M_AXIS_TVALID    = self.output_buff.sink.valid,
+                                 i_M_AXIS_TREADY    = self.output_buff.sink.ready,
+                                 o_M_AXIS_TLAST     = self.output_buff.sink.last,
+                                 o_M_AXIS_TKEEP     = self.output_buff.sink.keep,
+                                 o_buff_rst         = buffer_rst,
                                  )
 
         # Add FFT sources to the platform.

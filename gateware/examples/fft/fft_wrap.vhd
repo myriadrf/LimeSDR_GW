@@ -32,7 +32,8 @@ entity fft_wrap is
 		M_AXIS_TKEEP    : out std_logic_vector(7 downto 0);
         -- 
         done            : out std_logic;
-        start           : in  std_logic
+        start           : in  std_logic;
+        buff_rst        : out std_logic
 		
         );
 end fft_wrap;
@@ -59,6 +60,8 @@ attribute DONT_TOUCH of instfft: label is "TRUE";
 signal slv_gnd        : std_logic_vector(12 downto 0);
 signal sl_gnd         : std_logic;
 
+signal strobe_out_int    : std_logic;
+
 component fft is
     port (
         clk         : in std_logic;
@@ -78,8 +81,8 @@ component fft is
         wf_real     : in std_logic_vector(12 downto 0);
         wf_imag     : in std_logic_vector(12 downto 0);
         --
-        wr_state            : out std_logic;
-        wr_state_valid      : out std_logic
+        wr_state        : out std_logic;
+        wr_state_valid  : out std_logic
         
     );
 end component;
@@ -102,8 +105,8 @@ begin
         in_q => in_q,
         out_real => out_real,
         out_imag => out_imag,
-        strobe_in => S_AXIS_TVALID,
-        strobe_out => M_AXIS_TVALID,
+        strobe_in => S_AXIS_TVALID AND wr_state,
+        strobe_out => strobe_out_int,
         --Connecting done to start makes fft module run continuously
         start => done,
         done => done,
@@ -135,6 +138,11 @@ begin
    M_AXIS_TDATA(15 downto 0)  <= out_imag_trunc;
    --TLAST signal is unused in this part of the design
    M_AXIS_TLAST <= '0';
+
+   buff_rst <= '1' when  wr_state_valid= '0' else '0';
+
+   M_AXIS_TVALID <= strobe_out_int;
+
 
 
 end arch;   
