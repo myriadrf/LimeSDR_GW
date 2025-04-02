@@ -29,18 +29,19 @@ class LimeFFT(LiteXModule):
         source_clk_domain   ="sys",
         ):
 
+        # Create sink and source
         self.sink      = AXIStreamInterface(sink_width, sink_width//8, clock_domain=sink_clk_domain)
         self.source    = AXIStreamInterface(source_width, source_width//8, clock_domain=source_clk_domain)
 
+        # Reset signals
         self.reset = Signal()
         buffer_rst = Signal()
 
         self.buffer_rst = buffer_rst
 
-        self.debug_wr_cnt = Signal(16)
-
-        # Input data buffer (128 bit)
+        # Input data buffer
         self.input_buff = ResetInserter()(ClockDomainsRenamer(source_clk_domain)(stream.SyncFIFO([("data", sink_width), ("keep", sink_width//8)], depth=512, buffered=True)))
+        # Output buffer
         self.output_buff = ResetInserter()(ClockDomainsRenamer(source_clk_domain)(
             stream.SyncFIFO([("data", source_width), ("keep", source_width // 8)], depth=16, buffered=True)))
 
@@ -76,15 +77,15 @@ class LimeFFT(LiteXModule):
                                  o_buff_rst         = buffer_rst,
                                  )
 
-        # Add FFT sources to the platform.
+        # Add FFT sources to the platform (verilog files can be added directly).
         platform.add_source("./gateware/examples/fft/fft.v")
-        # platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
 
+        # Add FFT sources to the platform (VHDL files are converted to verilog in order to be able to use in other toolchains).
         fft_wrap_files = [
             "./gateware/examples/fft/fft_wrap.vhd",
-            # "./gateware/examples/fft/fft.v"
 
         ]
+        # Converte neccesary source files
         self.fft_wrap_conv = add_vhd2v_converter(platform,
                                                  instance=self.fft_wrap,
                                                  files=fft_wrap_files,

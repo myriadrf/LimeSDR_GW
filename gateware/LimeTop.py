@@ -195,14 +195,17 @@ class LimeTop(LiteXModule):
 
             # FFT example --------------------------------------------------------------------------------------
             if with_fft:
-                # define Reset signal and adds a MultiReg
+                # Define Reset signal
                 fft_reset_n = Signal()
+                # Connect newly defined reset signal to main rx path reset trough MultiReg
                 self.specials += MultiReg(self.fpgacfg.rx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
 
+                # Instantiate FFT module
                 self.fft_example = LimeFFT(platform=platform,
                                            sink_clk_domain=self.lms7002_top.source.clock_domain,
                                            source_clk_domain=self.lms7002_top.source.clock_domain)
 
+                # Connect reset signal to FFT module
                 self.comb += self.fft_example.reset.eq(~fft_reset_n)
 
 
@@ -211,7 +214,7 @@ class LimeTop(LiteXModule):
                 # LMS7002 -> RX Path -> Sink Pipeline.
                 self.rx_pipeline = stream.Pipeline(
                     self.lms7002_top,
-                    self.fft_example,
+                    self.fft_example,   # Inserting FFT module
                     self.rxtx_top.rx_path,
                     self.source,
                 )
