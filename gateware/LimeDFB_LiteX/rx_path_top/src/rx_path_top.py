@@ -27,7 +27,8 @@ class RXPathTop(LiteXModule):
         M_AXIS_IQPACKET_BUFFER_WORDS = 512,
         int_clk_domain               = "lms_rx",
         m_clk_domain                 = "lms_rx",
-        s_clk_domain                 = "lms_rx"
+        s_clk_domain                 = "lms_rx",
+        soc_has_timesource           = False,
         ):
 
         assert fpgacfg_manager is not None
@@ -43,6 +44,7 @@ class RXPathTop(LiteXModule):
 
         # Sample NR.
         self.smpl_nr_cnt           = Signal(64)
+        self.smpl_nr_cnt_out       = Signal(64)
 
         # Flag Control.
         self.tx_pct_loss_flg       = Signal()
@@ -58,6 +60,8 @@ class RXPathTop(LiteXModule):
 
         # Signals.
         # --------
+
+        # RX IQ Stream.
 
         # sync.
         s_clk_rst_n              = Signal()
@@ -98,6 +102,55 @@ class RXPathTop(LiteXModule):
         iqsmpls_fifo      = stream.AsyncFIFO([("data", 128)], 16)
         iqsmpls_fifo      = ClockDomainsRenamer({"write": s_clk_domain, "read": int_clk_domain})(iqsmpls_fifo)
         self.iqsmpls_fifo = iqsmpls_fifo
+
+        if soc_has_timesource:
+            # Timestamp related
+            # TODO: This all should probably be moved to a separate module
+            # TODO: If int_clk_rst_n is not lms_rx or equivalent, this doesn't work, because reset from int_clk_rst_n is used in lms_rx domain
+            self.timestamp_settings = CSRStorage(size=1,description="Timestamp Settings", fields=[
+                CSRField("TS_SEL", size=1, offset=0, description="Timestamp selector",reset=0, values=[
+                    ("``0b0``", "Classic Timestamp."),
+                    ("``0b1``", "PPS Counter+Clock counter mixed Timestamp."),
+                ])
+            ])
+            self.pps                   = Signal()
+            self.pps_reg               = Signal()
+            self.pps_rising            = Signal()
+            self.timestamp_pps_counter = Signal(32)
+            self.timestamp_clk_count   = Signal(32)
+            self.timestamp_mixed       = timestamp_mixed = Signal(64)
+            self.comb += [
+                timestamp_mixed[0:32].eq(self.timestamp_clk_count),
+                timestamp_mixed[32:64].eq(self.timestamp_pps_counter),
+            ]
+            # TODO: find a way to pass a clock domain to this instead of hardcoding lms_rx
+            self.sync.lms_rx +=[
+                self.pps_reg.eq(self.pps),
+                self.pps_rising.eq(self.pps & ~self.pps_reg),
+
+                # Things to do on pps rising edge
+                If((int_clk_rst_n == 0),[
+                    self.timestamp_pps_counter.eq(0),
+                ]).Elif(self.pps_rising == 1,[
+                    self.timestamp_pps_counter.eq(self.timestamp_pps_counter + 1),
+                ]),
+                ## Rules for clock counter
+                # TS_SEL does not use clock counter, so keep it in reset
+                If(self.timestamp_settings.fields.TS_SEL == 0,[
+                    self.timestamp_clk_count.eq(0),
+                ]).Elif(self.timestamp_settings.fields.TS_SEL == 1,[
+                    # If clock counter is in use, reset at pps
+                    If((self.pps_rising == 1),[
+                        self.timestamp_clk_count.eq(0),
+                        # Else keep counting
+                    ]).Else([
+                        self.timestamp_clk_count.eq(self.timestamp_clk_count + 1),
+                    ])
+                ]).Else([
+                    # Keep count in reset if undefined
+                    self.timestamp_clk_count.eq(0),
+                ]),
+            ]
 
         self.comb += fifo_conv.reset.eq(~m_clk_rst_n)
 
@@ -208,7 +261,19 @@ class RXPathTop(LiteXModule):
         self.drop_samples = Signal()
         self.wr_header    = Signal()
 
-        self.comb += self.pct_hdr_1.eq(bp_sample_nr_counter)
+        if soc_has_timesource:
+            self.comb += [
+                If(self.timestamp_settings.fields.TS_SEL == 1,[
+                    self.pct_hdr_1.eq(timestamp_mixed),
+                    self.smpl_nr_cnt_out.eq(timestamp_mixed),
+                ]).Else([
+                    # Default to classic timestamp
+                    self.pct_hdr_1.eq(bp_sample_nr_counter),
+                    self.smpl_nr_cnt_out.eq(self.smpl_nr_cnt),
+                ])
+            ]
+
+
 
         self.data2packets_fsm = Instance("DATA2PACKETS_FSM",
             # Clk/Reset.

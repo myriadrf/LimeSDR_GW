@@ -55,6 +55,8 @@ class LimeTop(LiteXModule):
         compile_rev          = 7,
         revision_pads        = None,
 
+        soc_has_timesource   = False,
+
         ):
 
         self.sink      = AXIStreamInterface(sink_width,   clock_domain=sink_clk_domain)
@@ -62,6 +64,10 @@ class LimeTop(LiteXModule):
 
         self.rd_active = Signal() # From FT601
         self.wr_active = Signal() # From FT601
+
+        self.pps       = Signal()
+
+
 
         if not platform.name.startswith("limesdr_mini"):
             self.ev = EventManager()
@@ -150,6 +156,7 @@ class LimeTop(LiteXModule):
         # RXTX Top ---------------------------------------------------------------------------------
 
         if with_rx_tx_top:
+
             self.rxtx_top = RXTXTop(platform, self.fpgacfg,
                 # TX parameters
                 TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
@@ -162,9 +169,35 @@ class LimeTop(LiteXModule):
 
                 # RX parameters
                 RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
-                rx_int_clk_domain      = "sys",
+                # rx_int_clk_domain      = "sys", # uses the default lms_rx
                 rx_m_clk_domain        = "sys",
+
+                # Misc
+                soc_has_timesource     = soc_has_timesource,
             )
+
+            if soc_has_timesource:
+                # TODO: move notes from here and other similar locations to top of limetop to act as a checklist
+                #       when using for new board.
+                self.rx_delay_mode = CSRStorage(size=2, description="RX enable signal delay mode", fields=[
+                    CSRField("rx_del_sel", size=2, offset=0, description="RX enable signal delay mode",reset=0, values=[
+                        ("``0b0``", "No Delay."),
+                        ("``0b1``", "Delay until PPS"), # NOTE: tx_en_delay_signal must be assigned at top level!
+                        ("``0b2``", "Delay until PPS and Valid"), # NOTE: tx_en_delay_signal must be assigned at top level!
+                    ])
+                ])
+                self.tx_delay_mode = CSRStorage(size=2, description="TX enable signal delay mode", fields=[
+                    CSRField("tx_del_sel", size=2, offset=0, description="TX enable signal delay mode",reset=0, values=[
+                        ("``0b0``", "No Delay."),
+                        ("``0b1``", "Delay until PPS"), # NOTE: rx_en_delay_signal must be assigned at top level!
+                        ("``0b2``", "Delay until PPS and Valid"), # NOTE: rx_en_delay_signal must be assigned at top level!
+                    ])
+                ])
+
+                self.comb += [
+                        self.fpgacfg.tx_en_delay_mode.eq(self.tx_delay_mode.fields.tx_del_sel),
+                        self.fpgacfg.rx_en_delay_mode.eq(self.rx_delay_mode.fields.rx_del_sel),
+                ]
 
             # LMS7002 <-> RXTX Top.
             self.comb += self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en)
@@ -281,3 +314,86 @@ class LimeTop(LiteXModule):
             self.comb += self.ev.clk_ctrl_irq.trigger.eq((lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.storage == 1)
                 | (lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.storage == 1)
                 | (lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.storage == 1) )
+
+        if soc_has_timesource:
+            # TODO: maybe move this to a separate module
+            # Time Sync
+            # NOTE: Must be connected to something in top level!
+            self.time_seconds = Signal(6)
+            self.time_minutes = Signal(6)
+            self.time_hours   = Signal(5)
+            self.time_day     = Signal(5)
+            self.time_month   = Signal(4)
+            self.time_year    = Signal(12)
+            ## Edge detection signals
+            rx_en_reg = Signal(reset=0)
+            tx_en_reg = Signal(reset=0)
+            self.sync.sys +=[
+                rx_en_reg.eq(self.fpgacfg.rx_en),
+                tx_en_reg.eq(self.fpgacfg.tx_en),
+            ]
+            ####
+            # RX stream start time registers
+            self.rx_time_min_sec = CSRStatus(size= 16, description="Time in minutes and seconds, when RX stream started", fields=[
+                CSRField("sec", size=6, offset=0, description="RX stream start time, seconds"),
+                CSRField("min", size=6, offset=6, description="RX stream start time, minutes")
+            ])
+            self.rx_time_mon_day_hrs = CSRStatus(size= 16, description="Time in months, days and hours, when RX stream started", fields=[
+                CSRField("hrs", size=5, offset=0, description="RX stream start time, hours"),
+                CSRField("day", size=5, offset=5, description="RX stream start time, days"),
+                CSRField("mon", size=4, offset=10, description="RX stream start time, months"),
+            ])
+            self.rx_time_yrs = CSRStatus(size= 16, description="Time in years, when RX stream started", fields=[
+                CSRField("yrs", size=12, offset=0, description="RX stream start time, years")
+            ])
+            self.sync.sys +=[
+                ## RX time store
+                If((self.fpgacfg.rx_en == 1) & (rx_en_reg == 0),[
+                    self.rx_time_min_sec.fields.sec.eq    (self.time_seconds),
+                    self.rx_time_min_sec.fields.min.eq    (self.time_minutes),
+                    self.rx_time_mon_day_hrs.fields.hrs.eq(self.time_hours  ),
+                    self.rx_time_mon_day_hrs.fields.day.eq(self.time_day    ),
+                    self.rx_time_mon_day_hrs.fields.mon.eq(self.time_month  ),
+                    self.rx_time_yrs.fields.yrs.eq        (self.time_year   ),
+                ]).Elif(self.fpgacfg.rx_en == 0,[
+                    self.rx_time_min_sec.fields.sec.eq    (0),
+                    self.rx_time_min_sec.fields.min.eq    (0),
+                    self.rx_time_mon_day_hrs.fields.hrs.eq(0),
+                    self.rx_time_mon_day_hrs.fields.day.eq(0),
+                    self.rx_time_mon_day_hrs.fields.mon.eq(0),
+                    self.rx_time_yrs.fields.yrs.eq        (0),
+                ]),
+            ]
+            ####
+            # TX stream start time registers
+            self.tx_time_min_sec = CSRStatus(size= 16, description="Time in minutes and seconds, when TX stream started", fields=[
+                CSRField("sec", size=6, offset=0, description="TX stream start time, seconds"),
+                CSRField("min", size=6, offset=6, description="TX stream start time, minutes")
+            ])
+            self.tx_time_mon_day_hrs = CSRStatus(size= 16, description="Time in months, days and hours, when TX stream started", fields=[
+                CSRField("hrs", size=5, offset=0, description="TX stream start time, hours"),
+                CSRField("day", size=5, offset=5, description="TX stream start time, days"),
+                CSRField("mon", size=4, offset=10, description="TX stream start time, months"),
+            ])
+            self.tx_time_yrs = CSRStatus(size= 16, description="Time in years, when TX stream started", fields=[
+                CSRField("yrs", size=12, offset=0, description="TX stream start time, years")
+            ])
+            self.sync.sys +=[
+                ## TX time store
+                If((self.fpgacfg.tx_en == 1) & (tx_en_reg == 0),[
+                    self.tx_time_min_sec.fields.sec.eq    (self.time_seconds),
+                    self.tx_time_min_sec.fields.min.eq    (self.time_minutes),
+                    self.tx_time_mon_day_hrs.fields.hrs.eq(self.time_hours  ),
+                    self.tx_time_mon_day_hrs.fields.day.eq(self.time_day    ),
+                    self.tx_time_mon_day_hrs.fields.mon.eq(self.time_month  ),
+                    self.tx_time_yrs.fields.yrs.eq        (self.time_year   ),
+                ]).Elif(self.fpgacfg.tx_en == 0,[
+                    self.tx_time_min_sec.fields.sec.eq    (0),
+                    self.tx_time_min_sec.fields.min.eq    (0),
+                    self.tx_time_mon_day_hrs.fields.hrs.eq(0),
+                    self.tx_time_mon_day_hrs.fields.day.eq(0),
+                    self.tx_time_mon_day_hrs.fields.mon.eq(0),
+                    self.tx_time_yrs.fields.yrs.eq        (0),
+                ]),
+            ]
+            ####

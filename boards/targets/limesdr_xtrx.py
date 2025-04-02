@@ -412,6 +412,8 @@ class BaseSoC(SoCCore):
             major_rev            =  3 if ~gold_img else 0xDEAD,
             compile_rev          =  0 if ~gold_img else 0xDEAD,
             revision_pads        = None,
+            # TODO: maybe it's possible to implement check automatically?
+            soc_has_timesource   = True,
         )
 
         self.comb += self.lime_top.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
@@ -436,13 +438,49 @@ class BaseSoC(SoCCore):
         from litex.soc.cores.uart import UARTPHY
         from litex.soc.cores.uart import UART
 
-        gps_pads       = platform.request("gps")
+        self.gps_pads       = platform.request("gps")
         gnss_uart_pads = self.platform.request("gps_serial", loose=True)
         gnss_uart_phy  = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
-        pcie_uart0     = UART(gnss_uart_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
+        pcie_uart0     = UART(gnss_uart_phy, tx_fifo_depth=64, rx_fifo_depth=16, rx_fifo_rx_we=True)
         self.add_module(name=f"PCIE_UART0_phy", module=gnss_uart_phy)
         self.add_module(name="PCIE_UART0", module=pcie_uart0)
 
+        # Get UTC time from GNSS, assign UTC data to timestamp logic in rx_path
+        from gateware.LimeDFB_LiteX.general.ZDAParser import ZDAParser
+        self.zda_parser = ZDAParser(self)
+        self.comb += [
+            self.zda_parser.sink.data.eq (gnss_uart_phy.source.data ),
+            self.zda_parser.sink.valid.eq(gnss_uart_phy.source.valid),
+            self.lime_top.time_seconds.eq(self.zda_parser.time_seconds),
+            self.lime_top.time_minutes.eq(self.zda_parser.time_minutes),
+            self.lime_top.time_hours.eq  (self.zda_parser.time_hours  ),
+            self.lime_top.time_day.eq    (self.zda_parser.time_day    ),
+            self.lime_top.time_month.eq  (self.zda_parser.time_month  ),
+            self.lime_top.time_year.eq   (self.zda_parser.time_year   ),
+            self.lime_top.rxtx_top.rx_path.pps.eq(self.zda_parser.pps ),
+        ]
+        ####
+        # Current time registers
+        self.time_min_sec = CSRStatus(size= 16, description="Time in minutes and seconds, current", fields=[
+            CSRField("sec", size=6, offset=0, description="Current time, seconds"),
+            CSRField("min", size=6, offset=6, description="Current  time, minutes")
+        ])
+        self.time_mon_day_hrs = CSRStatus(size= 16, description="Time in months, days and hours, current", fields=[
+            CSRField("hrs", size=5, offset=0, description="Current time, hours"),
+            CSRField("day", size=5, offset=5, description="Current start time, days"),
+            CSRField("mon", size=4, offset=10, description="Current start time, months"),
+        ])
+        self.time_yrs = CSRStatus(size= 16, description="Time in years, current", fields=[
+            CSRField("yrs", size=12, offset=0, description="Current time, years")
+        ])
+        self.comb +=[
+                self.time_min_sec.fields.sec.eq    (self.zda_parser.time_seconds),
+                self.time_min_sec.fields.min.eq    (self.zda_parser.time_minutes),
+                self.time_mon_day_hrs.fields.hrs.eq(self.zda_parser.time_hours  ),
+                self.time_mon_day_hrs.fields.day.eq(self.zda_parser.time_day    ),
+                self.time_mon_day_hrs.fields.mon.eq(self.zda_parser.time_month  ),
+                self.time_yrs.fields.yrs.eq        (self.zda_parser.time_year   ),
+        ]
         # CLK Tests --------------------------------------------------------------------------------
 
         from gateware.LimeDFB.self_test.clk_no_ref_test import clk_no_ref_test
@@ -456,13 +494,16 @@ class BaseSoC(SoCCore):
 
         # VCTCXO tamer
         self.pps_internal = Signal()
+        self.comb += [
+            self.zda_parser.pps.eq(self.pps_internal)
+        ]
 
         synchro_pads = platform.request("synchro")
         self.comb += [
             If(self.periphcfg.PERIPH_INPUT_SEL_0.storage[0:1] == 0b01,
                 self.pps_internal.eq(synchro_pads.pps_in)
             ).Else(
-                self.pps_internal.eq(gps_pads.pps)
+                self.pps_internal.eq(self.gps_pads.pps)
             )
         ]
 
@@ -489,6 +530,18 @@ class BaseSoC(SoCCore):
         pcie_uart1     = UART(pcie_uart1_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
         self.add_module(name=f"PCIE_UART1_phy", module=pcie_uart1_phy)
         self.add_module(name="PCIE_UART1", module=pcie_uart1)
+
+
+        ### Misc assignments
+        # Stream delay signals
+        self.comb += [
+            self.lime_top.fpgacfg.tx_en_delay_signal[0].eq(self.zda_parser.pps),
+            self.lime_top.fpgacfg.tx_en_delay_signal[1].eq(self.zda_parser.pps & self.zda_parser.time_valid),
+            self.lime_top.fpgacfg.rx_en_delay_signal[0].eq(self.zda_parser.pps),
+            self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps & self.zda_parser.time_valid),
+        ]
+
+
 
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
@@ -612,6 +665,7 @@ class BaseSoC(SoCCore):
             register     = True,
             csr_csv      = "analyzer.csv"
         )
+
 
 # Build --------------------------------------------------------------------------------------------
 

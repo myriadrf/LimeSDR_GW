@@ -1077,6 +1077,25 @@ unsigned char Check_many_blocks(unsigned char block_size) {
         return 0;
 }
 
+void gnss_init(void) {
+    // TODO: for now this uses PCIE_UART0. This is good for XTRX, but might need some
+    //       modifications to make it more dynamic in the future
+#ifdef ZDAPARSER_PRESENT
+    // Enable ZDA messages
+    char pmtk_msg[] = "$PMTK314,1,1,1,1,1,5,0,0,0,0,0,0,0,0,0,0,0,1,0*2D\r\n";
+    // Enable PPS
+    char pmtk_msg2[] = "$PMTK285,4,100*38\r\n";
+    for (int i = 0; pmtk_msg2[i] != '\0'; i++) {
+        PCIE_UART0_rxtx_write((uint32_t)pmtk_msg2[i]);
+    }
+    cdelay(0xFFFFF);
+    for (int i = 0; pmtk_msg[i] != '\0'; i++) {
+        PCIE_UART0_rxtx_write((uint32_t)pmtk_msg[i]);
+    }
+#endif
+
+}
+
 int main(void) {
     int spirez;
 #ifdef CONFIG_CPU_HAS_INTERRUPT
@@ -1093,8 +1112,12 @@ int main(void) {
     clk_cfg_irq_init();
     init_pmic();
     init_vctcxo_dac();
+
     help();
     prompt();
+    uint8_t gnss_init_done = 0;
+    // gnss_init();
+
 #else // LIMESDR_MINI_V1 / LIMESDR_MINI_V2
     uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
     uint8_t p_spi_wrdata[4];
@@ -1181,6 +1204,10 @@ int main(void) {
 
         // Process received packet
         if (lms64_packet_pending) {
+            if (gnss_init_done == 0) {
+                gnss_init();
+                gnss_init_done = 1;
+            }
             uint16_t addr;
             uint16_t val;
             uint8_t i2c_buf[3];

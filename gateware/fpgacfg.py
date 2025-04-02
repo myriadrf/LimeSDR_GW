@@ -50,6 +50,15 @@ class FPGACfg(LiteXModule):
         self.drct_clk_en       = Signal(16)
         self.clk_ena           = Signal(16)
 
+        # Stream delay signals
+        # --------------
+        self.rx_en_delay_mode   = Signal(2)
+        self.rx_en_delay_signal = Signal(2)
+        rx_en_delay     = Signal(reset=0)
+        self.tx_en_delay_mode   = Signal(2)
+        self.tx_en_delay_signal = Signal(2)
+        tx_en_delay     = Signal(reset=0)
+
         # CSRs.
         # -----
 
@@ -185,8 +194,6 @@ class FPGACfg(LiteXModule):
             self.synch_mode.eq(       self.reg08.fields.synch_mode),
             self.smpl_nr_clr.eq(      self.reg09.fields.smpl_nr_clr),
             self.txpct_loss_clr.eq(   self.reg09.fields.txpct_loss_clr),
-            self.tx_en.eq(            self.reg10.fields.tx_en),
-            self.rx_en.eq(            self.reg10.fields.rx_en),
             self.tx_ptrn_en.eq(       self.reg10.fields.tx_ptrn_en),
             self.rx_ptrn_en.eq(       self.reg10.fields.rx_ptrn_en),
             self.tx_cnt_en.eq(        self.reg10.fields.tx_cnt_en),
@@ -197,4 +204,53 @@ class FPGACfg(LiteXModule):
             self.txant_pre.eq(        self._txant_pre.storage),
             self.txant_post.eq(       self._txant_post.storage),
 
+        ]
+
+        # Stream delay logic
+        # Mode 0 uses no delay
+        # Mode 1 uses delay signal 0
+        # Mode 2 uses delay signal 1
+        # ...
+        # tx_en_delay and rx_en_delay are outputs of mux
+        self.sync += [
+            # Add option to delay stream start until a delay signal is pulsed high
+            If(self.tx_en_delay_mode != 0,[
+                If(self.reg10.fields.tx_en == 0,[
+                    self.tx_en.eq(0),
+                ]).Else([
+                    self.tx_en.eq(self.tx_en | tx_en_delay),
+                ])
+            ]).Else([
+                self.tx_en.eq(            self.reg10.fields.tx_en),
+            ]),
+            # Add option to delay stream start until a delay signal is pulsed high
+            If(self.rx_en_delay_mode != 0, [
+                If(self.reg10.fields.rx_en == 0,[
+                    self.rx_en.eq(0),
+                ]).Else([
+                    self.rx_en.eq(self.rx_en | rx_en_delay),
+                ])
+            ]).Else([
+                self.rx_en.eq(            self.reg10.fields.rx_en),
+            ]),
+        ]
+
+        # Stream delay signal mux
+        tx_cases = {
+            # 0: same as default value, comment for readability
+            1: tx_en_delay.eq(self.tx_en_delay_signal[0]),
+            2: tx_en_delay.eq(self.tx_en_delay_signal[1]),
+            # Same behaviour as no delay if mode choice undefined
+            "default": tx_en_delay.eq(1)
+        }
+        rx_cases = {
+            # 0: same as default value, comment for readability
+            1: rx_en_delay.eq(self.rx_en_delay_signal[0]),
+            2: rx_en_delay.eq(self.rx_en_delay_signal[1]),
+            # Same behaviour as no delay if mode choice undefined
+            "default": rx_en_delay.eq(1)
+        }
+        self.comb += [
+            Case(self.tx_en_delay_mode,tx_cases),
+            Case(self.rx_en_delay_mode,rx_cases),
         ]
