@@ -35,7 +35,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             break;
         case 0xA:
             tmp = lime_top_fpgacfg_reg10_read();
-            value = (tmp >> 1) & 0x01;
+            value = tmp & 0x03;//(tmp >> 1) & 0x01;
             value |= lime_top_rfsw_control_rfsw_rx_read() << 2;
             value |= lime_top_rfsw_control_rfsw_tx_read() << 4;
             value |= lime_top_rfsw_control_tdd_manual_val_read() << 5;
@@ -157,8 +157,8 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             lime_top_fpgacfg_reg08_write(reg);
             break;
         case 0xA:
-            reg =  (value & 0x001) << 0; // rx_en
-            reg |= (value & 0x001) << 1; // tx_en
+            reg =  (value & 0x003) << 0; // rx_en + tx_en
+            // reg |= (value & 0x002) << 1; // tx_en
             reg |= (value & 0x200) << 0; // test_ptrn_en
             lime_top_fpgacfg_reg10_write(reg);
             //lime_top_lms7002_tx_en_write(value);

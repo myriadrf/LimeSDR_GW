@@ -419,7 +419,7 @@ class BaseSoC(SoCCore):
         # PCIE DMA -> TX Path -> LMS7002 Pipeline.
         self.comb += [
             self.pcie_dma0.source.connect(self.lime_top.sink, omit=["ready"]),
-            self.pcie_dma0.source.ready.eq((self.lime_top.sink.ready & self.lime_top.fpgacfg.tx_en) | ~self.pcie_dma0.reader.enable),
+            self.pcie_dma0.source.ready.eq((self.lime_top.sink.ready & self.lime_top.fpgacfg.rx_en) | ~self.pcie_dma0.reader.enable),
         ]
 
         self.comb += self.lime_top.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)

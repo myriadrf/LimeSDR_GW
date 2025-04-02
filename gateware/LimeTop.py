@@ -206,7 +206,7 @@ class LimeTop(LiteXModule):
         if with_fft:
             # define Reset signal and adds a MultiReg
             fft_reset_n = Signal()
-            self.specials += MultiReg(self.fpgacfg.tx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
+            self.specials += MultiReg(self.fpgacfg.rx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
 
             # Declare FFT AXI Stream interfaces.
             self.fft_s_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)

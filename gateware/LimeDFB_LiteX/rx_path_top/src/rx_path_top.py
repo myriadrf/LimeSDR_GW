@@ -295,10 +295,10 @@ class RXPathTop(LiteXModule):
         # CDC. -------------------------------------------------------------------------------------
 
         reset_n = Signal()
-        if platform.name.startswith("limesdr_mini"):
-            reset_n = fpgacfg_manager.rx_en
-        else:
-            reset_n = fpgacfg_manager.tx_en
+        # if platform.name.startswith("limesdr_mini"):
+        reset_n = fpgacfg_manager.rx_en
+        # else:
+        #     reset_n = fpgacfg_manager.tx_en
 
         if s_clk_domain == "sys":
             self.comb += [

@@ -273,10 +273,10 @@ class LMS7002Top(LiteXModule):
 
         self.txiq_tst_ptrn = Instance("txiq_tst_ptrn", **txiq_tst_ptrn_params)
 
-        if platform.name.startswith("limesdr_mini"):
-            self.specials += MultiReg(fpgacfg_manager.rx_en, tx_reset_n, odomain="lms_tx")
-        else:
-            self.specials += MultiReg(fpgacfg_manager.tx_en, tx_reset_n, odomain="lms_tx")
+        # if platform.name.startswith("limesdr_mini"):
+        self.specials += MultiReg(fpgacfg_manager.rx_en, tx_reset_n, odomain="lms_tx")
+        # else:
+        #     self.specials += MultiReg(fpgacfg_manager.tx_en, tx_reset_n, odomain="lms_tx")
 
         self.specials += [
             MultiReg(fpgacfg_manager.tx_ptrn_en,      tx_ptrn_en,      odomain="lms_tx"),
@@ -408,10 +408,10 @@ class LMS7002Top(LiteXModule):
             o_m_axis_tlast        = self.rx_cdc.sink.last
         )
 
-        if platform.name.startswith("limesdr_mini"):
-            self.specials += MultiReg(fpgacfg_manager.rx_en, self.rx_reset_n, odomain="lms_rx"),
-        else:
-            self.specials += MultiReg(fpgacfg_manager.tx_en, self.rx_reset_n, odomain="lms_rx"),
+        # if platform.name.startswith("limesdr_mini"):
+        self.specials += MultiReg(fpgacfg_manager.rx_en, self.rx_reset_n, odomain="lms_rx"),
+        # else:
+        #     self.specials += MultiReg(fpgacfg_manager.tx_en, self.rx_reset_n, odomain="lms_rx"),
 
         self.specials += [
             MultiReg(fpgacfg_manager.rx_ptrn_en,      rx_ptrn_en,      odomain="lms_rx"),
