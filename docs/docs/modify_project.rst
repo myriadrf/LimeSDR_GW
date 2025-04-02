@@ -16,13 +16,13 @@ The gateware sources are organized into several folders:
 
 Example: Adding an FFT Module
 -----------------------------
-To make it easier to understand how to add a custom module, an example is provided for the LimeSDR XTRX. In this example, a fixed-point FFT module is inserted in the data receive path so that the results of the Fourier transform are packed into packets instead of raw RF samples.
+To make it easier to understand how to add a custom module, an example is provided for the LimeSDR XTRX. In this example, a fixed-point FFT module is inserted in the data receive path so that the results of the Fourier transform are packed into packets instead of raw RF samples. Since LiteX provides a flexible framework for defining hardware configurations through command-line arguments, the ``--with-fft`` argument is used to modify rx_path and include an FFT example when building the project.
 
 If you want to try out the FFT module without modifying code, you could build the target with the following command:
 
 .. code-block:: bash
 
-   python3 -m boards.targets.limesdr_xtrx --build --with-fft [--load] [--write] [--cable <cable>]
+   python3 -m boards.targets.<target> --build --with-fft [--load] [--cable <cable>]
 
 All sources required for the example are located in **gateware/examples/fft**. The folder contains:
 
@@ -32,8 +32,8 @@ All sources required for the example are located in **gateware/examples/fft**. T
   The Verilog source file (pre-generated from **fixedpointfft.py**).
 - **fft_wrap.vhd**
   A VHDL wrapper for **fft.v** that provides a basic AXI-STREAM interface.
-- **LimeTop_fft.py**
-  A modified version of **LimeTop.py** used in the project, incorporating the FFT module.
+- **LimeFFT.py**
+  LiteX wrapper file incorporating the FFT module.
 - **limesdr_fft_samples.grc**
   A GNU Radio file containing blocks that scale, shift, and display the FFT data received from the board.
 
@@ -45,83 +45,55 @@ Below is a block diagram showing the desired structure. New elements are highlig
    :width: 1000
    :alt: Block diagram showing FFT module insertion
 
-Disconnecting Existing Connections
+
+Instantiating FFT Example module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To avoid conflicting assignments, you must disconnect the **lms7002_top** master interface from the **rx_path_top** slave interface. For example, in **gateware/LimeTop.py**, comment out the connection line as shown:
+This code snippet below from **gateware/LimeTop.py** file adds an FFT example to the design when the with_fft flag is enabled. 
 
 .. code-block:: python
 
-    # LMS7002 -> RX Path -> PCIe DMA Pipeline.
-    # Disconnect RX path AXIS slave from LMS7002 AXIS master
-    #self.rx_pipeline = stream.Pipeline(
-    #    self.lms7002_top.source,
-    #    self.rxtx_top.rx_path.sink,
-    #)
-    # LMS7002 -> RX Path -> PCIe DMA Pipeline.
-    self.rx_pipeline = stream.Pipeline(
-        self.lms7002_top.source,
-        self.rxtx_top.rx_path.sink,
-    )
+            # FFT example --------------------------------------------------------------------------------------
+            if with_fft:
+                # Define Reset signal
+                fft_reset_n = Signal()
+                # Connect newly defined reset signal to main rx path reset trough MultiReg
+                self.specials += MultiReg(self.fpgacfg.rx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
 
-    # VCTCXO -----------------------------------------------------------------------------------
+                # Instantiate FFT module
+                self.fft_example = LimeFFT(platform=platform,
+                                           sink_clk_domain=self.lms7002_top.source.clock_domain,
+                                           source_clk_domain=self.lms7002_top.source.clock_domain)
 
-Instantiating the FFT Wrapper
+                # Connect reset signal to FFT module
+                self.comb += self.fft_example.reset.eq(~fft_reset_n)
+
+Connecting FFT Example module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To avoid conflicting assignments, you must disconnect the **lms7002_top** master interface from the **rx_path_top** slave interface. In code snippet below you can check how ``rx_pipeline`` is modified and ``--with-fft`` argument is used in **gateware/LimeTop.py** file to isert FFT module:
+
+.. code-block:: python
+
+            # LMS7002 -> [LimeFFT example] -> RX Path -> Sink Pipeline.
+            if with_lms7002 and with_rx_tx_top and with_fft:
+                # LMS7002 -> RX Path -> Sink Pipeline.
+                self.rx_pipeline = stream.Pipeline(
+                    self.lms7002_top,
+                    self.fft_example,  # Inserting FFT module
+                    self.rxtx_top.rx_path,
+                    self.source,
+                )
+            elif with_lms7002 and with_rx_tx_top:
+                self.rx_pipeline = stream.Pipeline(
+                    self.lms7002_top,
+                    self.rxtx_top.rx_path,
+                    self.source,
+                )
+
+
+Checking FFT results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Next, instantiate the FFT wrapper and create two new AXI-Stream interfaces. You can copy the interface declarations from another module. For example:
-
-.. code-block:: python
-
-    # Import the AXIStreamInterface definition
-    from litex.soc.interconnect.axi import AXIStreamInterface
-
-    # define Reset signal and adds a MultiReg
-    fft_reset_n = Signal()
-    self.specials += MultiReg(self.fpgacfg.tx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
-
-    # Declare FFT AXI Stream interfaces.
-    self.fft_s_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
-    self.fft_m_axis = AXIStreamInterface(data_width=64, clock_domain=self.lms7002_top.source.clock_domain)
-
-Adding Sources and Instantiating the FFT Module
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Add the FFT sources to the project and instantiate the module as follows:
-
-.. code-block:: python
-
-    # Instantiate the FFT wrapper.
-    self.specials += Instance("fft_wrap",
-        i_CLK           = ClockSignal(self.lms7002_top.source.clock_domain),
-        i_RESET_N       = fft_reset_n,
-        i_S_AXIS_TVALID = self.fft_s_axis.valid,
-        i_S_AXIS_TDATA  = self.fft_s_axis.data,
-        o_S_AXIS_TREADY = self.fft_s_axis.ready,
-        i_S_AXIS_TLAST  = self.fft_s_axis.last,
-        i_S_AXIS_TKEEP  = self.fft_s_axis.keep,
-        o_M_AXIS_TDATA  = self.fft_m_axis.data,
-        o_M_AXIS_TVALID = self.fft_m_axis.valid,
-        i_M_AXIS_TREADY = self.fft_m_axis.ready,
-        o_M_AXIS_TLAST  = self.fft_m_axis.last,
-        o_M_AXIS_TKEEP  = self.fft_m_axis.keep,
-    )
-    # Add FFT sources to the platform.
-    platform.add_source("./gateware/examples/fft/fft.v")
-    platform.add_source("./gateware/examples/fft/fft_wrap.vhd")
-
-Connecting the FFT Module
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Finally, connect the FFT module between **lms7002_top** and **rx_path_top**. Use the same connection syntax as before (with the added *omit={"areset_n"}* for the FFT wrapper):
-
-.. code-block:: python
-
-    # LMS7002 -> FFT -> RX Path -> PCIe DMA Pipeline.
-    # Connect the LMS7002 master interface to the FFT wrapper slave interface
-    self.comb += self.lms7002_top.source.connect(self.fft_s_axis)
-    # Connect the FFT wrapper master interface to the RX path slave interface
-    self.comb += self.fft_m_axis.connect(self.rxtx_top.rx_path.sink)
 
 After these modifications, build the project and program the board as described in :ref:`Building the project<docs/build_project:building and loading the gateware>`.
 
