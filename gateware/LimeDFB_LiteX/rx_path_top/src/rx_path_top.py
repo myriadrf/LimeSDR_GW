@@ -272,6 +272,11 @@ class RXPathTop(LiteXModule):
                     self.smpl_nr_cnt_out.eq(self.smpl_nr_cnt),
                 ])
             ]
+        else:
+            self.comb += [
+                self.pct_hdr_1.eq(bp_sample_nr_counter),
+                self.smpl_nr_cnt_out.eq(self.smpl_nr_cnt),
+            ]
 
 
 
