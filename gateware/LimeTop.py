@@ -169,7 +169,10 @@ class LimeTop(LiteXModule):
 
                 # RX parameters
                 RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
-                # rx_int_clk_domain      = "sys", # uses the default lms_rx
+                # "sys" uses less resources, presumably due to less clock domain crossings
+                # but lms_rx is necessary if timesource syncrhonisation is needed
+                # TODO: Investigate WHY exactly "sys" uses less resources, because it shouldn't
+                rx_int_clk_domain      = "lms_rx" if soc_has_timesource else "sys",
                 rx_m_clk_domain        = "sys",
 
                 # Misc
