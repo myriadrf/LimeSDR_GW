@@ -35,7 +35,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             break;
         case 0xA:
             tmp = lime_top_fpgacfg_reg10_read();
-            value = (tmp >> 1) & 0x01;
+            value = tmp & 0x03;//(tmp >> 1) & 0x01;
             value |= lime_top_rfsw_control_rfsw_rx_read() << 2;
             value |= lime_top_rfsw_control_rfsw_tx_read() << 4;
             value |= lime_top_rfsw_control_tdd_manual_val_read() << 5;
@@ -116,6 +116,50 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
         case 0x73:
             value = lms_clock_test_test_cnt_read() >> 16;
             break;
+#ifdef TIMESOURCE_PRESENT
+        // timesource registers
+        case 0x280:
+            value = lime_top_rxtx_top_rx_path_timestamp_settings_read() & 0xFFFF;
+            break;
+        case 0x281:
+            value = lime_top_rx_delay_mode_read() & 0xFFFF;
+            break;
+        case 0x282:
+            value = lime_top_tx_delay_mode_read() & 0xFFFF;
+            break;
+        // current time
+        case 0x283:
+            value = main_time_min_sec_read() & 0xFFFF;
+            break;
+        case 0x284:
+            value = main_time_mon_day_hrs_read() & 0xFFFF;
+            break;
+        case 0x285:
+            value = main_time_yrs_read() & 0xFFFF;
+            break;
+        // rx start time
+        case 0x286:
+            value = lime_top_rx_time_min_sec_read() & 0xFFFF;
+            break;
+        case 0x287:
+            value = lime_top_rx_time_mon_day_hrs_read() & 0xFFFF;
+            break;
+        case 0x288:
+            value = lime_top_rx_time_yrs_read() & 0xFFFF;
+            break;
+        // tx start time
+        case 0x289:
+            value = lime_top_tx_time_min_sec_read() & 0xFFFF;
+            break;
+        case 0x28A:
+            value = lime_top_tx_time_mon_day_hrs_read() & 0xFFFF;
+            break;
+        case 0x28B:
+            value = lime_top_tx_time_yrs_read() & 0xFFFF;
+            break;
+
+#endif
+
         default:
             break;
     }
@@ -157,8 +201,8 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             lime_top_fpgacfg_reg08_write(reg);
             break;
         case 0xA:
-            reg =  (value & 0x001) << 0; // rx_en
-            reg |= (value & 0x001) << 1; // tx_en
+            reg =  (value & 0x003) << 0; // rx_en + tx_en
+            // reg |= (value & 0x002) << 1; // tx_en
             reg |= (value & 0x200) << 0; // test_ptrn_en
             lime_top_fpgacfg_reg10_write(reg);
             //lime_top_lms7002_tx_en_write(value);
@@ -238,6 +282,19 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             sys_clock_test_test_en_write(value & 0x1);
             lms_clock_test_test_en_write((value & 0x4) >> 2);
             break;
+#ifdef TIMESOURCE_PRESENT
+        // timesource registers
+        case 0x280:
+            lime_top_rxtx_top_rx_path_timestamp_settings_write(value);
+            break;
+        case 0x281:
+            lime_top_rx_delay_mode_write(value);
+            break;
+        case 0x282:
+            lime_top_tx_delay_mode_write(value);
+            break;
+
+#endif
         default:
             break;
     }

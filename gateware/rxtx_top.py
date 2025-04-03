@@ -39,6 +39,9 @@ class RXTXTop(LiteXModule):
         rx_s_clk_domain    = "lms_rx",
         rx_int_clk_domain  = "lms_rx",
         rx_m_clk_domain    = "lms_rx",
+
+        # Misc parameters
+        soc_has_timesource = False,
         ):
 
         assert fpgacfg_manager is not None
@@ -80,10 +83,11 @@ class RXTXTop(LiteXModule):
         # RX Path.
         # --------
         self.rx_path = rx_path = RXPathTop(platform, fpgacfg_manager,
-            RX_IQ_WIDTH    = RX_IQ_WIDTH,
-            m_clk_domain   = rx_m_clk_domain,
-            int_clk_domain = rx_int_clk_domain,
-            s_clk_domain   = rx_s_clk_domain,
+            RX_IQ_WIDTH        = RX_IQ_WIDTH,
+            m_clk_domain       = rx_m_clk_domain,
+            int_clk_domain     = rx_int_clk_domain,
+            s_clk_domain       = rx_s_clk_domain,
+            soc_has_timesource = soc_has_timesource,
         )
 
         # Logic.
@@ -98,7 +102,7 @@ class RXTXTop(LiteXModule):
 
             # RX <-> TX
             tx_path.pct_loss_flg_clr.eq(rx_path.pct_hdr_cap),
-            tx_path.rx_sample_nr.eq(    rx_path.smpl_nr_cnt),
+            tx_path.rx_sample_nr.eq(    rx_path.smpl_nr_cnt_out),
             rx_path.tx_pct_loss_flg.eq( tx_path.pct_loss_flg),
 
             # RX -> FIFO
