@@ -1104,6 +1104,7 @@ int main(void) {
 #endif
     uart_init();
 
+    uint8_t gnss_init_done = 0;
 #ifdef LIMESDR_XTRX
     init_pmic();
     printf("CSR_CNTRL_BASE 0x%lx ", CSR_CNTRL_BASE);
@@ -1115,7 +1116,7 @@ int main(void) {
 
     help();
     prompt();
-    uint8_t gnss_init_done = 0;
+
     // gnss_init();
 
 #else // LIMESDR_MINI_V1 / LIMESDR_MINI_V2
@@ -1194,6 +1195,7 @@ int main(void) {
     Configure_LM75();
 #endif
 
+
     while (1) {
 #ifdef LIMESDR_XTRX
         console_service();
@@ -1204,6 +1206,7 @@ int main(void) {
 
         // Process received packet
         if (lms64_packet_pending) {
+            // TODO: maybe this should be removed with ifdef if not required?
             if (gnss_init_done == 0) {
                 gnss_init();
                 gnss_init_done = 1;
