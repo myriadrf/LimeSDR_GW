@@ -27,6 +27,20 @@ Firmware
 --------
 The firmware sources are located in the ``firmware`` folder and are built using the provided ``Makefile``. The gateware project must be built at least once to generate the necessary sources and headers for firmware compilation. When the gateware is built, the firmware is automatically compiled, so manual compilation is not required.
 
+Firmware Loading via UART
+-------------------------
+
+By default, firmware is built when gateware is compiled and loaded into SRAM.
+Alternatively, firmware can be compiled and loaded via UART:
+
+.. code:: bash
+
+   # Build firmware:
+   cd firmware && make clean all && cd ../
+
+   # Load firmware through serial:
+   litex_term /dev/ttyUSB0 --kernel firmware/firmware.bin --csr-csv csr.csv
+
 Debug Tools
 -----------
 **Firmware Debug through GDB over JTAG**
