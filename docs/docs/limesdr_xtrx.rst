@@ -37,27 +37,27 @@ The **Lime_top Module** serves as a wrapper for the LMS7002M transceiver control
 - :ref:`RX Path Top Module <rx_path_top_module>` – Manages the receive path from the LMS7002M to the FPGA and host, packing IQ samples into packets and generating timestamps.
 - :ref:`TX Path Top Module <tx_path_top_module>` – Manages the transmit path from the host through the FPGA to the LMS7002M, unpacking IQ sample packets and handling stream synchronization with timestamps.
 
+.. figure:: limesdr-xtrx/images/limetop_block_diagram.svg
+   :width: 1000
+   :alt: Lime_top block diagram
+
 .. _lms7002_top_module:
 
 LMS7002 Top Module
 ~~~~~~~~~~~~~~~~~~
-This module implements the LMS7002M PHY for transmitting and receiving digital IQ samples. (Detailed documentation should be provided in this section.)
+This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`lms7002_top <docs/lms7002_top/readme:lms7002_top>` description. This module implements the LMS7002M PHY for transmitting and receiving digital IQ samples.
 
 .. _rx_path_top_module:
 
 RX Path Top Module
 ~~~~~~~~~~~~~~~~~~
-This module handles the receive path from the LMS7002M to the FPGA and host, including IQ sample packetization and timestamp generation.
+This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`rx_path_top <docs/rx_path_top/readme:rx_path_top>` description. It handles the receive path from the LMS7002M to the FPGA and host, including IQ sample packetization and timestamp generation.
 
 .. _tx_path_top_module:
 
 TX Path Top Module
 ~~~~~~~~~~~~~~~~~~
-This module manages the transmit path from the host through the FPGA to the LMS7002M, including unpacking of IQ samples and stream synchronization.
-
-.. figure:: limesdr-xtrx/images/limetop_block_diagram.svg
-   :width: 1000
-   :alt: Lime_top block diagram
+This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`tx_path_top <docs/tx_path_top/readme:tx_path_top>` description. This module manages the transmit path from the host through the FPGA to the LMS7002M, including unpacking of IQ samples and stream synchronization.
 
 .. _pcie_phy_module:
 
