@@ -23,3 +23,6 @@ LimeSDR-Mini_lms7_trx_HW_1.2.map
 LimeSDR-Mini_lms7_trx_HW_1.2.pof
 LimeSDR-Mini_lms7_trx_HW_1.2.svf
 *.rpd
+!gateware/max10_onchipflash/max10_onchipflash_template.qsys
+!gateware/max10_onchipflash/max10_onchipflash.py
+gateware/max10_onchipflash/*
