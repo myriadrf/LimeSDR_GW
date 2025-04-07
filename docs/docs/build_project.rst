@@ -70,3 +70,13 @@ Detailed build instructions and available options for each board can be found be
    LimeSDR Mini V1 <./limesdr-mini-v1/build_gw>
    LimeSDR Mini V2 <./limesdr-mini-v2/build_gw>
 
+
+Programming
+-----------
+
+For available programming cables and required hardware connections, refer to the respective board's hardware documentation:
+
+
+   - LimeSDR XTRX -  `https://limesdr-xtrx.myriadrf.org - FT2232H Mini Module JTAG adapter <https://limesdr-xtrx.myriadrf.org/documentation/jtag-programming#jtag-programming-openfpgaloader>`_
+   - LimeSDR Mini V2 - `https://limesdr-mini.myriadrf.org/ - Connecting limesdr-mini-v2 board to ft2232h mini module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
+
