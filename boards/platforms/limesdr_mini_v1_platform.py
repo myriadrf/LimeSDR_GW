@@ -31,8 +31,8 @@ _io = [
 
     # # Serial/Debug.
     # ("serial", 0,
-    #     Subsignal("tx", Pins("D6")), # FPGA_EGPIO0.
-    #     Subsignal("rx", Pins("B7")), # FPGA_EGPIO1.
+    #     Subsignal("tx", Pins("B7")), # FPGA_EGPIO0.
+    #     Subsignal("rx", Pins("D6")), # FPGA_EGPIO1.
     #     IOStandard("3.3-V LVCMOS")
     # ),
 
