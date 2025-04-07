@@ -16,11 +16,10 @@ Available build options
 
 .. code:: bash
 
-   python3 -m boards.targets.limesdr_mini_v1 --build [--with-bios] [--with-spi-flash] [--load] [--write] [--cable <cable>]
+   python3 -m boards.targets.limesdr_mini_v1 --build [--with-spi-flash] [--load] [--write] [--cable <cable>]
 
 **Options:**
 
-- ``--with-bios``: Enables LiteX BIOS.
 - ``--with-spi-flash``: Enables SPI Flash support.
 - ``--golden``: to create the Golden bitstream (without RX/TX Path nor LMS7002 Modules to reduces size since it uses ROM)
 - ``--flash``: to write Golden and User Bitstreams (requires to have both bitstreams build).
