@@ -26,12 +26,12 @@ _io = [
         IOStandard("LVCMOS25"),
     ),
 
-    # Serial/Debug.
-    ("serial", 0,
-        Subsignal("tx", Pins("A10")), # FPGA_EGPIO0.
-        Subsignal("rx", Pins("A8")),  # FPGA_EGPIO1.
-        IOStandard("LVCMOS33")
-    ),
+    # # Serial/Debug.
+    # ("serial", 0,
+    #     Subsignal("tx", Pins("A10")), # FPGA_EGPIO0.
+    #     Subsignal("rx", Pins("A8")),  # FPGA_EGPIO1.
+    #     IOStandard("LVCMOS33")
+    # ),
 
     # GPIO.
     ("FPGA_GPIO",  0, Pins("N15 N18 N16 N17 M18 R18 T17 R17"), IOStandard("LVCMOS33")),

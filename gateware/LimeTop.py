@@ -136,13 +136,13 @@ class LimeTop(LiteXModule):
 
         if platform.name.startswith("limesdr_mini"):
             gpio_pads     = platform.request("FPGA_GPIO")
-            #egpio_pads    = platform.request("FPGA_EGPIO")
+            egpio_pads    = platform.request("FPGA_EGPIO")
 
             self.general_periph = GeneralPeriphTop(platform,
                 revision_pads = revision_pads,
                 gpio_pads     = gpio_pads,
                 gpio_len      = len(gpio_pads),
-                egpio_pads    = None,
+                egpio_pads    = egpio_pads,
                 egpio_len     = 2,
             )
             # TODO: This should probably be moved to top level
