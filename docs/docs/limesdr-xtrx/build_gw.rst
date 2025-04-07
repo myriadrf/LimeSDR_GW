@@ -10,7 +10,7 @@ To build the gateware for **limesdr_xtrx** target, use command:
    
 .. note::
 
-	Ensure Vivado is installed and configured before building.
+	Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
    
 Available build options
 -----------------------

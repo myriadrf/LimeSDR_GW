@@ -10,7 +10,7 @@ To build the gateware for **limesdr_mini_v2** target, use:
 
 .. note::
 
-	Ensure your chosen FPGA toolchain (Diamond or Yosys/nextPNR/Trellis) is installed and configured.
+	Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
 
 Available build options
 -----------------------
