@@ -1,3 +1,5 @@
+.. _build_the_project:
+
 Building the Project
 ============================
 
@@ -19,6 +21,10 @@ Before building the project, you **must install** the following tools:
 - **GHDL**  
   GHDL is required for VHDL-to-Verilog conversion in some targets.
   See the `GHDL repository <https://github.com/ghdl/ghdl>`_ for installation instructions.
+
+- **openFPGALoader**
+  Universal utility for programming FPGAs. 
+  See the `openFPGALoader repository <https://github.com/trabucayre/openFPGALoader>`_ for installation instructions.
 
 Additionally, the required FPGA toolchain depends on the target board:
 
@@ -53,11 +59,18 @@ To clone the repository and initialize its submodules, run:
 Build Instructions
 ------------------
 
-Gateware for wanted target can be build and loaded to volatile memory with folowing command:
+Gateware for wanted target can be build and loaded to volatile memory with folowing build command:
 
 .. code:: bash
 
    python3 -m boards.targets.<target> --build --load
+
+
+.. note::
+
+   - Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
+   
+   - Make sure to run build command from **project root directory**.
    
    
 Detailed build instructions and available options for each board can be found below:
@@ -73,10 +86,11 @@ Detailed build instructions and available options for each board can be found be
 
 Programming
 -----------
+For information about supported programming cables and required hardware connections, refer to the specific linked chapter in each board’s hardware documentation:
 
-For available programming cables and required hardware connections, refer to the respective board's hardware documentation:
 
+   - LimeSDR XTRX -  `FT2232H Mini Module JTAG adapter <https://limesdr-xtrx.myriadrf.org/documentation/jtag-programming#jtag-programming-openfpgaloader>`_
+   - LimeSDR Mini V2 - `Connecting limesdr-mini-v2 board to ft2232h mini module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
 
-   - LimeSDR XTRX -  `https://limesdr-xtrx.myriadrf.org - FT2232H Mini Module JTAG adapter <https://limesdr-xtrx.myriadrf.org/documentation/jtag-programming#jtag-programming-openfpgaloader>`_
-   - LimeSDR Mini V2 - `https://limesdr-mini.myriadrf.org/ - Connecting limesdr-mini-v2 board to ft2232h mini module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
-
+.. note::
+   Only the specified chapter related to the FT2232H Mini Module and hardware connections is applicable to board programming with this project. Other parts of the documentation are not relevant.

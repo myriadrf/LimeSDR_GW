@@ -10,8 +10,10 @@ To build the gateware for **limesdr_xtrx** target, use command:
    
 .. note::
 
-	Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
+   - Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
    
+   - Make sure to run build command from **project root directory**.
+  
 Available build options
 -----------------------
 

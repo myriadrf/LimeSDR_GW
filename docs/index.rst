@@ -18,10 +18,12 @@ The LimeSDR family of boards, renowned for their flexibility and high performanc
 
 Leveraging LiteX as its backbone, the project efficiently connects multiple RTL blocks within the FPGA, enabling tailored design, simulation, and deployment of gateware. This approach supports rapid prototyping, straightforward maintenance, and future extensibility across diverse hardware targets.
 
+This page provides high level overview of supported boards, toolchains and tools used by this project. Further details of required tools and board specific build instructions can be found in :ref:`build_the_project` chapter.
+
 Supported Boards
 ----------------
 
-.. table:: Supported Boards
+.. table:: Table 1. Supported Boards
 
    +----------------------+---------------------+-----------------------------------------------+
    | **Board**            | **Hardware Version**| **Description**                               |
@@ -46,7 +48,7 @@ Open Source Tools
 
 The project leverages a suite of open source tools to ensure flexibility and community-driven development:
 
-.. table:: Open Source Tools
+.. table:: Table 2. Open Source Tools
 
    +----------------------+------------------------------------------------------------+
    | **Tool**             | **Link**                                                   |
