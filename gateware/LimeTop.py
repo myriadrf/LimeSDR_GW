@@ -147,9 +147,10 @@ class LimeTop(LiteXModule):
             )
             # TODO: This should probably be moved to top level
             if platform.name.startswith("limesdr_mini_v1"):
-                self.comb +=[
-                    self.general_periph.led1_r_in.eq(self.lms7002_top.lms7002_clk.pll_locked),
-                ]
+                if with_rx_tx_top:
+                    self.comb +=[
+                        self.general_periph.led1_r_in.eq(self.lms7002_top.lms7002_clk.pll_locked),
+                    ]
             else:
                 self.comb +=[
                     self.general_periph.led1_r_in.eq(~self.busy_delay.busy_out),
