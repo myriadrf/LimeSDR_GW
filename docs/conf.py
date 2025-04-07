@@ -59,7 +59,8 @@ html_context = {
     'display_github': True,
     'github_user': 'myriadrf',
     'github_repo': 'LimeSDR_GW',
-    'github_version': 'master' 
+    'github_version': 'master',
+    'conf_py_path': '/docs/',
 }
 
 # This is where we place substitutions, such as for Unicode characters.
