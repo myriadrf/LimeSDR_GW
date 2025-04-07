@@ -82,10 +82,17 @@ Checking FFT results
 After these modifications, build the project and program the board as described in :ref:`Building the project<docs/build_project:building and loading the gateware>`.
 
 The FFT results can be observed using the **limesdr_fft_samples.grc** file provided with the example. Ensure that you have up-to-date versions of GNU Radio and LimeSuiteNG installed.
+If an RF cable is connected so that it connects RX and TX of A channel, output in GNU Radio should look like in figure below, it should also react to interactions with the frequency slider.
 
-.. figure:: limesdr-xtrx/images/gnuradio_fft.png
+.. figure:: images/fft_good.png
    :width: 1000
-   :alt: Screenshot of FFT output in GNU Radio
+   :alt: Screenshot of FFT output in GNU Radio with a signal at 1MHz visible.
+
+However, if no cable is connected, or the cable is connected improperly, the output should look like in figure below.
+
+.. figure:: images/fft_bad.png
+   :width: 1000
+   :alt: Screenshot of FFT output in GNU Radio with only the carrier visible.
 
 .. _amlib: https://github.com/amaranth-farm/amlib
 .. _LimeSDR XTRX gateware description: https://limesdrgw.myriadrf.org/docs/limesdr_xtrx
