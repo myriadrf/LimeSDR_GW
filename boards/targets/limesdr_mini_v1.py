@@ -438,14 +438,15 @@ def main():
             assert os.path.exists(cpu_firmware), f"Error: {cpu_firmware} not available"
 
     # Prepare pof/rpd files.
+    # TODO: add logic so that image generation could use a prebuilt gold image if possible, or requested
     if os.path.exists(os.path.join(output_dir + "_golden", "gateware/limesdr_mini_v1.sof")):
         os.system("quartus_cpf -c gateware/gen_pof_file.cof")
-        os.system("quartus_cpf -c -q 25MHz -g 3.3 -n p LimeSDR-Mini_lms7_trx_HW_1.2.pof LimeSDR-Mini_lms7_trx_HW_1.2.svf")
+        os.system("quartus_cpf -c -q 25MHz -g 3.3 -n p bitstream/LimeSDR-Mini-V1/LimeSDR-Mini_lms7_trx_HW_1.2.pof bitstream/LimeSDR-Mini-V1/LimeSDR-Mini_lms7_trx_HW_1.2.svf")
 
         # Flash Bitstream.
         if args.flash:
             prog = soc.platform.create_programmer(cable=args.cable)
-            prog.flash(0, "LimeSDR-Mini_lms7_trx_HW_1.2.svf")
+            prog.flash(0, "bitstream/LimeSDR-Mini-V1/LimeSDR-Mini_lms7_trx_HW_1.2.svf")
 
     else:
         print("RPD/POF: Disabled. Missing Golden bitstream")
