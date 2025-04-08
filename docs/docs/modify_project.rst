@@ -15,13 +15,14 @@ The gateware sources are organized into several folders:
   HDL source files and module descriptions.
   
 To make it easier to understand how to add a custom module, some examples are provided below:
-  
-.. toctree::
-   :maxdepth: 1
-   :titlesonly:
 
-   FFT Example <./fft_example>
-
++--------------------------------------------------+------------------------+------------------------+------------------------+
+| **Example**                                      | **Supported Boards**                                                     |
++                                                  +------------------------+------------------------+------------------------+
++                                                  | LimeSDR XTRX           | LimeSDR Mini V1        | LimeSDR Mini V2        |
++--------------------------------------------------+------------------------+------------------------+------------------------+
+| :doc:`Adding an FFT module <fft_example>`        |        **+**           |                        |         **+**          |
++--------------------------------------------------+------------------------+------------------------+------------------------+
 
 Firmware
 --------
