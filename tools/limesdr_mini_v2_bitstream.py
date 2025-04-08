@@ -26,8 +26,8 @@ shutil.copyfile(source_bit_file, destination_bit_file)
 # Creating required variables for ddtcmd
 ddtcmd_device  = device
 ddtcmd_if      = destination_bit_file
-ddtcmd_golden  = os.path.join(script_path, golden_bit_file_name)
-ddtcmd_of      = os.path.join(script_path, mcs_output_file_name)
+ddtcmd_golden  = os.path.join(script_path, output_location, golden_bit_file_name)
+ddtcmd_of      = os.path.join(script_path, output_location, mcs_output_file_name)
 
 # Launching Lattice Diamond Deployment Tool
 print("Launching Lattice Diamond Deployment Tool 3.12, make sure it is added to system path")
