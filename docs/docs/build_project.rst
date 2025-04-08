@@ -59,11 +59,11 @@ To clone the repository and initialize its submodules, run:
 Build Instructions
 ------------------
 
-Gateware for wanted target can be build and loaded to volatile memory with folowing build command:
+Gateware for wanted target can be build with folowing command:
 
 .. code:: bash
 
-   python3 -m boards.targets.<target> --build --load
+   python3 -m boards.targets.<target> --build
 
 
 .. note::
@@ -73,7 +73,7 @@ Gateware for wanted target can be build and loaded to volatile memory with folow
    - Make sure to run build command from **project root directory**.
    
    
-Detailed build instructions and available options for each board can be found below:
+Detailed **build/load** instructions and available options for each board can be found below:
 
 .. toctree::
    :maxdepth: 1

@@ -21,17 +21,15 @@ Available build options
 
 .. code:: bash
 
-   python3 -m boards.targets.limesdr_mini_v2 --build [--with-bios] [--without-spi-flash] [--load] [--flash] [--flash-user] [--flash-golden] [--toolchain=TOOLCHAIN] [--cable <cable>]
+   python3 -m boards.targets.limesdr_mini_v2 --build [--load] [--flash] [--flash-user] [--flash-golden] [--toolchain=TOOLCHAIN] [--cable <cable>]
 
 **Options:**
 
-- ``--toolchain=TOOLCHAIN``: Specify **diamond** or **trellis** (default: **trellis**).
-- ``--with-bios``: Enables LiteX BIOS.
-- ``--without-spi-flash``: Disables SPI Flash support (*only for trellis toolchain*).
 - ``--load``: Loads the bitstream into SRAM.
 - ``--flash``: Writes MCS combo bitstream (User + Golden) to SPI Flash.
 - ``--flash-user``: Writes the User bitstream to ``0x00000000``.
 - ``--flash-golden``: Writes the Golden bitstream to ``0x00140000``.
+- ``--toolchain=TOOLCHAIN``: Specify **trellis** or **diamond**  (default: **trellis**).
 - ``--cable``: Specifies the JTAG cable (default: *ft2232*). Use ``openFPGALoader --list-cables`` for options.
 
 

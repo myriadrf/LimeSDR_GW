@@ -680,7 +680,7 @@ def main():
     parser.add_argument("--build",                 action="store_true",     help="Build bitstream.")
     parser.add_argument("--load",                  action="store_true",     help="Load bitstream.")
     parser.add_argument("--flash",                 action="store_true",     help="Flash bitstream.")
-    parser.add_argument("--cable",                 default="digilent_hs2",  help="JTAG cable.")
+    parser.add_argument("--cable",                 default="ft2232",        help="JTAG cable.")
     parser.add_argument("--driver",                action="store_true",     help="Generate PCIe driver from LitePCIe (override local version).")
     parser.add_argument("--flash-boot",            action="store_true",     help="Write Firmware in Flash instead of RAM.")
     parser.add_argument("--firmware-flash-offset", default=0x220000,        help="Firmware SPI Flash offset.")
