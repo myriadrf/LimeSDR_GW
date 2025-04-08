@@ -6,6 +6,7 @@ import subprocess
 
 # Get script path
 script_path = os.path.dirname(os.path.abspath(__file__))
+output_location = "../bitstream/LimeSDR_Mini_V2"
 curr_path   = os.getcwd()
 print(f"Script Path: {script_path}")
 
@@ -18,7 +19,7 @@ impl_dir                = "build/limesdr_mini_v2/gateware"
 
 # Copying .bit file from project directory
 source_bit_file      = os.path.join(curr_path, impl_dir, bit_file_name)
-destination_bit_file = os.path.join(script_path, bit_file_name)
+destination_bit_file = os.path.join(script_path, output_location, bit_file_name)
 print("Copying .bit file from project directory")
 shutil.copyfile(source_bit_file, destination_bit_file)
 

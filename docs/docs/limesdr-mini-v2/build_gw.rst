@@ -37,7 +37,7 @@ User/Golden Bitstreams
 -----------------------------
 
 - The **User bitstream** is built using the commands above.
-- The **Golden bitstream** is provided at: ``tools/limesdr_mini_v2_golden.bit``
+- The **Golden bitstream** is provided at: ``bitstream/LimeSDR_Mini_V2/``
 
 
 After generating the User bitstream, the root directory contains:

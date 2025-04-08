@@ -428,6 +428,9 @@ def main():
                 False : "linker_rom.ld",
             }[args.with_bios]
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
+            bistream_output_dir = "bitstream/LimeSDR_Mini_V2"
+            if not os.path.exists(bistream_output_dir):
+                os.makedirs(bistream_output_dir)
 
     # Prepare User/Golden bitstream.
     if which("ddtcmd") is None:
@@ -446,11 +449,11 @@ def main():
     # Flash Bitstreams (User + Golden).
     if args.flash:
         prog = soc.platform.create_programmer(cable=args.cable)
-        prog.flash(0, "tools/limesdr_mini_v2.mcs")
+        prog.flash(0, "bitstream/LimeSDR_Mini_V2/limesdr_mini_v2.mcs")
 
     # Flash Golden Bitstream.
     if args.flash_golden:
-        golden = f"tools/{soc.platform.name}_golden.bit"
+        golden = f"bitstream/LimeSDR_Mini_V2/{soc.platform.name}_golden.bit"
         prog = soc.platform.create_programmer(cable=args.cable)
         prog.flash(0x00140000, golden)
 
