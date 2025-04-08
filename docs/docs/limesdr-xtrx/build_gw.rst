@@ -28,7 +28,7 @@ Available build options
 - ``--with-bios``: Enables LiteX BIOS (requires additional resources).
 - ``--load``: Loads the bitstream into SRAM (volatile memory).
 - ``--flash``: Programs the bitstream into SPI FLASH memory.
-- ``--cable``: Specifies the JTAG cable (default: *digilent_hs2*). Use ``openFPGALoader --list-cables`` for options.
+- ``--cable``: Specifies the JTAG cable (default: *ft2232*). Use ``openFPGALoader --list-cables`` for options.
 - ``--gold``: Build/Flash golden image instead of user. 
 
 
