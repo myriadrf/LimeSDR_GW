@@ -21,16 +21,15 @@ Available build options
 
 .. code:: bash
 
-   python3 -m boards.targets.limesdr_xtrx --build [--with-bios] [--load] [--flash] [--gold] [--cable <cable>]
+   python3 -m boards.targets.limesdr_xtrx --build [--load] [--flash] [--gold] [--cable <cable>]
 
 **Options:**
 
-- ``--with-bios``: Enables LiteX BIOS (requires additional resources).
 - ``--load``: Loads the bitstream into SRAM (volatile memory).
 - ``--flash``: Programs the bitstream into SPI FLASH memory.
+- ``--gold``: Build/Flash golden image instead of user.
 - ``--cable``: Specifies the JTAG cable (default: *ft2232*). Use ``openFPGALoader --list-cables`` for options.
-- ``--gold``: Build/Flash golden image instead of user. 
-
+ 
 
 User/Golden Bitstreams
 ----------------------
