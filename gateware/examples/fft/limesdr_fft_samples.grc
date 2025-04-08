@@ -105,7 +105,7 @@ blocks:
     samp_rate: samp_rate
     showports: 'False'
     type: complex
-    waveform: analog.GR_SQR_WAVE
+    waveform: analog.GR_COS_WAVE
   states:
     bus_sink: false
     bus_source: false
