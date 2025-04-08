@@ -90,6 +90,7 @@ For information about supported programming cables and required hardware connect
 
 
    - LimeSDR XTRX -  `FT2232H Mini Module JTAG adapter <https://limesdr-xtrx.myriadrf.org/documentation/jtag-programming#jtag-programming-openfpgaloader>`_
+   - LimeSDR Mini V1 - Same as LimeSDR Mini V2
    - LimeSDR Mini V2 - `Connecting limesdr-mini-v2 board to ft2232h mini module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
 
 .. note::
