@@ -18,13 +18,14 @@ Available build options
 
 .. code:: bash
 
-   python3 -m boards.targets.limesdr_mini_v1 --build [--with-spi-flash] [--load] [--write] [--cable <cable>]
+   python3 -m boards.targets.limesdr_mini_v1 --build [--golden] [--flash] [--with-uartbone] [--cable <cable>]
 
 **Options:**
 
-- ``--with-spi-flash``: Enables SPI Flash support.
 - ``--golden``: to create the Golden bitstream (without RX/TX Path nor LMS7002 Modules to reduces size since it uses ROM)
 - ``--flash``: to write Golden and User Bitstreams (requires to have both bitstreams build).
+- ``--with-uartbone``: to enable uartbone in design.
+
 
 User/Golden Bitstreams
 ----------------------
