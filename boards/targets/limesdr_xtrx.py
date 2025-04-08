@@ -670,6 +670,7 @@ class BaseSoC(SoCCore):
 # Build --------------------------------------------------------------------------------------------
 
 def main():
+
     parser = argparse.ArgumentParser(description="LiteX SoC on Fairwaves/LimeSDR XTRX.")
 
     parser.add_argument("--board",    default="limesdr",      help="Select XTRX board.", choices=["fairwaves_cs", "fairwaves_pro", "limesdr"])
@@ -745,7 +746,7 @@ def main():
                 False : "linker_rom.ld",
             }[args.with_bios]
             os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
-            bistream_output_dir = "bitstream/{}".format(soc.get_build_name())
+            bistream_output_dir = "bitstream/LimeSDR_XTRX"
             if not os.path.exists(bistream_output_dir):
                 os.makedirs(bistream_output_dir)
 
@@ -759,11 +760,11 @@ def main():
     if args.flash:
         if args.gold:
             prog = soc.platform.create_programmer(cable=args.cable)
-            prog.flash(0, os.path.join(bistream_output_dir, soc.build_name + "_golden" + ".bin"), enable_quad=True)
+            prog.flash(0, os.path.join(bistream_output_dir, "LimeSDR_XTRX" + "_golden" + ".bin"), enable_quad=True)
         else: #user img
             # TODO: move user img address to a global variable somewhere instead of hardcoding
             prog = soc.platform.create_programmer(cable=args.cable)
-            prog.flash(0X00220000, os.path.join(bistream_output_dir, soc.build_name + "_user" + ".bin"), enable_quad=True)
+            prog.flash(0X00220000, os.path.join(bistream_output_dir, "LimeSDR_XTRX" + "_user" + ".bin"), enable_quad=True)
 
     # Flash Firmware.
     if args.flash_boot and args.flash:

@@ -257,8 +257,8 @@ class Platform(Xilinx7SeriesPlatform):
             #[15: 0] - Reserved
             "set_property BITSTREAM.CONFIG.USR_ACCESS 0X1B200000 [current_design]",
             # "set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 0x00400000 [current_design]",
-            "write_bitstream -force {build_name}_golden.bit ",
-            "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}_golden.bit\" -file ../../../bitstream/{build_name}/{build_name}_golden.bin"
+            "write_bitstream -force LimeSDR_XTRX_golden.bit ",
+            "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 LimeSDR_XTRX_golden.bit\" -file ../../../bitstream/LimeSDR_XTRX/LimeSDR_XTRX_golden.bin"
         ]
         self.user_img_commands = [
 
@@ -271,8 +271,8 @@ class Platform(Xilinx7SeriesPlatform):
             #[19:16] - Image identifier ( 0 - Gold image, 1- User image)
             #[15: 0] - Reserved
             "set_property BITSTREAM.CONFIG.USR_ACCESS 0X1B210000 [current_design]",
-            "write_bitstream -force {build_name}_user.bit ",
-            "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}_user.bit\" -file ../../../bitstream/{build_name}/{build_name}_user.bin",
+            "write_bitstream -force LimeSDR_XTRX_user.bit ",
+            "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 LimeSDR_XTRX_user.bit\" -file ../../../bitstream/LimeSDR_XTRX/LimeSDR_XTRX_user.bin",
         ]
 
         # soc.get_build_name()
