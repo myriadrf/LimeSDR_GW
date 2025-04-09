@@ -59,9 +59,9 @@ To avoid conflicting assignments, you must disconnect the **lms7002_top** master
 
 .. code-block:: python
 
-            # LMS7002 -> [LimeFFT example] -> RX Path -> Sink Pipeline.
+            # LMS7002M -> [LimeFFT example] -> RX Path -> Sink Pipeline.
             if with_lms7002 and with_rx_tx_top and with_fft:
-                # LMS7002 -> RX Path -> Sink Pipeline.
+                # LMS7002M -> RX Path -> Sink Pipeline.
                 self.rx_pipeline = stream.Pipeline(
                     self.lms7002_top,
                     self.fft_example,  # Inserting FFT module

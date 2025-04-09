@@ -68,8 +68,8 @@ of the FT601 device. It provides the following endpoints and FIFOs:
 
 - **Control (PC → FPGA)**: Handles configuration commands from the PC to the FPGA.
 - **Control (FPGA → PC)**: Enables register readback and status reporting from the FPGA to the PC.
-- **TX Data Path (PC → LMS7002)**: Transfers transmission data from the PC to the LMS7002.
-- **RX Data Path (LMS7002 → PC)**: Transfers received data from the LMS7002 to the PC.
+- **TX Data Path (PC → LMS7002M)**: Transfers transmission data from the PC to the LMS7002M.
+- **RX Data Path (LMS7002M → PC)**: Transfers received data from the LMS7002M to the PC.
 
 .. _i2c_modules:
 

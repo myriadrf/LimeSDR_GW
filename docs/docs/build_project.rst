@@ -56,7 +56,7 @@ To clone the repository and initialize its submodules, run:
    git submodule init
    git submodule update
 
-Build Instructions
+Build/Load/Flash Instructions
 ------------------
 
 Gateware for wanted target can be build with folowing command:
@@ -73,7 +73,7 @@ Gateware for wanted target can be build with folowing command:
    - Make sure to run build command from **project root directory**.
    
    
-Detailed **build/load** instructions and available options for each board can be found below:
+Detailed **build/load/flash** instructions and available options for each board can be found below:
 
 .. toctree::
    :maxdepth: 1
@@ -83,15 +83,3 @@ Detailed **build/load** instructions and available options for each board can be
    LimeSDR Mini V1 <./limesdr-mini-v1/build_gw>
    LimeSDR Mini V2 <./limesdr-mini-v2/build_gw>
 
-
-Programming
------------
-For information about supported programming cables and required hardware connections, refer to the specific linked chapter in each board’s hardware documentation:
-
-
-   - LimeSDR XTRX -  `FT2232H Mini Module JTAG adapter <https://limesdr-xtrx.myriadrf.org/documentation/jtag-programming#jtag-programming-openfpgaloader>`_
-   - LimeSDR Mini V1 - Same as LimeSDR Mini V2
-   - LimeSDR Mini V2 - `Connecting limesdr-mini-v2 board to ft2232h mini module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
-
-.. note::
-   Only the specified chapter related to the FT2232H Mini Module and hardware connections is applicable to board programming with this project. Other parts of the documentation are not relevant.

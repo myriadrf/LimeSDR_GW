@@ -41,6 +41,17 @@ User/Golden Bitstreams
    python3 -m boards.targets.limesdr_xtrx --build  --gold
 
 
+Programming cables
+------------------
+
+For information about supported programming cables and required hardware connections, refer to the specific linked chapter in hardware documentation:
+
+   - `FT2232H Mini Module JTAG adapter <https://limesdr-xtrx.myriadrf.org/documentation/jtag-programming#jtag-programming-openfpgaloader>`_
+
+.. note::
+   Only the specified chapter related to the FT2232H Mini Module and hardware connections is applicable to board programming with this project. Other parts of the documentation are not relevant.
+
+   
 Flashing Instructions
 ---------------------
 - **User Bitstream Only:**

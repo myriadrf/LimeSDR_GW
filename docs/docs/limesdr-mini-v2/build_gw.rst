@@ -49,6 +49,18 @@ After generating the User bitstream, the root directory contains:
 
 	Due to limitations in **prjtrellis**, Lattice Diamond must be installed and in ``$PATH`` to generate ``tools/limesdr_mini_v2.mcs``.
 
+Programming cables
+------------------
+
+For information about supported programming cables and required hardware connections, refer to the specific linked chapter in hardware documentation:
+
+   - `Connecting LimeSDR Mini V2 board to FT2232H Mini Module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
+
+.. note::
+   Only the specified chapter related to the FT2232H Mini Module and hardware connections is applicable to board programming with this project. Other parts of the documentation are not relevant.
+
+  
+
 Flashing Instructions
 ---------------------
 

@@ -38,6 +38,18 @@ To update the LimeSDR Mini v1, follow this sequence:
     2. Build the Operational bitstream.
     3. After the previous step, the .rpd, .pof, and .svf files will be available.
     
+Programming cables
+------------------
+
+For information about supported programming cables and required hardware connections, refer to the specific linked chapter in hardware documentation:
+
+   - `Connecting LimeSDR Mini V2 board to FT2232H Mini Module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
+
+.. note::
+   - Guidelines for available programming cables for **LimeSDR Mini V1** and **LimeSDR Mini V2** are the same. 
+   - Only the specified chapter related to the FT2232H Mini Module and hardware connections is applicable to board programming with this project. Other parts of the documentation are not relevant.
+
+
 
 Flashing Instructions
 ---------------------
