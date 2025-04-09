@@ -82,6 +82,13 @@ Checking FFT results
 After these modifications, build the project and program the board as described in :ref:`Building the project<docs/build_project:building and loading the gateware>`.
 
 The FFT results can be observed using the **limesdr_fft_samples.grc** file provided with the example. Ensure that you have up-to-date versions of GNU Radio and LimeSuiteNG installed.
+
+Before running flowgraph modify ``board_ini`` variable with correct setup file:
+
+.. figure:: images/grc_setup.png
+   :width: 1000
+   :alt: GNU radio setup
+
 If an RF cable is connected so that it connects RX and TX of A channel, output in GNU Radio should look like in figure below, it should also react to interactions with the frequency slider.
 
 .. figure:: images/fft_good.png
