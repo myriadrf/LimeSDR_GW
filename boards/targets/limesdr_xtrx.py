@@ -535,10 +535,10 @@ class BaseSoC(SoCCore):
         ### Misc assignments
         # Stream delay signals
         self.comb += [
-            self.lime_top.fpgacfg.tx_en_delay_signal[0].eq(self.zda_parser.pps),
-            self.lime_top.fpgacfg.tx_en_delay_signal[1].eq(self.zda_parser.pps & self.zda_parser.time_valid),
-            self.lime_top.fpgacfg.rx_en_delay_signal[0].eq(self.zda_parser.pps),
-            self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps & self.zda_parser.time_valid),
+            self.lime_top.fpgacfg.tx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
+            self.lime_top.fpgacfg.tx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
+            self.lime_top.fpgacfg.rx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
+            self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
         ]
 
 

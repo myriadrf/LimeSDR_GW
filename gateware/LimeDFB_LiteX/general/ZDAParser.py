@@ -26,6 +26,7 @@ class ZDAParser(Module, AutoCSR):
         self.sink = stream.Endpoint([("data", 8)])
         self.pps = Signal()
         self.pps_reg = Signal()
+        self.pps_rising = Signal()
 
         #     # CSR registers for storing parsed fields.
         #     self.time_hours = CSRStatus(5, description="Extracted UTC Hours")
@@ -74,8 +75,10 @@ class ZDAParser(Module, AutoCSR):
             # Rising edge of pps
             # Reset valid if pps happens (valid is outdated)
             If((self.pps == 1) & (self.pps_reg == 0), [
-                self.time_valid.eq(0)
+                self.time_valid.eq(0),
+                self.pps_rising.eq(1)
             ]).Else([
+                self.pps_rising.eq(0),
                 # Set valid if the checksum was valid
                 If(self.o_valid == 1, [
                     self.time_valid.eq(1)
