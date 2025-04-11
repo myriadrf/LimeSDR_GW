@@ -45,6 +45,27 @@ blocks:
     coordinate: [400, 8.0]
     rotation: 0
     state: enabled
+- name: RX_Gain
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: RX GAIN, dB
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: int
+    start: '0'
+    step: '1'
+    stop: '73'
+    value: '1'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 328.0]
+    rotation: 0
+    state: enabled
 - name: SigFreq
   id: variable_qtgui_range
   parameters:
@@ -63,7 +84,28 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [376, 528.0]
+    coordinate: [272, 544.0]
+    rotation: 0
+    state: enabled
+- name: TX_Gain
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: TX GAIN, dB
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: int
+    start: '0'
+    step: '1'
+    stop: '73'
+    value: '1'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [472, 544.0]
     rotation: 0
     state: enabled
 - name: board_ini
@@ -122,7 +164,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [376, 400.0]
+    coordinate: [272, 416.0]
     rotation: 0
     state: enabled
 - name: blocks_complex_to_mag_squared_0
@@ -138,25 +180,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [784, 240.0]
-    rotation: 0
-    state: enabled
-- name: blocks_multiply_const_xx_0
-  id: blocks_multiply_const_xx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    const: 1/fft_size
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    type: complex
-    vlen: fft_size
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [592, 232.0]
+    coordinate: [592, 240.0]
     rotation: 0
     state: enabled
 - name: blocks_nlog10_ff_0
@@ -168,13 +192,13 @@ blocks:
     k: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
-    n: '10'
+    n: '20'
     vlen: fft_size
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [968, 224.0]
+    coordinate: [808, 224.0]
     rotation: 0
     state: enabled
 - name: blocks_stream_to_vector_0_0_0_1
@@ -210,7 +234,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1320, 376.0]
+    coordinate: [1288, 232.0]
     rotation: 0
     state: enabled
 - name: blocks_throttle2_0
@@ -249,7 +273,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1432, 504.0]
+    coordinate: [1576, 344.0]
     rotation: 0
     state: enabled
 - name: blocks_vector_to_streams_0
@@ -267,7 +291,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1080, 376.0]
+    coordinate: [1024, 232.0]
     rotation: 0
     state: enabled
 - name: limesdr_sink_0
@@ -286,7 +310,7 @@ blocks:
     digital_bandw_ch0: samp_rate
     digital_bandw_ch1: samp_rate
     filename: board_ini
-    gain_dB_ch0: '25'
+    gain_dB_ch0: TX_Gain
     gain_dB_ch1: '20'
     length_tag_name: ''
     nco_freq_ch0: '0'
@@ -301,7 +325,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [720, 424.0]
+    coordinate: [472, 440.0]
     rotation: 0
     state: enabled
 - name: limesdr_source_0
@@ -321,9 +345,9 @@ blocks:
     digital_bandw_ch0: '0'
     digital_bandw_ch1: '0'
     filename: board_ini
-    gain_dB_ch0: '1'
+    gain_dB_ch0: RX_Gain
     gain_dB_ch1: '1'
-    lna_path_ch0: '2'
+    lna_path_ch0: '1'
     lna_path_ch1: '2'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -405,7 +429,7 @@ blocks:
     x_label: '"Frequency, MHz"'
     x_start_value: -(samp_rate/2)/1e6
     y_end_value: '0.0'
-    y_label: '"Amplitude, dBFS"'
+    y_label: '"Sweep"'
     y_start_value: '0.0'
     zmax: '0'
     zmin: '-130'
@@ -413,7 +437,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1624, 476.0]
+    coordinate: [1784, 312.0]
     rotation: 0
     state: enabled
 - name: qtgui_vector_sink_f_0
@@ -487,7 +511,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1296, 120.0]
+    coordinate: [1216, 88.0]
     rotation: 0
     state: disabled
 - name: qtgui_vector_sink_f_1
@@ -561,17 +585,16 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1624, 324.0]
+    coordinate: [1560, 44.0]
     rotation: 0
     state: enabled
 
 connections:
 - [analog_sig_source_x_0, '0', limesdr_sink_0, '0']
 - [blocks_complex_to_mag_squared_0, '0', blocks_nlog10_ff_0, '0']
-- [blocks_multiply_const_xx_0, '0', blocks_complex_to_mag_squared_0, '0']
 - [blocks_nlog10_ff_0, '0', blocks_vector_to_streams_0, '0']
 - [blocks_nlog10_ff_0, '0', qtgui_vector_sink_f_0, '0']
-- [blocks_stream_to_vector_0_0_0_1, '0', blocks_multiply_const_xx_0, '0']
+- [blocks_stream_to_vector_0_0_0_1, '0', blocks_complex_to_mag_squared_0, '0']
 - [blocks_streams_to_vector_0, '0', blocks_vector_to_stream_0, '0']
 - [blocks_streams_to_vector_0, '0', qtgui_vector_sink_f_1, '0']
 - [blocks_throttle2_0, '0', blocks_stream_to_vector_0_0_0_1, '0']
