@@ -99,6 +99,9 @@ If an RF cable is connected in a loopback configuration, linking the RX and TX o
    :width: 1000
    :alt: Screenshot of FFT output in GNU Radio with a signal at 1MHz visible.
 
+.. note::
+  **TX Gain**, **RX Gain** settings migth differ for different boards.
+
 However, if no cable is connected, or the cable is connected improperly, the output should look like in figure below.
 
 .. figure:: images/fft_bad.png
