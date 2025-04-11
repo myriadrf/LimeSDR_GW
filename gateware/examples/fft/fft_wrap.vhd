@@ -125,8 +125,8 @@ begin
     S_AXIS_TREADY <= wr_state when wr_state_valid ='1' else '1';
 
    --Truncate outputs separately to allow easy modifications/debugging
-   out_real_trunc <= out_real(20 downto 5);
-   out_imag_trunc <= out_imag(20 downto 5);
+   out_real_trunc <= out_real(19 downto 4);
+   out_imag_trunc <= out_imag(19 downto 4);
 
    --Pass through keep signal
    M_AXIS_TKEEP <= S_AXIS_TKEEP;
