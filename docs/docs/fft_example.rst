@@ -20,6 +20,10 @@ All sources required for the example are located in **gateware/examples/fft**. T
   LiteX wrapper file incorporating the FFT module.
 - **limesdr_fft_samples.grc**
   A GNU Radio file containing blocks that scale, shift, and display the FFT data received from the board.
+- **xtrx.ini**
+  LimeSDR XTRX board setup file for GNU Radio
+- **mini.ini**
+  LimeSDR Mini V2 board setup file for GNU Radio
 
 In the standard design (see the `LimeSDR XTRX gateware description`_), raw samples are received by **lms7002_top** and then passed to **rx_path_top** for packetization. To reuse this logic and insert the FFT module, the FFT module should be placed between **lms7002_top** and **rx_path_top**.
 
@@ -79,7 +83,7 @@ To avoid conflicting assignments, you must disconnect the **lms7002_top** master
 Checking FFT results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After these modifications, build the project and program the board as described in :ref:`Building the project<docs/build_project:building and loading the gateware>`.
+After these modifications, build the project and program the board as described in :ref:`build_the_project`.
 
 The FFT results can be observed using the **limesdr_fft_samples.grc** file provided with the example. Ensure that you have up-to-date versions of GNU Radio and LimeSuiteNG installed.
 
@@ -89,7 +93,7 @@ Before running flowgraph modify ``board_ini`` variable with correct setup file:
    :width: 1000
    :alt: GNU radio setup
 
-If an RF cable is connected so that it connects RX and TX of A channel, output in GNU Radio should look like in figure below, it should also react to interactions with the frequency slider.
+If an RF cable is connected in a loopback configuration, linking the RX and TX of Channel A, output in GNU Radio should look like in figure below, it should also react to interactions with the **Signal Frequency, TX Gain, RX Gain** sliders.
 
 .. figure:: images/fft_good.png
    :width: 1000
