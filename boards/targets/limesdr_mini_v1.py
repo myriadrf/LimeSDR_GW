@@ -126,6 +126,7 @@ class BaseSoC(SoCCore):
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
+        gold_img       = False,
         **kwargs):
 
         # Platform ---------------------------------------------------------------------------------
@@ -256,8 +257,8 @@ class BaseSoC(SoCCore):
 
             # FPGACFG.
             board_id           = 0x0011,
-            major_rev          = 1,
-            compile_rev        = 30,
+            major_rev          = 3 if not gold_img else 0xDEAD,
+            compile_rev        = 0 if not gold_img else 0xDEAD,
             revision_pads      = revision_pads,
         )
         # Assign UART signals to general periph
@@ -410,6 +411,7 @@ def main():
             with_uartbone  = args.with_uartbone,
             with_spi_flash = args.with_spi_flash,
             cpu_firmware   = None if prepare else cpu_firmware,
+            gold_img       = args.golden
         )
         # LiteScope Analyzer Probes.
         if args.with_ft601_ctrl_probe:
