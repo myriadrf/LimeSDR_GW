@@ -227,7 +227,7 @@ class MAX10PLLTop(LiteXModule):
             self.tx_clk.eq(c1_global),
         ]
 
-        # RX.
+        # RX.l
         # ---
         drct_c2_dly_chain = Signal(drct_c2_ndly)
         c2_mux            = Signal()
@@ -240,7 +240,7 @@ class MAX10PLLTop(LiteXModule):
                 i_in  = {True:pll_inclk_global, False:drct_c2_dly_chain[i-1]}[i==0],
                 o_out = drct_c2_dly_chain[i],
             )
-        for i in range(drct_c2_ndly):
+        for i in range(drct_c3_ndly):
             self.specials += Instance("lcell",
                 i_in  = {True:pll_inclk_global, False:drct_c3_dly_chain[i-1]}[i==0],
                 o_out = drct_c3_dly_chain[i],
