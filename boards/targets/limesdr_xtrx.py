@@ -652,8 +652,8 @@ class BaseSoC(SoCCore):
             # FPGACFG.
             board_id             = 27,
             # GOLD image can be recocgnized by 0xDEAD in major and compile revisions
-            major_rev            =  3 if ~gold_img else 0xDEAD,
-            compile_rev          =  0 if ~gold_img else 0xDEAD,
+            major_rev            =  3 if not gold_img else 0xDEAD,
+            compile_rev          =  0 if not gold_img else 0xDEAD,
             revision_pads        = None,
             # TODO: maybe it's possible to implement check automatically?
             soc_has_timesource   = True,
