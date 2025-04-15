@@ -227,7 +227,7 @@ class MAX10PLLTop(LiteXModule):
             self.tx_clk.eq(c1_global),
         ]
 
-        # RX.
+        # RX.l
         # ---
         drct_c2_dly_chain = Signal(drct_c2_ndly)
         c2_mux            = Signal()
