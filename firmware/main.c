@@ -69,7 +69,12 @@
 
 #define DAC_VAL_ADDR  			0x0010		// Address in EEPROM memory where TCXO DAC value is stored
 #define DAC_VAL_ADDR_IN_FLASH  	0x00FF0000	// Address in FLASH memory where TCXO DAC value is stored
+
+#ifdef LIMESDR_MINI_V1
+#define DAC_DEFF_VAL			180			// Default TCXO DAC value loaded when EEPROM is empty
+#else
 #define DAC_DEFF_VAL			566			// Default TCXO DAC value loaded when EEPROM is empty
+#endif
 
 #define FLASH_USRSEC_START_ADDR	0x00400000  // Start address for user space in FLASH memory
 
@@ -1174,6 +1179,15 @@ int main(void) {
 #endif
 #endif
 
+
+#ifdef LIMESDR_MINI_V1
+	dac_data[0] = (dac_val >> 2) & 0x3F; //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
+	dac_data[1] = (dac_val << 6) & 0xC0; //LSB data
+
+    dac_spi_wrdata = ((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
+    printf("CMD_ANALOG_VAL_WR: %04x\n", dac_spi_wrdata);
+    dac_spi_write(dac_spi_wrdata);
+#else
     //spirez = MicoSPISetSlaveEnable(dac_spi, 1);
     // Write initial data to the 10bit DAC
     dac_data[0] = (unsigned char) ((dac_val & 0x03F0) >> 4); //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
@@ -1186,7 +1200,7 @@ int main(void) {
     //spirez= MicoSPISetSlaveEnable(dac_spi, 0x01);
     //spirez= MicoSPITxData(dac_spi, dac_spi_wrdata, 0);
     dac_spi_write(dac_spi_wrdata);
-
+#endif
     /* Drive cpu_busy low, high, low */
     limetop_gpo_write(0);
     limetop_gpo_write(1);
@@ -2099,7 +2113,23 @@ int main(void) {
                                     // Writing to DAC
                                     //XIic_Send(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 3, XIIC_STOP);
                                     i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
-#else // LIMESDR_MINI_V1, LIMESDR_MINI_V2
+
+#elif defined(LIMESDR_MINI_V1)
+									if(LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)] == 0) //MSB byte empty?
+									{
+										dac_val = LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
+
+										dac_data[0] = (dac_val >> 2) & 0x3F; //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
+										dac_data[1] = (dac_val << 6) & 0xC0; //LSB data
+
+										//if( CyU3PI2cTransmitBytes (&preamble, &sc_brdg_data[0], 2, 0) != CY_U3P_SUCCESS)  cmd_errors++;
+										//spirez = alt_avalon_spi_command(DAC_SPI_BASE, SPI_NR_DAC, 2, dac_data, 0, NULL, 0);
+	                                    dac_spi_wrdata = ((unsigned int) dac_data[0]<<8)| ((unsigned int) dac_data[1]) ;
+	                                    printf("CMD_ANALOG_VAL_WR: %04x\n", dac_spi_wrdata);
+	                                    dac_spi_write(dac_spi_wrdata);
+									}
+									else cmd_errors++;
+#else // LIMESDR_MINI_V2
                                     dac_val = (LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)] << 8 ) + LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
                                     // Write data to the 10bit DAC
                                     dac_data[0] = (unsigned char) ((dac_val & 0x03F0) >> 4); //POWER-DOWN MODE = NORMAL OPERATION (MSB bits =00) + MSB data
