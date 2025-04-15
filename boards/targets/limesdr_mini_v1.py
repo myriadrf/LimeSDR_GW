@@ -302,6 +302,8 @@ class BaseSoC(SoCCore):
         # Timing Constraints -----------------------------------------------------------------------
 
         # FIXME: Add timing constraints.
+        # LMS7002M constrains
+        # TODO: The SDC file for LMS7002M is currently added directly in the platform. Find a cleaner way to add constraints without cluttering this file.
 
         # FT601 constraints.
         platform.toolchain.additional_sdc_commands.append("set_input_delay -max 7.0 -clock [get_clocks FT_CLK] [get_ports {FT_RXFn FT_TXEn}]")
@@ -330,6 +332,10 @@ class BaseSoC(SoCCore):
         platform.toolchain.additional_sdc_commands.append("set_false_path -from [get_clocks LMS_MCLK1]")
         platform.toolchain.additional_sdc_commands.append("set_false_path -from [get_clocks LMS_MCLK2] -to [get_clocks LMS_MCLK2]")
         platform.toolchain.additional_sdc_commands.append("set_false_path -from [get_clocks LMS_MCLK2_VIRT] -to [get_clocks LMS_MCLK2]")
+
+        # Timing constrains for Low sample rate path delay on LCELL combinational cells
+        platform.toolchain.additional_sdc_commands.append("set_net_delay 	-max 5.1 -from [get_pins -compatibility_mode *lcell*|combout*]")
+        platform.toolchain.additional_sdc_commands.append("set_net_delay 	-min 4 -from [get_pins -compatibility_mode *lcell*|combout*]")
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 

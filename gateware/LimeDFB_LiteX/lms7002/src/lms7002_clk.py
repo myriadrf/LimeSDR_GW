@@ -16,9 +16,9 @@ from litex.build.io import DDROutput
 class LMS7002CLK(LiteXModule):
     def __init__(self, platform, pads=None, pllcfg_manager=None,
         drct_c0_ndly   = 1,
-        drct_c1_ndly   = 2,
+        drct_c1_ndly   = 8,
         drct_c2_ndly   = 1,
-        drct_c3_ndly   = 2,
+        drct_c3_ndly   = 8,
         with_max10_pll = True,
         ):
         # Configuration

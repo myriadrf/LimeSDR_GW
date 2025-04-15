@@ -155,6 +155,12 @@ class Platform(AlteraPlatform):
         self.add_platform_command("set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF")
         self.add_platform_command("set_global_assignment -name RESERVE_ALL_UNUSED_PINS_WEAK_PULLUP \"AS INPUT TRI-STATED\"")
         self.add_platform_command("set_global_assignment -name INTERNAL_FLASH_UPDATE_MODE \"SINGLE IMAGE WITH ERAM\"") # CHECKME/Adapt.
+        self.add_platform_command("set_global_assignment -name OPTIMIZATION_MODE \"HIGH PERFORMANCE EFFORT\"")
+
+        # TODO: The SDC file for LMS7002M is currently added directly in the platform. Find a cleaner way to add constraints without cluttering this file.
+        self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/constraints/limesdr_mini_v1/LMS7002_timing.sdc")
+
+
 
     def create_programmer(self, cable="ft2232"):
         return OpenFPGALoader(cable=cable)

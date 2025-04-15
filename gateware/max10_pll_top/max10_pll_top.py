@@ -240,7 +240,7 @@ class MAX10PLLTop(LiteXModule):
                 i_in  = {True:pll_inclk_global, False:drct_c2_dly_chain[i-1]}[i==0],
                 o_out = drct_c2_dly_chain[i],
             )
-        for i in range(drct_c2_ndly):
+        for i in range(drct_c3_ndly):
             self.specials += Instance("lcell",
                 i_in  = {True:pll_inclk_global, False:drct_c3_dly_chain[i-1]}[i==0],
                 o_out = drct_c3_dly_chain[i],
