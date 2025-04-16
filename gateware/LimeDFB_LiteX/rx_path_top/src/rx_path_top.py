@@ -99,7 +99,7 @@ class RXPathTop(LiteXModule):
 
 
         self.fifo_conv    = fifo_conv = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.Converter(128, 64)))
-        iqsmpls_fifo      = stream.AsyncFIFO([("data", 128)], 16)
+        iqsmpls_fifo      = stream.AsyncFIFO([("data", 128)], 8)
         iqsmpls_fifo      = ClockDomainsRenamer({"write": s_clk_domain, "read": int_clk_domain})(iqsmpls_fifo)
         self.iqsmpls_fifo = iqsmpls_fifo
 

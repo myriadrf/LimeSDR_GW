@@ -34,7 +34,7 @@ class LMS7002Top(LiteXModule):
         diq_width            = 12,
         invert_input_clock   = False,
         s_clk_domain         = "lms_tx",
-        s_axis_tx_fifo_words = 16,
+        s_axis_tx_fifo_words = 8,
         m_clk_domain         = "lms_rx",
         m_axis_rx_fifo_words = 16,
         with_max10_pll       = False,

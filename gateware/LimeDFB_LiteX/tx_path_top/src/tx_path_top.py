@@ -119,7 +119,7 @@ class TXPathTop(LiteXModule):
 
         # Clocks ----------------------------------------------------------------------------------
         # Sample NR FIFO (must be async with sink in RX_CLK, source iqsample, areset_n with iqpacket_areset_n)
-        if platform.name in ["limesdr_mini_v1"]:
+        if platform.name in ["something"]:
             smpl_nr_fifo      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.SyncFIFO([("data", 64)], 128)))
             self.smpl_nr_fifo = smpl_nr_fifo
             self.comb += smpl_nr_fifo.reset.eq(~s_reset_n),
@@ -129,7 +129,7 @@ class TXPathTop(LiteXModule):
             smpl_nr_fifo          = stream.ClockDomainCrossing([("data", 64)],
                 cd_from = "smpl_nr_fifo",
                 cd_to   = m_clk_domain,
-                depth   = 128,
+                depth   = 8,
             )
             self.smpl_nr_fifo     = smpl_nr_fifo
             self.comb += [
