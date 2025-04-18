@@ -200,7 +200,7 @@ class LMS7002Top(LiteXModule):
         # TX Path (DIQ1).
         # ------------------------------------------------------------------------------------------
         self.lms7002_ddout = ClockDomainsRenamer("lms_tx")(LMS7002DDOUT(platform, 12, pads))
-        self.tx_cdc        = stream.AsyncFIFO([("data", 64)], depth=s_axis_tx_fifo_words, buffered=True)
+        self.tx_cdc        = stream.AsyncFIFO([("data", 64)], depth=s_axis_tx_fifo_words, buffered=False)
         self.tx_cdc        = ClockDomainsRenamer({"write" : s_clk_domain, "read" : "lms_tx"})(self.tx_cdc)
 
         self.lms7002_tx = Instance("LMS7002_TX",

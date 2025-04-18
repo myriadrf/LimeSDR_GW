@@ -88,7 +88,7 @@ class TXPathTop(LiteXModule):
         self.conv_64_to_128 = conv_64_to_128
 
         # Input data buffer (128 bit)
-        input_buff = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.SyncFIFO([("data", 128)], depth=int(input_buff_size/128), buffered=True)))
+        input_buff = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.SyncFIFO([("data", 128)], depth=int(input_buff_size/128), buffered=False)))
         # input_buff = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.SyncFIFO([("data", 128)], depth=32, buffered=False)))
         self.input_buff = input_buff
 

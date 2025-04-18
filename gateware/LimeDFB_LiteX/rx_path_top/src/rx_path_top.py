@@ -193,7 +193,7 @@ class RXPathTop(LiteXModule):
         self.bit_pack = Instance("bit_pack",
             # Parameters.
             p_G_PORT_WIDTH  = 64,
-            #p_G_DISABLE_14BIT = false
+            #p_G_DISABLE_14BIT = "true",
             # Clk/Reset.
             i_clk            = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK,
             i_reset_n        = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN,
