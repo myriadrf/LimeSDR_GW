@@ -384,7 +384,7 @@ class TXPathTop(LiteXModule):
 
         self.sample_padder_conv = add_vhd2v_converter(self.platform,
             instance = self.sample_padder,
-            files    = ["gateware/LimeDFB_LiteX/tx_path_top/src/sample_padder.vhd"],
+            files    = ["gateware/LimeDFB/tx_path_top/src/sample_padder.vhd"],
         )
         # Removed Instance to avoid multiple definition
         self._fragment.specials.remove(self.sample_padder)
