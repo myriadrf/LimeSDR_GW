@@ -114,7 +114,10 @@ class RXPathTop(LiteXModule):
                 ])
             ])
             self.pps                   = Signal()
-            self.pps_reg               = Signal()
+            pps_reg                    = Signal()
+            pps_reg_1                  = Signal()
+            pps_reg_2                  = Signal()
+
             self.pps_rising            = Signal()
             self.timestamp_pps_counter = Signal(32)
             self.timestamp_clk_count   = Signal(32)
@@ -125,23 +128,21 @@ class RXPathTop(LiteXModule):
             ]
             # TODO: find a way to pass a clock domain to this instead of hardcoding lms_rx
             self.sync.lms_rx +=[
-                self.pps_reg.eq(self.pps),
-                self.pps_rising.eq(self.pps & ~self.pps_reg),
+                pps_reg.eq(self.pps),
+                pps_reg_1.eq(pps_reg),
+                pps_reg_2.eq(pps_reg_1),
+                self.pps_rising.eq(pps_reg_1 & ~pps_reg_2),
 
-                # Things to do on pps rising edge
-                If((int_clk_rst_n == 0),[
-                    self.timestamp_pps_counter.eq(0),
-                ]).Elif(self.pps_rising == 1,[
-                    self.timestamp_pps_counter.eq(self.timestamp_pps_counter + 1),
-                ]),
                 ## Rules for clock counter
                 # TS_SEL does not use clock counter, so keep it in reset
-                If(self.timestamp_settings.fields.TS_SEL == 0,[
+                If((self.timestamp_settings.fields.TS_SEL == 0) | (int_clk_rst_n == 0) ,[
                     self.timestamp_clk_count.eq(0),
+                    self.timestamp_pps_counter.eq(0),
                 ]).Elif(self.timestamp_settings.fields.TS_SEL == 1,[
                     # If clock counter is in use, reset at pps
                     If((self.pps_rising == 1),[
                         self.timestamp_clk_count.eq(0),
+                        self.timestamp_pps_counter.eq(self.timestamp_pps_counter + 1),
                         # Else keep counting
                     ]).Else([
                         self.timestamp_clk_count.eq(self.timestamp_clk_count + 1),

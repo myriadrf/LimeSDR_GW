@@ -25,8 +25,10 @@ class ZDAParser(Module, AutoCSR):
         # Connect UART source stream.
         self.sink = stream.Endpoint([("data", 8)])
         self.pps = Signal()
-        self.pps_reg = Signal()
-        self.pps_rising = Signal()
+        pps_reg = Signal()
+        pps_reg_1 = Signal()
+        pps_reg_2 = Signal()
+
 
         #     # CSR registers for storing parsed fields.
         #     self.time_hours = CSRStatus(5, description="Extracted UTC Hours")
@@ -71,14 +73,14 @@ class ZDAParser(Module, AutoCSR):
         dont_check = Signal(reset=0)
 
         self.sync += [
-            self.pps_reg.eq(self.pps),
+            pps_reg.eq(self.pps),
+            pps_reg_1.eq(pps_reg),
+            pps_reg_2.eq(pps_reg_1),
             # Rising edge of pps
             # Reset valid if pps happens (valid is outdated)
-            If((self.pps == 1) & (self.pps_reg == 0), [
+            If((pps_reg_1 == 1) & (pps_reg_2 == 0), [
                 self.time_valid.eq(0),
-                self.pps_rising.eq(1)
             ]).Else([
-                self.pps_rising.eq(0),
                 # Set valid if the checksum was valid
                 If(self.o_valid == 1, [
                     self.time_valid.eq(1)
