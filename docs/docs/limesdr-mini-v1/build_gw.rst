@@ -26,6 +26,13 @@ Available build options
 - ``--flash``: to write Golden and User Bitstreams (requires to have both bitstreams build).
 - ``--with-uartbone``: to enable uartbone in design.
 
+.. note::
+
+   As of the latest release (3.0)
+
+   - Golden image must be built at least once before building user image.
+   - ``--flash`` only works when ``--golden`` option is not used.
+
 
 User/Golden Bitstreams
 ----------------------
