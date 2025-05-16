@@ -39,9 +39,10 @@ def FromFPGACfg():
 def add_vhd2v_converter(platform, instance, files=[], force_convert=None):
     force_convert = {True: platform.vhd2v_force, False: force_convert}[force_convert is None]
     return VHD2VConverter(platform,
-        instance      = instance,
-        work_package  = "work",
-        force_convert = force_convert,
-        add_instance  = True,
-        files         = files,
+        instance       = instance,
+        work_package   = "work",
+        force_convert  = force_convert,
+        flatten_source = False, # disabled to avoid an out of resources error
+        add_instance   = True,
+        files          = files,
     )
