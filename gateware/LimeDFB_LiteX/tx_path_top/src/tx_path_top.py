@@ -196,9 +196,10 @@ class TXPathTop(LiteXModule):
         force_convert = platform.vhd2v_force
         # May be problematic if we need to use fifo somewhere else
         self.fifo_src_conv =  VHD2VConverter(platform,
-                              work_package  = "work",
-                              force_convert = True,#force_convert,
-                              add_instance  = False,
+                              work_package   = "work",
+                              force_convert  = True,#force_convert,
+                              flatten_source = False,
+                              add_instance   = False,
                               files    = ["gateware/LimeDFB/axis_fifo/src/axis_fifo.vhd",
                                           "gateware/LimeDFB/axis_fifo/src/wptr_handler.vhd",
                                           "gateware/LimeDFB/axis_fifo/src/rptr_handler.vhd",
