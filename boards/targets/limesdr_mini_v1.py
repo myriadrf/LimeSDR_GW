@@ -442,7 +442,17 @@ def main():
                 True  : 1,
                 False : 0,
             }[args.golden]
-            os.system(f"cd firmware && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} GOLDEN={is_golden} clean all")
+            # Create a makefile fragment with board specific variables
+            # delete old one if it exists
+            env_mak = os.path.join("firmware", "env.mak")
+            if os.path.exists(env_mak):
+                os.remove(env_mak)
+            with open(env_mak, "w") as f:
+                f.write(f"BUILD_DIR={builder.output_dir}\n")
+                f.write(f"TARGET={soc.platform.name.upper()}\n")
+                f.write(f"LINKER={linker}\n")
+                f.write(f"GOLDEN={is_golden}\n")
+            os.system(f"cd firmware && make clean all")
             assert os.path.exists(cpu_firmware), f"Error: {cpu_firmware} not available"
 
     # Prepare pof/rpd files.
