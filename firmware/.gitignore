@@ -5,3 +5,4 @@ firmware.elf.map
 *.d
 *.bin
 *.hex
+*.mak
