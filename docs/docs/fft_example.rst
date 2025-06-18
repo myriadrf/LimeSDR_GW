@@ -8,7 +8,7 @@ If you want to try out the FFT module without modifying code, you could build th
 
    python3 -m boards.targets.<target> --build --with-fft [--load] [--cable <cable>]
 
-All sources required for the example are located in **gateware/examples/fft**. The folder contains:
+All sources required for the example are located in `gateware/examples/fft`_. The folder contains:
 
 - **fixedpointfft.py**
   A modified fixed-point FFT module based on the `amlib`_ repository.
@@ -33,6 +33,9 @@ Below is a block diagram showing the desired structure. New elements are highlig
    :width: 1000
    :alt: Block diagram showing FFT module insertion
 
+Any new modules inserted into the data path have to be compatible with the modules that that they are inserted between.
+`LimeDFB documentation`_ contains descriptions of modules used in the data path, as well as detailed waveforms for common operating modes.
+Waveforms are provided for `lms7002_top`_, `rx_path_top`_, `tx_path_top`_.
 
 Instantiating FFT Example module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -59,7 +62,7 @@ This code snippet below from **gateware/LimeTop.py** file adds an FFT example to
 Connecting FFT Example module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To avoid conflicting assignments, you must disconnect the **lms7002_top** master interface from the **rx_path_top** slave interface. In code snippet below you can check how ``rx_pipeline`` is modified and ``--with-fft`` argument is used in **gateware/LimeTop.py** file to isert FFT module:
+To avoid conflicting assignments, you must disconnect the **lms7002_top** master interface from the **rx_path_top** slave interface. In code snippet below you can check how ``rx_pipeline`` is modified and ``--with-fft`` argument is used in **gateware/LimeTop.py** file to insert FFT module:
 
 .. code-block:: python
 
@@ -100,7 +103,7 @@ If an RF cable is connected in a loopback configuration, linking the RX and TX o
    :alt: Screenshot of FFT output in GNU Radio with a signal at 1MHz visible.
 
 .. note::
-  **TX Gain**, **RX Gain** settings migth differ for different boards.
+  **TX Gain**, **RX Gain** settings might differ for different boards.
 
 However, if no cable is connected, or the cable is connected improperly, the output should look like in figure below.
 
@@ -108,6 +111,11 @@ However, if no cable is connected, or the cable is connected improperly, the out
    :width: 1000
    :alt: Screenshot of FFT output in GNU Radio with only the carrier visible.
 
+.. _LimeDFB documentation: https://limedfb.myriadrf.org/
+.. _lms7002_top: https://limedfb.myriadrf.org/docs/lms7002_top/lms7002_top
+.. _rx_path_top: https://limedfb.myriadrf.org/docs/rx_path_top/rx_path_top
+.. _tx_path_top: https://limedfb.myriadrf.org/docs/tx_path_top/tx_path_top
+.. _gateware/examples/fft: https://github.com/myriadrf/LimeSDR_GW/tree/master/gateware/examples/fft
 .. _amlib: https://github.com/amaranth-farm/amlib
 .. _LimeSDR XTRX gateware description: https://limesdrgw.myriadrf.org/docs/limesdr_xtrx
 .. _LiteX documentation: https://github.com/enjoy-digital/litex/wiki/Reuse-a-(System)Verilog,-VHDL,-Amaranth,-Spinal-HDL,-Chisel-core
