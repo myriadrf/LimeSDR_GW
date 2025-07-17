@@ -59,6 +59,8 @@ The project leverages a suite of open source tools to ensure flexibility and com
    +----------------------+------------------------------------------------------------+
    | nextpnr              | https://github.com/YosysHQ/nextpnr                         |
    +----------------------+------------------------------------------------------------+
+   | prjtrellis           | https://github.com/YosysHQ/prjtrellis                      |
+   +----------------------+------------------------------------------------------------+
    | OpenFPGALoader       | https://github.com/trabucayre/openFPGALoader               |
    +----------------------+------------------------------------------------------------+
    | OpenOCD              | https://openocd.org/                                       |
