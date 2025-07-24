@@ -3,6 +3,9 @@
 //
 
 #include "Xil_clk_drp.h"
+
+#include <math.h>
+
 #include "stdio.h"
 
 uint16_t Read_MMCM_DRP(PLL_ADDRS *addresses, uint16_t Addr) {
@@ -187,15 +190,23 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
     uint32_t timeout = 0;
     uint32_t timeout_limit = 2000000; // Function will timeout after 2 seconds
     // Read divider counter values
-    uint16_t max_phase = csr_read_simple(ctrl_addresses->c1_div_cnt);
+    uint8_t divider = csr_read_simple(ctrl_addresses->c1_div_cnt);
     // Sum counter values to get effective divider value
-    max_phase = (max_phase & 0xFF) + ((max_phase >> 8) & 0xFF);
+    divider = (divider & 0xFF) + ((divider >> 8) & 0xFF);
+
     // Calculate max phase index
     // *8 for 360 degree phase, to avoid missing phase windows
     // overlapping 0 phase we increase it to 540 degrees
-    uint16_t max_phase_long = max_phase * 12;
-    max_phase = max_phase * 8;
+    uint16_t max_phase_long = divider * 12;
+    uint16_t max_phase = divider * 8;
 
+    // Skip some phases on lower frequencies to save time
+    // larger divider = lower input frequency
+    // larger divider - more phase options
+    //// Aim for at most 4 degrees of phase resolution
+    //// 8 and 16 degree resolution for low and very low frequencies
+    uint8_t step = ceil(max_phase/90.0);
+    step = step << (divider/32);
 
     typedef enum state {
         PHASE_MIN,
@@ -207,7 +218,7 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
     // Set initial configuration
     Update_MMCM_CFG(pll_addresses, ctrl_addresses);
 
-    for (uint16_t i = 0; i <= max_phase_long; i++) {
+    for (uint16_t i = 0; i <= max_phase_long; i+= step) {
         // make sure written values are valid
         phase_mux = ((i%max_phase) & 0x7);
         delay_time = (i%max_phase) >> 3;
