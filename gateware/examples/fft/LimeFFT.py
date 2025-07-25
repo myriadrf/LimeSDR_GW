@@ -29,6 +29,7 @@ class LimeFFT(LiteXModule):
         sink_clk_domain     ="sys",
         source_width        =64,
         source_clk_domain   ="sys",
+        fft_pts             =512,
         ):
 
         # Create sink and source
@@ -45,7 +46,7 @@ class LimeFFT(LiteXModule):
         # ClockDomainsRenamer(clk_domain)(module) tells the module to use clk_domain instead of the default clock domain
         #
         self.input_buff = ResetInserter()(ClockDomainsRenamer(sink_clk_domain)(
-            stream.SyncFIFO(layout=[("data", sink_width), ("keep", sink_width//8)], depth=512, buffered=True)))
+            stream.SyncFIFO(layout=[("data", sink_width), ("keep", sink_width//8)], depth=fft_pts, buffered=True)))
         # Output buffer
         self.output_buff = ResetInserter()(ClockDomainsRenamer(source_clk_domain)(
             stream.SyncFIFO(layout=[("data", source_width), ("keep", source_width // 8)], depth=16, buffered=True)))

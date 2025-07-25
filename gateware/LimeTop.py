@@ -51,6 +51,8 @@ class LimeTop(LiteXModule):
 
         with_lms7002         = True,
         with_rx_tx_top       = True,
+        fft_pts              = 512,     #Changing FFT points requires FFT src rebuild, use rebuild_fft_rtl=True
+        rebuild_fft_rtl      = False,
         with_fft             = False,
 
         # FPGACFG.
@@ -231,6 +233,19 @@ class LimeTop(LiteXModule):
                 self.comb += self.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls)
 
             # FFT example --------------------------------------------------------------------------------------
+            if rebuild_fft_rtl:
+                from amaranth.back import verilog
+                from gateware.examples.fft.fixedpointfft import FixedPointFFT
+                fft = FixedPointFFT(bitwidth=12, pts=fft_pts, verbose=True)
+                verilog_code = verilog.convert(fft, name="fft", strip_internal_attrs=False,
+                                               ports=[fft.in_i, fft.in_q, fft.out_real, fft.out_imag, fft.strobe_in,
+                                                      fft.strobe_out, fft.start, fft.done, fft.wf_start, fft.wf_strobe,
+                                                      fft.wf_real, fft.wf_imag, fft.wr_state, fft.wr_state_valid])
+                # write verilog to file
+                with open("./gateware/examples/fft/fft.v", "w") as f:
+                    f.write(verilog_code)
+
+
             if with_fft:
                 # Define Reset signal
                 fft_reset_n = Signal()
@@ -240,7 +255,8 @@ class LimeTop(LiteXModule):
                 # Instantiate FFT module
                 self.fft_example = LimeFFT(platform=platform,
                                            sink_clk_domain=self.lms7002_top.source.clock_domain,
-                                           source_clk_domain=self.lms7002_top.source.clock_domain)
+                                           source_clk_domain=self.lms7002_top.source.clock_domain,
+                                           fft_pts = fft_pts)
 
                 # Connect reset signal to FFT module
                 self.comb += self.fft_example.reset.eq(~fft_reset_n)
