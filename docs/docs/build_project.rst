@@ -57,7 +57,7 @@ To clone the repository and initialize its submodules, run:
    git submodule update
 
 Build/Load/Flash Instructions
-------------------
+-----------------------------
 
 Gateware for wanted target can be build with folowing command:
 

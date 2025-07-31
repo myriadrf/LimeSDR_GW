@@ -7,6 +7,7 @@
    docs/gw_description
    docs/build_project
    docs/modify_project
+   docs/add_new_board
 
 Introduction
 ============
