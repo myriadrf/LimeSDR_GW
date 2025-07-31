@@ -772,7 +772,7 @@ Testing and Debugging Interfaces
 
 **Generic Debugging Tool:**
 
-- *LiteScope:* Integrate this logic analyzer into the SoC to monitor USB/PCIe signals in the FPGA, useful for FSMs, stalls, or behaviors.
+- *LiteScope:* Integrate this logic analyzer into the SoC to monitor USB/PCIe signals in the FPGA, useful for FSMs, stalls, or behaviors. For details on adding a host bridge to enable LiteScope communication, see the LiteX Wiki page on `Use Host Bridge to control debug a SoC <https://github.com/enjoy-digital/litex/wiki/Use-Host-Bridge-to-control-debug-a-SoC>`_. For instructions on integrating and using LiteScope itself, see the LiteX Wiki page on `Use LiteScope To Debug A SoC <https://github.com/enjoy-digital/litex/wiki/Use-LiteScope-To-Debug-A-SoC>`_.
 
 Tip: Use LiteX BIOS for initial MMAP register checks before higher-level tools.
 
