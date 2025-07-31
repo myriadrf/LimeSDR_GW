@@ -309,6 +309,8 @@ Examples include:
 
 The `LimeTop` block diagram illustrates the integration of LimeDFB cores (in green) with LiteX wrappes (in blue). AXI-Stream interfaces connect the RX and TX Path Top blocks to the LMS7002 Top, which interfaces with the LMS7002 digital interface. This modular setup allows RF data processing in LimeDFB while LiteX handles SoC-level connectivity and control.
 
+.. _creating_litex_migen_wrappers:
+
 Creating LiteX/Migen Wrappers
 -----------------------------
 
@@ -717,15 +719,15 @@ The LimeSDR_GW framework supports two main high-speed host interfaces: PCI Expre
 Overview of Interface Options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-+-------------------+------------+------------------------------------------+
-| Board             | Interface  | Notes                                    |
-+===================+============+==========================================+
-| LimeSDR Mini V1   | USB 3.0    | FT601 with LiteX wrapper                 |
-+-------------------+------------+------------------------------------------+
-| LimeSDR Mini V2   | USB 3.0    | Same as V1, Yosys-compatible             |
-+-------------------+------------+------------------------------------------+
-| XTRX              | PCIe       | Uses LitePCIe core                       |
-+-------------------+------------+------------------------------------------+
++-------------------+------------------+-----------------------------+
+| Board             | Interface        | Notes                       |
++===================+==================+=============================+
+| LimeSDR Mini V1   | USB 3.0          | FT601 with LiteX wrapper    |
++-------------------+------------------+-----------------------------+
+| LimeSDR Mini V2   | USB 3.0          | Same as V1, Yosys-compatible|
++-------------------+------------------+-----------------------------+
+| XTRX              | PCIe             | Uses LitePCIe core          |
++-------------------+------------------+-----------------------------+
 
 USB Interface (FT601)
 ^^^^^^^^^^^^^^^^^^^^^
@@ -786,15 +788,15 @@ FPGA Synthesis Toolchains
 
 Different synthesis tools are used based on the FPGA vendor and family:
 
-+--------------------+------------------+-----------------------------+
-| Board              | FPGA             | Toolchain                  |
-+====================+==================+=============================+
-| LimeSDR Mini V1    | Altera MAX10     | Intel Quartus Prime Lite   |
-+--------------------+------------------+-----------------------------+
-| LimeSDR Mini V2    | Lattice ECP5     | Yosys + nextpnr-ecp5       |
-+--------------------+------------------+-----------------------------+
-| XTRX               | Xilinx Artix-7   | Xilinx Vivado              |
-+--------------------+------------------+-----------------------------+
++-------------------+------------------+-----------------------------+
+| Board             | FPGA             | Toolchain                   |
++===================+==================+=============================+
+| LimeSDR Mini V1   | Altera MAX10     | Intel Quartus Prime Lite    |
++-------------------+------------------+-----------------------------+
+| LimeSDR Mini V2   | Lattice ECP5     | Yosys + nextpnr-ecp5        |
++-------------------+------------------+-----------------------------+
+| XTRX              | Xilinx Artix-7   | Xilinx Vivado               |
++-------------------+------------------+-----------------------------+
 
 Notes:
 
