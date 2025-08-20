@@ -45,7 +45,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             value |= lime_top_rfsw_control_rfsw_auto_en_read() << 11;
             break;
         case 0x18:
-            value = lime_top_fpgacfg_reg10_read();
+            value = lime_top_fpgacfg_reg18_read();
             break;
         case 0x19:
             value = lime_top_rxtx_top_rx_path_pkt_size_read();

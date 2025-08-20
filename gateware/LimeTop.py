@@ -287,11 +287,10 @@ class LimeTop(LiteXModule):
 
 
         # VCTCXO -----------------------------------------------------------------------------------
-
-        if not platform.name.startswith("limesdr_mini"):
-            vctcxo_pads = platform.request("vctcxo")
-            self.comb  += vctcxo_pads.sel.eq(self.fpgacfg.ext_clk)
-            self.comb  += vctcxo_pads.en.eq(self.fpgacfg.tcxo_en)
+        # TODO: MOVE THIS TO TOP LEVEL!
+        vctcxo_pads = platform.request("vctcxo")
+        self.comb  += vctcxo_pads.sel.eq(self.fpgacfg.ext_clk)
+        self.comb  += vctcxo_pads.en.eq(self.fpgacfg.tcxo_en)
 
         # RF Switches ------------------------------------------------------------------------------
 
