@@ -13,8 +13,8 @@ The repository is organized into several key directories, each serving a specifi
 
    / (root)
    ├── boards/
-   │   ├── platforms/      <-- Board-specific I/O constraints and configuration files.
-   │   └── targets/        <-- Integration scripts that define the build process (instantiating LiteX cores, peripherals, CPU, and firmware).
+   │   ├── platforms/      <-- Board-specific I/O constraints and configuration files (e.g., pin assignments, timing constraints).
+   │   └── targets/        <-- Integration scripts that define the build process (instantiating LiteX cores, peripherals, CPU, and firmware). These act as the "top-level" for SoC wiring and flow control.
    ├── docs/               <-- Documentation (design descriptions, build instructions, modification guidelines, etc.).
    ├── firmware/           <-- Firmware source code for the softcore CPU (drivers and application-specific logic).
    ├── gateware/           <-- FPGA hardware description files (Verilog/VHDL/LiteX) for custom logic and interconnects.
@@ -25,8 +25,8 @@ The repository is organized into several key directories, each serving a specifi
 Key Highlights
 --------------
 - **Boards Directory**:
-  - *platforms/* contains the board-specific configuration files.
-  - *targets/* houses scripts that integrate hardware cores, peripheral components, the CPU, and firmware as part of the build process.
+  - *platforms/* contains the board-specific configuration files, such as I/O definitions, clock setups, and vendor-specific constraints.
+  - *targets/* houses scripts that integrate hardware cores, peripheral components, the CPU, and firmware as part of the build process. These automate SoC assembly and handle build/flash flows.
 
 - **Documentation (docs/)**:
   Contains comprehensive guides covering gateware design, build procedures, and project modifications.
@@ -48,3 +48,9 @@ Additional Files
 
 **.gitignore**
   - Lists files and directories that should be ignored by version control (e.g., temporary files and build outputs).
+
+Challenges and Best Practices
+-----------------------------
+Adding new boards or features (e.g., custom peripherals) may still require substantial effort and developer experience in areas like timing closure, vendor tools, or HDL integration. For boards closely aligned with existing ones (e.g., minor pin changes), the process is straightforward; otherwise, expect iterative debugging and potential custom developments if unsupported features arise.
+
+Follow naming conventions for files, modules, and signals to maintain consistency. Ensure designs are portable across devices and vendors by using LiteX abstractions where possible.
