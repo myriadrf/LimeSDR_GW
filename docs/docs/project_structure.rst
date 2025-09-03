@@ -23,10 +23,10 @@ This organization replaces isolated, board-specific HDL projects with a consolid
 ecosystem. It simplifies maintenance by sharing components (e.g., streaming engines, LMS7002M
 controllers) across boards, enables easy expansion for new variants without logic duplication, and
 supports migration to different FPGA families. For a high-level project overview, refer to the
-:ref:`Introduction <index>` page. When preparing to add or modify boards, fork/clone the repository
+:ref:`Introduction` page. When preparing to add or modify boards, fork/clone the repository
 and use existing platform/target files as templates (e.g., copy from LimeSDR Mini V2 for similar
 setups). For details on extending the project (e.g., adding boards or features), see
-:doc:`docs/add_new_board`.
+:doc:`add_new_board`.
 
 LimeSDR_GW Repository Layout
 ----------------------------

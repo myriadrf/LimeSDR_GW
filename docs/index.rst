@@ -7,6 +7,7 @@
    docs/gw_description
    docs/build_project
    docs/modify_project
+   docs/litex_basics
    docs/add_new_board
 
 Introduction
@@ -91,6 +92,11 @@ project. Here's a quick overview of the main parts and when you might want to re
   This is your go-to for instructions on compiling gateware and firmware, including required tools
   and board-specific steps. Turn to it whenever you're setting up a build environment or flashing a
   board.
+
+**LiteX Basics** :doc:`docs/litex_basics`
+  Refer here for an introduction to LiteX concepts as used in LimeSDR_GW, including platforms,
+  targets, wrappers, naming conventions, and portability tips. Useful if you're new to LiteX or
+  need a refresher on integration.
 
 **Modifying the Project** :doc:`docs/modify_project`
   If you plan to customize gateware or firmware—such as adding modules like an FFT— this section
