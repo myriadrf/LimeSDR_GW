@@ -6,9 +6,10 @@
    docs/project_structure
    docs/gw_description
    docs/build_project
-   docs/modify_project
    docs/litex_basics
+   docs/modify_project
    docs/add_new_board
+   docs/best_practices
 
 Introduction
 ============
@@ -105,6 +106,10 @@ project. Here's a quick overview of the main parts and when you might want to re
 **Adding a New Board** :doc:`docs/add_new_board`
   Consult this if you're extending the project to support custom SDR platforms or new hardware
   variants. It walks through the process step-by-step, from repository setup to verification.
+
+**Best Practices** :doc:docs/best_practices
+    Refer here for guidelines on naming conventions, portability, and CPU options in LiteX. Helpful
+    for maintaining consistency and optimizing designs.
 
 If anything remains unclear after exploring these sections, feel free to submit an issue on
 GitHub—contributions and feedback are always welcome!
