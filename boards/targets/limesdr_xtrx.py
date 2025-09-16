@@ -415,6 +415,10 @@ class BaseSoC(SoCCore):
             # TODO: maybe it's possible to implement check automatically?
             soc_has_timesource   = True,
         )
+        # VCTCXO -----------------------------------------------------------------------------------
+        vctcxo_pads = platform.request("vctcxo")
+        self.comb  += vctcxo_pads.sel.eq(self.lime_top.fpgacfg.ext_clk)
+        self.comb  += vctcxo_pads.en.eq(self.lime_top.fpgacfg.tcxo_en)
 
         self.comb += self.lime_top.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
