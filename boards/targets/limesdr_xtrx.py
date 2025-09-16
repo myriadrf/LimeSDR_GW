@@ -400,7 +400,8 @@ class BaseSoC(SoCCore):
             TX_N_BUFF            = TX_N_BUFF,
             TX_PCT_SIZE          = 4096,
             TX_IN_PCT_HDR_SIZE   = 16,
-            tx_buffer_size       = 0,
+            # Use default value
+            # tx_buffer_size       = 512,
 
             with_rx_tx_top       = True,
             with_fft             = with_fft,
