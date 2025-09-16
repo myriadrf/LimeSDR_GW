@@ -32,6 +32,7 @@ from litespi.phy.generic import LiteSPIPHY
 
 from litescope import LiteScopeAnalyzer
 
+from gateware.Revision import *
 from gateware.max10_onchipflash.max10_onchipflash import Max10OnChipFlash
 from gateware.max10_dual_cfg.max10_dual_cfg       import Max10DualCfg
 
@@ -257,8 +258,8 @@ class BaseSoC(SoCCore):
 
             # FPGACFG.
             board_id           = 0x0011,
-            major_rev          = 3 if not gold_img else 0xDEAD,
-            compile_rev        = 0 if not gold_img else 0xDEAD,
+            major_rev          =  MajorRevision if not gold_img else 0xDEAD,
+            compile_rev        =  CompileRevision if not gold_img else 0xDEAD,
             revision_pads      = revision_pads,
         )
         # Assign UART signals to general periph

@@ -35,6 +35,7 @@ from litescope import LiteScopeAnalyzer
 from gateware.LimeTop                       import LimeTop
 
 from gateware.LimeDFB_LiteX.FT601.src.ft601 import FT601
+from gateware.Revision import *
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -232,8 +233,8 @@ class BaseSoC(SoCCore):
             with_fft           = with_fft,
             # FPGACFG.
             board_id           = 0x0011,
-            major_rev          = 3,
-            compile_rev        = 0,
+            major_rev          = MajorRevision,
+            compile_rev        = CompileRevision,
             revision_pads      = platform.request("revision"),
         )
         # Assign UART signals to general periph
