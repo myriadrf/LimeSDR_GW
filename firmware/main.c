@@ -30,6 +30,13 @@
 #include "LimeSDR_XTRX.h"
 #include "regremap.h"
 #include "Xil_clk_drp.h"
+#elif defined(SSDR)
+#include <libbase/console.h>
+#include "i2c1.h"
+#include "fpga_flash_qspi.h"
+#include "SSDR.h"
+#include "regremap.h"
+#include "Xil_clk_drp.h"
 #else
 #include "LimeSDR_MINI_brd_v1r0.h"
 #include "csr_access.h"
@@ -43,6 +50,15 @@
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
 #ifdef LIMESDR_XTRX
+#define I2C_DAC_ADDR     0x4C
+#define I2C_TERMO_ADDR   0x4B
+#define LP8758_I2C_ADDR  0x60
+//#define FW_VER 1 // Initial version
+//#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
+//#define FW_VER 3 // Added serial number into GET_INFO cmd
+#define FW_VER 5 // Firmware for Litex project
+
+#elif defined(SSDR)
 #define I2C_DAC_ADDR     0x4C
 #define I2C_TERMO_ADDR   0x4B
 #define LP8758_I2C_ADDR  0x60
@@ -110,7 +126,7 @@ tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *) glEp0Buffer_Rx;
 
 int boot_img_en = 0;
 
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
 // If an error points here, most likely some of the macros are invalid.
 PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
 PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
@@ -189,7 +205,7 @@ int data_cnt = 0;
 unsigned long int current_portion;
 int address;
 
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
 /*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
@@ -1123,6 +1139,17 @@ int main(void) {
     prompt();
 
     // gnss_init();
+#elif defined(SSDR)
+    init_pmic();
+    printf("CSR_CNTRL_BASE 0x%lx ", CSR_CNTRL_BASE);
+    // irq_example_init();
+    lms64c_init();
+    clk_cfg_irq_init();
+    init_pmic();
+    init_vctcxo_dac();
+
+    help();
+    prompt();
 
 #else // LIMESDR_MINI_V1 / LIMESDR_MINI_V2
     uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
@@ -1211,7 +1238,7 @@ int main(void) {
 
 
     while (1) {
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
         console_service();
 #else
         spirez = ft601_fifo_status_read();	// Read FIFO Status
@@ -1229,7 +1256,7 @@ int main(void) {
             uint16_t val;
             uint8_t i2c_buf[3];
 
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
             uint8_t reg_array[4];
             uint32_t read_value;
 
@@ -1270,7 +1297,7 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
 
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                     // Read Serial number from FLASH OTP region
                     spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, sizeof(serial), serial);
 
@@ -1283,7 +1310,7 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Data_field[16] = serial[1];
                     LMS_Ctrl_Packet_Tx->Data_field[17] = serial[0];
 #endif
-
+//TODO: CHECK for SSDR
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
@@ -1349,7 +1376,7 @@ int main(void) {
                     break;
 #endif
 
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                 case CMD_SERIAL_WR:
 
                     copyArray(LMS_Ctrl_Packet_Rx->Data_field, tmp_serial, 24, 0, 32);
@@ -1395,6 +1422,7 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 #endif
+//TODO: check for SSDR
 
                 case CMD_LMS_RST:
                     printf("CMD_LMS_RST\n");
@@ -1405,7 +1433,7 @@ int main(void) {
 
                     switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
                         case LMS_RST_DEACTIVATE:
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
                             //printf("LMS RESET deactivate...\n");
 #else
@@ -1413,7 +1441,7 @@ int main(void) {
 #endif
                             break;
                         case LMS_RST_ACTIVATE:
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
                             //printf("LMS RESET activate...\n");
 #else
@@ -1422,7 +1450,7 @@ int main(void) {
                             break;
 
                         case LMS_RST_PULSE:
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
                             //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
                             read_value = lime_top_lms7002_top_lms1_read() & ~(1 << CSR_LIME_TOP_LMS7002_TOP_LMS1_RESET_OFFSET);
@@ -1457,7 +1485,7 @@ int main(void) {
                         //sbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // set write bit
                         // Clearing write bit in address field because we are not using SPI registers in LiteX implementation
                         cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
 
                         writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
                                  &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
@@ -1495,7 +1523,7 @@ int main(void) {
                         // write reg addr
                         cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
 
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                         readCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], reg_array);
 #else // LIMESDR_MINI_V1, LIMESDR_MINI_V2
                         uint16_t addr = (LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 2)];
@@ -1596,7 +1624,7 @@ int main(void) {
                                           LMS_Ctrl_Packet_Rx->Data_field[2] << 16)
                                       | (LMS_Ctrl_Packet_Rx->Data_field[3] << 8) | (LMS_Ctrl_Packet_Rx->Data_field[4]);
                     data_cnt = LMS_Ctrl_Packet_Rx->Data_field[5];
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
 
                     switch (LMS_Ctrl_Packet_Rx->Data_field[0]) // prog_mode
                     {
@@ -2021,7 +2049,7 @@ int main(void) {
                         switch (LMS_Ctrl_Packet_Rx->Data_field[0 + (block)]) // ch
                         {
                             case 0: // dac val
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                                 //XIic_Recv(XPAR_I2C_CORES_I2C1_BASEADDR, I2C_DAC_ADDR, i2c_buf, 2, XIIC_STOP);
                                 //i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
                                 i2c0_read(I2C_DAC_ADDR, 0x0, i2c_buf, 2, true);
@@ -2040,7 +2068,7 @@ int main(void) {
                                 break;
 
                             case 1: // temperature
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                                 //						i2c_buf[0] = 1;
                                 //						i2c_buf[1] = 0x60;
                                 //						i2c_buf[2] = 0xA0;
@@ -2104,7 +2132,7 @@ int main(void) {
                             case 0: // TCXO DAC
                                 if (LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)] == 0) // RAW units?
                                 {
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                                     i2c_buf[0] = 0x30; // addr
                                     i2c_buf[1] = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]; // MSB
                                     i2c_buf[2] = LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]; // LSB
@@ -2376,7 +2404,7 @@ int main(void) {
 
                 case CMD_MEMORY_WR:
                     printf("CMD_MEMORY_WR\n");
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                     // Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
                     // a workaround is implemented that uses a sufficiently high address in the configuration flash
                     // to store the DAC value
@@ -2512,7 +2540,7 @@ int main(void) {
 
                 case CMD_MEMORY_RD:
                     printf("CMD_MEMORY_RD\n");
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
                     // Since the XTRX board does not have an eeprom to store permanent VCTCXO DAC value
                     // a workaround is implemented that uses a sufficiently high address in the configuration flash
                     // to store the DAC value
@@ -2617,7 +2645,7 @@ int main(void) {
 
             // Send response to the command
             // for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
             for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i) {
                 csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
             }
@@ -2631,7 +2659,7 @@ int main(void) {
 #endif
 
 
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
             // printf("TX: ");
             // for (int i = 0; i < 64; i++) {
             //     printf("%02x ", dest[i]);
@@ -2660,7 +2688,7 @@ int main(void) {
         unsigned int gpo_reg_08_val = *gpo_reg_08;
 #endif
 
-#ifdef LIMESDR_XTRX
+#if defined(LIMESDR_XTRX) || defined(SSDR)
         // Clock config
         if (clk_cfg_pending) {
             irq_mask = irq_getmask(); // save irq mask

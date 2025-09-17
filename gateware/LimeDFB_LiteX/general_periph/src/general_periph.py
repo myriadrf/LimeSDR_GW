@@ -164,7 +164,7 @@ class GeneralPeriphTop(LiteXModule):
     def add_csr(self, platform):
         if platform.name in ["limesdr_mini_v2"]:
             self._board_gpio_OVRD      = CSRStorage(16, reset=0xf) # 0
-        elif platform.name in ["limesdr_xtrx"]:
+        elif platform.name in ["limesdr_xtrx", "ssdr"]:
             self._board_gpio_OVRD = CSRStorage(16, reset=0x2)  # 0
         else:
             self._board_gpio_OVRD = CSRStorage(16, reset=0xff)  # 0

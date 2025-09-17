@@ -92,7 +92,7 @@ class LMS7002DDIN(LiteXModule):
                 #- We need to delay data captured on falling edge, in order to allign samples
                 rx_diq2_l.eq(   datain_reg_l),
             ]
-        elif platform.name in ["limesdr_xtrx", "limesdr_mini_v1"]:
+        elif platform.name in ["limesdr_xtrx", "limesdr_mini_v1", "ssdr"]:
             # LimeSDR-XTRX (IDDR is implemented in SAME_EDGE mode from MIGEN)
             # This aded extra logic matches SAME_EDGE_PIPELINED mode)
             # TODO: LimeSDR Mini V1 add which mode is this equivalent to
