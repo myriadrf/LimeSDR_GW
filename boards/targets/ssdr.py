@@ -256,20 +256,20 @@ class BaseSoC(SoCCore):
         # Leds -------------------------------------------------------------------------------------
         # self.led_pads = platform.request_all("user_led")
         self.led_placeholder = Signal()
-        #if gold_img:
-        #    self.leds = LedChaser(
-        #        pads         = self.led_placeholder,
-        #        period       = 2,
-        #        sys_clk_freq = sys_clk_freq
-        #    )
-        #    self.comb += platform.request("user_led",0).eq(self.led_placeholder)
-        #    #self.comb += platform.request("user_led",1).eq(self.led_placeholder)
-        #else:
-        #    self.leds = LedChaser(
-        #        pads         = platform.request_all("user_led"),
-        #        period       = 1,
-        #        sys_clk_freq = sys_clk_freq
-        #    )
+        if gold_img:
+            self.leds = LedChaser(
+                pads         = self.led_placeholder,
+                period       = 2,
+                sys_clk_freq = sys_clk_freq
+            )
+            self.comb += platform.request("user_led",0).eq(self.led_placeholder)
+            #self.comb += platform.request("user_led",1).eq(self.led_placeholder)
+        else:
+            self.leds = LedChaser(
+                pads         = platform.request_all("user_led"),
+                period       = 1,
+                sys_clk_freq = sys_clk_freq
+            )
 
         # AXI MMAP ---------------------------------------------------------------------------------
         # AXI MMAP Bus (From CPU).
@@ -305,8 +305,8 @@ class BaseSoC(SoCCore):
             self.flash      = S7SPIFlash(platform.request("spiflash"), sys_clk_freq, 4e6)
 
         # Leds GPIO. -------------------------------------------------------------------------------
-        gpio_top_led = platform.request_all("user_led")
-        self.gpio = GpioTop(platform, gpio_top_led)
+        #gpio_top_led = platform.request_all("user_led")
+        #self.gpio = GpioTop(platform, gpio_top_led)
 
         # XADC -------------------------------------------------------------------------------------
         self.xadc = XADC()
