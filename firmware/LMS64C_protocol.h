@@ -111,6 +111,8 @@ enum eEXP_BOARD {
 #define CMD_BRDCONF_WR		0x5D //write config data to board
 #define CMD_BRDCONF_RD		0x5E //read config data from board
 
+#define CMD_PERIPHSPI_TRNSF 0x60 //Transfer data to/from peripheral SPI bus
+
 #define CMD_ANALOG_VAL_WR	0x61 //write analog value
 #define CMD_ANALOG_VAL_RD	0x62 //read analog value
 //read reference??? ofset? min? max?

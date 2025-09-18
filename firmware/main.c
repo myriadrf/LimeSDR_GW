@@ -403,9 +403,10 @@ static void i2c_test(void) {
     i2c0_scan();
 
     printf("\n");
-
+#ifdef LIMESDR_XTRX
     printf("I2C1 Scan...\n");
     i2c1_scan();
+#endif
 }
 
 static void dac_test(void) {
@@ -463,11 +464,13 @@ static void dump_pmic(void) {
         i2c0_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
         printf("0x%02x: 0x%02x\n", adr, dat);
     }
+#ifdef LIMESDR_XTRX
     printf("FPGA_I2C2 PMIC Dump...\n");
     for (adr = 0; adr < 32; adr++) {
         i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
         printf("0x%02x: 0x%02x\n", adr, dat);
     }
+#endif
 }
 
 static void init_pmic(void) {
@@ -527,15 +530,22 @@ static void init_pmic(void) {
         dat = 0xD2;
         i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 
+#if defined(LIMESDR_XTRX)
         printf("PMIC: Set Buck1 to 3.3V.\n");
         adr = 0x0C;
         dat = 0xFC;
         i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+#elif defined(SSDR)
+        printf("PMIC: Set Buck1 to 2.0V.\n");
+        adr = 0x0C;
+        dat = 0xBB;
+        i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
+#endif
 
         busy_wait(1);
     }
 
-
+#if defined(LIMESDR_XTRX)
     printf("FPGA_I2C2 PMIC: Check ID ");
     adr = 0x01;
     i2c1_read(LP8758_I2C_ADDR, adr, &dat, 1, true);
@@ -611,6 +621,7 @@ static void init_pmic(void) {
 
         busy_wait(1);
     }
+#endif
 }
 
 static void init_vctcxo_dac(void) {
@@ -1116,6 +1127,71 @@ void gnss_init(void) {
 #endif
 
 }
+
+
+/**
+ * @brief Transfers up to 4 bytes of data over SPI using the selected SPI master and chip select.
+ *
+ * This function packs the transmit data (MOSIdata) MSB-first into a 32-bit register, initiates the
+ * SPI transfer, and optionally unpacks the received data (MISO) into the provided buffer.
+ *
+ * @param master        SPI master index (0 = spimaster, 1 = spimaster1 — only 0 is implemented)
+ * @param cs            Chip select line number (converted to bitmask internally)
+ * @param mosidata      Pointer to the transmit buffer (MSB-first)
+ * @param transfer_len  Number of bytes to transfer (1–4)
+ * @param data_len      Number of bytes for SPI data (1–2)
+ * @param misodata      Pointer to receive buffer (can be NULL if response is ignored)
+ *
+ * @return 0 on success, 1 on unsupported master and invalid length
+ */
+
+uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t data_len, uint8_t *misodata) {
+
+    uint32_t recv_val = 0;
+    uint32_t bits = transfer_len * 8;
+    uint32_t cs_mask = 1 << cs;  // Convert CS index to bitmask
+
+    //Check if provided len is valid
+	if (transfer_len == 0 || transfer_len > 4) return 1;
+
+	// Pack mosidata
+    uint32_t packed_mosi = 0;
+    for (uint32_t i = 0; i < transfer_len; i++) {
+        packed_mosi = (packed_mosi << 8) | mosidata[i];  // MSB first
+    }
+
+	// SPI transfer implementation (select actual spimaster)
+	switch (master) {
+	case 0:
+        spimaster_cs_write(cs_mask);
+        cdelay(1);
+        while ((spimaster_status_read() & 0x1) == 0);
+        spimaster_mosi_write(packed_mosi);
+        // Start the transfer
+        spimaster_control_write(bits * SPI_LENGTH | SPI_START);
+        while ((spimaster_status_read() & 0x1) == 0);
+        // Read received value from MISO
+        recv_val = spimaster_miso_read();
+        break;
+	case 1:
+		//Not implemented yet
+		return 1;
+	default:
+		return 1;
+	}
+
+	recv_val <<= (4-data_len) * 8;
+
+	// Pack misodata
+	if (misodata) {
+	    for (int i = transfer_len - 1; i >= 0; i--) {
+	    	misodata[i] = recv_val & 0xFF;  // Extract least significant byte
+	    	recv_val >>= 8;                 // Shift right by 8 bits (drop that byte)
+	    }
+	}
+	return 0;
+}
+
 
 int main(void) {
     int spirez;
@@ -2042,6 +2118,52 @@ int main(void) {
                 break;
 #endif
 #endif
+
+                    case CMD_PERIPHSPI_TRNSF:
+
+                    	for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                    		/*
+                            printf("[d] Block: 0x%x\n", block);
+
+                        	printf("[RX]: %x ", LMS_Ctrl_Packet_Rx->Data_field[8 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[9 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[10 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[11 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[12 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[13 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[14 + (block * 8)]);
+                        	printf("%x\n", LMS_Ctrl_Packet_Rx->Data_field[15 + (block * 8)]);
+                    		 */
+                    		cmd_errors += bsp_spi_transfer(
+                    				LMS_Ctrl_Packet_Rx->Header.Periph_ID,
+									LMS_Ctrl_Packet_Rx->Data_field[0],
+									&LMS_Ctrl_Packet_Rx->Data_field[8 + (block * 8)],
+									LMS_Ctrl_Packet_Rx->Data_field[2],
+									2,
+									&LMS_Ctrl_Packet_Tx->Data_field[8 + (block * 8)]
+                    		);
+                    		/*
+                        	printf("[TX]: %x ", LMS_Ctrl_Packet_Tx->Data_field[8 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[9 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[10 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[11 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[12 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[13 + (block * 8)]);
+                        	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[14 + (block * 8)]);
+                        	printf("%x\n", LMS_Ctrl_Packet_Tx->Data_field[15 + (block * 8)]);
+                    		 */
+                    	}
+
+                    	//printf("Err=%x\n", cmd_errors);
+
+
+                    	if (cmd_errors)
+                    		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    	else
+                    		LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    	break;
+
+                    	break;
 
                 // COMMAND ANALOG VALUE READ
                 case CMD_ANALOG_VAL_RD:
