@@ -51,7 +51,7 @@
 /*-----------------------------------------------------------------------*/
 #ifdef LIMESDR_XTRX
 #define I2C_DAC_ADDR     0x4C
-#define I2C_TERMO_ADDR   0x4B
+#define I2C_TERMO_ADDR   0x4E // TMP114NB
 #define LP8758_I2C_ADDR  0x60
 //#define FW_VER 1 // Initial version
 //#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
@@ -1222,7 +1222,7 @@ int main(void) {
     lms64c_init();
     clk_cfg_irq_init();
     init_pmic();
-    init_vctcxo_dac();
+    //init_vctcxo_dac();
 
     help();
     prompt();
