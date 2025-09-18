@@ -336,6 +336,7 @@ static void led_cmd(void) {
 #ifdef CSR_BASE
 
 static void gpioled_cmd(void) {
+#ifdef CSR_GPIO_BASE
     int i, j;
     printf("GPIO Led override demo...\n");
     gpio_gpio_override_write(0x7);
@@ -352,6 +353,9 @@ static void gpioled_cmd(void) {
 
     gpio_gpio_override_val_write(0x0);
     printf("GPIO Led override demo...ended\n");
+#else
+    printf("GPIO Led override demo NOT IMPLEMENTED\n");
+#endif
 }
 
 static void mmap_cmd(void) {
