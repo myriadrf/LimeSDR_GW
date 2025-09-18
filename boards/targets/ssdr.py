@@ -64,7 +64,7 @@ class CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
         self.cd_sys    = ClockDomain()
         self.cd_idelay = ClockDomain()
-        self.cd_usb = ClockDomain()
+        #self.cd_usb = ClockDomain()
         self.cd_xo_fpga = ClockDomain()
 
         # # #
@@ -87,7 +87,7 @@ class CRG(LiteXModule):
         pll.register_clkin(clk125, 125e6)
         pll.create_clkout(self.cd_idelay, 200e6, margin=0)
         pll.create_clkout(self.cd_sys,    sys_clk_freq, margin=0)
-        pll.create_clkout(self.cd_usb, 26e6, margin=0)
+        #pll.create_clkout(self.cd_usb, 26e6, margin=0)
 
         # IDelayCtrl.
         self.idelayctrl = S7IDELAYCTRL(self.cd_idelay)
@@ -256,20 +256,20 @@ class BaseSoC(SoCCore):
         # Leds -------------------------------------------------------------------------------------
         # self.led_pads = platform.request_all("user_led")
         self.led_placeholder = Signal()
-        if gold_img:
-            self.leds = LedChaser(
-                pads         = self.led_placeholder,
-                period       = 2,
-                sys_clk_freq = sys_clk_freq
-            )
-            self.comb += platform.request("user_led",0).eq(self.led_placeholder)
-            self.comb += platform.request("user_led",1).eq(self.led_placeholder)
-        else:
-            self.leds = LedChaser(
-                pads         = platform.request_all("user_led"),
-                period       = 1,
-                sys_clk_freq = sys_clk_freq
-            )
+        #if gold_img:
+        #    self.leds = LedChaser(
+        #        pads         = self.led_placeholder,
+        #        period       = 2,
+        #        sys_clk_freq = sys_clk_freq
+        #    )
+        #    self.comb += platform.request("user_led",0).eq(self.led_placeholder)
+        #    #self.comb += platform.request("user_led",1).eq(self.led_placeholder)
+        #else:
+        #    self.leds = LedChaser(
+        #        pads         = platform.request_all("user_led"),
+        #        period       = 1,
+        #        sys_clk_freq = sys_clk_freq
+        #    )
 
         # AXI MMAP ---------------------------------------------------------------------------------
         # AXI MMAP Bus (From CPU).
@@ -305,7 +305,7 @@ class BaseSoC(SoCCore):
             self.flash      = S7SPIFlash(platform.request("spiflash"), sys_clk_freq, 4e6)
 
         # Leds GPIO. -------------------------------------------------------------------------------
-        gpio_top_led = platform.request_all("user_led2")
+        gpio_top_led = platform.request_all("user_led")
         self.gpio = GpioTop(platform, gpio_top_led)
 
         # XADC -------------------------------------------------------------------------------------
@@ -356,7 +356,7 @@ class BaseSoC(SoCCore):
 
         # I2C Bus1 ---------------------------------------------------------------------------------
         # PMIC-FPGA (LP8758 @ 0x60).
-        self.i2c1 = I2CMaster(pads=platform.request("i2c", 1))
+        #self.i2c1 = I2CMaster(pads=platform.request("i2c", 1))
 
         # PMIC-FPGA --------------------------------------------------------------------------------
         # Buck0: 1.0V VCCINT + 1.0V MGTAVCC.
@@ -371,7 +371,7 @@ class BaseSoC(SoCCore):
         # Buck3: +1.5V  (used as input to 1.25V LDO for LMS analog 1.25V).
 
         # Aux -------------------------------------------------------------------------------------
-        self.aux = AUX(platform.request("aux"))
+        #self.aux = AUX(platform.request("aux"))
 
         # Timing Constraints/False Paths -----------------------------------------------------------
         platform.toolchain.pre_placement_commands.append(
@@ -390,6 +390,34 @@ class BaseSoC(SoCCore):
             "-group [get_clocks -include_generated_clocks dna_clk] "
             "-asynchronous"
         )
+        platform.toolchain.pre_placement_commands.append(
+            "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets rxclk_global_clk] "
+        )
+
+        platform.toolchain.pre_placement_commands.append(
+            "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets txclk_global_clk] "
+        )
+
+        platform.toolchain.pre_placement_commands.append(
+            "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets rxpll_clk_c0_clk] "
+        )
+
+        platform.toolchain.pre_placement_commands.append(
+            "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets rxpll_clk_c1_clk] "
+        )
+
+        platform.toolchain.pre_placement_commands.append(
+            "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets txpll_clk_c0_clk] "
+        )
+
+        platform.toolchain.pre_placement_commands.append(
+            "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets txpll_clk_c1_clk] "
+        )
+
+
+
+
+
 
         # LimeTOP ----------------------------------------------------------------------------------
         self.lime_top = LimeTop(self, platform,
@@ -420,7 +448,7 @@ class BaseSoC(SoCCore):
         # VCTCXO -----------------------------------------------------------------------------------
         vctcxo_pads = platform.request("vctcxo")
         self.comb  += vctcxo_pads.sel.eq(self.lime_top.fpgacfg.ext_clk)
-        self.comb  += vctcxo_pads.en.eq(self.lime_top.fpgacfg.tcxo_en)
+        #self.comb  += vctcxo_pads.en.eq(self.lime_top.fpgacfg.tcxo_en)
 
         self.comb += self.lime_top.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
@@ -444,49 +472,49 @@ class BaseSoC(SoCCore):
         from litex.soc.cores.uart import UARTPHY
         from litex.soc.cores.uart import UART
 
-        self.gps_pads       = platform.request("gps")
-        gnss_uart_pads = self.platform.request("gps_serial", loose=True)
-        gnss_uart_phy  = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
-        pcie_uart0     = UART(gnss_uart_phy, tx_fifo_depth=64, rx_fifo_depth=16, rx_fifo_rx_we=True)
-        self.add_module(name=f"PCIE_UART0_phy", module=gnss_uart_phy)
-        self.add_module(name="PCIE_UART0", module=pcie_uart0)
+        #self.gps_pads       = platform.request("gps")
+        #gnss_uart_pads = self.platform.request("gps_serial", loose=True)
+        #gnss_uart_phy  = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
+        #pcie_uart0     = UART(gnss_uart_phy, tx_fifo_depth=64, rx_fifo_depth=16, rx_fifo_rx_we=True)
+        #self.add_module(name=f"PCIE_UART0_phy", module=gnss_uart_phy)
+        #self.add_module(name="PCIE_UART0", module=pcie_uart0)
 
         # Get UTC time from GNSS, assign UTC data to timestamp logic in rx_path
-        from gateware.LimeDFB_LiteX.general.ZDAParser import ZDAParser
-        self.zda_parser = ZDAParser(self)
-        self.comb += [
-            self.zda_parser.sink.data.eq (gnss_uart_phy.source.data ),
-            self.zda_parser.sink.valid.eq(gnss_uart_phy.source.valid),
-            self.lime_top.time_seconds.eq(self.zda_parser.time_seconds),
-            self.lime_top.time_minutes.eq(self.zda_parser.time_minutes),
-            self.lime_top.time_hours.eq  (self.zda_parser.time_hours  ),
-            self.lime_top.time_day.eq    (self.zda_parser.time_day    ),
-            self.lime_top.time_month.eq  (self.zda_parser.time_month  ),
-            self.lime_top.time_year.eq   (self.zda_parser.time_year   ),
-            self.lime_top.rxtx_top.rx_path.pps.eq(self.zda_parser.pps ),
-        ]
-        ####
-        # Current time registers
-        self.time_min_sec = CSRStatus(size= 16, description="Time in minutes and seconds, current", fields=[
-            CSRField("sec", size=6, offset=0, description="Current time, seconds"),
-            CSRField("min", size=6, offset=6, description="Current  time, minutes")
-        ])
-        self.time_mon_day_hrs = CSRStatus(size= 16, description="Time in months, days and hours, current", fields=[
-            CSRField("hrs", size=5, offset=0, description="Current time, hours"),
-            CSRField("day", size=5, offset=5, description="Current start time, days"),
-            CSRField("mon", size=4, offset=10, description="Current start time, months"),
-        ])
-        self.time_yrs = CSRStatus(size= 16, description="Time in years, current", fields=[
-            CSRField("yrs", size=12, offset=0, description="Current time, years")
-        ])
-        self.comb +=[
-                self.time_min_sec.fields.sec.eq    (self.zda_parser.time_seconds),
-                self.time_min_sec.fields.min.eq    (self.zda_parser.time_minutes),
-                self.time_mon_day_hrs.fields.hrs.eq(self.zda_parser.time_hours  ),
-                self.time_mon_day_hrs.fields.day.eq(self.zda_parser.time_day    ),
-                self.time_mon_day_hrs.fields.mon.eq(self.zda_parser.time_month  ),
-                self.time_yrs.fields.yrs.eq        (self.zda_parser.time_year   ),
-        ]
+        #from gateware.LimeDFB_LiteX.general.ZDAParser import ZDAParser
+        #self.zda_parser = ZDAParser(self)
+        #self.comb += [
+        #    self.zda_parser.sink.data.eq (gnss_uart_phy.source.data ),
+        #    self.zda_parser.sink.valid.eq(gnss_uart_phy.source.valid),
+        #    self.lime_top.time_seconds.eq(self.zda_parser.time_seconds),
+        #    self.lime_top.time_minutes.eq(self.zda_parser.time_minutes),
+        #    self.lime_top.time_hours.eq  (self.zda_parser.time_hours  ),
+        #    self.lime_top.time_day.eq    (self.zda_parser.time_day    ),
+        #    self.lime_top.time_month.eq  (self.zda_parser.time_month  ),
+        #    self.lime_top.time_year.eq   (self.zda_parser.time_year   ),
+        #    self.lime_top.rxtx_top.rx_path.pps.eq(self.zda_parser.pps ),
+        #]
+        #####
+        ## Current time registers
+        #self.time_min_sec = CSRStatus(size= 16, description="Time in minutes and seconds, current", fields=[
+        #    CSRField("sec", size=6, offset=0, description="Current time, seconds"),
+        #    CSRField("min", size=6, offset=6, description="Current  time, minutes")
+        #])
+        #self.time_mon_day_hrs = CSRStatus(size= 16, description="Time in months, days and hours, current", fields=[
+        #    CSRField("hrs", size=5, offset=0, description="Current time, hours"),
+        #    CSRField("day", size=5, offset=5, description="Current start time, days"),
+        #    CSRField("mon", size=4, offset=10, description="Current start time, months"),
+        #])
+        #self.time_yrs = CSRStatus(size= 16, description="Time in years, current", fields=[
+        #    CSRField("yrs", size=12, offset=0, description="Current time, years")
+        #])
+        #self.comb +=[
+        #        self.time_min_sec.fields.sec.eq    (self.zda_parser.time_seconds),
+        #        self.time_min_sec.fields.min.eq    (self.zda_parser.time_minutes),
+        #        self.time_mon_day_hrs.fields.hrs.eq(self.zda_parser.time_hours  ),
+        #        self.time_mon_day_hrs.fields.day.eq(self.zda_parser.time_day    ),
+        #        self.time_mon_day_hrs.fields.mon.eq(self.zda_parser.time_month  ),
+        #        self.time_yrs.fields.yrs.eq        (self.zda_parser.time_year   ),
+        #]
         # CLK Tests --------------------------------------------------------------------------------
 
         from gateware.LimeDFB.self_test.clk_no_ref_test import clk_no_ref_test
@@ -500,16 +528,16 @@ class BaseSoC(SoCCore):
 
         # VCTCXO tamer
         self.pps_internal = Signal()
-        self.comb += [
-            self.zda_parser.pps.eq(self.pps_internal)
-        ]
+        #self.comb += [
+        #    self.zda_parser.pps.eq(self.pps_internal)
+        #]
 
-        synchro_pads = platform.request("synchro")
+        #synchro_pads = platform.request("synchro")
         self.comb += [
             If(self.periphcfg.PERIPH_INPUT_SEL_0.storage[0:1] == 0b01,
-                self.pps_internal.eq(synchro_pads.pps_in)
+                #self.pps_internal.eq(synchro_pads.pps_in)
             ).Else(
-                self.pps_internal.eq(self.gps_pads.pps)
+                #self.pps_internal.eq(self.gps_pads.pps)
             )
         ]
 
@@ -518,19 +546,19 @@ class BaseSoC(SoCCore):
         vctcxo_tamer_pads          = Record(vctcxo_tamer_layout)
         vctcxo_tamer_pads.tune_ref = self.pps_internal
 
-        from gateware.LimeDFB.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
-        self.vctcxo_tamer = vctcxo_tamer_top(platform=platform,
-            vctcxo_tamer_pads = vctcxo_tamer_pads,
-            clk100_domain     = "sys",
-            vctcxo_clk_domain = "xo_fpga"
-        )
-        self.comb += self.vctcxo_tamer.RESET_N.eq(self.crg.pll.locked)
+        #from gateware.LimeDFB.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
+        #self.vctcxo_tamer = vctcxo_tamer_top(platform=platform,
+        #    vctcxo_tamer_pads = vctcxo_tamer_pads,
+        #    clk100_domain     = "sys",
+        #    vctcxo_clk_domain = "xo_fpga"
+        #)
+        #self.comb += self.vctcxo_tamer.RESET_N.eq(self.crg.pll.locked)
 
         vctcxo_tamer_serial_layout = [("rx", 1),
                                       ("tx", 1)]  # 1-bit wide signal for tune_ref
         vctcxo_tamer_serial_pads = Record(vctcxo_tamer_serial_layout)
-        self.comb += vctcxo_tamer_serial_pads.rx.eq(self.vctcxo_tamer.UART_TX)
-        self.comb += self.vctcxo_tamer.UART_RX.eq(vctcxo_tamer_serial_pads.tx)
+        #self.comb += vctcxo_tamer_serial_pads.rx.eq(self.vctcxo_tamer.UART_TX)
+        #self.comb += self.vctcxo_tamer.UART_RX.eq(vctcxo_tamer_serial_pads.tx)
 
         pcie_uart1_phy = UARTPHY(vctcxo_tamer_serial_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
         pcie_uart1     = UART(pcie_uart1_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
@@ -547,9 +575,9 @@ class BaseSoC(SoCCore):
             # self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
             # NOTE: using rx_path synced pps, because separate tx path enable is not used, should be fine
             self.lime_top.fpgacfg.tx_en_delay_signal[0].eq(self.lime_top.rxtx_top.rx_path.pps_rising),
-            self.lime_top.fpgacfg.tx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
+            #self.lime_top.fpgacfg.tx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
             self.lime_top.fpgacfg.rx_en_delay_signal[0].eq(self.lime_top.rxtx_top.rx_path.pps_rising),
-            self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
+            #self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
         ]
 
 

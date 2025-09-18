@@ -16,7 +16,7 @@ OBJECTS  += lms7002m.o
 ifeq ($(TARGET), LIMESDR_XTRX)
 OBJECTS += i2c1.o regremap.o Xil_clk_drp.o fpga_flash_qspi.o
 else ifeq ($(TARGET), SSDR)
-OBJECTS += i2c1.o regremap.o Xil_clk_drp.o fpga_flash_qspi.o
+OBJECTS += regremap.o Xil_clk_drp.o fpga_flash_qspi.o
 else
 OBJECTS += csr_access.o spiflash.o
 endif
