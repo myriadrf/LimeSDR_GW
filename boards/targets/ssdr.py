@@ -580,6 +580,11 @@ class BaseSoC(SoCCore):
             #self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
         ]
 
+        # LMS8 -----------------------------------------------------------------------------------
+        lms8_pads = platform.request("lms8")
+        self.comb  += lms8_pads.reset_n.eq(1)
+
+
 
 
 

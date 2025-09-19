@@ -206,6 +206,15 @@ _io = [
      Misc("SLEW=FAST"),
      ),
 
+    # RF-IC / LMS8001.
+    ("lms8", 0,
+        Subsignal("reset_n", Pins("E18")),
+        Subsignal("gpio", Pins("G2 M2")),
+
+     # IOStandard/Slew Rate.
+     IOStandard("LVCMOS18"),
+     ),
+
 
     # GPIO Serial.
     ("serial", 0,
