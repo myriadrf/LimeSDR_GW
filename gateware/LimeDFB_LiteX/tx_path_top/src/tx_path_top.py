@@ -269,9 +269,8 @@ class TXPathTop(LiteXModule):
         # -1 to fix off by one error
         for i in range(BUFF_COUNT):
             usedw_width = math.ceil(math.log2(fifo_depth))
-            self.wr_usedw = Signal(usedw_width+1)
-            self.rd_usedw = Signal(usedw_width + 1)
-            self.p2d_rd_tkeep = Signal(tkeep_width)
+            # wr_usedw = Signal(usedw_width+1)
+            # rd_usedw = Signal(usedw_width+1)
             sample_data_out = Signal(data_width)
 
             self.packet_buf = Instance("axis_fifo",
@@ -297,15 +296,15 @@ class TXPathTop(LiteXModule):
             o_m_axis_tvalid   = p2d_rd_tvalid[i],
             i_m_axis_tready   = p2d_rd_tready[i],
             o_m_axis_tdata    = sample_data_out,
-            o_m_axis_tkeep    = self.p2d_rd_tkeep, # open, unused
+            o_m_axis_tkeep    = Open(),# open, unused
             o_m_axis_tlast    = p2d_rd_tlast[i],
             # usedw
-            o_rdusedw         = self.rd_usedw, # open, unused
-            o_wrusedw         = self.wr_usedw
+            o_rdusedw         = Open(),#rd_usedw,
+            o_wrusedw         = Open(),#wr_usedw
             )
 
-            self.comb +=[
-                p2d_wr_buf_empty[i].eq(self.wr_usedw == 0)
+            self.sync +=[
+                p2d_wr_buf_empty[i].eq(~p2d_rd_tvalid[i])
             ]
 
             cases[i] = p2d_rd_tdata.eq(sample_data_out)
