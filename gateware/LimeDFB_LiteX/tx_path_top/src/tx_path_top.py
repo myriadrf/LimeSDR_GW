@@ -91,7 +91,7 @@ class TXPathTop(LiteXModule):
         m_reset_n        = Signal()
 
         # Synchro
-        rx_sample_nr     = Signal(64)
+        rx_sample_nr_sync= Signal(64)
         ch_en            = Signal(2)
         smpl_width       = Signal(2)
         synch_dis        = Signal()
@@ -138,20 +138,24 @@ class TXPathTop(LiteXModule):
         unpack_bypass       = Signal()
 
         # LiteScope probes
-        self.smpl_width      = smpl_width
-        self.unpack_bypass   = unpack_bypass
-        self.p2d_rd_tready   = p2d_rd_tready
-        self.p2d_rd_tlast    = p2d_rd_tlast
-        self.p2d_rd_tvalid   = p2d_rd_tvalid
-        self.p2d_wr_tvalid   = p2d_wr_tvalid
-        self.p2d_wr_tready   = p2d_wr_tready
-        self.p2d_wr_tlast    = p2d_wr_tlast
-        self.conn_buf        = Signal()
-        self.data_pad_tready = data_pad_tready
-        self.data_pad_tlast  = data_pad_tlast
-        self.data_pad_tvalid = data_pad_tvalid
-        self.data_pad_tdata  = data_pad_tdata
-        self.curr_buf_index  = curr_buf_index
+        self.smpl_width         = smpl_width
+        self.unpack_bypass      = unpack_bypass
+        self.p2d_rd_tready      = p2d_rd_tready
+        self.p2d_rd_tlast       = p2d_rd_tlast
+        self.p2d_rd_tvalid      = p2d_rd_tvalid
+        self.p2d_rd_tdata       = p2d_rd_tdata
+        self.p2d_rd_resetn      = p2d_rd_resetn
+        self.p2d_wr_tvalid      = p2d_wr_tvalid
+        self.p2d_wr_tready      = p2d_wr_tready
+        self.p2d_wr_tlast       = p2d_wr_tlast
+        self.p2d_wr_tdata       = p2d_wr_tdata
+        self.conn_buf           = Signal()
+        self.data_pad_tready    = data_pad_tready
+        self.data_pad_tlast     = data_pad_tlast
+        self.data_pad_tvalid    = data_pad_tvalid
+        self.data_pad_tdata     = data_pad_tdata
+        self.curr_buf_index     = curr_buf_index
+        self.rx_sample_nr_sync  = rx_sample_nr_sync
 
         self.s_reset_n = s_reset_n
         self.m_reset_n = m_reset_n
@@ -189,8 +193,8 @@ class TXPathTop(LiteXModule):
             # smpl_nr_fifo
             smpl_nr_fifo.sink.data.eq(   self.rx_sample_nr),
             smpl_nr_fifo.sink.valid.eq(  smpl_nr_fifo.sink.ready),
-            rx_sample_nr.eq(             smpl_nr_fifo.source.data),
-            smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid),
+            rx_sample_nr_sync.eq(        smpl_nr_fifo.source.data),
+            smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid | ~m_reset_n),
 
             # input_buff
             input_buff.sink.data.eq(     conv_64_to_128.source.data),
@@ -335,7 +339,7 @@ class TXPathTop(LiteXModule):
 
             i_RESET_N            = self.ext_reset_n,          # Unconnected for XTRX
             i_SYNCH_DIS          = synch_dis,                 # Disable timestamp sync
-            i_SAMPLE_NR          = rx_sample_nr,
+            i_SAMPLE_NR          = rx_sample_nr_sync,
             o_PCT_LOSS_FLG       = self.pct_loss_flg,         # Goes high when a packet is dropped due to outdated timestamp, stays high until PCT_LOSS_FLG_CLR is set
             i_PCT_LOSS_FLG_CLR   = pct_loss_flg_clr,          # Clears PCT_LOSS_FLG
             o_conn_buf_o         = self.conn_buf,
