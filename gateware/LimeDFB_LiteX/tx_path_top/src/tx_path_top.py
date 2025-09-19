@@ -176,6 +176,8 @@ class TXPathTop(LiteXModule):
                 self.cd_smpl_nr_fifo.rst.eq( (~(s_reset_n & self.ext_reset_n))),
             ]
 
+        p2d_wr_sink_ready = Signal()
+
         self.comb += [
             conv_64_to_128.reset.eq(     ~s_reset_n),
             conv_64_to_128.sink.last.eq( 0),
@@ -197,6 +199,7 @@ class TXPathTop(LiteXModule):
             # Async fifo used by ClockDomainCrossing does not have a reset
             # Passing reset as a ready signal to clear out the fifo is a workaround
             conv_64_to_128.source.ready.eq(input_buff.sink.ready | ~s_reset_n),
+            input_buff.source.ready.eq(p2d_wr_sink_ready | ~s_reset_n),
         ]
 
         self.pct2data_buf_wr = Instance("PCT2DATA_BUF_WR",
@@ -210,7 +213,7 @@ class TXPathTop(LiteXModule):
             # AXI Stream Slave
             i_S_AXIS_TVALID   = input_buff.source.valid,
             i_S_AXIS_TDATA    = input_buff.source.data,
-            o_S_AXIS_TREADY   = input_buff.source.ready,
+            o_S_AXIS_TREADY   = p2d_wr_sink_ready,
             i_S_AXIS_TLAST    = input_buff.source.last,
 
             # AXI Stream Master
