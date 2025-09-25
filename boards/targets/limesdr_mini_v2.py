@@ -209,7 +209,10 @@ class BaseSoC(SoCCore):
         self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C"))
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
-        self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
+        # FIXME: For PPSDO Test.
+        #spi_pads = platform.request("FPGA_SPI")
+        spi_pads = Record([("clk", 1), ("cs_n", 1), ("mosi", 1), ("miso", 1)])
+        self.add_spi_master(name="spimaster", pads=spi_pads, data_width=32, spi_clk_freq=10e6)
 
         # SPI Flash --------------------------------------------------------------------------------
         if with_spi_flash:
@@ -297,6 +300,36 @@ class BaseSoC(SoCCore):
             f.write("create_clock -name LMS_MCLK1 -period 8.000  [get_ports LMS_MCLK1]\n")
             f.write("create_clock -name LMS_MCLK2 -period 8.000  [get_ports LMS_MCLK2]\n")
         self.platform.add_sdc(timings_sdc_filename)
+
+        # PPSDO ------------------------------------------------------------------------------------
+
+        with_ppsdo = False
+
+        if with_ppsdo:
+            sys.path.append("../LimePSB_RPCM_GW/src") # FIXME: Move PPSDO to LimeDFB.
+
+            from hdl.ppsdo.ppsdo import PPSDO
+
+            # FIXME -------------------------------------------
+            # Use this for build test to avoid design simplification.
+            pps       = Signal()
+            pps_count = Signal(16)
+            self.sync += pps_count.eq(pps_count + 1)
+            self.comb += pps.eq(pps_count[-1])
+            dac_pads = platform.request("FPGA_SPI")
+            # FIXME -------------------------------------------
+
+            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
+            self.ppsdo.add_sources()
+            self.comb += [
+                # PPS.
+                ppsdo.pps.eq(pps),
+
+                # SPI DAC.
+                dac_pads.clk.eq(ppsdo.spi.clk),
+                dac_pads.cs_n.eq(ppsdo.spi.cs_n),
+                dac_pads.mosi.eq(ppsdo.spi.mosi),
+            ]
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
