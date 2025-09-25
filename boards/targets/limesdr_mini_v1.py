@@ -244,12 +244,12 @@ class BaseSoC(SoCCore):
         revision_pads = platform.request("revision")
         revision_pads.BOM_VER = Cat(revision_pads.BOM_VER0, revision_pads.BOM_VER1, revision_pads.BOM_VER2)
 
-        self.limetop  = LimeTop(self, platform,
+        limetop  = LimeTop(self, platform,
             LMS_DIQ_WIDTH      = LMS_DIQ_WIDTH,
             sink_width         = STRM0_FPGA_RX_RWIDTH,
-            sink_clk_domain    = "sys",
+            sink_clk_domain    = "ft601",
             source_width       = STRM0_FPGA_TX_WWIDTH,
-            source_clk_domain  = "sys",
+            source_clk_domain  = "ft601",
             TX_N_BUFF          = TX_N_BUFF,
             TX_PCT_SIZE        = TX_PCT_SIZE,
             TX_IN_PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
@@ -262,6 +262,9 @@ class BaseSoC(SoCCore):
             compile_rev        =  CompileRevision if not gold_img else 0xDEAD,
             revision_pads      = revision_pads,
         )
+        # Make sure all sync statements happen on ft601 clock domain.
+        # limetop = ClockDomainsRenamer({"sys": "ft601"})(limetop)
+        self.limetop = limetop
         # Assign UART signals to general periph
         self.comb += [
             self.limetop.general_periph.gpio_out_val[8].eq(serial_signals.tx),
@@ -283,8 +286,8 @@ class BaseSoC(SoCCore):
             EP83_wrusedw_width = C_EP83_WRUSEDW_WIDTH,
             EP83_wwidth        = STRM0_FPGA_TX_WWIDTH,
             EP83_wsize         = 2048,
-            s_clk_domain       = "sys",
-            m_clk_domain       = "sys",
+            s_clk_domain       = "ft601",
+            m_clk_domain       = "ft601",
         )
 
         self.comb += [
