@@ -128,7 +128,7 @@ class TXPathTop(LiteXModule):
             cd_from  = s_clk_domain,
             cd_to    = m_clk_domain,
             depth    = int(input_buff_size/128),
-            buffered = True)
+            buffered = False)
         self.input_buff = input_buff
 
         # FIFO before unpacker

@@ -166,14 +166,14 @@ class LimeTop(LiteXModule):
 
         if with_rx_tx_top:
 
-            self.rxtx_top = RXTXTop(platform, self.fpgacfg,
+            rxtx_top = RXTXTop(platform, self.fpgacfg,
                 # TX parameters
                 TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
                 TX_N_BUFF              = TX_N_BUFF,
                 TX_IN_PCT_SIZE         = TX_PCT_SIZE,
                 TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
                 TX_IN_PCT_DATA_W       = sink_width,
-                tx_s_clk_domain        = "sys",
+                tx_s_clk_domain        = sink_clk_domain,
                 tx_buffer_size         = tx_buffer_size,
 
                 # RX parameters
@@ -181,12 +181,16 @@ class LimeTop(LiteXModule):
                 # "sys" uses less resources, presumably due to less clock domain crossings
                 # but lms_rx is necessary if timesource syncrhonisation is needed
                 # TODO: Investigate WHY exactly "sys" uses less resources, because it shouldn't
-                rx_int_clk_domain      = "lms_rx" if soc_has_timesource else "sys",
-                rx_m_clk_domain        = "sys",
+                rx_int_clk_domain      = "lms_rx" if soc_has_timesource else source_clk_domain,
+                rx_m_clk_domain        = source_clk_domain,
 
                 # Misc
                 soc_has_timesource     = soc_has_timesource,
             )
+            # TODO: This will not work if sink and source clk domains are different, but it's good for now
+            #       Move this logic to somewhere more appropriate
+            rxtx_top = ClockDomainsRenamer({"sys": source_clk_domain})(rxtx_top)
+            self.rxtx_top =  rxtx_top
 
             if soc_has_timesource:
                 # TODO: move notes from here and other similar locations to top of limetop to act as a checklist
