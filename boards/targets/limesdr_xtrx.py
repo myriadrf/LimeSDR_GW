@@ -553,7 +553,36 @@ class BaseSoC(SoCCore):
         ]
 
 
+        # PPSDO ------------------------------------------------------------------------------------
 
+        with_ppsdo = False
+
+        if with_ppsdo:
+            sys.path.append("../LimePSB_RPCM_GW/src") # FIXME: Move PPSDO to LimeDFB.
+
+            from hdl.ppsdo.ppsdo import PPSDO
+
+            # FIXME -------------------------------------------
+            # Use this for build test to avoid design simplification.
+            pps       = Signal()
+            pps_count = Signal(16)
+            self.sync += pps_count.eq(pps_count + 1)
+            self.comb += pps.eq(pps_count[-1])
+            dac_pads = platform.request("xsync_spi")
+            # FIXME -------------------------------------------
+
+            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
+            self.ppsdo.add_sources()
+            self.comb += [
+                # PPS.
+                ppsdo.pps.eq(pps),
+
+                # SPI DAC.
+                dac_pads.clk.eq(ppsdo.spi.clk),
+                dac_pads.cs_n.eq(ppsdo.spi.cs_n),
+                dac_pads.mosi.eq(ppsdo.spi.mosi),
+            ]
+            #platform.toolchain.project_commands += ["set_property -name {{verilog_default_nettype}} -value {{wire}} -objects [current_project]"]
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
