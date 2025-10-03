@@ -91,7 +91,7 @@ class TXPathTop(LiteXModule):
         m_reset_n        = Signal()
 
         # Synchro
-        rx_sample_nr     = Signal(64)
+        rx_sample_nr_sync= Signal(64)
         ch_en            = Signal(2)
         smpl_width       = Signal(2)
         synch_dis        = Signal()
@@ -128,7 +128,7 @@ class TXPathTop(LiteXModule):
             cd_from  = s_clk_domain,
             cd_to    = m_clk_domain,
             depth    = int(input_buff_size/128),
-            buffered = True)
+            buffered = False)
         self.input_buff = input_buff
 
         # FIFO before unpacker
@@ -138,20 +138,24 @@ class TXPathTop(LiteXModule):
         unpack_bypass       = Signal()
 
         # LiteScope probes
-        self.smpl_width      = smpl_width
-        self.unpack_bypass   = unpack_bypass
-        self.p2d_rd_tready   = p2d_rd_tready
-        self.p2d_rd_tlast    = p2d_rd_tlast
-        self.p2d_rd_tvalid   = p2d_rd_tvalid
-        self.p2d_wr_tvalid   = p2d_wr_tvalid
-        self.p2d_wr_tready   = p2d_wr_tready
-        self.p2d_wr_tlast    = p2d_wr_tlast
-        self.conn_buf        = Signal()
-        self.data_pad_tready = data_pad_tready
-        self.data_pad_tlast  = data_pad_tlast
-        self.data_pad_tvalid = data_pad_tvalid
-        self.data_pad_tdata  = data_pad_tdata
-        self.curr_buf_index  = curr_buf_index
+        self.smpl_width         = smpl_width
+        self.unpack_bypass      = unpack_bypass
+        self.p2d_rd_tready      = p2d_rd_tready
+        self.p2d_rd_tlast       = p2d_rd_tlast
+        self.p2d_rd_tvalid      = p2d_rd_tvalid
+        self.p2d_rd_tdata       = p2d_rd_tdata
+        self.p2d_rd_resetn      = p2d_rd_resetn
+        self.p2d_wr_tvalid      = p2d_wr_tvalid
+        self.p2d_wr_tready      = p2d_wr_tready
+        self.p2d_wr_tlast       = p2d_wr_tlast
+        self.p2d_wr_tdata       = p2d_wr_tdata
+        self.conn_buf           = Signal()
+        self.data_pad_tready    = data_pad_tready
+        self.data_pad_tlast     = data_pad_tlast
+        self.data_pad_tvalid    = data_pad_tvalid
+        self.data_pad_tdata     = data_pad_tdata
+        self.curr_buf_index     = curr_buf_index
+        self.rx_sample_nr_sync  = rx_sample_nr_sync
 
         self.s_reset_n = s_reset_n
         self.m_reset_n = m_reset_n
@@ -176,6 +180,8 @@ class TXPathTop(LiteXModule):
                 self.cd_smpl_nr_fifo.rst.eq( (~(s_reset_n & self.ext_reset_n))),
             ]
 
+        p2d_wr_sink_ready = Signal()
+
         self.comb += [
             conv_64_to_128.reset.eq(     ~s_reset_n),
             conv_64_to_128.sink.last.eq( 0),
@@ -187,8 +193,8 @@ class TXPathTop(LiteXModule):
             # smpl_nr_fifo
             smpl_nr_fifo.sink.data.eq(   self.rx_sample_nr),
             smpl_nr_fifo.sink.valid.eq(  smpl_nr_fifo.sink.ready),
-            rx_sample_nr.eq(             smpl_nr_fifo.source.data),
-            smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid),
+            rx_sample_nr_sync.eq(        smpl_nr_fifo.source.data),
+            smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid | ~m_reset_n),
 
             # input_buff
             input_buff.sink.data.eq(     conv_64_to_128.source.data),
@@ -197,6 +203,7 @@ class TXPathTop(LiteXModule):
             # Async fifo used by ClockDomainCrossing does not have a reset
             # Passing reset as a ready signal to clear out the fifo is a workaround
             conv_64_to_128.source.ready.eq(input_buff.sink.ready | ~s_reset_n),
+            input_buff.source.ready.eq(p2d_wr_sink_ready | ~s_reset_n),
         ]
 
         self.pct2data_buf_wr = Instance("PCT2DATA_BUF_WR",
@@ -210,7 +217,7 @@ class TXPathTop(LiteXModule):
             # AXI Stream Slave
             i_S_AXIS_TVALID   = input_buff.source.valid,
             i_S_AXIS_TDATA    = input_buff.source.data,
-            o_S_AXIS_TREADY   = input_buff.source.ready,
+            o_S_AXIS_TREADY   = p2d_wr_sink_ready,
             i_S_AXIS_TLAST    = input_buff.source.last,
 
             # AXI Stream Master
@@ -262,9 +269,8 @@ class TXPathTop(LiteXModule):
         # -1 to fix off by one error
         for i in range(BUFF_COUNT):
             usedw_width = math.ceil(math.log2(fifo_depth))
-            self.wr_usedw = Signal(usedw_width+1)
-            self.rd_usedw = Signal(usedw_width + 1)
-            self.p2d_rd_tkeep = Signal(tkeep_width)
+            # wr_usedw = Signal(usedw_width+1)
+            # rd_usedw = Signal(usedw_width+1)
             sample_data_out = Signal(data_width)
 
             self.packet_buf = Instance("axis_fifo",
@@ -290,15 +296,15 @@ class TXPathTop(LiteXModule):
             o_m_axis_tvalid   = p2d_rd_tvalid[i],
             i_m_axis_tready   = p2d_rd_tready[i],
             o_m_axis_tdata    = sample_data_out,
-            o_m_axis_tkeep    = self.p2d_rd_tkeep, # open, unused
+            o_m_axis_tkeep    = Open(),# open, unused
             o_m_axis_tlast    = p2d_rd_tlast[i],
             # usedw
-            o_rdusedw         = self.rd_usedw, # open, unused
-            o_wrusedw         = self.wr_usedw
+            o_rdusedw         = Open(),#rd_usedw,
+            o_wrusedw         = Open(),#wr_usedw
             )
 
-            self.comb +=[
-                p2d_wr_buf_empty[i].eq(self.wr_usedw == 0)
+            self.sync +=[
+                p2d_wr_buf_empty[i].eq(~p2d_rd_tvalid[i])
             ]
 
             cases[i] = p2d_rd_tdata.eq(sample_data_out)
@@ -332,7 +338,7 @@ class TXPathTop(LiteXModule):
 
             i_RESET_N            = self.ext_reset_n,          # Unconnected for XTRX
             i_SYNCH_DIS          = synch_dis,                 # Disable timestamp sync
-            i_SAMPLE_NR          = rx_sample_nr,
+            i_SAMPLE_NR          = rx_sample_nr_sync,
             o_PCT_LOSS_FLG       = self.pct_loss_flg,         # Goes high when a packet is dropped due to outdated timestamp, stays high until PCT_LOSS_FLG_CLR is set
             i_PCT_LOSS_FLG_CLR   = pct_loss_flg_clr,          # Clears PCT_LOSS_FLG
             o_conn_buf_o         = self.conn_buf,
