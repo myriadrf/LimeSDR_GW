@@ -70,8 +70,14 @@ class CRG(LiteXModule):
         # # #
         if platform.default_clk_name == "clk26":
             self.clk26 = platform.request("clk26")
+            self.specials += [Instance("IBUFDS",
+                                       i_I=self.clk26.p,
+                                       i_IB=self.clk26.n,
+                                       o_O=self.cd_xo_fpga.clk
+                                       )]
 
-            self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
+
+            #self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
         else: # Fairwaves XTRX
             self.clk60 = platform.request("clk60")
 
@@ -326,7 +332,7 @@ class BaseSoC(SoCCore):
             "Bar0_64bit"               : "true",
             "Bar0_Prefetchable"        : "false",
             "Vendor_ID"                : "2058",
-            "Device_ID"                : "001B",
+            "Device_ID"                : "0020",
             "Base_Class_Menu"          : "Wireless_controller",
             "Sub_Class_Interface_Menu" : "Other_type_of_wireless_controller",
             "Class_Code_Base"          : "0D",
@@ -384,7 +390,7 @@ class BaseSoC(SoCCore):
             "-group [get_clocks -include_generated_clocks txoutclk_x0y0] "
             "-group [get_clocks -include_generated_clocks rxclk_global_clk] "
             "-group [get_clocks -include_generated_clocks txclk_global_clk] "
-            "-group [get_clocks -include_generated_clocks clk26] "
+            "-group [get_clocks -include_generated_clocks clk26_p] "
             "-group [get_clocks -include_generated_clocks jtag_clk] "
             "-group [get_clocks -include_generated_clocks icap_clk] "
             "-group [get_clocks -include_generated_clocks dna_clk] "
@@ -447,7 +453,7 @@ class BaseSoC(SoCCore):
         )
         # VCTCXO -----------------------------------------------------------------------------------
         vctcxo_pads = platform.request("vctcxo")
-        self.comb  += vctcxo_pads.sel.eq(self.lime_top.fpgacfg.ext_clk)
+        self.comb  += vctcxo_pads.sel.eq(~self.lime_top.fpgacfg.ext_clk)
         #self.comb  += vctcxo_pads.en.eq(self.lime_top.fpgacfg.tcxo_en)
 
         self.comb += self.lime_top.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
@@ -583,6 +589,15 @@ class BaseSoC(SoCCore):
         # LMS8 -----------------------------------------------------------------------------------
         lms8_pads = platform.request("lms8")
         self.comb  += lms8_pads.reset_n.eq(1)
+
+        # Power control -----------------------------------------------------------------------------------
+        self.pwr_pads = platform.request("pwr")
+
+        from gateware.ssdr_pwr import ssdr_pwr
+        self.pwr_ctrl = ssdr_pwr(platform=platform, pads=self.pwr_pads)
+
+        self.xo_fpga_signal = Signal()
+        self.comb += self.xo_fpga_signal.eq(ClockSignal("xo_fpga"))
 
 
 

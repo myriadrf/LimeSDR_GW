@@ -13,7 +13,11 @@ from litex.build.openfpgaloader import OpenFPGALoader
 
 _io = [
     # Clk/Rst.
-    ("clk26", 0, Pins("N3"), IOStandard("LVCMOS18")), #FPGA_REF
+    ("clk26", 0,
+     Subsignal("p", Pins("N3")),
+     Subsignal("n", Pins("P3")),
+     IOStandard("LVDS_25")
+     ),
 
     # Leds.
     ("user_led", 0, Pins("K3"),  IOStandard("LVCMOS18")), #GPLEDINT
@@ -22,7 +26,7 @@ _io = [
 
     # PCIe.
     ("pcie_x1", 0,
-        Subsignal("rst_n", Pins("P1"), IOStandard("LVCMOS18"), Misc("PULLUP=TRUE")), # PCI_PERST_FPGA1P8
+        Subsignal("rst_n", Pins("M1"), IOStandard("LVCMOS18"), Misc("PULLUP=TRUE")), # PCI_PERST_FPGA1P8
         Subsignal("clk_p", Pins("B8")),  #MGT_REF_P
         Subsignal("clk_n", Pins("A8")),  #MGT_REF_N
         Subsignal("rx_p",  Pins("B6")),  #GTP_RX_P
@@ -32,7 +36,7 @@ _io = [
     ),
 
     ("pcie_x2", 0,
-        Subsignal("rst_n", Pins("P1"), IOStandard("LVCMOS18"), Misc("PULLUP=TRUE")), # PCI_PERST_FPGA1P8
+        Subsignal("rst_n", Pins("M1"), IOStandard("LVCMOS18"), Misc("PULLUP=TRUE")), # workaround - connected to empty GPIO with pull-up
         Subsignal("clk_p", Pins("B8")),    #MGT_REF_P
         Subsignal("clk_n", Pins("A8")),    #MGT_REF_N
         Subsignal("rx_p",  Pins("B6 B4")), #GTP_RX_P
@@ -124,8 +128,8 @@ _io = [
         IOStandard("LVCMOS18")
     ),
 
-    # GPIO (X12, 8-pin FPC connector)
-    ("gpio", 0, Pins("H1 J1 K2 L2"), IOStandard("LVCMOS18")),
+    # GPIO
+    ("gpio", 0, Pins("L1 K2 J2 J1"), IOStandard("LVCMOS18")), #GPIO0-GPIO4
 
     # AUX.
     ("aux", 0,
@@ -136,7 +140,7 @@ _io = [
 
     # RF-Switches / SKY13330, SKY13384.
     ("rf_switches", 0,
-        Subsignal("tx", Pins("P3"),    Misc("PULLUP=True")),  #TXSW
+        Subsignal("tx", Pins("P1"),    Misc("PULLUP=True")),  #TXSW
         Subsignal("rx", Pins("G19"), Misc("PULLUP=True")),    #RXSW
         IOStandard("LVCMOS18")
     ),
@@ -208,8 +212,13 @@ _io = [
 
     # RF-IC / LMS8001.
     ("lms8", 0,
-        Subsignal("reset_n", Pins("E18")),
-        Subsignal("gpio", Pins("G2 M2")),
+        Subsignal("reset_n", Pins("N1")),
+     # IOStandard/Slew Rate.
+     IOStandard("LVCMOS18"),
+     ),
+
+    ("lms8_misc", 0,
+     Subsignal("gpio", Pins("G2 H2 M3")),
 
      # IOStandard/Slew Rate.
      IOStandard("LVCMOS18"),
@@ -218,10 +227,15 @@ _io = [
 
     # GPIO Serial.
     ("serial", 0,
-        Subsignal("tx", Pins("L1")),
-        Subsignal("rx", Pins("L2")),
+        Subsignal("tx", Pins("H1")), #GPIO5 -> GPIO33_2 -> J9_2
+        Subsignal("rx", Pins("M2")), #GPIO6 -> PGIO33_1 -> J9_3
         IOStandard("LVCMOS18")
-    )
+    ),
+
+    ("pwr", 0,
+     Subsignal("ldoen", Pins("E18")),
+     IOStandard("LVCMOS18")
+     )
 ]
 
 # Platform -----------------------------------------------------------------------------------------

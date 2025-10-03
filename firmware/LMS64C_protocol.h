@@ -40,6 +40,7 @@ enum eLMS_DEV {
 	LMS_DEV_MINI_V2                 = 25, //FTDI + ECP5 + LMS
 	LMS_5GRADIO                     = 26,
 	LMS_DEV_XTRX                    = 27,
+	LMS_DEV_SSDR                    = 32,
 
 	LMS_DEV_COUNT
 };

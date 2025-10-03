@@ -543,6 +543,7 @@ static void init_pmic(void) {
         printf("PMIC: Set Buck1 to 2.0V.\n");
         adr = 0x0C;
         dat = 0xBB;
+        //dat = 0xC1;  // 2.12V 
         i2c0_write(LP8758_I2C_ADDR, adr, &dat, 1);
 #endif
 
@@ -1227,6 +1228,9 @@ int main(void) {
     clk_cfg_irq_init();
     init_pmic();
     //init_vctcxo_dac();
+    // Enable LDO for Clocks and RF, PMIC must be configured first
+    cdelay(10);
+    pwr_ctrl_ldoen_write(0x1); //Enable LDO
 
     help();
     prompt();
