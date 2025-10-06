@@ -555,12 +555,12 @@ class BaseSoC(SoCCore):
 
         # PPSDO ------------------------------------------------------------------------------------
 
-        with_ppsdo = False
+        with_ppsdo = True
 
         if with_ppsdo:
-            sys.path.append("../LimePSB_RPCM_GW/src") # FIXME: Move PPSDO to LimeDFB.
+            sys.path.append("../LimePPSDO/src") # FIXME.
 
-            from hdl.ppsdo.ppsdo import PPSDO
+            from ppsdo import PPSDO
 
             # FIXME -------------------------------------------
             # Use this for build test to avoid design simplification.
@@ -573,16 +573,30 @@ class BaseSoC(SoCCore):
 
             self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
             self.ppsdo.add_sources()
-            self.comb += [
-                # PPS.
-                ppsdo.pps.eq(pps),
+            self.comb += ppsdo.pps.eq(pps) # PPS.
 
-                # SPI DAC.
-                dac_pads.clk.eq(ppsdo.spi.clk),
-                dac_pads.cs_n.eq(ppsdo.spi.cs_n),
-                dac_pads.mosi.eq(ppsdo.spi.mosi),
+            # SPI DAC Control ----------------------------------------------------------------------
+
+            self.spi_dac = spi_dac = SPIMaster(
+                pads         = None,
+                data_width   = 24,
+                sys_clk_freq = sys_clk_freq,
+                spi_clk_freq = 1e6,
+                with_csr     = False,
+            )
+            self.comb += [
+                # Continuous Update.
+                self.spi_dac.start.eq(1),
+                self.spi_dac.length.eq(24),
+                # Power-down control bits (PD1 PD0).
+                self.spi_dac.mosi[16:18].eq(0b00),
+                # 16-bit DAC value.
+                self.spi_dac.mosi[0:16].eq(self.ppsdo.status.dac_tuned_val),
+                # Connect to pads.
+                dac_pads.clk.eq(~spi_dac.pads.clk),
+                dac_pads.cs_n.eq(spi_dac.pads.cs_n),
+                dac_pads.mosi.eq(spi_dac.pads.mosi),
             ]
-            #platform.toolchain.project_commands += ["set_property -name {{verilog_default_nettype}} -value {{wire}} -objects [current_project]"]
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
