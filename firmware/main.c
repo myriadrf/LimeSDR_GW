@@ -2603,6 +2603,42 @@ int main(void) {
                     break;
 
 
+#ifdef CSR_PPSDO_BASE
+                case CMD_PPSDO_WR:
+                    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks != 1) {
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
+                        break;
+                    }
+                    {
+                        uint16_t offset = (LMS_Ctrl_Packet_Rx->Data_field[0] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1];
+                        uint32_t value  = (
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[2] << 24) |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[3] << 16) |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[4] << 8)  |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[5] << 0)
+                        );
+                        csr_write_simple(CSR_PPSDO_BASE + offset, value);
+                    }
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
+                case CMD_PPSDO_RD:
+                    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks != 1) {
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
+                        break;
+                    }
+                    {
+                        uint16_t offset = (LMS_Ctrl_Packet_Rx->Data_field[0] << 8) | LMS_Ctrl_Packet_Rx->Data_field[1];
+                        uint32_t value  = csr_read_simple(CSR_PPSDO_BASE + offset);
+                        LMS_Ctrl_Packet_Tx->Data_field[0] = (offset >> 8) & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[1] = (offset >> 0) & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[2] = (value >> 24) & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[3] = (value >> 16) & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[4] = (value >> 8)  & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[5] = (value >> 0)  & 0xff;
+                    }
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
+#endif
                 default:
                     /* This is unknown request. */
                     // isHandled = CyFalse;
