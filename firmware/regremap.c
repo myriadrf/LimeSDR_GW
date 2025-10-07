@@ -121,12 +121,14 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
         case 0x280:
             value = lime_top_rxtx_top_rx_path_timestamp_settings_read() & 0xFFFF;
             break;
+#endif
         case 0x281:
             value = lime_top_rx_delay_mode_read() & 0xFFFF;
             break;
         case 0x282:
             value = lime_top_tx_delay_mode_read() & 0xFFFF;
             break;
+#ifdef TIMESOURCE_PRESENT
         // current time
         case 0x283:
             value = main_time_min_sec_read() & 0xFFFF;
@@ -287,6 +289,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
         case 0x280:
             lime_top_rxtx_top_rx_path_timestamp_settings_write(value);
             break;
+#endif
         case 0x281:
             lime_top_rx_delay_mode_write(value);
             break;
@@ -294,7 +297,6 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             lime_top_tx_delay_mode_write(value);
             break;
 
-#endif
         default:
             break;
     }

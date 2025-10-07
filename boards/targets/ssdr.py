@@ -222,6 +222,14 @@ class BaseSoC(SoCCore):
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
 
+
+
+        # Dummy UART pads to make serial connection at later stage if needed. Not all boards has spare GPIO to use for
+        # UART
+        uart_console_pads_layout = [("rx", 1),
+                                    ("tx", 1)]
+        uart_console_pads = Record(uart_console_pads_layout)
+
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = f"LiteX SoC on {board.capitalize()} XTRX ",
             ident_version            = True,
@@ -233,6 +241,7 @@ class BaseSoC(SoCCore):
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
             with_uartbone            = with_uartbone,
+            uart_pads                = uart_console_pads,
             uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
@@ -309,10 +318,6 @@ class BaseSoC(SoCCore):
             self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["main_ram"])
             #self.flash_cs_n = GPIOOut(platform.request("flash_cs_n"))
             self.flash      = S7SPIFlash(platform.request("spiflash"), sys_clk_freq, 4e6)
-
-        # Leds GPIO. -------------------------------------------------------------------------------
-        #gpio_top_led = platform.request_all("user_led")
-        #self.gpio = GpioTop(platform, gpio_top_led)
 
         # XADC -------------------------------------------------------------------------------------
         self.xadc = XADC()
@@ -443,7 +448,7 @@ class BaseSoC(SoCCore):
             with_fft             = with_fft,
 
             # FPGACFG.
-            board_id             = 27,
+            board_id             = 27, #TODO: Change this to 32
             # GOLD image can be recocgnized by 0xDEAD in major and compile revisions
             major_rev            =  MajorRevision if not gold_img else 0xDEAD,
             compile_rev          =  CompileRevision if not gold_img else 0xDEAD,
@@ -590,7 +595,7 @@ class BaseSoC(SoCCore):
         lms8_pads = platform.request("lms8")
         self.comb  += lms8_pads.reset_n.eq(1)
 
-        # Power control -----------------------------------------------------------------------------------
+        # Power control --------------------------------------------------------------------------
         self.pwr_pads = platform.request("pwr")
 
         from gateware.ssdr_pwr import ssdr_pwr
@@ -598,6 +603,18 @@ class BaseSoC(SoCCore):
 
         self.xo_fpga_signal = Signal()
         self.comb += self.xo_fpga_signal.eq(ClockSignal("xo_fpga"))
+
+        # Leds GPIO. -------------------------------------------------------------------------------
+        gpio_pads = platform.request("gpio", 0)
+        self.gpio = GpioTop(platform, gpio_pads)
+
+        self.comb += [ self.gpio.GPIO_DIR.eq(0b111011111),
+                       self.gpio.GPIO_OUT_VAL[5].eq(self.lime_top.fpgacfg.reg10.fields.rx_en)]
+
+        self.comb += [
+            self.lime_top.rxtx_top.rx_path.pps.eq(self.gpio.GPIO_IN_VAL[6]),
+        ]
+
 
 
 
@@ -695,32 +712,24 @@ class BaseSoC(SoCCore):
 
     def add_tx_stream_ctrl_probe(self):
         analyzer_signals = [
-            self.rxtx_top.tx_path.sink.valid,
-            self.rxtx_top.tx_path.sink.ready,
-            self.rxtx_top.tx_path.conv_64_to_128.source.valid,
-            self.rxtx_top.tx_path.conv_64_to_128.source.ready,
-            self.rxtx_top.tx_path.smpl_fifo.sink.ready,
-            self.rxtx_top.tx_path.smpl_fifo.sink.valid,
-            self.rxtx_top.tx_path.source.valid,
-            self.rxtx_top.tx_path.source.ready,
-            self.rxtx_top.tx_path.p2d_rd_tready,
-            self.rxtx_top.tx_path.p2d_rd_tlast,
-            self.rxtx_top.tx_path.p2d_rd_tvalid,
-            self.fpgacfg.tx_en,
-            self.rxtx_top.tx_path.ext_reset_n,
-            self.rxtx_top.tx_path.data_pad_tready,
-            self.rxtx_top.tx_path.data_pad_tvalid,
-            self.rxtx_top.tx_path.data_pad_tlast,
-            self.rxtx_top.tx_path.curr_buf_index,
-            self.rxtx_top.tx_path.conn_buf,
-            self.rxtx_top.tx_path.p2d_wr_tvalid,
-            self.rxtx_top.tx_path.p2d_wr_tready,
-            self.rxtx_top.tx_path.p2d_wr_tlast,
+            self.gpio.GPIO_DIR,
+            self.gpio.GPIO_OUT_VAL,
+            self.gpio.GPIO_IN_VAL,
+            self.gpio.gpio_override.storage,
+            self.gpio.gpio_override_dir.storage,
+            self.gpio.gpio_override_val.storage,
+            self.gpio.gpio_val.status,
+            self.lime_top.rx_delay_mode.storage,
+            self.lime_top.tx_delay_mode.storage,
+            self.lime_top.fpgacfg.reg10.fields.rx_en,
+            self.lime_top.fpgacfg.rx_en,
+            self.lime_top.fpgacfg.tx_en,
+            self.lime_top.fpgacfg.rx_en_delay_signal,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 1024,
-            clock_domain = "lms_tx",
+            clock_domain = "sys",
             register     = True,
             csr_csv      = "analyzer.csv"
         )

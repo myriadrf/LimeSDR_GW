@@ -36,7 +36,7 @@ _io = [
     ),
 
     ("pcie_x2", 0,
-        Subsignal("rst_n", Pins("M1"), IOStandard("LVCMOS18"), Misc("PULLUP=TRUE")), # workaround - connected to empty GPIO with pull-up
+        #Subsignal("rst_n", Pins("M1"), IOStandard("LVCMOS18"), Misc("PULLUP=TRUE")), # workaround - connected to empty GPIO with pull-up
         Subsignal("clk_p", Pins("B8")),    #MGT_REF_P
         Subsignal("clk_n", Pins("A8")),    #MGT_REF_N
         Subsignal("rx_p",  Pins("B6 B4")), #GTP_RX_P
@@ -129,7 +129,7 @@ _io = [
     ),
 
     # GPIO
-    ("gpio", 0, Pins("L1 K2 J2 J1"), IOStandard("LVCMOS18")), #GPIO0-GPIO4
+    ("gpio", 0, Pins("L2 L1 K2 J2 J1 H1 M2 M1 N2"), IOStandard("LVCMOS18")), #GPIO[6:0], GPLED[1:0]
 
     # AUX.
     ("aux", 0,
@@ -269,7 +269,7 @@ class Platform(Xilinx7SeriesPlatform):
             #[23:20] - HW_VER
             #[19:16] - Image identifier ( 0 - Gold image, 1- User image)
             #[15: 0] - Reserved
-            "set_property BITSTREAM.CONFIG.USR_ACCESS 0X1B200000 [current_design]",
+            "set_property BITSTREAM.CONFIG.USR_ACCESS 0X20200000 [current_design]",
             # "set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 0x00400000 [current_design]",
             "write_bitstream -force SSDR_golden.bit ",
             "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 SSDR_golden.bit\" -file ../../../bitstream/SSDR/SSDR_golden.bin"
@@ -284,7 +284,7 @@ class Platform(Xilinx7SeriesPlatform):
             #[23:20] - HW_VER
             #[19:16] - Image identifier ( 0 - Gold image, 1- User image)
             #[15: 0] - Reserved
-            "set_property BITSTREAM.CONFIG.USR_ACCESS 0X1B210000 [current_design]",
+            "set_property BITSTREAM.CONFIG.USR_ACCESS 0X20210000 [current_design]",
             "write_bitstream -force SSDR_user.bit ",
             "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 SSDR_user.bit\" -file ../../../bitstream/SSDR/SSDR_user.bin",
         ]
