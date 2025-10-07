@@ -97,10 +97,11 @@ class LimeTop(LiteXModule):
 
         # FPGA Cfg ---------------------------------------------------------------------------------
         self.fpgacfg  = FPGACfg(platform,
-            board_id    = board_id,
-            major_rev   = major_rev,
-            compile_rev = compile_rev,
-            pads        = revision_pads
+            board_id           = board_id,
+            major_rev          = major_rev,
+            compile_rev        = compile_rev,
+            pads               = revision_pads,
+            soc_has_timesource = soc_has_timesource,
         )
         self.comb += self.fpgacfg.pwr_src.eq(0)
 
