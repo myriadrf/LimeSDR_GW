@@ -13,7 +13,7 @@ void lms_spi_write(uint16_t addr, uint16_t val) {
 
 #ifndef LIMESDR_XTRX
     /* Set CS. */
-    spimaster_cs_write(1);
+    spimaster_cs_write(SPI_CS_LMS);
 #endif
 
     /* Prepare command (write bit set) and data. */
@@ -39,7 +39,7 @@ uint16_t lms_spi_read(uint16_t addr) {
 
 #ifndef LIMESDR_XTRX
     /* Set CS. */
-    spimaster_cs_write(1);
+    spimaster_cs_write(SPI_CS_LMS);
 #endif
 
     /* Prepare command (read bit clear). */
