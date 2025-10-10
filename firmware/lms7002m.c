@@ -11,17 +11,17 @@ void lms_spi_write(uint16_t addr, uint16_t val) {
     uint16_t cmd;
     uint16_t dat;
 
-#ifndef LIMESDR_XTRX
-    /* Set CS. */
-    spimaster_cs_write(SPI_CS_LMS);
-#endif
-
     /* Prepare command (write bit set) and data. */
     cmd = (1 << 15) | (addr & 0x7fff);
     dat = val & 0xffff;
 
     /* Wait for master to be ready. */
     while ((spimaster_status_read() & 0x1) == 0);
+
+#ifndef LIMESDR_XTRX
+    /* Set CS. */
+    spimaster_cs_write(SPI_CS_LMS);
+#endif
 
     /* Do transfer. */
     spimaster_mosi_write(cmd << 16 | dat);
@@ -32,19 +32,19 @@ void lms_spi_write(uint16_t addr, uint16_t val) {
 }
 
 uint16_t lms_spi_read(uint16_t addr) {
-    uint16_t recv_val;
+    uint16_t cmd;
+    uint16_t dat;
+
+    /* Prepare command (read bit clear). */
+    cmd = (0 << 15) | (addr & 0x7fff);
+
+    /* Wait for master to be ready. */
+    while ((spimaster_status_read() & 0x1) == 0);
 
 #ifndef LIMESDR_XTRX
     /* Set CS. */
     spimaster_cs_write(SPI_CS_LMS);
 #endif
-
-    /* Prepare command (read bit clear). */
-    uint16_t cmd;
-    cmd = (0 << 15) | (addr & 0x7fff);
-
-    /* Wait for master to be ready. */
-    while ((spimaster_status_read() & 0x1) == 0);
 
     /* Do transfer. */
     spimaster_mosi_write(cmd << 16);
@@ -53,8 +53,8 @@ uint16_t lms_spi_read(uint16_t addr) {
     /* Wait for master to complete. */
     while ((spimaster_status_read() & 0x1) == 0);
 
-    /* Read received value. */
-    recv_val = spimaster_miso_read() & 0xffff;
+    /* Read data. */
+    dat = spimaster_miso_read() & 0xffff;
 
-    return recv_val;
+    return dat;
 }
