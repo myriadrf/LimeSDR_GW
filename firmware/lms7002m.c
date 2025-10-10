@@ -26,6 +26,9 @@ void lms_spi_write(uint16_t addr, uint16_t val) {
     /* Do transfer. */
     spimaster_mosi_write(cmd << 16 | dat);
     spimaster_control_write(32 * SPI_LENGTH | SPI_START);
+
+    /* Wait for master to complete. */
+    while ((spimaster_status_read() & 0x1) == 0);
 }
 
 uint16_t lms_spi_read(uint16_t addr) {
@@ -39,6 +42,9 @@ uint16_t lms_spi_read(uint16_t addr) {
     /* Prepare command (read bit clear). */
     uint16_t cmd;
     cmd = (0 << 15) | (addr & 0x7fff);
+
+    /* Wait for master to be ready. */
+    while ((spimaster_status_read() & 0x1) == 0);
 
     /* Do transfer. */
     spimaster_mosi_write(cmd << 16);
