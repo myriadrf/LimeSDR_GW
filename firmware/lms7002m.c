@@ -18,10 +18,8 @@ void lms_spi_write(uint16_t addr, uint16_t val) {
     /* Wait for master to be ready. */
     while ((spimaster_status_read() & 0x1) == 0);
 
-#ifndef LIMESDR_XTRX
     /* Set CS. */
     spimaster_cs_write(SPI_CS_LMS);
-#endif
 
     /* Do transfer. */
     spimaster_mosi_write(cmd << 16 | dat);
@@ -41,10 +39,8 @@ uint16_t lms_spi_read(uint16_t addr) {
     /* Wait for master to be ready. */
     while ((spimaster_status_read() & 0x1) == 0);
 
-#ifndef LIMESDR_XTRX
     /* Set CS. */
     spimaster_cs_write(SPI_CS_LMS);
-#endif
 
     /* Do transfer. */
     spimaster_mosi_write(cmd << 16);
