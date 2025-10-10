@@ -26,12 +26,6 @@ void lms_spi_write(uint16_t addr, uint16_t val) {
     /* Do transfer. */
     spimaster_mosi_write(cmd << 16 | dat);
     spimaster_control_write(32 * SPI_LENGTH | SPI_START);
-
-#ifndef LIMESDR_XTRX
-    /* Clear CS. */
-    spimaster_cs_write(0);
-#endif
-
 }
 
 uint16_t lms_spi_read(uint16_t addr) {
@@ -55,10 +49,6 @@ uint16_t lms_spi_read(uint16_t addr) {
 
     /* Read received value. */
     recv_val = spimaster_miso_read() & 0xffff;
-#ifndef LIMESDR_XTRX
 
-    /* Clear CS. */
-    spimaster_cs_write(0);
-#endif
     return recv_val;
 }
