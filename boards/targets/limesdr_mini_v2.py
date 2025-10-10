@@ -321,44 +321,6 @@ class BaseSoC(SoCCore):
             self.ppsdo.add_sources()
             self.comb += ppsdo.pps.eq(pps) # PPS.
 
-            # PPSDO SPI DAC Control ----------------------------------------------------------------
-
-            class PPSDOSPIDACControl(LiteXModule):
-                def __init__(self, spi_master, spi_dac_value):
-                    # Signals.
-                    spi_dac_value_d = Signal(16)
-                    spi_dac_first   = Signal()
-
-                    # FSM.
-                    self.fsm = FSM(reset_state="IDLE")
-                    self.fsm.act("IDLE",
-                        NextValue(spi_dac_value_d, spi_dac_value),
-                        # Triggers DAC update on value change.
-                        If(spi_dac_value != spi_dac_value_d,
-                            NextValue(spi_dac_first, 1),
-                            NextState("RUN")
-                        )
-                    )
-                    self.fsm.act("RUN",
-                        NextValue(spi_dac_first, 0),
-                        If(~spi_dac_first & spi_master.done,
-                            NextState("IDLE")
-                        )
-                    )
-
-                    # Drive SPI during RUN: Set start, length & data.
-                    self.comb += If(self.fsm.ongoing("RUN"),
-                        spi_master.cs.eq(1 << 1),
-                        spi_master.start.eq(1),
-                        spi_master.length.eq(16),
-                        spi_master.mosi[16:32].eq(spi_dac_value)
-                    )
-
-            self.ppsdo_spi_dac_control = PPSDOSPIDACControl(
-                spi_master    = self.spimaster,
-                spi_dac_value = self.ppsdo.status.dac_tuned_val,
-            )
-
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
     def add_ft601_ctrl_probe(self):
