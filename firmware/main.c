@@ -811,26 +811,29 @@ uint8_t reverse(uint8_t b)
 }
 #endif
 
+#define SPI_CS_DAC (1 << 1)
+
 static void dac_spi_write(const uint16_t write_data)
 {
-    // register is 32bits and start sending bit 32
-    // we have to shift data to align
-    uint32_t cmd = ((uint32_t)write_data) << 16;
-    printf("%08lx\n", cmd);
+    uint32_t cmd;
 
-    /* set cs */
-    spimaster_cs_write(1 << 1);
+    /* Prepare command (16-bit data shifted left by 16 bits to align with 32-bit register). */
+    cmd = ((uint32_t)write_data) << 16;
 
-    /* Write SPI MOSI Data */
+    /* Wait for master to be ready. */
+    while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
+
+    /* Set CS */
+    spimaster_cs_write(SPI_CS_DAC);
+
+    /* Do transfer. */
     spimaster_mosi_write(cmd);
-
-    /* Start SPI Xfer */
     spimaster_control_write(
         (1  << CSR_SPIMASTER_CONTROL_START_OFFSET) |
         (16 << CSR_SPIMASTER_CONTROL_LENGTH_OFFSET)
     );
 
-    /* Wait SPI Xfer */
+    /* Wait for transfer to complete. */
     while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
 }
 
