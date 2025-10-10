@@ -16,6 +16,7 @@ from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
 
 from litex.gen import *
+from litex.gen.genlib.misc import WaitTimer
 
 from boards.platforms import limesdr_mini_v2_platform as limesdr_mini_v2
 
@@ -209,9 +210,7 @@ class BaseSoC(SoCCore):
         self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C"))
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
-        # FIXME: For PPSDO Test.
-        #spi_pads = platform.request("FPGA_SPI")
-        spi_pads = Record([("clk", 1), ("cs_n", 1), ("mosi", 1), ("miso", 1)])
+        spi_pads = platform.request("FPGA_SPI")
         self.add_spi_master(name="spimaster", pads=spi_pads, data_width=32, spi_clk_freq=10e6)
 
         # SPI Flash --------------------------------------------------------------------------------
@@ -308,43 +307,57 @@ class BaseSoC(SoCCore):
         if with_ppsdo:
             sys.path.append("../LimePPSDO/src") # FIXME.
 
+            # FIXME: Fake pps, replace.
+            pps = Signal()
+            self.pps_timer = pps_timer = WaitTimer(sys_clk_freq - 1)
+            self.comb += [
+                pps.eq(self.pps_timer.done),
+                self.pps_timer.wait.eq(~self.pps_timer.done)
+            ]
+
+            # PPSDO Instance.
             from ppsdo import PPSDO
-
-            # FIXME -------------------------------------------
-            # Use this for build test to avoid design simplification.
-            pps       = Signal()
-            pps_count = Signal(16)
-            self.sync += pps_count.eq(pps_count + 1)
-            self.comb += pps.eq(pps_count[-1])
-            dac_pads = platform.request("FPGA_SPI")
-            # FIXME -------------------------------------------
-
             self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
             self.ppsdo.add_sources()
             self.comb += ppsdo.pps.eq(pps) # PPS.
 
-            # SPI DAC Control ----------------------------------------------------------------------
+            # PPSDO SPI DAC Control ----------------------------------------------------------------
 
-            self.spi_dac = spi_dac = SPIMaster(
-                pads         = None,
-                data_width   = 24,
-                sys_clk_freq = sys_clk_freq,
-                spi_clk_freq = 1e6,
-                with_csr     = False,
+            class PPSDOSPIDACControl(LiteXModule):
+                def __init__(self, spi_master, spi_dac_value):
+                    # Signals.
+                    spi_dac_value_d = Signal(16)
+                    spi_dac_first   = Signal()
+
+                    # FSM.
+                    self.fsm = FSM(reset_state="IDLE")
+                    self.fsm.act("IDLE",
+                        NextValue(spi_dac_value_d, spi_dac_value),
+                        # Triggers DAC update on value change.
+                        If(spi_dac_value != spi_dac_value_d,
+                            NextValue(spi_dac_first, 1),
+                            NextState("RUN")
+                        )
+                    )
+                    self.fsm.act("RUN",
+                        NextValue(spi_dac_first, 0),
+                        If(~spi_dac_first & spi_master.done,
+                            NextState("IDLE")
+                        )
+                    )
+
+                    # Drive SPI during RUN: Set start, length & data.
+                    self.comb += If(self.fsm.ongoing("RUN"),
+                        spi_master.cs.eq(1 << 1),
+                        spi_master.start.eq(1),
+                        spi_master.length.eq(16),
+                        spi_master.mosi[16:32].eq(spi_dac_value)
+                    )
+
+            self.ppsdo_spi_dac_control = PPSDOSPIDACControl(
+                spi_master    = self.spimaster,
+                spi_dac_value = self.ppsdo.status.dac_tuned_val,
             )
-            self.comb += [
-                # Continuous Update.
-                self.spi_dac.start.eq(1),
-                self.spi_dac.length.eq(24),
-                # Power-down control bits (PD1 PD0).
-                self.spi_dac.mosi[16:18].eq(0b00),
-                # 16-bit DAC value.
-                self.spi_dac.mosi[0:16].eq(self.ppsdo.status.dac_tuned_val),
-                # Connect to pads.
-                dac_pads.clk.eq(~spi_dac.pads.clk),
-                dac_pads.cs_n.eq(spi_dac.pads.cs_n),
-                dac_pads.mosi.eq(spi_dac.pads.mosi),
-            ]
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
