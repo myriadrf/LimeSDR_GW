@@ -36,6 +36,7 @@ from gateware.LimeTop                       import LimeTop
 
 from gateware.LimeDFB_LiteX.FT601.src.ft601 import FT601
 from gateware.Revision import *
+from gateware.helpers import write_module_hierarchy_json
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -366,6 +367,13 @@ class BaseSoC(SoCCore):
             register     = True,
             csr_csv      = "analyzer.csv"
         )
+    # SoC hierarchy JSON utilities -----------------------------------------------------------------
+
+    def print_soc_hierarchy_json(self, outfile=None):
+        """Generate the SoC submodule hierarchy and write it as JSON to soc_structure.json.
+        The filename is constant. No terminal printing.
+        """
+        write_module_hierarchy_json(self, outfile="soc_structure.json", name="SoC")
 
 # Build --------------------------------------------------------------------------------------------
 
@@ -390,6 +398,9 @@ def main():
 
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
+
+    # Introspection.
+    parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -441,6 +452,10 @@ def main():
             bistream_output_dir = "bitstream/LimeSDR_Mini_V2"
             if not os.path.exists(bistream_output_dir):
                 os.makedirs(bistream_output_dir)
+
+        # Always generate SoC hierarchy JSON during prepare pass unless disabled.
+        if prepare and not args.no_soc_json:
+            soc.print_soc_hierarchy_json()
 
     # Prepare User/Golden bitstream.
     if which("ddtcmd") is None:

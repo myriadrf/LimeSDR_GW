@@ -48,6 +48,7 @@ from gateware.aux      import AUX
 from gateware.GpioTop  import GpioTop
 from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
+from gateware.helpers import write_module_hierarchy_json
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -676,6 +677,14 @@ class BaseSoC(SoCCore):
             csr_csv      = "analyzer.csv"
         )
 
+    # SoC hierarchy JSON utilities -----------------------------------------------------------------
+
+    def print_soc_hierarchy_json(self, outfile=None):
+        """Generate the SoC submodule hierarchy and write it as JSON to soc_structure.json.
+        The filename is constant. No terminal printing.
+        """
+        write_module_hierarchy_json(self, outfile="soc_structure.json", name="SoC")
+
 
 # Build --------------------------------------------------------------------------------------------
 
@@ -703,6 +712,9 @@ def main():
 
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
+
+    # Introspection.
+    parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -746,6 +758,10 @@ def main():
             assert args.with_uartbone or not args.with_bscan
             if args.with_tx_stream_ctrl_probe:
                 soc.add_tx_stream_ctrl_probe()
+
+        # Always generate SoC hierarchy JSON during prepare pass unless disabled.
+        if prepare and not args.no_soc_json:
+            soc.print_soc_hierarchy_json()
 
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
