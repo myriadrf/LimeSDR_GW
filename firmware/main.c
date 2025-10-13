@@ -1225,21 +1225,23 @@ int main(void) {
 
  /* PPSDO DAC Update */
 #ifdef CSR_PPSDO_BASE
-        uint16_t curr_dac_tuned = ppsdo_status_dac_tuned_val_read();
-        if (curr_dac_tuned != prev_dac_tuned) {
-            prev_dac_tuned = curr_dac_tuned;
+        if (ppsdo_enable_read()) {
+            uint16_t curr_dac_tuned = ppsdo_status_dac_tuned_val_read();
+           if (curr_dac_tuned != prev_dac_tuned) {
+                prev_dac_tuned = curr_dac_tuned;
 #ifdef LIMESDR_XTRX
-            uint8_t i2c_buf[3];
-            i2c_buf[0] = 0x30;
-            i2c_buf[1] = (curr_dac_tuned >> 8) & 0xff;
-            i2c_buf[2] = (curr_dac_tuned >> 0) & 0xff;
-            i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
+                uint8_t i2c_buf[3];
+                i2c_buf[0] = 0x30;
+                i2c_buf[1] = (curr_dac_tuned >> 8) & 0xff;
+                i2c_buf[2] = (curr_dac_tuned >> 0) & 0xff;
+                i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
 #endif
 #ifdef LIMESDR_MINI_V2
-        unsigned int dac_spi_wrdata = (curr_dac_tuned << 4); /* CHECKME */
-        dac_spi_write(dac_spi_wrdata);
+            unsigned int dac_spi_wrdata = (curr_dac_tuned << 4); /* CHECKME */
+           dac_spi_write(dac_spi_wrdata);
 #endif
-        dac_val = curr_dac_tuned;
+            dac_val = curr_dac_tuned;
+        }
     }
 #endif
 
