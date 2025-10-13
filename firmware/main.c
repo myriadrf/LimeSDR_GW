@@ -1215,15 +1215,15 @@ int main(void) {
 #endif
 
 
+    /* Main Loop */
     while (1) {
+
+        /* Console Service */
 #ifdef LIMESDR_XTRX
         console_service();
-#else
-        spirez = ft601_fifo_status_read();	// Read FIFO Status
-		lms64_packet_pending = !(spirez & 0x01);
 #endif
 
-        /* PPSDO DAC Update */
+ /* PPSDO DAC Update */
 #ifdef CSR_PPSDO_BASE
         uint16_t curr_dac_tuned = ppsdo_status_dac_tuned_val_read();
         if (curr_dac_tuned != prev_dac_tuned) {
@@ -1243,7 +1243,13 @@ int main(void) {
     }
 #endif
 
-        // Process received packet
+        /* Check FT601 RX Packet. */
+#if defined(LIMESDR_MINI_V1) | defined(LIMESDR_MINI_V2)
+        spirez = ft601_fifo_status_read();	// Read FIFO Status
+		lms64_packet_pending = !(spirez & 0x01);
+#endif
+
+        /* Process PCIe/FT601 RX Packet. */
         if (lms64_packet_pending) {
             // TODO: maybe this should be removed with ifdef if not required?
             if (gnss_init_done == 0) {
