@@ -165,6 +165,7 @@ class BaseSoC(SoCCore):
         with_cpu              = True, cpu_firmware=None,
         with_jtagbone         = True,
         with_bscan            = False,
+        with_ppsdo            = False,
         with_fft              = False,
         flash_boot            = False,
         gold_img              = False,
@@ -552,27 +553,21 @@ class BaseSoC(SoCCore):
             self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
         ]
 
-
         # PPSDO ------------------------------------------------------------------------------------
 
-        with_ppsdo = True
-
         if with_ppsdo:
+            # Imports.
             sys.path.append("../LimePPSDO/src") # FIXME.
+            from ppsdo import PPSDO             # FIXME.
 
-            # FIXME: Fake pps, replace.
-            pps = Signal()
+            # Fake PPS. # FIXME.
             self.pps_timer = pps_timer = WaitTimer(sys_clk_freq - 1)
-            self.comb += [
-                pps.eq(self.pps_timer.done),
-                self.pps_timer.wait.eq(~self.pps_timer.done)
-            ]
+            self.comb += pps_timer.wait.eq(~pps_timer.done)
 
             # PPSDO Instance.
-            from ppsdo import PPSDO
             self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
             self.ppsdo.add_sources()
-            self.comb += ppsdo.pps.eq(pps) # PPS.
+            self.comb += ppsdo.pps.eq(pps_timer.done)
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
@@ -729,6 +724,9 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
 
+    # PPSDO.
+    parser.add_argument("--with-ppsdo", action="store_true", help="Enable PPSDO support.")
+
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
 
@@ -758,6 +756,7 @@ def main():
             cpu_firmware          = None if prepare else "firmware/firmware.bin",
             with_jtagbone         = not args.with_bscan,
             with_bscan            = args.with_bscan,
+            with_ppsdo            = args.with_ppsdo,
             with_fft              = args.with_fft,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,

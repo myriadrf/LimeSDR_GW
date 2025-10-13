@@ -135,6 +135,7 @@ class BaseSoC(SoCCore):
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
+        with_ppsdo     = False,
         with_fft       = False,
         **kwargs):
 
@@ -302,24 +303,19 @@ class BaseSoC(SoCCore):
 
         # PPSDO ------------------------------------------------------------------------------------
 
-        with_ppsdo = True
-
         if with_ppsdo:
+            # Imports.
             sys.path.append("../LimePPSDO/src") # FIXME.
+            from ppsdo import PPSDO             # FIXME.
 
-            # FIXME: Fake pps, replace.
-            pps = Signal()
+            # Fake PPS. # FIXME.
             self.pps_timer = pps_timer = WaitTimer(sys_clk_freq - 1)
-            self.comb += [
-                pps.eq(self.pps_timer.done),
-                self.pps_timer.wait.eq(~self.pps_timer.done)
-            ]
+            self.comb += pps_timer.wait.eq(~pps_timer.done)
 
             # PPSDO Instance.
-            from ppsdo import PPSDO
             self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
             self.ppsdo.add_sources()
-            self.comb += ppsdo.pps.eq(pps) # PPS.
+            self.comb += ppsdo.pps.eq(pps_timer.done)
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
@@ -419,8 +415,11 @@ def main():
     parser.add_argument("--cpu-type",          default="vexriscv",  help="Select CPU.", choices=[
         "vexriscv", "picorv32", "fazyrv", "firev"]),
 
+    # PPSDO.
+    parser.add_argument("--with-ppsdo", action="store_true", help="Enable PPSDO support.")
+
     # Examples.
-    parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
+    parser.add_argument("--with-fft", action="store_true", help="Enable FFT module examples.")
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
@@ -444,6 +443,7 @@ def main():
             with_uartbone  = args.with_uartbone,
             with_spi_flash = not args.without_spi_flash,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
+            with_ppsdo     = args.with_ppsdo,
             with_fft       = args.with_fft,
         )
         # LiteScope Analyzer Probes.
