@@ -305,8 +305,7 @@ class BaseSoC(SoCCore):
 
         if with_ppsdo:
             # Imports.
-            sys.path.append("../LimePPSDO/src") # FIXME.
-            from ppsdo import PPSDO             # FIXME.
+            from gateware.LimePPSDO.src.ppsdo import PPSDO
 
             # Fake PPS. # FIXME.
             self.pps_timer = pps_timer = WaitTimer(sys_clk_freq - 1)

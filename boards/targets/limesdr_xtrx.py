@@ -519,7 +519,7 @@ class BaseSoC(SoCCore):
         vctcxo_tamer_pads          = Record(vctcxo_tamer_layout)
         vctcxo_tamer_pads.tune_ref = self.pps_internal
 
-        from gateware.LimeDFB.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
+        from gateware.LimeDFB.legacy_rpcm_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
         self.vctcxo_tamer = vctcxo_tamer_top(platform=platform,
             vctcxo_tamer_pads = vctcxo_tamer_pads,
             clk100_domain     = "sys",
@@ -557,8 +557,7 @@ class BaseSoC(SoCCore):
 
         if with_ppsdo:
             # Imports.
-            sys.path.append("../LimePPSDO/src") # FIXME.
-            from ppsdo import PPSDO             # FIXME.
+            from gateware.LimePPSDO.src.ppsdo import PPSDO
 
             # Fake PPS. # FIXME.
             self.pps_timer = pps_timer = WaitTimer(sys_clk_freq - 1)
