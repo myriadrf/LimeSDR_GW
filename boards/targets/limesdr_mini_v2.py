@@ -135,7 +135,7 @@ class BaseSoC(SoCCore):
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
-        with_ppsdo     = False,
+        with_ppsdo     = True,
         with_fft       = False,
         **kwargs):
 
@@ -416,7 +416,7 @@ def main():
         "vexriscv", "picorv32", "fazyrv", "firev"]),
 
     # PPSDO.
-    parser.add_argument("--with-ppsdo", action="store_true", help="Enable PPSDO support.")
+    parser.add_argument("--no-ppsdo", action="store_true", help="Disable PPSDO support.")
 
     # Examples.
     parser.add_argument("--with-fft", action="store_true", help="Enable FFT module examples.")
@@ -443,7 +443,7 @@ def main():
             with_uartbone  = args.with_uartbone,
             with_spi_flash = not args.without_spi_flash,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
-            with_ppsdo     = args.with_ppsdo,
+            with_ppsdo     = not args.no_ppsdo,
             with_fft       = args.with_fft,
         )
         # LiteScope Analyzer Probes.

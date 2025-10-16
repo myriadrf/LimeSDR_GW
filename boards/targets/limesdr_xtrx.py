@@ -165,7 +165,7 @@ class BaseSoC(SoCCore):
         with_cpu              = True, cpu_firmware=None,
         with_jtagbone         = True,
         with_bscan            = False,
-        with_ppsdo            = False,
+        with_ppsdo            = True,
         with_fft              = False,
         flash_boot            = False,
         gold_img              = False,
@@ -725,7 +725,7 @@ def main():
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
 
     # PPSDO.
-    parser.add_argument("--with-ppsdo", action="store_true", help="Enable PPSDO support.")
+    parser.add_argument("--no-ppsdo", action="store_true", help="Disable PPSDO support.")
 
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
@@ -756,7 +756,7 @@ def main():
             cpu_firmware          = None if prepare else "firmware/firmware.bin",
             with_jtagbone         = not args.with_bscan,
             with_bscan            = args.with_bscan,
-            with_ppsdo            = args.with_ppsdo,
+            with_ppsdo            = not args.no_ppsdo,
             with_fft              = args.with_fft,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,
