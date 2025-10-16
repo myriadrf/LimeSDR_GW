@@ -559,14 +559,10 @@ class BaseSoC(SoCCore):
             # Imports.
             from gateware.LimePPSDO.src.ppsdo import PPSDO
 
-            # Fake PPS. # FIXME.
-            self.pps_timer = pps_timer = WaitTimer(sys_clk_freq - 1)
-            self.comb += pps_timer.wait.eq(~pps_timer.done)
-
             # PPSDO Instance.
             self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
             self.ppsdo.add_sources()
-            self.comb += ppsdo.pps.eq(pps_timer.done)
+            self.comb += ppsdo.pps.eq(self.pps_internal)
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
