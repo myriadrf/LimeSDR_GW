@@ -115,8 +115,8 @@ enum eEXP_BOARD {
 #define CMD_ANALOG_VAL_RD	0x62 //read analog value
 //read reference??? ofset? min? max?
 
-#define CMD_CSR_WR 0x71 // Write CSR Register.
-#define CMD_CSR_RD 0x72 // Read CSR Register.
+#define CMD_BRDCSR_WR 0x71 // Write Board CSR Register.
+#define CMD_BRDCSR_RD 0x72 // Read Board CSR Register.
 
 //0x6x free?
 //0x7x free?
