@@ -2635,7 +2635,7 @@ int main(void) {
 
                     break;
 
-                case CMD_CSR_WR:
+                case CMD_BRDCSR_WR:
                     if (LMS_Ctrl_Packet_Rx->Header.Data_blocks != 1) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
                         break;
@@ -2657,7 +2657,7 @@ int main(void) {
                     }
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
-                case CMD_CSR_RD:
+                case CMD_BRDCSR_RD:
                     if (LMS_Ctrl_Packet_Rx->Header.Data_blocks != 1) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
                         break;
