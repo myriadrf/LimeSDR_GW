@@ -307,14 +307,25 @@ class BaseSoC(SoCCore):
             # Imports.
             from gateware.LimePPSDO.src.ppsdo import PPSDO
 
-            # Fake PPS. # FIXME.
-            self.pps_timer = pps_timer = WaitTimer(sys_clk_freq - 1)
-            self.comb += pps_timer.wait.eq(~pps_timer.done)
+            # PPSDO PPS Input.
+            class PPSDOPPSInput(LiteXModule):
+                def __init__(self, soc):
+                    self.pps = Signal()
+
+                    # # #
+
+                    # Set FPGA_GPIO[1] as Input.
+                    self.comb += soc.limetop.general_periph.gpio_dir[1].eq(0)
+
+                    # Use FPGA_GPIO[1] as PPS.
+                    self.comb += self.pps.eq(soc.limetop.general_periph.gpio_in_val[1])
+
+            self.ppsdo_pps_input = PPSDOPPSInput(soc=self)
 
             # PPSDO Instance.
             self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
             self.ppsdo.add_sources()
-            self.comb += ppsdo.pps.eq(pps_timer.done)
+            self.comb += self.ppsdo.pps.eq(self.ppsdo_pps_input.pps)
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
