@@ -107,7 +107,7 @@ project. Here's a quick overview of the main parts and when you might want to re
   Consult this if you're extending the project to support custom SDR platforms or new hardware
   variants. It walks through the process step-by-step, from repository setup to verification.
 
-**Best Practices** :doc:docs/best_practices
+**Best Practices** :doc:`docs/best_practices`
     Refer here for guidelines on naming conventions, portability, and CPU options in LiteX. Helpful
     for maintaining consistency and optimizing designs.
 
