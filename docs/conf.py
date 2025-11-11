@@ -38,7 +38,8 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx_tabs.tabs',
     'sphinx_rtd_theme',
-    'myst_parser'
+    'myst_parser',
+    'sphinxcontrib.drawio'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

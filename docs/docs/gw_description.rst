@@ -9,6 +9,7 @@ generic information applicable to all supported boards or jump to the specific b
 - :doc:`limesdr_xtrx`
 - :doc:`limesdr_mini_v1`
 - :doc:`limesdr_mini_v2`
+- :doc:`HiperSDR_44xx`
 
 .. _pcie_usb_interfacing:
 
