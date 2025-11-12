@@ -8,31 +8,31 @@
 """
 TX Path Top Module Structure:
 
-    AXI Stream Input (FIFO_DATA_W)
+    AXI Stream Input (FIFO_DATA_W, s_clk_domain)
     |
     v
-    Stream Converter (FIFO_DATA_W -> 128)
+    Stream Converter (FIFO_DATA_W -> 128, s_clk_domain)
     |
     v
-    Input Buffer (CDC s_clk -> m_clk)
+    Input Buffer (CDC s_clk -> rx_clk_domain)
     |
     v
-    PCT2DATA Buffer Writer
+    PCT2DATA Buffer Writer (rx_clk_domain)
     |
     v
-    Multiple Buffer FIFOs (BUFF_COUNT)
+    Multiple Buffer FIFOs (BUFF_COUNT, rx_clk_domain)
     |
     v
-    PCT2DATA Buffer Reader <---- Sample Number FIFO (CDC rx_clk -> m_clk)
+    PCT2DATA Buffer Reader (rx_clk_domain) <---- Sample Number FIFO (CDC rx_clk -> m_clk)
     |
     v
-    Sample Padder (12->16 bit)
+    Sample Padder (12->16 bit, rx_clk_domain)
     |
     v
-    Sample Unpacker
+    Sample Unpacker (rx_clk_domain)
     |
     v
-    AXI Stream Output (64)
+    AXI Stream Output (64) (m_clk_domain)
 
 """
 
@@ -64,7 +64,7 @@ class TXPathTop(LiteXModule):
         FIFO_DATA_W       = 128,
         rx_clk_domain     = "lms_rx",
         m_clk_domain      = "lms_tx",
-        s_clk_domain      = "lms_tx",
+        s_clk_domain      = "sys",
         input_buff_size   = 512
         ):
         #Input buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
@@ -89,6 +89,7 @@ class TXPathTop(LiteXModule):
         # Signals.
         s_reset_n        = Signal()
         m_reset_n        = Signal()
+        rx_reset_n       = Signal()
 
         # Synchro
         rx_sample_nr_sync= Signal(64)
@@ -126,14 +127,23 @@ class TXPathTop(LiteXModule):
         input_buff = ClockDomainCrossing(
             layout=[("data", 128)],
             cd_from  = s_clk_domain,
-            cd_to    = m_clk_domain,
+            cd_to    = rx_clk_domain,
             depth    = int(input_buff_size/128),
             buffered = False)
         self.input_buff = input_buff
 
         # FIFO before unpacker
-        fifo_smpl_buff      = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.SyncFIFO([("data", 128)], 16)))
+        fifo_smpl_buff      = ResetInserter()(ClockDomainsRenamer(rx_clk_domain)(stream.SyncFIFO([("data", 128)], 16)))
         self.fifo_smpl_buff = fifo_smpl_buff
+
+        # Source CDC (128 bit)
+        source_cdc = ClockDomainCrossing(
+            layout=[("data", 64)],
+            cd_from  = rx_clk_domain,
+            cd_to    = m_clk_domain,
+            depth    = 512,
+            buffered = False)
+        self.source_cdc = source_cdc
 
         unpack_bypass       = Signal()
 
@@ -162,23 +172,24 @@ class TXPathTop(LiteXModule):
 
         # Clocks ----------------------------------------------------------------------------------
         # Sample NR FIFO (must be async with sink in RX_CLK, source iqsample, areset_n with iqpacket_areset_n)
-        if platform.name in ["something"]:
-            smpl_nr_fifo      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.SyncFIFO([("data", 64)], 128)))
-            self.smpl_nr_fifo = smpl_nr_fifo
-            self.comb += smpl_nr_fifo.reset.eq(~s_reset_n),
-        else:
-            #TODO: check if reset is needed here
-            self.cd_smpl_nr_fifo  = ClockDomain()
-            smpl_nr_fifo          = stream.ClockDomainCrossing([("data", 64)],
-                cd_from = "smpl_nr_fifo",
-                cd_to   = m_clk_domain,
-                depth   = 8,
-            )
-            self.smpl_nr_fifo     = smpl_nr_fifo
-            self.comb += [
-                self.cd_smpl_nr_fifo.clk.eq(ClockSignal(rx_clk_domain)),
-                self.cd_smpl_nr_fifo.rst.eq( (~(s_reset_n & self.ext_reset_n))),
-            ]
+        #if platform.name in ["something"]:
+        #    smpl_nr_fifo      = ResetInserter()(ClockDomainsRenamer("lms_tx")(stream.SyncFIFO([("data", 64)], 128)))
+        #    self.smpl_nr_fifo = smpl_nr_fifo
+        #    self.comb += smpl_nr_fifo.reset.eq(~s_reset_n),
+        #else:
+        #    #TODO: check if reset is needed here
+        #    self.cd_smpl_nr_fifo  = ClockDomain()
+        #    smpl_nr_fifo          = stream.ClockDomainCrossing([("data", 64)],
+        #        cd_from = "smpl_nr_fifo",
+        #        cd_to   = m_clk_domain,
+        #        depth   = 8,
+        #    )
+        #    self.smpl_nr_fifo     = smpl_nr_fifo
+        #    self.comb += [
+        #        self.cd_smpl_nr_fifo.clk.eq(ClockSignal(rx_clk_domain)),
+        #        self.cd_smpl_nr_fifo.rst.eq( (~(s_reset_n & self.ext_reset_n))),
+        #    ]
+
 
         p2d_wr_sink_ready = Signal()
 
@@ -191,10 +202,10 @@ class TXPathTop(LiteXModule):
             self.sink.ready.eq(          conv_64_to_128.sink.ready),
 
             # smpl_nr_fifo
-            smpl_nr_fifo.sink.data.eq(   self.rx_sample_nr),
-            smpl_nr_fifo.sink.valid.eq(  smpl_nr_fifo.sink.ready),
-            rx_sample_nr_sync.eq(        smpl_nr_fifo.source.data),
-            smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid | ~m_reset_n),
+            #smpl_nr_fifo.sink.data.eq(   self.rx_sample_nr),
+            #smpl_nr_fifo.sink.valid.eq(  smpl_nr_fifo.sink.ready),
+            #rx_sample_nr_sync.eq(        smpl_nr_fifo.source.data),
+            #smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid | ~m_reset_n),
 
             # input_buff
             input_buff.sink.data.eq(     conv_64_to_128.source.data),
@@ -211,8 +222,8 @@ class TXPathTop(LiteXModule):
             p_G_BUFF_COUNT    = BUFF_COUNT,
 
             # Clk/Reset.
-            i_AXIS_ACLK       = ClockSignal(m_clk_domain),    # m_axis_domain
-            i_S_AXIS_ARESET_N = m_reset_n,                    # m_axis_domain.a_reset_n
+            i_AXIS_ACLK       = ClockSignal(rx_clk_domain),    # m_axis_domain
+            i_S_AXIS_ARESET_N = rx_reset_n,                    # m_axis_domain.a_reset_n
 
             # AXI Stream Slave
             i_S_AXIS_TVALID   = input_buff.source.valid,
@@ -221,7 +232,7 @@ class TXPathTop(LiteXModule):
             i_S_AXIS_TLAST    = input_buff.source.last,
 
             # AXI Stream Master
-            i_M_AXIS_ARESET_N = m_reset_n,                    # m_axis_domain.a_reset_n
+            i_M_AXIS_ARESET_N = rx_reset_n,                    # m_axis_domain.a_reset_n
             o_M_AXIS_TVALID   = p2d_wr_tvalid,
             o_M_AXIS_TDATA    = p2d_wr_tdata,
             i_M_AXIS_TREADY   = p2d_wr_tready,
@@ -283,16 +294,16 @@ class TXPathTop(LiteXModule):
             #p_G_FIFO_DEPTH          = fifo_depth,
             #p_G_DATA_WIDTH          = data_width        ,
             # s_axis
-            i_s_axis_aresetn        = (m_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
-            i_s_axis_aclk           = ClockSignal(m_clk_domain),
+            i_s_axis_aresetn        = (rx_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
+            i_s_axis_aclk           = ClockSignal(rx_clk_domain),
             i_s_axis_tvalid         = p2d_wr_tvalid[i],
             o_s_axis_tready         = p2d_wr_tready[i],
             i_s_axis_tdata          = p2d_wr_tdata,
             i_s_axis_tkeep          = Replicate(1,tkeep_width),
             i_s_axis_tlast          = p2d_wr_tlast[i],
             # m_axis
-            i_m_axis_aresetn  = (m_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
-            i_m_axis_aclk     = ClockSignal(m_clk_domain),
+            i_m_axis_aresetn  = (rx_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
+            i_m_axis_aclk     = ClockSignal(rx_clk_domain),
             o_m_axis_tvalid   = p2d_rd_tvalid[i],
             i_m_axis_tready   = p2d_rd_tready[i],
             o_m_axis_tdata    = sample_data_out,
@@ -317,10 +328,10 @@ class TXPathTop(LiteXModule):
             p_G_BUFF_COUNT       = BUFF_COUNT,
 
             # Clk/Reset.
-            i_AXIS_ACLK          = ClockSignal(m_clk_domain), #m_axis_domain
+            i_AXIS_ACLK          = ClockSignal(rx_clk_domain), #m_axis_domain
 
             # AXI Stream Slave.
-            i_S_AXIS_ARESET_N    = m_reset_n,                 # m_axis_domain.a_reset_n (iqsample)
+            i_S_AXIS_ARESET_N    = rx_reset_n,                 # m_axis_domain.a_reset_n (iqsample)
             o_S_AXIS_BUF_RESET_N = p2d_rd_resetn,
             i_S_AXIS_TVALID      = p2d_rd_tvalid,
             i_S_AXIS_TDATA       = p2d_rd_tdata,
@@ -328,7 +339,7 @@ class TXPathTop(LiteXModule):
             i_S_AXIS_TLAST       = p2d_rd_tlast,
 
             # AXI Stream Master.
-            i_M_AXIS_ARESET_N    = m_reset_n,               # m_axis_domain.a_reset_n (iqsample)
+            i_M_AXIS_ARESET_N    = rx_reset_n,               # m_axis_domain.a_reset_n (iqsample)
             o_M_AXIS_TVALID      = data_pad_tvalid,
             o_M_AXIS_TDATA       = data_pad_tdata,
             i_M_AXIS_TREADY      = data_pad_tready,
@@ -338,7 +349,7 @@ class TXPathTop(LiteXModule):
 
             i_RESET_N            = self.ext_reset_n,          # Unconnected for XTRX
             i_SYNCH_DIS          = synch_dis,                 # Disable timestamp sync
-            i_SAMPLE_NR          = rx_sample_nr_sync,
+            i_SAMPLE_NR          = self.rx_sample_nr,
             o_PCT_LOSS_FLG       = self.pct_loss_flg,         # Goes high when a packet is dropped due to outdated timestamp, stays high until PCT_LOSS_FLG_CLR is set
             i_PCT_LOSS_FLG_CLR   = pct_loss_flg_clr,          # Clears PCT_LOSS_FLG
             o_conn_buf_o         = self.conn_buf,
@@ -347,7 +358,7 @@ class TXPathTop(LiteXModule):
         # Pad 12 bit samples to 16 bit samples, bypass logic if no padding is needed
         self.sample_padder = Instance("sample_padder",
             # Clk/Reset.
-            i_CLK           = ClockSignal(m_clk_domain), # m_axis_domain
+            i_CLK           = ClockSignal(rx_clk_domain), # m_axis_domain
             i_RESET_N       = self.ext_reset_n,          # Unconnected for XTRX
 
             # AXI Stream Slave.
@@ -369,8 +380,8 @@ class TXPathTop(LiteXModule):
         self.sample_unpack = Instance("SAMPLE_UNPACK",
             # Clk/Reset.
             i_RESET_N       = self.ext_reset_n,          # Unconnected for XTRX
-            i_AXIS_ACLK     = ClockSignal(m_clk_domain), # m_axis_domain
-            i_AXIS_ARESET_N = m_reset_n,                 # m_axis_domain.a_reset_n
+            i_AXIS_ACLK     = ClockSignal(rx_clk_domain), # m_axis_domain
+            i_AXIS_ARESET_N = rx_reset_n,                 # m_axis_domain.a_reset_n
 
             # AXI Stream Master
             i_S_AXIS_TDATA  = fifo_smpl_buff.source.data,
@@ -379,13 +390,17 @@ class TXPathTop(LiteXModule):
             i_S_AXIS_TLAST  = fifo_smpl_buff.source.last,
 
             # AXI Stream Master
-            o_M_AXIS_TDATA  = self.source.data,
-            i_M_AXIS_TREADY = self.source.ready,
-            o_M_AXIS_TVALID = self.source.valid,
+            o_M_AXIS_TDATA  = self.source_cdc.sink.data,
+            i_M_AXIS_TREADY = self.source_cdc.sink.ready,
+            o_M_AXIS_TVALID = self.source_cdc.sink.valid,
 
             # Mode Settings.
             i_CH_EN         = ch_en,
         )
+
+        self.comb += [
+            self.source_cdc.source.connect(self.source)
+        ]
 
         if platform.name.startswith("limesdr_mini"):
             self.specials += [
@@ -396,13 +411,14 @@ class TXPathTop(LiteXModule):
             self.specials += [
                 MultiReg(fpgacfg_manager.rx_en, s_reset_n, odomain=s_clk_domain),
                 MultiReg(fpgacfg_manager.rx_en, m_reset_n, odomain=m_clk_domain),
+                MultiReg(fpgacfg_manager.rx_en, rx_reset_n, odomain=rx_clk_domain),
             ]
 
         self.specials += [
-            MultiReg(fpgacfg_manager.ch_en,      ch_en,            odomain=m_clk_domain),
-            MultiReg(fpgacfg_manager.smpl_width, smpl_width,       odomain=m_clk_domain),
-            MultiReg(fpgacfg_manager.synch_dis,  synch_dis,        odomain=m_clk_domain),
-            MultiReg(self.pct_loss_flg_clr,      pct_loss_flg_clr, odomain=m_clk_domain),
+            MultiReg(fpgacfg_manager.ch_en,      ch_en,            odomain=rx_clk_domain),
+            MultiReg(fpgacfg_manager.smpl_width, smpl_width,       odomain=rx_clk_domain),
+            MultiReg(fpgacfg_manager.synch_dis,  synch_dis,        odomain=rx_clk_domain),
+            MultiReg(self.pct_loss_flg_clr,      pct_loss_flg_clr, odomain=rx_clk_domain),
         ]
 
         self.comb += [
