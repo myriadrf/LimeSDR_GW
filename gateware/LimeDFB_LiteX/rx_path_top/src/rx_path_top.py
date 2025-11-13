@@ -29,14 +29,20 @@ class RXPathTop(LiteXModule):
         m_clk_domain                 = "lms_rx",
         s_clk_domain                 = "lms_rx",
         soc_has_timesource           = False,
+        sink_width                   = 64,
+        source_width                 = 64,
+        use_channel_combiner         = True,
+        bypass_packets               = False,
         ):
 
         assert fpgacfg_manager is not None
+        assert sink_width in [64, 128], f"Invalid sink_width: {sink_width}. Must be 64 (two channels) or 128 (four channels)."
+
 
         self.platform              = platform
 
-        self.sink                  = AXIStreamInterface(64, clock_domain=s_clk_domain)
-        self.source                = AXIStreamInterface(64, clock_domain=m_clk_domain)
+        self.sink                  = AXIStreamInterface(sink_width, clock_domain=s_clk_domain)
+        self.source                = AXIStreamInterface(source_width, clock_domain=m_clk_domain)
 
         self.rx_pct_fifo_aclrn_req = Signal()
 
@@ -65,10 +71,14 @@ class RXPathTop(LiteXModule):
 
         # sync.
         s_clk_rst_n              = Signal()
+        self.s_clk_rst_n         = s_clk_rst_n
+        s_clk_rst                = Signal()
         m_clk_rst_n              = Signal()
         int_clk_rst_n            = Signal()
+        int_clk_rst              = Signal()
         self.int_clk_smpl_nr_clr = Signal()
-        self.int_clk_ch_en       = Signal(2)
+        self.int_clk_ch_en       = Signal(4)
+        self.s_clk_ch_en         = Signal(4)
         self.int_clk_mimo_en     = Signal()
         mimo_en                  = Signal()
         ddr_en                   = Signal()
@@ -91,17 +101,50 @@ class RXPathTop(LiteXModule):
         iqpacket_wr_data_count  = Signal(10)
         bp_sample_nr_counter    = Signal(64)
         pkt_size                = Signal(16)
-
-        self.iqsmpls_fifo_sink_ready   = Signal()
-        self.iqsmpls_fifo_sink_valid   = Signal()
-        self.iqsmpls_fifo_source_valid = Signal()
-        self.iqsmpls_fifo_source_ready = Signal()
+        self.pkt_size_debug = pkt_size
 
 
-        self.fifo_conv    = fifo_conv = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.Converter(128, 64)))
-        iqsmpls_fifo      = stream.AsyncFIFO([("data", 128)], 8)
-        iqsmpls_fifo      = ClockDomainsRenamer({"write": s_clk_domain, "read": int_clk_domain})(iqsmpls_fifo)
-        self.iqsmpls_fifo = iqsmpls_fifo
+        #debug
+        self.debug_write_pointer    = Signal(5)
+        self.debug_read_pointer     = Signal(5)
+        self.debug_wrusedw          = Signal(5)
+        self.debug_pipeline_en      = Signal(3)
+        self.iqpacket_wr_data_count = iqpacket_wr_data_count
+
+        self.comb += s_clk_rst.eq(~s_clk_rst_n)
+        self.comb += int_clk_rst.eq(~int_clk_rst_n)
+
+        self.num_of_channels = Signal(32)
+        self.sample_counter_1_inc_val = Signal(32)
+
+        self.bp_sample_nr_counter = bp_sample_nr_counter
+
+        self.s_smpl_width = s_smpl_width
+
+        self.s_clk_rst = s_clk_rst
+
+
+        # Sample Counter, used for TX synchronization logic
+        self.sample_counter_0 = Instance("counter64",
+                                           # Clk/Reset.
+                                           i_clk        = ClockSignal(s_clk_domain),  # S_AXIS_IQSMPLS_ACLK
+                                           i_rst        = s_clk_rst,  # S_AXIS_IQSMPLS_ARESETN
+                                           # AXI Stream Slave
+                                           i_inc_en     = self.sink.valid & self.sink.ready,
+                                           i_inc_val    = Constant(1, 32),
+                                           i_ld         = Constant(0, 1),
+                                           i_ld_val     = Constant(0, 64),
+                                           o_count_o    = self.smpl_nr_cnt,
+                                           )
+
+        self.sample_counter_0_conv = add_vhd2v_converter(self.platform,
+                                                           instance=self.sample_counter_0,
+                                                           files=[
+                                                               "gateware/LimeDFB/rx_path_top/src/counter64.vhd"],
+                                                           )
+        ## Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.sample_counter_0)
+
 
         if soc_has_timesource:
             # Timestamp related
@@ -153,8 +196,6 @@ class RXPathTop(LiteXModule):
                 ]),
             ]
 
-        self.comb += fifo_conv.reset.eq(~m_clk_rst_n)
-
         if platform.name.startswith("limesdr_mini"):
             tx_pct_loss_sync = Signal()
             self.specials += MultiReg(self.tx_pct_loss_flg, tx_pct_loss_sync, odomain=s_clk_domain)
@@ -170,195 +211,159 @@ class RXPathTop(LiteXModule):
                 pkt_size.eq(Cat(Constant(0, 3), self.pkt_size.storage)[7:]),
             ]
 
-        # AXI Stream packager (removes null bytes from axi stream)
-        # Combine IQ samples into full 64bit bus, relies on S_AXIS_TKEEP signal
-        # In mimo Mode: AI AQ BI BQ
-        # In siso Mode: AI AQ AI AQ
-        self.iq_stream_combiner = Instance("IQ_STREAM_COMBINER",
-            # Clk/Reset.
-            i_CLK               = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK
-            i_RESET_N           = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN
-            # AXI Stream Slave
-            i_S_AXIS_TVALID     = self.sink.valid,
-            o_S_AXIS_TREADY     = self.sink.ready,
-            i_S_AXIS_TDATA      = self.sink.data,
-            i_S_AXIS_TKEEP      = self.sink.keep,
-            # AXI Stream Master
-            o_M_AXIS_TVALID     = self.iq_to_bit_pack_tvalid,
-            i_M_AXIS_TREADY     = 1, # Always accept incoming data (No back pressure possible on PHY).
-            o_M_AXIS_TDATA      = iq_to_bit_pack_tdata,
-            o_M_AXIS_TKEEP      = iq_to_bit_pack_tkeep,  # Unused full 1
-        )
-
-        # Bit packer
-        self.bit_pack = Instance("bit_pack",
-            # Parameters.
-            p_G_PORT_WIDTH  = 64,
-            #p_G_DISABLE_14BIT = "true",
-            # Clk/Reset.
-            i_clk            = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK,
-            i_reset_n        = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN,
-            # AXI Stream Slave interface.
-            i_data_in        = iq_to_bit_pack_tdata,
-            i_data_in_valid  = self.iq_to_bit_pack_tvalid,
-            i_sample_width   = s_smpl_width,              # "10"-12bit, "01"-14bit, "00"-16bit;
-            # AXI Stream Master interface.
-            o_data_out       = bit_pack_to_nto1_tdata,
-            o_data_out_valid = self.bit_pack_to_nto1_tvalid,
-            o_data_out_tlast = self.bit_pack_to_nto1_tlast, # always 1 when smpl_width == 0b00
-        )
-
-        self.axis_nto1_converter = Instance("AXIS_NTO1_CONVERTER",
-            # Parameters.
-            p_G_N_RATIO    = 2,
-            p_G_DATA_WIDTH = 64,
-
-            # Clk/Reset.
-            i_ACLK           = ClockSignal(s_clk_domain), # S_AXIS_IQSMPLS_ACLK,
-            i_ARESET_N       = s_clk_rst_n,               # S_AXIS_IQSMPLS_ARESETN,
-            # AXIS Slave
-            i_S_AXIS_TVALID = self.bit_pack_to_nto1_tvalid,
-            o_S_AXIS_TREADY = Open(),
-            i_S_AXIS_TDATA  = bit_pack_to_nto1_tdata,
-            i_S_AXIS_TLAST  = self.bit_pack_to_nto1_tlast,
-            # AXIS Master
-            o_M_AXIS_TVALID = self.iqsmpls_fifo_sink_valid,
-            o_M_AXIS_TDATA  = iqsmpls_fifo.sink.data,
-            o_M_AXIS_TLAST  = iqsmpls_fifo.sink.last,
-        )
-
-        self.rx_path_top = Instance("RX_PATH_TOP",
-            # Parameters.
-            p_G_S_AXIS_IQSMPLS_BUFFER_WORDS  = S_AXIS_IQSMPLS_BUFFER_WORDS,
-            p_G_M_AXIS_IQPACKET_BUFFER_WORDS = M_AXIS_IQPACKET_BUFFER_WORDS,
-
-            # Clk/Reset.
-            i_CLK                     = ClockSignal(int_clk_domain),
-            i_RESET_N                 = int_clk_rst_n,
-
-            # AXI Stream Slave bus for IQ samples
-            i_S_AXIS_IQSMPLS_ACLK     = ClockSignal(s_clk_domain),
-            i_S_AXIS_IQSMPLS_ARESETN  = s_clk_rst_n,
-            i_S_AXIS_IQSMPLS_TVALID   = self.iqsmpls_fifo_source_valid,
-            i_S_AXIS_IQSMPLS_TREADY   = self.iqsmpls_fifo_source_ready,
-            i_S_AXIS_IQSMPLS_TLAST    = iqsmpls_fifo.source.last,
-
-            # Mode settings.
-            i_CFG_SMPL_WIDTH          = s_smpl_width,                # "10"-12bit, "01"-14bit, "00"-16bit;
-            i_CFG_CH_EN               = self.int_clk_ch_en,          # "01" - Ch. A, "10" - Ch. B, "11" - Ch. A and Ch. B.
-
-            # sample nr
-            i_SMPL_NR_INCR            = self.sink.valid,
-            i_SMPL_NR_CLR             = self.int_clk_smpl_nr_clr,
-            i_SMPL_NR_LD              = Constant(0, 1),
-            i_SMPL_NR_IN              = Constant(0, 64),
-            o_SMPL_NR_OUT             = self.smpl_nr_cnt,
-            o_bp_sample_nr_counter    = bp_sample_nr_counter,
-        )
-
-        self.drop_samples = Signal()
-        self.wr_header    = Signal()
-
-        if soc_has_timesource:
-            self.comb += [
-                If(self.timestamp_settings.fields.TS_SEL == 1,[
-                    self.pct_hdr_1.eq(timestamp_mixed),
-                    self.smpl_nr_cnt_out.eq(timestamp_mixed),
-                ]).Else([
-                    # Default to classic timestamp
-                    self.pct_hdr_1.eq(bp_sample_nr_counter),
-                    self.smpl_nr_cnt_out.eq(self.smpl_nr_cnt),
-                ])
-            ]
-        else:
-            self.comb += [
-                self.pct_hdr_1.eq(bp_sample_nr_counter),
-                self.smpl_nr_cnt_out.eq(self.smpl_nr_cnt),
-            ]
 
 
+        #-----------------------------------------------------------------------------------------------------------
+        # Stage I - Channel combiner and bit_width selector
+        # ----------------------------------------------------------------------------------------------------------
+        chnl_combiner = ChannelCombiner(platform, s_clk_rst_n, self.s_clk_ch_en)
+        chnl_combiner = stream.BufferizeEndpoints({"sink": stream.DIR_SINK}, True, True)(chnl_combiner)
+        chnl_combiner = stream.BufferizeEndpoints({"source": stream.DIR_SOURCE}, True, True)(chnl_combiner)
+        chnl_combiner = ClockDomainsRenamer(s_clk_domain)(chnl_combiner)
+        self.chnl_combiner = chnl_combiner
 
-        self.data2packets_fsm = Instance("DATA2PACKETS_FSM",
-            # Clk/Reset.
-            i_ACLK               = ClockSignal(int_clk_domain),
-            i_ARESET_N           = int_clk_rst_n,
-            i_PCT_SIZE           = pkt_size,
-            # PCT_HDR_0          = x"7766554433221100",
-            i_PCT_HDR_0          = pct_hdr_0,
-            i_PCT_HDR_1          = self.pct_hdr_1,
-            # AXIS Slave.
-            i_S_AXIS_TVALID      = self.iqsmpls_fifo_source_valid,
-            o_S_AXIS_TREADY      = self.iqsmpls_fifo_source_ready,
-            i_S_AXIS_TDATA       = iqsmpls_fifo.source.data,
-            i_S_AXIS_TLAST       = iqsmpls_fifo.source.last,
-            # AXIS Master.
-            o_M_AXIS_TVALID      = iqpacket_axis.valid,
-            i_M_AXIS_TREADY      = iqpacket_axis.ready,
-            o_M_AXIS_TDATA       = iqpacket_axis.data,
-            o_M_AXIS_TLAST       = iqpacket_axis.last,
-            o_WR_DATA_COUNT_AXIS = iqpacket_wr_data_count,
-
-            o_DBG_DROP_SAMPLES       = self.drop_samples,
-            o_DBG_WR_HEADER          = self.wr_header,
-        )
+        self.bit_width_selector = ClockDomainsRenamer(s_clk_domain)(BitwidthSelector(platform))
 
         self.comb += [
-            If(int_clk_rst_n,
-               self.iqsmpls_fifo_sink_ready.eq(iqsmpls_fifo.sink.ready),
-               iqsmpls_fifo.sink.valid.eq(self.iqsmpls_fifo_sink_valid),
-               self.iqsmpls_fifo_source_valid.eq(iqsmpls_fifo.source.valid),
-               iqsmpls_fifo.source.ready.eq(self.iqsmpls_fifo_source_ready),
-            ).Else(
-               self.iqsmpls_fifo_sink_ready.eq(0),
-               iqsmpls_fifo.sink.valid.eq(0),
-               self.iqsmpls_fifo_source_valid.eq(0),
-               iqsmpls_fifo.source.ready.eq(1),
-            )
+            self.bit_width_selector.sel.eq(Mux(s_smpl_width == 2, 1, 0)),
+            self.bit_width_selector.rst.eq(~s_clk_rst_n),
         ]
 
-        if M_AXIS_IQPACKET_BUFFER_WORDS > 0:
-            # FIFO before Converter
-            fifo_iqpacket = ResetInserter()(ClockDomainsRenamer(int_clk_domain)(stream.SyncFIFO([("data", 128)],
-                depth    = M_AXIS_IQPACKET_BUFFER_WORDS,
-                buffered = True)))
-            self.fifo_iqpacket = fifo_iqpacket
+        #-----------------------------------------------------------------------------------------------------------
+        # Stage II - Sample counter end packetizer (Data2PacketsFSM)
+        # ----------------------------------------------------------------------------------------------------------
+        if not bypass_packets:
+            # ----------------------------------------------------------------------------------------------------------
+            # Second counter instance
+            base_inc_val = Signal(32)
 
-            self.iqpacket_cdc = iqpacket_cdc = stream.ClockDomainCrossing([("data", 128)],
-                cd_from = int_clk_domain,
-                cd_to   = m_clk_domain,
-            )
+            self.sync.sync += self.num_of_channels.eq(
+                sum(self.s_clk_ch_en[i] for i in range(len(self.s_clk_ch_en))))
 
-            self.int_clk_rst_n = int_clk_rst_n
+            cases = {
+                0: base_inc_val.eq(Constant(0, 32)),
+                1: base_inc_val.eq(Constant(4, 32)),
+                2: base_inc_val.eq(Constant(2, 32)),
+                4: base_inc_val.eq(Constant(1, 32)),
+                "default": base_inc_val.eq(Constant(0, 32)),
+            }
 
-            self.comb += [
-                fifo_iqpacket.reset.eq(~int_clk_rst_n), # axis_iqmpls_areset_n
-                iqpacket_wr_data_count.eq(fifo_iqpacket.level),
-            ]
-            self.iqpacket_pipeline = stream.Pipeline(
-                iqpacket_axis,
-                fifo_iqpacket.sink,
-            )
-            self.comb += [
-                fifo_iqpacket.source.connect(iqpacket_cdc.sink),
-                iqpacket_cdc.source.connect(fifo_conv.sink),
-                If(~int_clk_rst_n,
-                    iqpacket_cdc.sink.valid.eq(0),
-                    fifo_iqpacket.source.ready.eq(0),
-                    fifo_conv.sink.valid.eq(0),
-                    iqpacket_cdc.source.ready.eq(1)
+            self.comb += Case(self.num_of_channels, cases)
+
+            self.sync.sync += [
+                If (s_smpl_width == 2,
+                    self.sample_counter_1_inc_val.eq(base_inc_val*4),
+                ).Else(
+                    self.sample_counter_1_inc_val.eq(base_inc_val),
                 )
+
             ]
-            self.iqpacket_pipeline2 = stream.Pipeline(
-                fifo_conv.source,
-                self.source,
+
+            self.sample_counter_1 = Instance("counter64",
+                                             i_clk=ClockSignal(s_clk_domain),
+                                             i_rst=s_clk_rst,
+                                             i_inc_en=self.bit_width_selector.source.valid & self.bit_width_selector.source.ready & self.bit_width_selector.source.last,
+                                             i_inc_val=self.sample_counter_1_inc_val,  # example: increment by 2
+                                             i_ld=Constant(0, 1),
+                                             i_ld_val=Constant(0, 64),
+                                             o_count_o=bp_sample_nr_counter
+                                             )
+
+            self.sample_counter_1_conv = add_vhd2v_converter(self.platform,
+                                                             instance=self.sample_counter_1,
+                                                             files=[
+                                                                 "gateware/LimeDFB/rx_path_top/src/counter64.vhd"],
+                                                             )
+            ## Removed Instance to avoid multiple definition
+            self._fragment.specials.remove(self.sample_counter_1)
+
+            # ----------------------------------------------------------------------------------------------------------
+            # Packetizer
+            data2packets_fsm = Data2PacketsFSM(
+                platform    = platform,
+                rst_n       = s_clk_rst_n,      # Pass in the reset
+                pkt_size    = pkt_size,         # Pass in the size signal
+                pct_hdr_0   = pct_hdr_0,        # Pass in header 0
+                pct_hdr_1   = self.pct_hdr_1    # Pass in header 1
             )
+
+            # --- 3. Wrap it in the correct Clock Domain ---
+            data2packets_fsm = ClockDomainsRenamer(s_clk_domain)(data2packets_fsm)
+            self.data2packets_fsm = data2packets_fsm
+
+
+        #-----------------------------------------------------------------------------------------------------------
+        # Stage III - Converting source width and CDC (source_ep_conv->source_ep_cdc)
+        # ----------------------------------------------------------------------------------------------------------
+        # 128b to 256b converter
+        self.source_ep_conv = ep_conv = ResetInserter()(
+            ClockDomainsRenamer(s_clk_domain)(stream.Converter(128, source_width)))
+
+        # Clock domain crossing FIFO
+        source_ep_cdc      = stream.AsyncFIFO([("data", source_width), ("keep", source_width//8)], 128)
+        source_ep_cdc      = ClockDomainsRenamer({"write": s_clk_domain, "read": m_clk_domain})(source_ep_cdc)
+        self.source_ep_cdc = source_ep_cdc
+
+
+
+        #-----------------------------------------------------------------------------------------------------------
+        # Final pipeline sink -> chnl_combiner -> bit_width_selector -> (data2packets_fsm) -> source_ep_conv -> source_ep_cdc
+        # ----------------------------------------------------------------------------------------------------------
+
+        # sink -> chnl_combiner -> bit_width_selector.sink
+
+        # Connect sink -> chnl_combiner.sink
+        self.comb += [
+            self.sink.connect(self.chnl_combiner.sink, keep=["valid", "ready"], omit=["data", "keep"]),
+        ]
+
+        # If sink is 64b (2 channels) assign upper bits to 0
+        if len(self.sink.data) == 128:
+            self.comb += self.chnl_combiner.sink.data.eq(self.sink.data)
         else:
-            self.comb += iqpacket_wr_data_count.eq(0) # FIXME: correct value ?
-            self.iqpacket_pipeline = stream.Pipeline(
-                iqpacket_axis,
-                fifo_conv,
-                self.source,
-            )
+            self.comb += self.chnl_combiner.sink.data.eq(Cat(self.sink.data, Constant(0, 64)))
+
+
+        self.comb += [
+            self.chnl_combiner.source.connect(self.bit_width_selector.sink, keep=["data", "keep", "valid", "ready"]),
+        ]
+
+        # bit_width_selector.source -> (data2packets_fsm) ->  source_ep_conv.sink
+        if not bypass_packets:
+            self.comb += [
+                self.bit_width_selector.source.connect(self.data2packets_fsm.sink),
+                self.data2packets_fsm.source.connect(self.source_ep_conv.sink, omit=["keep", "last"]),
+            ]
+        else:
+            self.comb += [
+                self.bit_width_selector.source.connect(self.source_ep_conv.sink, omit=["keep", "last"]),
+            ]
+
+        # source_ep_conv.soruce-> source_ep_cdc -> source
+        self.comb += [
+            self.source_ep_conv.reset.eq(~s_clk_rst_n),
+            self.source_ep_conv.source.connect(self.source_ep_cdc.sink, omit=["keep", "last"]),
+            self.source_ep_cdc.source.connect(self.source),
+        ]
+
+        if not bypass_packets:
+            if soc_has_timesource:
+                self.comb += [
+                    If(self.timestamp_settings.fields.TS_SEL == 1,[
+                        self.pct_hdr_1.eq(timestamp_mixed),
+                        self.smpl_nr_cnt_out.eq(timestamp_mixed),
+                    ]).Else([
+                        # Default to classic timestamp
+                        self.pct_hdr_1.eq(bp_sample_nr_counter),
+                        self.smpl_nr_cnt_out.eq(self.smpl_nr_cnt),
+                    ])
+                ]
+            else:
+                self.comb += [
+                    self.pct_hdr_1.eq(bp_sample_nr_counter),
+                    self.smpl_nr_cnt_out.eq(self.smpl_nr_cnt),
+                ]
+
 
         # CDC. -------------------------------------------------------------------------------------
 
@@ -399,49 +404,300 @@ class RXPathTop(LiteXModule):
                 MultiReg(fpgacfg_manager.mimo_int_en, self.int_clk_mimo_en,     int_clk_domain, reset=0),
                 MultiReg(fpgacfg_manager.smpl_nr_clr, self.int_clk_smpl_nr_clr, int_clk_domain, reset=0),
             ]
+
+        self.specials += [
+            MultiReg(fpgacfg_manager.ch_en, self.s_clk_ch_en, s_clk_domain, reset=0),
+        ]
+
         if m_clk_domain == "sys":
             self.comb += m_clk_rst_n.eq(reset_n)
         else:
             self.specials += MultiReg(reset_n, m_clk_rst_n, m_clk_domain, reset=1)
 
 
-        self.iq_stream_combiner_conv = add_vhd2v_converter(self.platform,
-            instance = self.iq_stream_combiner,
-            files    = ["gateware/LimeDFB_LiteX/rx_path_top/src/iq_stream_combiner.vhd"],
-        )
-        # Removed Instance to avoid multiple definition
-        self._fragment.specials.remove(self.iq_stream_combiner)
+# ---------------------------------------------------------------------------------
+#  Helper Class: FourChannelCombiner
+# ---------------------------------------------------------------------------------
+class FourChannelCombiner(LiteXModule):
+    """
+    A LiteXModule wrapper for the VHDL AXIS_CHNL_COMBINER.
+    """
+    def __init__(self, platform, s_clk_domain, s_clk_rst_n, s_clk_ch_en, s_smpl_width):
+        self.sink    = stream.Endpoint([("data", 128), ("keep", 16)])
+        self.source  = stream.Endpoint([("data", 128), ("keep", 16)])
 
-        bit_pack_files = [
-            "gateware/LimeDFB/rx_path_top/src/bit_pack.vhd",
-            "gateware/LimeDFB/rx_path_top/src/pack_48_to_64.vhd",
-            "gateware/LimeDFB/rx_path_top/src/pack_56_to_64.vhd",
+        self.axis_chnl_combiner = ChannelCombiner(platform, s_clk_domain, s_clk_rst_n, s_clk_ch_en)
+
+        self.bit_width_selector = ClockDomainsRenamer(s_clk_domain)(BitwidthSelector(platform))
+
+        self.comb += [
+            self.sink.connect(self.axis_chnl_combiner.sink, keep=["data", "keep", "valid", "ready"]),
+            self.axis_chnl_combiner.source.connect(self.bit_width_selector.sink,
+                                                   keep=["data", "keep", "valid", "ready"]),
+            self.bit_width_selector.sel.eq(Mux(s_smpl_width == 2, 1, 0)),
+            self.bit_width_selector.source.connect(self.source)
         ]
 
-        self.bit_pack_conv = add_vhd2v_converter(self.platform,
-            instance = self.bit_pack,
-            files    = bit_pack_files,
-        )
-        # Removed Instance to avoid multiple definition
-        self._fragment.specials.remove(self.bit_pack)
 
-        self.axis_nto1_converter_conv = add_vhd2v_converter(self.platform,
-            instance = self.axis_nto1_converter,
-            files    = ["gateware/LimeDFB/rx_path_top/src/axis_nto1_converter.vhd"],
-        )
-        # Removed Instance to avoid multiple definition
-        self._fragment.specials.remove(self.axis_nto1_converter)
+# ---------------------------------------------------------------------------------
+#  Helper Class: ChannelCombiner
+# ---------------------------------------------------------------------------------
+class ChannelCombiner(LiteXModule):
+    """
+    A LiteXModule wrapper for the VHDL AXIS_CHNL_COMBINER.
+    """
+    def __init__(self, platform, s_clk_rst_n, s_clk_ch_en):
 
-        self.rx_path_top_conv = add_vhd2v_converter(self.platform,
-            instance = self.rx_path_top,
-            files    = ["gateware/LimeDFB_LiteX/rx_path_top/src/rx_path_top.vhd"],
-        )
-        # Removed Instance to avoid multiple definition
-        self._fragment.specials.remove(self.rx_path_top)
+        self.sink    = stream.Endpoint([("data", 128), ("keep", 16)])
+        self.source  = stream.Endpoint([("data", 128), ("keep", 16)])
 
-        self.data2packets_fsm_conv = add_vhd2v_converter(self.platform,
-            instance = self.data2packets_fsm,
-            files    = ["gateware/LimeDFB_LiteX/rx_path_top/src/data2packets_fsm.vhd"],
-        )
-        # Removed Instance to avoid multiple definition
-        self._fragment.specials.remove(self.data2packets_fsm)
+
+        self.platform = platform
+
+        #debug
+        self.debug_write_pointer    = Signal(5)
+        self.debug_read_pointer     = Signal(5)
+        self.debug_wrusedw          = Signal(5)
+        self.debug_pipeline_en      = Signal(3)
+
+        self.s_clk_rst_n            = s_clk_rst_n
+        self.s_clk_ch_en            = s_clk_ch_en
+
+        self.axis_chnl_combiner = Instance("AXIS_CHNL_COMBINER",
+                                           # Clk/Reset.
+                                           i_ACLK           = ClockSignal(),     # S_AXIS_IQSMPLS_ACLK
+                                           i_ARESETN        = self.s_clk_rst_n,  # S_AXIS_IQSMPLS_ARESETN
+                                           # AXI Stream Slave
+                                           i_S_AXIS_TVALID  = self.sink.valid,
+                                           o_S_AXIS_TREADY  = self.sink.ready,
+                                           i_S_AXIS_TDATA   = self.sink.data,
+                                           i_S_AXIS_TKEEP   = self.sink.keep,
+                                           i_S_AXIS_TUSER   = self.s_clk_ch_en,
+                                           i_S_AXIS_TLAST   = self.sink.last,
+                                           # AXI Stream Master
+                                           o_M_AXIS_TVALID  = self.source.valid,
+                                           i_M_AXIS_TREADY  = self.source.ready,
+                                           o_M_AXIS_TDATA   = self.source.data,
+                                           o_M_AXIS_TKEEP   = self.source.keep,
+                                           o_M_AXIS_TLAST   = self.source.last,
+                                           o_debug_write_pointer    = self.debug_write_pointer,
+                                           o_debug_read_pointer     = self.debug_read_pointer,
+                                           o_debug_wrusedw          = self.debug_wrusedw,
+                                           o_debug_pipeline_en      = self.debug_pipeline_en,
+                                           )
+
+        self.axis_chnl_combiner_conv = add_vhd2v_converter(self.platform,
+                                                           instance=self.axis_chnl_combiner,
+                                                           files=[
+                                                               "gateware/LimeDFB/rx_path_top/src/axis_chnl_combiner.vhd"],
+                                                           )
+        ## Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.axis_chnl_combiner)
+
+# ---------------------------------------------------------------------------------
+#  Helper Class: BitwidthSelector
+# ---------------------------------------------------------------------------------
+class BitwidthSelector(LiteXModule):
+    """
+    Selects between 16-bit (passthrough) and 12-bit (gearboxed) datapaths.
+
+    All internal logic runs in the clock domain this module is
+    instantiated in.
+        Path Details:
+                               [ sink ]
+                                  | [128b]
+                                  v
+                          [    ep_demux    ]------- sel
+                           0              1
+                           |              | [128b]
+                           |              |
+                           |              | [96b] - Slicing (8x12b) & Cat()
+                           |              v
+                           |       [   ep_gearbox   ]
+                           |              | [128b]
+                           v              v
+                           0              1
+                         [      source      ]-------- sel
+                                   |
+                                   v [128b]
+    """
+    def __init__(self, platform):
+
+        self.sink    = stream.Endpoint([("data", 128), ("keep", 16)])
+        self.source  = stream.Endpoint([("data", 128), ("keep", 16)])
+
+        # Source fifo for storing samples and handling backpressure
+        source_fifo = ResetInserter()((stream.SyncFIFO([("data", 128), ("keep", 16)], depth=256, buffered=True)))
+        self.source_fifo = source_fifo
+
+
+        self.sel = Signal()
+        self.rst = Signal()
+
+        # DeMux to select between 16bit and 12bit
+        ep_demux = stream.Demultiplexer([("data", 128), ("keep", 16)], 2, False)
+        ep_demux = stream.BufferizeEndpoints({"source0": stream.DIR_SOURCE, "source1": stream.DIR_SOURCE})(ep_demux)
+        self.ep_demux = ep_demux
+
+        # Bit packing gearbox 96b to 128
+        self.ep_gearbox = ep_gearbox = ResetInserter()(stream.Gearbox(96, 128, False))
+
+        # Mux to select between 16bit and 12bit
+        ep_mux = stream.Multiplexer([("data", 128), ("keep", 16)], 2, False)
+        #ep_mux = stream.BufferizeEndpoints({"source" : stream.DIR_SOURCE})(ep_mux)
+        self.ep_mux = ep_mux
+
+        # --- TLAST Generation Logic ---
+        # This counter tracks the input words to the gearbox (0, 1, 2, 3)
+        self.tlast_cnt = tlast_cnt = Signal(2)
+        self.tlast_cnt_max = tlast_cnt_max = Signal(2)
+
+        self.comb += [
+            If (self.sel == 0,
+                self.tlast_cnt_max.eq(0)
+                ).Else(
+                self.tlast_cnt_max.eq(2)
+            )
+        ]
+
+        # We increment the counter synchronously on every successful word
+        # transfer into the gearbox.
+        self.sync += [
+            If(self.rst,
+                # Reset the counter to 0
+                tlast_cnt.eq(0)
+            ).Elif(self.source_fifo.sink.ready & self.source_fifo.sink.valid,
+               # When counter is 3, reset to 0, else increment
+               tlast_cnt.eq(Mux(tlast_cnt == tlast_cnt_max, 0, tlast_cnt + 1))
+               )
+        ]
+        # --- End TLAST Logic ---
+
+        #data_slices = [ep_demux.source1.data[i * 16: i * 16 + 12] for i in range(8)]
+        data_slices = [ep_demux.source1.data[i * 16 + 4:(i + 1) * 16] for i in range(8)]
+        self.comb += [
+
+            ep_demux.sel.eq(self.sel),
+            ep_mux.sel.eq(self.sel),
+
+            # Sink --> Demultiplexer sink
+            self.sink.connect(ep_demux.sink),
+
+            # Demultiplexer source0 --> Multiplexer sink0
+            ep_demux.source0.connect(ep_mux.sink0),
+
+            # Demultiplexer source1 --> Gearbox
+            # Connect valid, ready and data signals separately to slice required 96b data
+            ep_gearbox.reset.eq(self.rst),
+            ep_gearbox.sink.valid.eq(ep_demux.source1.valid),
+            ep_demux.source1.ready.eq(ep_gearbox.sink.ready),
+            ep_gearbox.sink.data.eq(Cat(*data_slices)),
+
+            # Gearbox -> multiplexer sink1
+            ep_gearbox.source.connect(ep_mux.sink1),
+
+            # Multiplexer -> source_fifo
+            self.source_fifo.reset.eq(self.rst),
+            ep_mux.source.connect(self.source_fifo.sink),
+            # Generate 'last' combinatorially based on the counter
+            self.source_fifo.sink.last.eq(tlast_cnt == tlast_cnt_max),
+            self.source_fifo.source.connect(self.source),
+
+        ]
+
+
+# ---------------------------------------------------------------------------------
+#  Helper Class: Data2PacketsFSM
+# ---------------------------------------------------------------------------------
+class Data2PacketsFSM(LiteXModule):
+    """
+    A LiteXModule wrapper for the VHDL DATA2PACKETS_FSM.
+
+    This module converts an AXI-Stream of samples into a packetized
+    AXI-Stream, adding headers. All internal logic runs in the
+    clock domain this module is instantiated in.
+    """
+
+    def __init__(self, platform, rst_n, pkt_size, pct_hdr_0, pct_hdr_1,
+                 sink_buffer_size=4096,
+                 source_buffer_size=8192):
+        # --- Public I/O Endpoints ---
+
+        # Slave/Sink: Receives sample data
+        # The 'keep' signal is not used by the VHDL, so we omit it.
+        # .connect() will handle this automatically.
+        self.sink = stream.Endpoint([("data", 128), ("keep", 16)])
+
+        # Master/Source: Outputs packetized data
+        self.source = stream.Endpoint([("data", 128), ("keep", 16)])
+
+        # Source fifo for storing formed packets and handle backpressure
+        source_fifo = ResetInserter()((stream.SyncFIFO([("data", 128), ("keep", 16)], depth=512, buffered=True)))
+        self.source_fifo = source_fifo
+
+        # source_fifo.source -> source
+        self.comb += [
+            self.source_fifo.source.connect(self.source),
+            self.source_fifo.reset.eq(~rst_n),
+        ]
+
+        # --- Public Output Signals ---
+
+        # FIFO data count (this is an output from the VHDL)
+        self.wr_data_count_axis = Signal(10)
+
+        # --- Public Debug Signals ---
+        self.drop_samples = Signal()
+        self.wr_header = Signal()
+        self.state = Signal(4)
+        self.wr_cnt = Signal(16)
+
+
+        # --- VHDL Instance ---
+        # sink_fifo.source ->  DATA2PACKETS_FSM -> source_fifo.sink
+        vhdl_inst = Instance("DATA2PACKETS_FSM",
+                             # Clk/Reset.
+                             # ClockSignal() will be mapped by ClockDomainsRenamer
+                             i_ACLK=ClockSignal(),
+                             i_ARESET_N=rst_n,
+
+                             # Header & Size Inputs
+                             i_PCT_SIZE=pkt_size,
+                             i_PCT_HDR_0=pct_hdr_0,
+                             i_PCT_HDR_1=pct_hdr_1,
+
+                             # AXIS Slave (connects to self.sink)
+                             i_S_AXIS_TVALID=self.sink.valid,
+                             o_S_AXIS_TREADY=self.sink.ready,
+                             i_S_AXIS_TDATA=self.sink.data,
+                             i_S_AXIS_TLAST=self.sink.last,
+
+                             # AXIS Master (connects to self.source)
+                             o_M_AXIS_TVALID=self.source_fifo.sink.valid,
+                             i_M_AXIS_TREADY=self.source_fifo.sink.ready,
+                             o_M_AXIS_TDATA=self.source_fifo.sink.data,
+                             o_M_AXIS_TLAST=self.source_fifo.sink.last,
+
+                             # Data Count Output
+                             i_WR_DATA_COUNT_AXIS=self.source_fifo.level,
+
+                             # Debug Outputs
+                             o_DBG_DROP_SAMPLES=self.drop_samples,
+                             o_DBG_WR_HEADER=self.wr_header,
+                             #o_DBG_STATE=self.state,
+                             #o_DBG_WR_CNT=self.wr_cnt,
+                             )
+
+        # --- VHDL Converter Setup ---
+        self.specials += vhdl_inst
+        self.data2packets_fsm_conv = add_vhd2v_converter(platform,
+                                                         instance=vhdl_inst,
+                                                         files=[
+                                                             "gateware/LimeDFB_LiteX/rx_path_top/src/data2packets_fsm.vhd"]
+                                                         )
+        self._fragment.specials.remove(vhdl_inst)
+
+
+
+
+
