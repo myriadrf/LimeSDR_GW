@@ -128,6 +128,7 @@ class LimeTop(LiteXModule):
                 pllcfg_manager  = self.pllcfg,
                 diq_width       = LMS_DIQ_WIDTH,
                 with_max10_pll  = True,
+                m_clk_domain    ="sync",
             )
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
@@ -184,13 +185,14 @@ class LimeTop(LiteXModule):
                 # TODO: Investigate WHY exactly "sys" uses less resources, because it shouldn't
                 rx_int_clk_domain      = "lms_rx" if soc_has_timesource else source_clk_domain,
                 rx_m_clk_domain        = source_clk_domain,
+                rx_s_clk_domain        = "sync",
 
                 # Misc
                 soc_has_timesource     = soc_has_timesource,
             )
             # TODO: This will not work if sink and source clk domains are different, but it's good for now
             #       Move this logic to somewhere more appropriate
-            rxtx_top = ClockDomainsRenamer({"sys": source_clk_domain})(rxtx_top)
+            #rxtx_top = ClockDomainsRenamer({"sys": source_clk_domain})(rxtx_top)
             self.rxtx_top =  rxtx_top
 
             if soc_has_timesource:

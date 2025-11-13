@@ -105,7 +105,7 @@ class CRG(LiteXModule):
         self.sync_pll = sync_pll = S7MMCM(speedgrade=-2)
         self.comb += sync_pll.reset.eq(0)
         sync_pll.register_clkin(ClockSignal("xo_fpga"), 26e6)
-        sync_pll.create_clkout(self.cd_sync, 153.6e6, margin=0)
+        sync_pll.create_clkout(self.cd_sync, 76.8e6, margin=0)
 
 
 
