@@ -72,11 +72,17 @@ class CRG(LiteXModule):
         if platform.default_clk_name == "clk26":
             self.clk26 = platform.request("clk26")
 
-            self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
+            self.specials += [Instance("BUFG",
+                                       i_I=self.clk26,
+                                       o_O=self.cd_xo_fpga.clk,
+                                       )]
         else: # Fairwaves XTRX
             self.clk60 = platform.request("clk60")
 
-            self.comb += self.cd_xo_fpga.clk.eq(self.clk60)
+            self.specials += [Instance("BUFG",
+                                       i_I=self.clk60,
+                                       o_O=self.cd_xo_fpga.clk,
+                                       )]
 
         # Clk / Rst.
         clk125 = ClockSignal("pcie")
@@ -92,6 +98,16 @@ class CRG(LiteXModule):
 
         # IDelayCtrl.
         self.idelayctrl = S7IDELAYCTRL(self.cd_idelay)
+
+        self.cd_sync = ClockDomain()
+
+        # Clock for RX/TX stream synchronization logic
+        self.sync_pll = sync_pll = S7MMCM(speedgrade=-2)
+        self.comb += sync_pll.reset.eq(0)
+        sync_pll.register_clkin(ClockSignal("xo_fpga"), 26e6)
+        sync_pll.create_clkout(self.cd_sync, 153.6e6, margin=0)
+
+
 
 # LMS Control CSR----------------------------------------------------------------------------------------
 class CNTRL_CSR(LiteXModule):

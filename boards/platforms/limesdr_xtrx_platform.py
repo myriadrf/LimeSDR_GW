@@ -120,7 +120,7 @@ _io = [
     ("vctcxo", 0,
         Subsignal("en",  Pins("R19"), Misc("PULLUP=True")),
         Subsignal("sel", Pins("V17"), Misc("PULLDOWN=True")), # ext_clk
-        Subsignal("clk", Pins("N17"), Misc("PULLDOWN=True")),
+        #Subsignal("clk", Pins("N17"), Misc("PULLDOWN=True")),
         IOStandard("LVCMOS33")
     ),
 
