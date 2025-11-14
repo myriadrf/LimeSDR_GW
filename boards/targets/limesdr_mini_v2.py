@@ -16,6 +16,7 @@ from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
 
 from litex.gen import *
+from litex.gen.genlib.misc import WaitTimer
 
 from boards.platforms import limesdr_mini_v2_platform as limesdr_mini_v2
 
@@ -134,6 +135,7 @@ class BaseSoC(SoCCore):
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
+        with_ppsdo     = True,
         with_fft       = False,
         **kwargs):
 
@@ -209,7 +211,8 @@ class BaseSoC(SoCCore):
         self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C"))
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
-        self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
+        spi_pads = platform.request("FPGA_SPI")
+        self.add_spi_master(name="spimaster", pads=spi_pads, data_width=32, spi_clk_freq=10e6)
 
         # SPI Flash --------------------------------------------------------------------------------
         if with_spi_flash:
@@ -297,6 +300,32 @@ class BaseSoC(SoCCore):
             f.write("create_clock -name LMS_MCLK1 -period 8.000  [get_ports LMS_MCLK1]\n")
             f.write("create_clock -name LMS_MCLK2 -period 8.000  [get_ports LMS_MCLK2]\n")
         self.platform.add_sdc(timings_sdc_filename)
+
+        # PPSDO ------------------------------------------------------------------------------------
+
+        if with_ppsdo:
+            # Imports.
+            from gateware.LimePPSDO.src.ppsdo import PPSDO
+
+            # PPSDO PPS Input.
+            class PPSDOPPSInput(LiteXModule):
+                def __init__(self, soc):
+                    self.pps = Signal()
+
+                    # # #
+
+                    # Set FPGA_GPIO[1] as Input.
+                    self.comb += soc.limetop.general_periph.gpio_dir[1].eq(0)
+
+                    # Use FPGA_GPIO[1] as PPS.
+                    self.comb += self.pps.eq(soc.limetop.general_periph.gpio_in_val[1])
+
+            self.ppsdo_pps_input = PPSDOPPSInput(soc=self)
+
+            # PPSDO Instance.
+            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
+            self.ppsdo.add_sources()
+            self.comb += self.ppsdo.pps.eq(self.ppsdo_pps_input.pps)
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
 
@@ -396,8 +425,11 @@ def main():
     parser.add_argument("--cpu-type",          default="vexriscv",  help="Select CPU.", choices=[
         "vexriscv", "picorv32", "fazyrv", "firev"]),
 
+    # PPSDO.
+    parser.add_argument("--no-ppsdo", action="store_true", help="Disable PPSDO support.")
+
     # Examples.
-    parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
+    parser.add_argument("--with-fft", action="store_true", help="Enable FFT module examples.")
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
@@ -421,6 +453,7 @@ def main():
             with_uartbone  = args.with_uartbone,
             with_spi_flash = not args.without_spi_flash,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
+            with_ppsdo     = not args.no_ppsdo,
             with_fft       = args.with_fft,
         )
         # LiteScope Analyzer Probes.
