@@ -314,6 +314,7 @@ class LimeTop(LiteXModule):
             rfsw_pads         = platform.request("rf_switches")
             self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
             #self.comb += rfsw_pads.tx.eq(1)
+            self.comb +=  self.rfsw_control.AUTO_IN.eq(self.lms7002_top.tx_ant_en)
 
         # Interrupt --------------------------------------------------------------------------------
 
