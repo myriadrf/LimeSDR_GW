@@ -127,6 +127,8 @@ _io = [
     # GPIO (X12, 8-pin FPC connector)
     ("gpio", 0, Pins("H1 J1 K2 L2"), IOStandard("LVCMOS33")),
 
+    ("tdd_gpio", 0, Pins("J2"), IOStandard("LVCMOS33")), #TDD_GPIO3_N
+
     # AUX.
     ("aux", 0,
         Subsignal("en_smsigio", Pins("D17")),
@@ -218,8 +220,8 @@ _io = [
 
     # GPIO Serial.
     ("serial", 0,
-        Subsignal("tx", Pins("H2")),
-        Subsignal("rx", Pins("J2")),
+        Subsignal("tx", Pins("K2")),
+        Subsignal("rx", Pins("L2")),
         IOStandard("LVCMOS33")
     )
 ]
