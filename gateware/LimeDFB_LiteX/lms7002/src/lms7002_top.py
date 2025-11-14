@@ -232,6 +232,21 @@ class LMS7002Top(LiteXModule):
             i_S_AXIS_TLAST    = self.tx_cdc.source.last,
         )
 
+
+        # TX activity indication
+        # ----------------------
+        self.tx_ant_en = Signal()
+
+        self.edge_delay = Instance("EDGE_DELAY",
+            i_clk       = ClockSignal("lms_tx"),
+            i_reset_n   = tx_reset_n,
+            i_rise_dly  = fpgacfg_manager.txant_pre,
+            i_fall_dly  = fpgacfg_manager.txant_post,
+            i_d         = self.tx_cdc.source.valid,
+            o_q         = self.tx_ant_en,
+        )
+
+
         # test_data_dd.
         # -------------
         self.tx_test_data_dd = Instance("test_data_dd",
@@ -643,6 +658,14 @@ class LMS7002Top(LiteXModule):
         )
         # Removed Instance to avoid multiple definition
         self._fragment.specials.remove(self.lms7002_tx)
+
+        # LMS7002_TX
+        self.edge_delay_conv = add_vhd2v_converter(self.platform,
+            instance = self.edge_delay,
+            files    = ["gateware/LimeDFB/lms7002/src/edge_delay.vhd"],
+        )
+        # Removed Instance to avoid multiple definition
+        self._fragment.specials.remove(self.edge_delay)
 
         # TX test_data_dd.
         self.tx_test_data_dd_conv = add_vhd2v_converter(self.platform,

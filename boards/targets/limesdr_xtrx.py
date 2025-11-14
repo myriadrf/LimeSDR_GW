@@ -568,8 +568,11 @@ class BaseSoC(SoCCore):
             self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
         ]
 
-        # PPSDO ------------------------------------------------------------------------------------
 
+        tdd_pads = platform.request_all("tdd_gpio")
+        self.comb += tdd_pads.eq(self.lime_top.lms7002_top.tx_ant_en)
+
+        # PPSDO ------------------------------------------------------------------------------------
         if with_ppsdo:
             # Imports.
             from gateware.LimePPSDO.src.ppsdo import PPSDO
