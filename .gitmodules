@@ -3,4 +3,4 @@
 	url = https://github.com/myriadrf/LimeDFB.git
 [submodule "gateware/LimePPSDO"]
 	path = gateware/LimePPSDO
-	url = https://github.com/enjoy-digital/LimePPSDO.git
+	url = https://github.com/myriadrf/LimePPSDO.git
