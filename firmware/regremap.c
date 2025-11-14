@@ -44,6 +44,12 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             value |= (tmp & 0x200);
             value |= lime_top_rfsw_control_rfsw_auto_en_read() << 11;
             break;
+        case 0xF:
+            value = lime_top_fpgacfg_txant_pre_read();
+            break;
+        case 0x10:
+            value = lime_top_fpgacfg_txant_post_read();
+            break;
         case 0x18:
             value = lime_top_fpgacfg_reg18_read();
             break;
@@ -214,6 +220,12 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             lime_top_rfsw_control_tdd_invert_write((value & 0x80) >> 7);
             //lime_top_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
             lime_top_rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
+            break;
+        case 0xF:
+            lime_top_fpgacfg_txant_pre_write(value);
+            break;
+        case 0x10:
+            lime_top_fpgacfg_txant_post_write(value);
             break;
         case 0x13:
             printf("13\n");
