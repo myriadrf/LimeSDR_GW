@@ -165,6 +165,7 @@ class BaseSoC(SoCCore):
         with_cpu              = True, cpu_firmware=None,
         with_jtagbone         = True,
         with_bscan            = False,
+        with_ppsdo            = True,
         with_fft              = False,
         flash_boot            = False,
         gold_img              = False,
@@ -518,7 +519,7 @@ class BaseSoC(SoCCore):
         vctcxo_tamer_pads          = Record(vctcxo_tamer_layout)
         vctcxo_tamer_pads.tune_ref = self.pps_internal
 
-        from gateware.LimeDFB.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
+        from gateware.LimeDFB.legacy_rpcm_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
         self.vctcxo_tamer = vctcxo_tamer_top(platform=platform,
             vctcxo_tamer_pads = vctcxo_tamer_pads,
             clk100_domain     = "sys",
@@ -552,8 +553,16 @@ class BaseSoC(SoCCore):
             self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
         ]
 
+        # PPSDO ------------------------------------------------------------------------------------
 
+        if with_ppsdo:
+            # Imports.
+            from gateware.LimePPSDO.src.ppsdo import PPSDO
 
+            # PPSDO Instance.
+            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
+            self.ppsdo.add_sources()
+            self.comb += ppsdo.pps.eq(self.pps_internal)
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
@@ -710,6 +719,9 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
 
+    # PPSDO.
+    parser.add_argument("--no-ppsdo", action="store_true", help="Disable PPSDO support.")
+
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
 
@@ -739,6 +751,7 @@ def main():
             cpu_firmware          = None if prepare else "firmware/firmware.bin",
             with_jtagbone         = not args.with_bscan,
             with_bscan            = args.with_bscan,
+            with_ppsdo            = not args.no_ppsdo,
             with_fft              = args.with_fft,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,

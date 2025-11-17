@@ -110,6 +110,8 @@ tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *) glEp0Buffer_Rx;
 
 int boot_img_en = 0;
 
+static uint16_t prev_dac_tuned = 0;
+
 #ifdef LIMESDR_XTRX
 // If an error points here, most likely some of the macros are invalid.
 PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
@@ -811,26 +813,29 @@ uint8_t reverse(uint8_t b)
 }
 #endif
 
+#define SPI_CS_DAC (1 << 1)
+
 static void dac_spi_write(const uint16_t write_data)
 {
-    // register is 32bits and start sending bit 32
-    // we have to shift data to align
-    uint32_t cmd = ((uint32_t)write_data) << 16;
-    printf("%08lx\n", cmd);
+    uint32_t cmd;
 
-    /* set cs */
-    spimaster_cs_write(1 << 1);
+    /* Prepare command (16-bit data shifted left by 16 bits to align with 32-bit register). */
+    cmd = ((uint32_t)write_data) << 16;
 
-    /* Write SPI MOSI Data */
+    /* Wait for master to be ready. */
+    while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
+
+    /* Set CS */
+    spimaster_cs_write(SPI_CS_DAC);
+
+    /* Do transfer. */
     spimaster_mosi_write(cmd);
-
-    /* Start SPI Xfer */
     spimaster_control_write(
         (1  << CSR_SPIMASTER_CONTROL_START_OFFSET) |
         (16 << CSR_SPIMASTER_CONTROL_LENGTH_OFFSET)
     );
 
-    /* Wait SPI Xfer */
+    /* Wait for transfer to complete. */
     while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
 }
 
@@ -1210,15 +1215,43 @@ int main(void) {
 #endif
 
 
+    /* Main Loop */
     while (1) {
+
+        /* Console Service */
 #ifdef LIMESDR_XTRX
         console_service();
-#else
+#endif
+
+ /* PPSDO DAC Update */
+#ifdef CSR_PPSDO_BASE
+        if (ppsdo_enable_read()) {
+            uint16_t curr_dac_tuned = ppsdo_status_dac_tuned_val_read();
+           if (curr_dac_tuned != prev_dac_tuned) {
+                prev_dac_tuned = curr_dac_tuned;
+#ifdef LIMESDR_XTRX
+                uint8_t i2c_buf[3];
+                i2c_buf[0] = 0x30;
+                i2c_buf[1] = (curr_dac_tuned >> 8) & 0xff;
+                i2c_buf[2] = (curr_dac_tuned >> 0) & 0xff;
+                i2c0_write(I2C_DAC_ADDR, i2c_buf[0], &i2c_buf[1], 2);
+#endif
+#ifdef LIMESDR_MINI_V2
+            unsigned int dac_spi_wrdata = (curr_dac_tuned << 4); /* CHECKME */
+           dac_spi_write(dac_spi_wrdata);
+#endif
+            dac_val = curr_dac_tuned;
+        }
+    }
+#endif
+
+        /* Check FT601 RX Packet. */
+#if defined(LIMESDR_MINI_V1) | defined(LIMESDR_MINI_V2)
         spirez = ft601_fifo_status_read();	// Read FIFO Status
 		lms64_packet_pending = !(spirez & 0x01);
 #endif
 
-        // Process received packet
+        /* Process PCIe/FT601 RX Packet. */
         if (lms64_packet_pending) {
             // TODO: maybe this should be removed with ifdef if not required?
             if (gnss_init_done == 0) {
@@ -2602,6 +2635,53 @@ int main(void) {
 
                     break;
 
+                case CMD_BRDCSR_WR:
+                    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks != 1) {
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
+                        break;
+                    }
+                    {
+                         uint32_t offset =
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[0] << 24) |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[1] << 16) |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[2] << 8)  |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[3] << 0);
+
+                        uint32_t value  =
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[4] << 24) |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[5] << 16) |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[6] << 8)  |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[7] << 0);
+
+                        csr_write_simple(offset, value);
+                    }
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
+                case CMD_BRDCSR_RD:
+                    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks != 1) {
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
+                        break;
+                    }
+                    {
+                        uint32_t offset =
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[0] << 24) |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[1] << 16) |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[2] << 8)  |
+                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[3] << 0);
+
+                        uint32_t value  = csr_read_simple(offset);
+                        LMS_Ctrl_Packet_Tx->Data_field[0] = (offset >> 24) & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[1] = (offset >> 16) & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[2] = (offset >> 8)  & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[3] = (offset >> 0)  & 0xff;
+
+                        LMS_Ctrl_Packet_Tx->Data_field[4] = (value >> 24) & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[5] = (value >> 16) & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[6] = (value >> 8)  & 0xff;
+                        LMS_Ctrl_Packet_Tx->Data_field[7] = (value >> 0)  & 0xff;
+                    }
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    break;
 
                 default:
                     /* This is unknown request. */
