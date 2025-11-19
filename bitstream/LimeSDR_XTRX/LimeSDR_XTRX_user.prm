@@ -8,4 +8,4 @@ Start Address      0x00000000
 End Address        0x00FFFFFF
 
 Addr1         Addr2         Date                    File(s)
-0x00000000    0x00195283    Nov 12 10:31:48 2025    LimeSDR_XTRX_user.bit
+0x00000000    0x0019931F    Nov 19 13:49:31 2025    LimeSDR_XTRX_user.bit
