@@ -575,7 +575,7 @@ class BaseSoC(SoCCore):
             from gateware.LimePPSDO.src.ppsdo import PPSDO
 
             # PPSDO Instance.
-            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
+            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="xo_fpga", with_csr=True)
             self.ppsdo.add_sources()
             self.comb += ppsdo.pps.eq(self.pps_internal)
 
