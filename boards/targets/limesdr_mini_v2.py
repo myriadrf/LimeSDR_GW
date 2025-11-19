@@ -323,72 +323,14 @@ class BaseSoC(SoCCore):
             self.ppsdo_pps_input = PPSDOPPSInput(soc=self)
 
             # PPSDO Instance.
-            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lms_rx", with_csr=True)
+            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lmk", with_csr=True)
             self.ppsdo.add_sources()
             self.comb += self.ppsdo.pps.eq(self.ppsdo_pps_input.pps)
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
-
-    def add_ft601_ctrl_probe(self):
+    def add_debug_probes(self):
         analyzer_signals = [
-            self.fifo_ctrl.ctrl_fifo.rd,
-            self.fifo_ctrl.ctrl_fifo.rdata,
-            self.fifo_ctrl.ctrl_fifo.empty,
-            self.fifo_ctrl.ctrl_fifo.wr,
-            self.fifo_ctrl.ctrl_fifo.wdata,
-            self.fifo_ctrl.ctrl_fifo.full,
-            self.fifo_ctrl.fifo_reset,
-
-            self.ft601.ctrl_fifo.rd,
-            self.ft601.ctrl_fifo.rdata,
-            self.ft601.ctrl_fifo.empty,
-            self.ft601.ctrl_fifo.wr,
-            self.ft601.ctrl_fifo.wdata,
-            self.ft601.ctrl_fifo.full,
-            self.ft601.ctrl_fifo_fpga_pc_reset_n,
-        ]
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 1024,
-            clock_domain = "sys",
-            register     = True,
-            csr_csv      = "analyzer.csv"
-        )
-
-    def add_rxdatapath_ctrl_probe(self):
-        analyzer_signals = [
-            #self.lms7002_top.source.ready,
-            #self.lms7002_top.source.valid,
-            self.rxtx_top.rx_path.iqsmpls_fifo.sink.ready,
-            self.rxtx_top.rx_path.iqsmpls_fifo.sink.valid,
-            self.rxtx_top.rx_path.iqsmpls_fifo.sink.last,
-            self.rxtx_top.rx_path.iqsmpls_fifo.source.valid,
-            self.rxtx_top.rx_path.iqsmpls_fifo.source.ready,
-            self.rxtx_top.rx_path.iqsmpls_fifo.source.last,
-            self.rxtx_top.rx_path.iqpacket_axis.ready,
-            self.rxtx_top.rx_path.iqpacket_axis.valid,
-            self.rxtx_top.rx_path.fifo_iqpacket.sink.ready,
-            self.rxtx_top.rx_path.fifo_iqpacket.sink.valid,
-            self.rxtx_top.rx_path.fifo_iqpacket.level,
-            self.rxtx_top.rx_path.iqpacket_cdc.sink.valid,
-            self.rxtx_top.rx_path.iqpacket_cdc.sink.ready,
-            self.rxtx_top.rx_path.iqpacket_cdc.source.valid,
-            self.rxtx_top.rx_path.iqpacket_cdc.source.ready,
-            self.rxtx_top.rx_path.source.ready,
-            self.rxtx_top.rx_path.source.valid,
-            self.rxtx_top.rx_path.drop_samples,
-            self.rxtx_top.rx_path.wr_header,
-
-            self.ft601.sink.ready,
-            self.ft601.sink.valid,
-            self.ft601.EP83_fifo.level,
-            self.ft601.EP83_fifo.sink.ready,
-            self.ft601.EP83_fifo.sink.valid,
-            self.ft601.EP83_fifo.sink.data,
-            self.ft601.EP83_conv.sink.valid,
-            self.ft601.EP83_conv.sink.ready,
-            self.ft601.EP83_conv.source.valid,
-            self.ft601.EP83_conv.source.ready,
-            #self.ft601.EP83_fifo_status.busy_in,
+            self.ppsdo.pps,
         ]
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 1024,
@@ -436,8 +378,7 @@ def main():
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
-    probeopts.add_argument("--with-ft601-ctrl-probe",      action="store_true", help="Enable FT601 Ctrl Probe.")
-    probeopts.add_argument("--with-rxdatapath-probe",      action="store_true", help="Enable RXDatapath Ctrl Probe.")
+    probeopts.add_argument("--debug",      action="store_true", help="Enable debug probes.")
 
     args = parser.parse_args()
 
@@ -457,12 +398,10 @@ def main():
             with_fft       = args.with_fft,
         )
         # LiteScope Analyzer Probes.
-        if args.with_ft601_ctrl_probe or args.with_rxdatapath_probe:
+        if args.debug:
             assert args.with_uartbone
-            if args.with_ft601_ctrl_probe:
-                soc.add_ft601_ctrl_probe()
-            if args.with_rxdatapath_probe:
-                soc.add_rxdatapath_ctrl_probe()
+            if args.debug:
+                soc.add_debug_probes()
         # Builder.
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
