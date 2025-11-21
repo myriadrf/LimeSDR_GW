@@ -38,6 +38,10 @@ Additionally, the required FPGA toolchain depends on the target board:
 - **For LimeSDR Mini V2:**
    - **Project Trellis (with Yosys and nextpnr)** OpenSource toolchain is required. Clone and install from `GitHub <https://github.com/YosysHQ/prjtrellis>`_.
    - **Diamond 3.14** (or later) is required for bitstream creation. Download it from `Lattice <https://www.latticesemi.com/>`_. Free version can be used.
+
+- **For HiperSDR 44xx:**
+   - **Vivado 2022.2** exact 2022.2 version is required with `AR000035576 <https://adaptivesupport.amd.com/s/article/000035576?language=en_US>`_ Tactical patch. Download it and install from `Xilinx <http://www.xilinx.com>`_. Free version can be used. 
+   - Ensure Vivado’s settings are sourced or its binaries are in your ``$PATH`` before building.
   
 Consult respective toolchain’s documentation for installation details.
 
@@ -82,4 +86,5 @@ Detailed **build/load/flash** instructions and available options for each board 
    LimeSDR XTRX <./limesdr-xtrx/build_gw>
    LimeSDR Mini V1 <./limesdr-mini-v1/build_gw>
    LimeSDR Mini V2 <./limesdr-mini-v2/build_gw>
+   HiperSDR 44xx <./hipersdr_44xx/build_gw>
 

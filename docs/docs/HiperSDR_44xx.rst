@@ -1,7 +1,7 @@
 HiperSDR 44xx
 =============
 
-This section provides detailed information about the gateware implemented for the LimeSDR XTRX board.
+This section provides detailed information about the gateware implemented for the HiperSDR 44xx board.
 
 Main Block Diagram
 ------------------
@@ -9,10 +9,13 @@ Main Block Diagram
 The top-level file integrates the following main blocks:
 
 - :ref:`Soft core CPU <soft_core_cpu_module>` – VexRiscv CPU instance.
-- :ref:`Lime_top Module <lime_top_module>` – Wrapper for blocks handling LMS7002M transceiver control and data transfer.
+- :ref:`AFE79xx <rf_transceiver>` – RF Transceiver instance.
+- :ref:`LimeTop Module <LimeTop_module>` – Wrapper for blocks handling RF transceiver control and data transfer.
 - :ref:`PCIe PHY <pcie_phy_module>` – PCIe block with the physical interface and DMA.
-- :ref:`I2C0, I2C1 <i2c_modules>` and :ref:`Lms_spi <lms_spi_module>` – Communication interfaces for controlling onboard peripherals.
-- :ref:`Flash <flash_module>` – Module for accessing the FPGA configuration FLASH memory.
+- :ref:`I2C0, I2C1, I2C2, I2C3 <i2c_modules>` – I2C Communication interfaces for controlling onboard peripherals.
+- :ref:`SPI0, SPI1, SPI2, <spi_modules>` – SPI Communication interfaces for controlling onboard peripherals.
+- :ref:`USSPI Flash <flash_module>` – Module for accessing the FPGA configuration FLASH memory.
+  
 
 .. drawio-image:: hipersdr_44xx/images/main_block_diagram.drawio
    :align: center
@@ -29,15 +32,24 @@ The CPU module is a ``vexriscv_smp`` core provided by LiteX. It is specified via
 The source code for the CPU can be found at:
 `LiteX VexRiscv SMP core <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/cpu/vexriscv_smp/core.py>`_
 
-.. _lime_top_module:
 
-Lime_top Module
+.. _rf_transceiver:
+
+AFE79xx
+--------------
+
+This module implements the AFE7901 PHY for transmitting and receiving digital IQ samples.
+**TBD**
+
+
+.. _LimeTop_module:
+
+LimeTop Module
 ---------------
-The **Lime_top Module** serves as a wrapper for the LMS7002M transceiver control and data transfer blocks. Its main sub-blocks include:
+The **LimeTop Module** serves as a wrapper for the RF transceiver control and data transfer blocks. Its main sub-blocks include:
 
-- :ref:`LMS7002 Top Module <lms7002_top_module>` – Implements the LMS7002M PHY for digital IQ sample transmission and reception.
-- :ref:`RX Path Top Module <rx_path_top_module>` – Manages the receive path from the LMS7002M to the FPGA and host, packing IQ samples into packets and generating timestamps.
-- :ref:`TX Path Top Module <tx_path_top_module>` – Manages the transmit path from the host through the FPGA to the LMS7002M, unpacking IQ sample packets and handling stream synchronization with timestamps.
+- :ref:`RX Path Top Module <rx_path_top_module>` – Manages the receive path from the RF transceiver to the FPGA and host, packing IQ samples into packets and generating timestamps.
+- :ref:`TX Path Top Module <tx_path_top_module>` – Manages the transmit path from the host through the FPGA to the RF transceiver, unpacking IQ sample packets and handling stream synchronization with timestamps.
 
 .. drawio-image:: hipersdr_44xx/images/limetop_block_diagram.drawio
    :align: center
@@ -45,11 +57,6 @@ The **Lime_top Module** serves as a wrapper for the LMS7002M transceiver control
    :page-index: 0
    :alt: Lime_top block diagram
 
-.. _lms7002_top_module:
-
-LMS7002 Top Module
-~~~~~~~~~~~~~~~~~~
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`lms7002_top <docs/lms7002_top/readme:lms7002_top>` description. This module implements the LMS7002M PHY for transmitting and receiving digital IQ samples.
 
 .. _rx_path_top_module:
 
@@ -81,7 +88,7 @@ The **I2C0**, **I2C1**, **I2C2**, **I2C3** modules are instances of the ``I2CMas
 The source code can be found here:
 `I2CMaster in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/bitbang.py>`_
 
-.. _lms_spi_module:
+.. _spi_modules:
 
 SPI Modules
 --------------
@@ -94,7 +101,7 @@ Source code:
 
 Flash Module
 ------------
-The **Flash** module is implemented using the ``S7SPIFlash`` class provided by LiteX. It enables access to the FPGA configuration FLASH memory.
+The **Flash** module is implemented using the ``USSPIFlash`` class provided by LiteX. It enables access to the FPGA configuration FLASH memory.
 
 Source code:
-`S7SPIFlash in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi_flash.py>`_
+`USSPIFlash in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi_flash.py>`_
