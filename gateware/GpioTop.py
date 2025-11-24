@@ -58,7 +58,7 @@ class GpioTop(LiteXModule):
             i_GPIO_OVERRIDE_VAL = self.gpio_override_val.storage,
             i_GPIO_I            = self.GPIO_I,
             o_GPIO_O            = self.GPIO_O,
-            o_GPIO_T            = self.GPIO_T
+            o_GPIO_OE           = self.GPIO_T
         )
 
         # Xilinx bidirectional buffer primitive

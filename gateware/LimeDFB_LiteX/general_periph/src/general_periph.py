@@ -73,7 +73,7 @@ class GeneralPeriphTop(LiteXModule):
             # self.egpio_val[1].eq(self.gpio_in_val[9]),
         ]
 
-        gpio_dir = Signal(N_GPIO)
+        self.gpio_dir = gpio_dir = Signal(N_GPIO)
         self.comb += [
             gpio_dir[9].eq(0),
             gpio_dir[0:9].eq(Replicate(1,9)),
