@@ -9,4 +9,4 @@ End Address        0x003FFFFF
 
 Addr1         Addr2         Date                    File(s)
 0x00000000    0x001996D7    Nov 12 10:13:39 2025    ../../../bitstream/LimeSDR_XTRX/LimeSDR_XTRX_golden.bit
-0x00220000    0x003B931F    Nov 19 13:49:31 2025    ../../../bitstream/LimeSDR_XTRX/LimeSDR_XTRX_user.bit
+0x00220000    0x003B5283    Nov 12 10:31:48 2025    ../../../bitstream/LimeSDR_XTRX/LimeSDR_XTRX_user.bit
