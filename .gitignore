@@ -17,6 +17,8 @@ vivado_*
 
 docs/_build/
 docs/venv/
+node_modules/
+package-lock.json
 /software/
 
 LimeSDR-Mini_lms7_trx_HW_1.2.map

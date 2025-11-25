@@ -17,16 +17,15 @@ github_repo_path= 'master/docs/'
 highlight_language = 'python'
 
 # Intersphinx mapping
-# For MyriadRF internal projects list the project slug only.
-# For external projects specify the reference and the full URL.
-# To minimise build time only include projects that are referenced!
+# To minimise build time only include projects that are referenced.
 intersphinx_internal = [
-    'limedfb',
-    'limeppsdo',
+     'dfb',
+     'ppsdo',
 ]
-intersphinx_external = {
-    # 'numpy': 'https://numpy.org/doc/stable/',
-}
+
+intersphinx_external = [
+#    'sphinx',
+]
 
 # Set to True if the project is archived.
 archived = False
