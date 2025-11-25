@@ -840,10 +840,10 @@ static void dac_spi_write(const uint16_t write_data)
 }
 
 /* SPIFlash ------------------------------------------------------------------*/
-#if defined(CSR_SPIFLASH_CORE_BASE) | defined(CSR_INTERNAL_FLASH_BASE)
+#if defined(CSR_SPIFLASH_BASE) | defined(CSR_INTERNAL_FLASH_BASE)
 void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata)
 {
-#ifdef CSR_SPIFLASH_CORE_BASE
+#ifdef CSR_SPIFLASH_BASE
     void *addr = (void *)SPIFLASH_BASE;
 #else
     void *addr = (void *)INTERNAL_FLASH_BASE;
@@ -1153,7 +1153,7 @@ int main(void) {
 	printf("Golden Bitstream\n");
 #endif
 
-#if defined(CSR_SPIFLASH_CORE_BASE)
+#if defined(CSR_SPIFLASH_BASE)
     uint8_t spi_rdata[16];
     spiFlash_read(0x0, 5, spi_rdata);
     if (spi_rdata[3] == 0xff || spi_rdata[4] == 0xff)
@@ -1622,7 +1622,7 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
-#if defined(CSR_SPIFLASH_CORE_BASE) || defined(INTERNAL_FLASH_BASE) || defined(CSR_FLASH_BASE)
+#if defined(CSR_SPIFLASH_BASE) || defined(INTERNAL_FLASH_BASE) || defined(CSR_FLASH_BASE)
                 case CMD_ALTERA_FPGA_GW_WR: // FPGA active serial
 
                     current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (
@@ -2491,7 +2491,7 @@ int main(void) {
 
                         if((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1)) // TARGET = 1 (FX3)
                         {
-#ifdef CSR_SPIFLASH_CORE_BASE
+#ifdef CSR_SPIFLASH_BASE
                             switch (LMS_Ctrl_Packet_Rx->Data_field[0]) //PROG_MODE
                             {
 
@@ -2605,7 +2605,7 @@ int main(void) {
                     } else if ((LMS_Ctrl_Packet_Rx->Data_field[10] == 0) && (LMS_Ctrl_Packet_Rx->Data_field[11] == 1))
                     // TARGET = 1 (FX3)
                     {
-#ifdef CSR_SPIFLASH_CORE_BASE
+#ifdef CSR_SPIFLASH_BASE
                             flash_page  = LMS_Ctrl_Packet_Rx->Data_field[6] << 24;
                             flash_page |= LMS_Ctrl_Packet_Rx->Data_field[7] << 16;
                             flash_page |= LMS_Ctrl_Packet_Rx->Data_field[8] << 8;
