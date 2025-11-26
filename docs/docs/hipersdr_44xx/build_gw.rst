@@ -1,5 +1,5 @@
 HiperSDR 44xx build instructions 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+================================
 
 
 To build the gateware for **hipersdr_44xx** target, use command:
@@ -44,14 +44,68 @@ User/Golden Bitstreams
 Programming cables
 ------------------
 
-For information about supported programming cables and required hardware connections, refer to the specific linked chapter in hardware documentation:
+JTAG programming (openFPGALoader)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   - `FT2232H Mini Module JTAG adapter <https://limesdr-xtrx.myriadrf.org/documentation/jtag-programming#jtag-programming-openfpgaloader>`_
+this section describes how to program the Xilinx FPGA configuration FLASH memory used on the **HiperSDR 44xx** board with JTAG interface and openFGPALoader software.
 
-.. note::
-   Only the specified chapter related to the FT2232H Mini Module and hardware connections is applicable to board programming with this project. Other parts of the documentation are not relevant.
+Used software and hardware
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+List of used software is given in Table 1.
+
+.. table:: Table 1. Required software and tools
+
+  +------------------------------------------------------------------------------+-------------------------------+---------------------------------------------------+
+  | **Tool**                                                                     | **Version**                   | **Comment**                                       |
+  +==============================================================================+===============================+===================================================+
+  | `openFPGALoader - v0.13.1 <https://github.com/trabucayre/openFPGALoader>`__  | v0.13.1                       | Universal utility for programming FPGAs           |
+  +------------------------------------------------------------------------------+-------------------------------+---------------------------------------------------+
+
+
+List of tested JTAG programming cables is given in Table 2.
+
+.. table:: Table 2. Tested JTAG programming cables
+
+  +------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------------------------------------+
+  | **Hardware**                                                                                                                                   | **Version**                   | **Comment**                                                                        |
+  +================================================================================================================================================+===============================+====================================================================================+
+  | `FT2232H Mini Module <https://ftdichip.com/products/ft2232h-mini-module/>`__                                                                   |                               | Original JTAG programming cable from Xilinx                                        |
+  +------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------------------------------------+
+
+
+FT2232H Mini Module JTAG adapter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Connect JTAG jumper cables as shown in Table 3 between JTAG adapter and HiperSDR 44xx board.
+* Insert board into PCIe slot and power up PC.
+
+
+.. table:: Table 3. HiperSDR 44xx board and FT2232H Mini module connections
+
+  +------------------------------------+------------------------------------+
+  | **FT2232H Mini Module**            | **HiperSDR 44xx**                  |
+  +====================================+====================================+
+  | CN2-12 (AD3)                       | TMS                                |
+  +------------------------------------+------------------------------------+
+  | CN2-10 (AD1)                       | TDI                                |
+  +------------------------------------+------------------------------------+
+  | CN2-9 (AD2)                        | TDO                                |
+  +------------------------------------+------------------------------------+
+  | CN2-7 (AD0)                        | TCK                                |
+  +------------------------------------+------------------------------------+
+  | CN2-2 (GND)                        | GND                                |
+  +------------------------------------+------------------------------------+
+  | CN2-11 (VIO)                       | VIO                                |
+  +------------------------------------+------------------------------------+
 
    
+.. note::
+
+   Make sure that **CN3-1(VBUS)** and **CN3-3(VCC)** pins are connected together with jumper in order to power up FT2232H mini module. 
+
+
 Flashing Instructions
 ---------------------
 - **User Bitstream Only:**
