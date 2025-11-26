@@ -51,7 +51,8 @@ extensions = [
     'sphinx_rtd_theme',
     'notfound.extension',
     'myst_parser',
-    'sphinxcontrib.drawio'
+    'sphinxcontrib.drawio',
+    'sphinxcontrib.wavedrom'
 ]
 
 # Allow same section headings and thus labels to be used across documents.

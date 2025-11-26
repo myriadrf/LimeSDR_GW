@@ -16,6 +16,8 @@ vivado.*
 vivado_*
 
 docs/_build/
+docs/docs/limesdr-xtrx/litex_doc/_build/
+
 docs/venv/
 /software/
 
