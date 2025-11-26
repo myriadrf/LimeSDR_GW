@@ -89,7 +89,7 @@ Source code:
 .. _flash_module:
 
 Flash Module
-^^^^^^^^^^^^
+------------
 The **Flash** module is implemented using the ``S7SPIFlash`` class provided by LiteX. It enables access to the FPGA configuration FLASH memory.
 
 Source code:
@@ -100,7 +100,4 @@ Gateware Register Reference
 ---------------------------
 The following documentation is automatically generated from the LiteX SoC definitions. It includes the complete **Control and Status Register (CSR)** map, interrupt vector table, and memory regions for the modules described above (PCIe, I2C, SPI, etc.).
 
-.. toctree::
-   :maxdepth: 2
-   
-   limesdr-xtrx/litex_doc/index
+:doc:`limesdr-xtrx/litex_doc/index`
