@@ -19,7 +19,7 @@ The top-level file integrates the following main blocks:
 
 .. drawio-image:: hipersdr-44xx/images/main_block_diagram.drawio
    :align: center
-   :format: png
+   :format: svg
    :page-index: 0
    :alt: Main block diagram for HiperSDR 44xx
 
@@ -53,7 +53,7 @@ The **LimeTop Module** serves as a wrapper for the RF transceiver control and da
 
 .. drawio-image:: hipersdr-44xx/images/limetop_block_diagram.drawio
    :align: center
-   :format: png
+   :format: svg
    :page-index: 0
    :alt: Lime_top block diagram
 
@@ -62,19 +62,25 @@ The **LimeTop Module** serves as a wrapper for the RF transceiver control and da
 
 RX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`rx_path_top <docs/rx_path_top/readme:rx_path_top>` description. It handles the receive path from the LMS7002M to the FPGA and host, including IQ sample packetization and timestamp generation.
+This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`rx_path_top <docs/rx_path_top/readme:rx_path_top>` description. It handles the receive path from the RF Transceiver to the FPGA and host, including IQ sample packetization and timestamp generation.
+
+.. drawio-image:: ../../gateware/LimeDFB/docs/docs/rx_path_top/block_diagram.drawio
+   :align: center
+   :format: svg
+   :page-index: 0
+   :alt: Lime_top block diagram
 
 .. _tx_path_top_module:
 
 TX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`tx_path_top <docs/tx_path_top/readme:tx_path_top>` description. This module manages the transmit path from the host through the FPGA to the LMS7002M, including unpacking of IQ samples and stream synchronization.
+This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`tx_path_top <docs/tx_path_top/readme:tx_path_top>` description. This module manages the transmit path from the host through the FPGA to the RF Transceiver, including unpacking of IQ samples and stream synchronization.
 
 .. _pcie_phy_module:
 
 PCIe PHY Module
 ^^^^^^^^^^^^^^^
-The **PCIe PHY** module is an instantiation of the ``S7PCIEPHY`` class from LitePCIe. It provides the physical layer for the PCIe interface, including DMA support.
+The **PCIe PHY** module is an instantiation of the ``USPPCIEPHY`` class from LitePCIe. It provides the physical layer for the PCIe interface, including DMA support.
 
 The source code for LitePCIe is available at:
 `LitePCIe on GitHub <https://github.com/enjoy-digital/litepcie>`_
