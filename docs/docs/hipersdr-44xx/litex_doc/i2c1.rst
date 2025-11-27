@@ -1,0 +1,160 @@
+I2C1
+====
+
+Register Listing for I2C1
+-------------------------
+
++----------------------------------------------------+------------------------------------------+
+| Register                                           | Address                                  |
++====================================================+==========================================+
+| :ref:`I2C1_PHY_SPEED_MODE <I2C1_PHY_SPEED_MODE>`   | :ref:`0xf0009800 <I2C1_PHY_SPEED_MODE>`  |
++----------------------------------------------------+------------------------------------------+
+| :ref:`I2C1_MASTER_ACTIVE <I2C1_MASTER_ACTIVE>`     | :ref:`0xf0009804 <I2C1_MASTER_ACTIVE>`   |
++----------------------------------------------------+------------------------------------------+
+| :ref:`I2C1_MASTER_SETTINGS <I2C1_MASTER_SETTINGS>` | :ref:`0xf0009808 <I2C1_MASTER_SETTINGS>` |
++----------------------------------------------------+------------------------------------------+
+| :ref:`I2C1_MASTER_ADDR <I2C1_MASTER_ADDR>`         | :ref:`0xf000980c <I2C1_MASTER_ADDR>`     |
++----------------------------------------------------+------------------------------------------+
+| :ref:`I2C1_MASTER_RXTX <I2C1_MASTER_RXTX>`         | :ref:`0xf0009810 <I2C1_MASTER_RXTX>`     |
++----------------------------------------------------+------------------------------------------+
+| :ref:`I2C1_MASTER_STATUS <I2C1_MASTER_STATUS>`     | :ref:`0xf0009814 <I2C1_MASTER_STATUS>`   |
++----------------------------------------------------+------------------------------------------+
+
+I2C1_PHY_SPEED_MODE
+^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0009800 + 0x0 = 0xf0009800`
+
+
+    .. wavedrom::
+        :caption: I2C1_PHY_SPEED_MODE
+
+        {
+            "reg": [
+                {"name": "phy_speed_mode[1:0]", "bits": 2},
+                {"bits": 30},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+I2C1_MASTER_ACTIVE
+^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0009800 + 0x4 = 0xf0009804`
+
+
+    .. wavedrom::
+        :caption: I2C1_MASTER_ACTIVE
+
+        {
+            "reg": [
+                {"name": "master_active", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+I2C1_MASTER_SETTINGS
+^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0009800 + 0x8 = 0xf0009808`
+
+    I2C transfer settings
+
+    .. wavedrom::
+        :caption: I2C1_MASTER_SETTINGS
+
+        {
+            "reg": [
+                {"name": "len_tx",  "bits": 3},
+                {"bits": 5},
+                {"name": "len_rx",  "bits": 3},
+                {"bits": 5},
+                {"name": "recover",  "bits": 1},
+                {"bits": 15}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
++--------+---------+------------------------------------------------------------------------------+
+| Field  | Name    | Description                                                                  |
++========+=========+==============================================================================+
+| [2:0]  | LEN_TX  | I2C tx Xfer length (in bytes). Set to a value greater then 4 to anounce more |
+|        |         | data has to be transmitted.                                                  |
++--------+---------+------------------------------------------------------------------------------+
+| [10:8] | LEN_RX  | I2C rx Xfer length (in bytes). Set to a value greater then 4 to anounce more |
+|        |         | data has to be received.                                                     |
++--------+---------+------------------------------------------------------------------------------+
+| [16]   | RECOVER | I2C recover bus. If set, the I2C bus will be recovered.                      |
++--------+---------+------------------------------------------------------------------------------+
+
+I2C1_MASTER_ADDR
+^^^^^^^^^^^^^^^^
+
+`Address: 0xf0009800 + 0xc = 0xf000980c`
+
+
+    .. wavedrom::
+        :caption: I2C1_MASTER_ADDR
+
+        {
+            "reg": [
+                {"name": "master_addr[6:0]", "bits": 7},
+                {"bits": 25},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+I2C1_MASTER_RXTX
+^^^^^^^^^^^^^^^^
+
+`Address: 0xf0009800 + 0x10 = 0xf0009810`
+
+
+    .. wavedrom::
+        :caption: I2C1_MASTER_RXTX
+
+        {
+            "reg": [
+                {"name": "master_rxtx[31:0]", "bits": 32}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
+I2C1_MASTER_STATUS
+^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0009800 + 0x14 = 0xf0009814`
+
+
+    .. wavedrom::
+        :caption: I2C1_MASTER_STATUS
+
+        {
+            "reg": [
+                {"name": "tx_ready",  "bits": 1},
+                {"name": "rx_ready",  "bits": 1},
+                {"bits": 6},
+                {"name": "nack",  "bits": 1},
+                {"bits": 7},
+                {"name": "tx_unfinished",  "bits": 1},
+                {"name": "rx_unfinished",  "bits": 1},
+                {"bits": 14}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
++-------+---------------+----------------------------------+
+| Field | Name          | Description                      |
++=======+===============+==================================+
+| [0]   | TX_READY      | TX FIFO is not full.             |
++-------+---------------+----------------------------------+
+| [1]   | RX_READY      | RX FIFO is not empty.            |
++-------+---------------+----------------------------------+
+| [8]   | NACK          | Error on transfer.               |
++-------+---------------+----------------------------------+
+| [16]  | TX_UNFINISHED | Another tx transfer is expected. |
++-------+---------------+----------------------------------+
+| [17]  | RX_UNFINISHED | Another rx transfer is expected. |
++-------+---------------+----------------------------------+
+

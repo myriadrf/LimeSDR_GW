@@ -86,5 +86,5 @@ Detailed **build/load/flash** instructions and available options for each board 
    LimeSDR XTRX <./limesdr-xtrx/build_gw>
    LimeSDR Mini V1 <./limesdr-mini-v1/build_gw>
    LimeSDR Mini V2 <./limesdr-mini-v2/build_gw>
-   HiperSDR 44xx <./hipersdr_44xx/build_gw>
+   HiperSDR 44xx <./hipersdr-44xx/build_gw>
 
