@@ -2636,50 +2636,77 @@ int main(void) {
                     break;
 
                 case CMD_BRDCSR_WR:
-                    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks != 1) {
-                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
+
+                    if (Check_many_blocks(16))
                         break;
-                    }
-                    {
-                         uint32_t offset =
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[0] << 24) |
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[1] << 16) |
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[2] << 8)  |
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[3] << 0);
 
-                        uint32_t value  =
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[4] << 24) |
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[5] << 16) |
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[6] << 8)  |
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[7] << 0);
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
 
-                        csr_write_simple(offset, value);
+                    	// Calculate the starting address of the current 16-byte block
+                    	uint8_t *pCurrentBlock = (uint8_t *)&LMS_Ctrl_Packet_Rx->Data_field[block * 16];
+
+                    	// Extract the Offset (take only 4 bytes since CSR is 4bits wide)
+                    	uint32_t offset = 	((uint32_t)pCurrentBlock[4] << 24) |
+                    						((uint32_t)pCurrentBlock[5] << 16) |
+											((uint32_t)pCurrentBlock[6] << 8)  |
+											((uint32_t)pCurrentBlock[7] << 0);
+
+                    	//Extract the Value (take only 4 bytes since CSR is 4bits wide)
+                    	uint32_t value  = 	((uint32_t)pCurrentBlock[12] << 24) |
+                    						((uint32_t)pCurrentBlock[13] << 16) |
+											((uint32_t)pCurrentBlock[14] << 8)  |
+											((uint32_t)pCurrentBlock[15] << 0);
+
+                    	// Perform CSR write
+                    	csr_write_simple(offset, value);
+
                     }
+
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
+
+
                 case CMD_BRDCSR_RD:
-                    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks != 1) {
-                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
+                    if (Check_many_blocks(16))
                         break;
-                    }
-                    {
-                        uint32_t offset =
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[0] << 24) |
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[1] << 16) |
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[2] << 8)  |
-                            ((uint32_t)LMS_Ctrl_Packet_Rx->Data_field[3] << 0);
 
-                        uint32_t value  = csr_read_simple(offset);
-                        LMS_Ctrl_Packet_Tx->Data_field[0] = (offset >> 24) & 0xff;
-                        LMS_Ctrl_Packet_Tx->Data_field[1] = (offset >> 16) & 0xff;
-                        LMS_Ctrl_Packet_Tx->Data_field[2] = (offset >> 8)  & 0xff;
-                        LMS_Ctrl_Packet_Tx->Data_field[3] = (offset >> 0)  & 0xff;
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
 
-                        LMS_Ctrl_Packet_Tx->Data_field[4] = (value >> 24) & 0xff;
-                        LMS_Ctrl_Packet_Tx->Data_field[5] = (value >> 16) & 0xff;
-                        LMS_Ctrl_Packet_Tx->Data_field[6] = (value >> 8)  & 0xff;
-                        LMS_Ctrl_Packet_Tx->Data_field[7] = (value >> 0)  & 0xff;
+                    	// Set Pointers for both RX (Request) and TX (Response)
+                    	uint8_t *pCurrentBlockRx = (uint8_t *)&LMS_Ctrl_Packet_Rx->Data_field[block * 16];
+                    	uint8_t *pCurrentBlockTx = (uint8_t *)&LMS_Ctrl_Packet_Tx->Data_field[block * 16];
+
+                    	// Extract Offset from RX (Bytes 4-7)
+                    	uint32_t offset = 	((uint32_t)pCurrentBlockRx[4] << 24) |
+                    						((uint32_t)pCurrentBlockRx[5] << 16) |
+											((uint32_t)pCurrentBlockRx[6] << 8)  |
+											((uint32_t)pCurrentBlockRx[7] << 0);
+
+                        // Perform CSR Read
+                        uint32_t value = csr_read_simple(offset);
+
+                        // Response Offset (Echoing the Offset back, and fill MSB with zeros since CSR are 4bytes wide)
+                        pCurrentBlockTx[0] = 0;
+                        pCurrentBlockTx[1] = 0;
+                        pCurrentBlockTx[2] = 0;
+                        pCurrentBlockTx[3] = 0;
+                        pCurrentBlockTx[4] = (offset >> 24) & 0xff;
+                        pCurrentBlockTx[5] = (offset >> 16) & 0xff;
+                        pCurrentBlockTx[6] = (offset >> 8)  & 0xff;
+                        pCurrentBlockTx[7] = (offset >> 0)  & 0xff;
+
+                        //Response Value, (CSR read value and fill MSB with zeros since CSR are 4bytes wide)
+                        pCurrentBlockTx[8] = 0;
+                        pCurrentBlockTx[9] = 0;
+                        pCurrentBlockTx[10] = 0;
+                        pCurrentBlockTx[11] = 0;
+                        pCurrentBlockTx[12] = (value >> 24) & 0xff;
+                        pCurrentBlockTx[13] = (value >> 16) & 0xff;
+                        pCurrentBlockTx[14] = (value >> 8)  & 0xff;
+                        pCurrentBlockTx[15] = (value >> 0)  & 0xff;
+
                     }
+
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
