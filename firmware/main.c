@@ -2657,18 +2657,32 @@ int main(void) {
 											((uint32_t)pCurrentBlock[14] << 8)  |
 											((uint32_t)pCurrentBlock[15] << 0);
 
-                    	// Perform CSR write
-                    	csr_write_simple(offset, value);
+                    	// Check if address is within range AND aligned to 32 bits (4 bytes)
+                    	//TODO: find a way to reuse CSR_SIZE define instead of constant 0x00010000
+                    	if (offset >= CSR_BASE && offset < (CSR_BASE + 0x00010000) && (offset & ((CONFIG_CSR_ALIGNMENT / 8) - 1)) == 0) {
+                    		// Perform CSR Write
+                    		csr_write_simple(value, offset);
+                    	}
+                    	else {
+                    		cmd_errors++;
+                    		break;
+                    	}
+
 
                     }
 
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    if (cmd_errors)
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_RESOURCE_DENIED_CMD;
+                    else
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+
                     break;
 
 
                 case CMD_BRDCSR_RD:
                     if (Check_many_blocks(16))
                         break;
+
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
 
@@ -2682,8 +2696,18 @@ int main(void) {
 											((uint32_t)pCurrentBlockRx[6] << 8)  |
 											((uint32_t)pCurrentBlockRx[7] << 0);
 
-                        // Perform CSR Read
-                        uint32_t value = csr_read_simple(offset);
+                    	uint32_t value =0;
+                    	// Check if address is within range AND aligned to 32 bits (4 bytes)
+                    	//TODO: find a way to reuse CSR_SIZE define instead of constant 0x00010000
+                    	if (offset >= CSR_BASE && offset < (CSR_BASE + 0x00010000) && (offset & ((CONFIG_CSR_ALIGNMENT / 8) - 1)) == 0) {
+                    		// Perform CSR Read
+                            value = csr_read_simple(offset);
+                    	}
+                    	else {
+                    		cmd_errors++;
+                    		break;
+                    	}
+
 
                         // Response Offset (Echoing the Offset back, and fill MSB with zeros since CSR are 4bytes wide)
                         pCurrentBlockTx[0] = 0;
@@ -2707,7 +2731,11 @@ int main(void) {
 
                     }
 
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    if (cmd_errors)
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_RESOURCE_DENIED_CMD;
+                    else
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+
                     break;
 
                 default:
