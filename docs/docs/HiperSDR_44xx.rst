@@ -38,8 +38,8 @@ The source code for the CPU can be found at:
 AFE79xx
 ^^^^^^^
 
-This module implements the AFE7901 PHY for transmitting and receiving digital IQ samples.
-**TBD**
+This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`afe79xx <docs/afe79xx/readme:afe79xx>` description. It interfaces with TI JESD IP to exchange sample data with the AFE7901 chip. It also performs resampling, clock
+domain crossing and aligns the data for proper integration with other LimeDFB modules.
 
 
 .. _LimeTop_module:
