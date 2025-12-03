@@ -19,7 +19,7 @@ Before building the project, you **must install** the following tools:
   `here <https://www.scala-sbt.org/1.x/docs/Installing-sbt-on-Linux.html#Installing+sbt+on+Linux>`_.
 
 - **GHDL**  
-  GHDL is required for VHDL-to-Verilog conversion in some targets.
+  **4.1.0** Version is required for VHDL-to-Verilog conversion in some targets.
   See the `GHDL repository <https://github.com/ghdl/ghdl>`_ for installation instructions.
 
 - **openFPGALoader**
