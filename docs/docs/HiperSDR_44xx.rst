@@ -17,10 +17,8 @@ The top-level file integrates the following main blocks:
 - :ref:`USSPI Flash <flash_module>` – Module for accessing the FPGA configuration FLASH memory.
   
 
-.. drawio-image:: hipersdr-44xx/images/main_block_diagram.drawio
+.. image:: hipersdr-44xx/images/main_block_diagram.drawio.svg
    :align: center
-   :format: svg
-   :page-index: 0
    :alt: Main block diagram for HiperSDR 44xx
 
 .. _soft_core_cpu_module:
@@ -51,10 +49,8 @@ The **LimeTop Module** serves as a wrapper for the RF transceiver control and da
 - :ref:`RX Path Top Module <rx_path_top_module>` – Manages the receive path from the RF transceiver to the FPGA and host, packing IQ samples into packets and generating timestamps.
 - :ref:`TX Path Top Module <tx_path_top_module>` – Manages the transmit path from the host through the FPGA to the RF transceiver, unpacking IQ sample packets and handling stream synchronization with timestamps.
 
-.. drawio-image:: hipersdr-44xx/images/limetop_block_diagram.drawio
+.. image:: hipersdr-44xx/images/limetop_block_diagram.drawio.svg
    :align: center
-   :format: svg
-   :page-index: 0
    :alt: Lime_top block diagram
 
 
@@ -62,13 +58,7 @@ The **LimeTop Module** serves as a wrapper for the RF transceiver control and da
 
 RX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`rx_path_top <docs/rx_path_top/readme:rx_path_top>` description. It handles the receive path from the RF Transceiver to the FPGA and host, including IQ sample packetization and timestamp generation.
-
-.. drawio-image:: ../../gateware/LimeDFB/docs/docs/rx_path_top/block_diagram.drawio
-   :align: center
-   :format: svg
-   :page-index: 0
-   :alt: Lime_top block diagram
+This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`rx_path_top_litex <docs/rx_path_top_litex/readme:rx_path_top (LiteX)>` description. It handles the receive path from the RF Transceiver to the FPGA and host, including IQ sample packetization and timestamp generation.
 
 .. _tx_path_top_module:
 
