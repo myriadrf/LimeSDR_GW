@@ -51,7 +51,6 @@ extensions = [
     'sphinx_rtd_theme',
     'notfound.extension',
     'myst_parser',
-    'sphinxcontrib.drawio',
     'sphinxcontrib.wavedrom'
 ]
 
