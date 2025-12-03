@@ -11,7 +11,7 @@ Requirements
 Before building the project, you **must install** the following tools:
 
 - **LiteX**  
-  Follow the official installation instructions in the
+  **2025.08** version tag is required. Follow the official installation instructions in the
   `LiteX repository <https://github.com/enjoy-digital/litex>`_.
 
 - **SBT (Scala Build Tool)**  
