@@ -323,8 +323,8 @@ class BaseSoC(SoCCore):
             self.ppsdo_pps_input = PPSDOPPSInput(soc=self)
 
             # PPSDO Instance.
-            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lmk", with_csr=True)
-            self.ppsdo.add_sources()
+            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lmk",  with_csr=True)
+            self.ppsdo.add_sources(dac_bits=10)
             self.comb += self.ppsdo.pps.eq(self.ppsdo_pps_input.pps)
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
