@@ -14,7 +14,6 @@ import argparse
 import math
 import subprocess
 import sys
-import re
 
 # Register Map (Physical Addresses) ----------------------------------------------------------------
 # Base: 0xF0000000 + Offset: 0xB000 = 0xF000B000
@@ -37,24 +36,11 @@ REG_MAP = {
     "ppsdo_status_state":           BASE_ADDR + 0x34,
 }
 
-# Status bit fields.
-STATUS_STATE_OFFSET = 0
-STATUS_STATE_SIZE   = 4
-STATUS_ACCURACY_OFFSET = 4
-STATUS_ACCURACY_SIZE   = 4
-STATUS_TPULSE_OFFSET = 8
-STATUS_TPULSE_SIZE   = 1
-
 # Control bit fields
 CONTROL_EN_OFFSET      = 0
 CONTROL_EN_SIZE        = 1
 CONTROL_CLK_SEL_OFFSET = 1
 CONTROL_CLK_SEL_SIZE   = 1
-
-# Helper function to get a field from a register value.
-def get_field(reg_value, offset, size):
-    mask = ((1 << size) - 1) << offset
-    return (reg_value & mask) >> offset
 
 # Helper function to set a field within a register value.
 def set_field(reg_value, offset, size, value):
@@ -76,7 +62,6 @@ class GPSDODriver:
 
     def _exec_read(self, addr):
         """Executes: limeCSR read -s<ADDR64>"""
-        # Format address as 16 chars (64-bit) hex, lowercase
         addr_str = f"{addr:016x}"
         cmd = ["limeCSR", "read", f"-s{addr_str}"]
 
@@ -86,11 +71,7 @@ class GPSDODriver:
             print(f"Error reading CSR: {e}")
             return 0
 
-        # Parse output:
-        # CSR data read out (address | value):
-        # 0x00000000f000b004 0x00000000018cba80
-
-        # We look for the hex pattern in the last line
+        # Parse output: 0x00000000f000b004 0x00000000018cba80
         lines = result.strip().split('\n')
         if not lines:
             return 0
@@ -100,7 +81,6 @@ class GPSDODriver:
 
         if len(parts) >= 2:
             try:
-                # The value is the second element
                 return int(parts[1], 16)
             except ValueError:
                 pass
@@ -110,7 +90,6 @@ class GPSDODriver:
         """Executes: limeCSR write -s<ADDR64><VALUE64>"""
         addr_str = f"{addr:016x}"
         val_str = f"{value:016x}"
-        # Combine strictly as requested: -s[ADDR][VALUE]
         arg_str = f"-s{addr_str}{val_str}"
 
         cmd = ["limeCSR", "write", arg_str]
@@ -121,21 +100,17 @@ class GPSDODriver:
             print(f"Error writing CSR: {e}")
 
     def read_register(self, name):
-        """Read a register by its name using the REG_MAP."""
         if name not in REG_MAP:
             raise KeyError(f"Register {name} not found in map")
         return self._exec_read(REG_MAP[name])
 
     def write_register(self, name, value):
-        """Write a register by its name using the REG_MAP."""
         if name not in REG_MAP:
             raise KeyError(f"Register {name} not found in map")
         self._exec_write(REG_MAP[name], value)
 
     def get_signed_32bit(self, name):
-        """Get signed 32-bit value from a register."""
         value = self.read_register(name)
-        # Mask to 32-bit just in case the 64-bit return has garbage
         value = value & 0xFFFFFFFF
         if value & (1 << 31):  # Sign extend if negative
             value -= (1 << 32)
@@ -177,13 +152,32 @@ class GPSDODriver:
         self.write_register("ppsdo_enable", control)
 
     def close(self):
-        pass # Nothing to close for shell commands
+        pass
 
 # Test Functions -----------------------------------------------------------------------------------
 def run_monitoring(driver, num_dumps=0, delay=1.0, banner_interval=10):
-    header = "Dump | Enabled | 1s Error | 10s Error | 100s Error | DAC Value | State | Accuracy | TPulse"
+    # Fixed widths and alignment for cleaner output
+    cols = [
+        ("Dump",       4,  ">"),
+        ("Enabled",    7,  ">"),
+        ("1s Error",   8,  ">"),
+        ("10s Error",  9,  ">"),
+        ("100s Error", 10, ">"),
+        ("DAC Value",  9,  ">"),
+        ("State",      12, "<"), # Left align text
+        ("Accuracy",   17, "<"), # Left align text
+        ("TPulse",     6,  ">")
+    ]
+
+    def print_header():
+        parts = []
+        for name, width, align in cols:
+            parts.append(f"{name:{align}{width}}")
+        print(" | ".join(parts))
+
     print("Monitoring GPSDO regulation loop (press Ctrl+C to stop):")
-    print(header)
+    print_header()
+
     dump_count = 0
     try:
         while num_dumps == 0 or dump_count < num_dumps:
@@ -194,11 +188,21 @@ def run_monitoring(driver, num_dumps=0, delay=1.0, banner_interval=10):
             dac = driver.get_dac_value()
             status = driver.get_status()
 
-            print(f"{dump_count + 1:4d} | {str(enabled):7} | {error_1s:8d} | {error_10s:9d} | {error_100s:10d} | 0x{dac:04X} | {status['state']:12} | {status['accuracy']:17} | {str(status['tpulse_active']):6}")
-            dump_count += 1
+            dac_str = f"0x{dac:04X}"
 
+            print(f"{dump_count + 1:4d} | "
+                  f"{str(enabled):>7} | "
+                  f"{error_1s:8d} | "
+                  f"{error_10s:9d} | "
+                  f"{error_100s:10d} | "
+                  f"{dac_str:>9} | "
+                  f"{status['state']:<12} | "
+                  f"{status['accuracy']:<17} | "
+                  f"{str(status['tpulse_active']):>6}")
+
+            dump_count += 1
             if dump_count % banner_interval == 0:
-                print(header)
+                print_header()
 
             if num_dumps == 0 or dump_count < num_dumps:
                 time.sleep(delay)
@@ -219,9 +223,20 @@ def enable_gpsdo(driver, clk_freq_mhz=30.72, ppm=0.1):
     target_10s  = int(10 * freq)
     target_100s = int(100 * freq)
 
-    tol_1s_hz   = math.ceil(freq * ppm / 1e6)
-    tol_10s_hz  = tol_1s_hz * 10
-    tol_100s_hz = tol_1s_hz * 100
+    # 1. Calculate raw tolerance based on PPM
+    raw_tol_1s = math.ceil(freq * ppm / 1e6)
+
+    # 2. Enforce minimum tolerance of 2 Hz to prevent glitches
+    if raw_tol_1s < 2:
+        tol_1s_hz = 2
+        clamp_msg = " (Notice: 1s tolerance increased to min 2Hz)"
+    else:
+        tol_1s_hz = raw_tol_1s
+        clamp_msg = ""
+
+    # 3. Scale for 10s and 100s
+    tol_10s_hz  = raw_tol_1s * 10
+    tol_100s_hz = raw_tol_1s * 100
 
     driver.write_register("ppsdo_config_one_s_target",   target_1s)
     driver.write_register("ppsdo_config_one_s_tol",      tol_1s_hz)
@@ -235,8 +250,8 @@ def enable_gpsdo(driver, clk_freq_mhz=30.72, ppm=0.1):
     control = set_field(control, CONTROL_EN_OFFSET, CONTROL_EN_SIZE, 1)
     driver.write_register("ppsdo_enable", control)
 
-    print(f"GPSDO enabled: CLK_SEL={clk_sel} ({clk_freq_mhz}MHz), {ppm}ppm tolerance "
-          f"(1s tol={tol_1s_hz}Hz, 10s={tol_10s_hz}Hz, 100s={tol_100s_hz}Hz).")
+    print(f"GPSDO enabled: CLK_SEL={clk_sel} ({clk_freq_mhz}MHz), {ppm}ppm tolerance{clamp_msg}")
+    print(f"    1s tol={tol_1s_hz}Hz, 10s={tol_10s_hz}Hz, 100s={tol_100s_hz}Hz")
 
 def disable_gpsdo(driver):
     driver.write_register("ppsdo_enable", 0x0000)
@@ -245,7 +260,6 @@ def disable_gpsdo(driver):
 # Main ----------------------------------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="GPSDO Test Script (limeCSR CLI)")
-    # Host/Port removed as they are irrelevant for local limeCSR command
     parser.add_argument("--check", action="store_true", help="Run monitoring mode")
     parser.add_argument("--reset", action="store_true", help="Reset GPSDO")
     parser.add_argument("--enable", action="store_true", help="Configure and enable GPSDO")
