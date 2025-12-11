@@ -93,7 +93,7 @@ _io = [
 
     # Synchro.
     ("synchro", 0,
-        Subsignal("pps_in", Pins("M3")), # GPIO0
+        Subsignal("pps_in", Pins("M3"), Misc("PULLDOWN=True")), # GPIO0
         Subsignal("pps_out",Pins("L3")), # GPIO1
         IOStandard("LVCMOS33"),
     ),
