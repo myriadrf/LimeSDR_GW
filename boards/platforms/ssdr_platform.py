@@ -13,11 +13,13 @@ from litex.build.openfpgaloader import OpenFPGALoader
 
 _io = [
     # Clk/Rst.
-    ("clk26", 0,
-     Subsignal("p", Pins("N3")),
-     Subsignal("n", Pins("P3")),
-     IOStandard("LVDS_25")
-     ),
+    #("clk26", 0,
+    # Subsignal("p", Pins("N3")),
+    # Subsignal("n", Pins("P3")),
+    # IOStandard("LVDS_25")
+    # ),
+
+    ("clk26", 0, Pins("N3"), IOStandard("LVCMOS18")),
 
     # Leds.
     ("user_led", 0, Pins("K3"),  IOStandard("LVCMOS18")), #GPLEDINT
@@ -212,7 +214,7 @@ _io = [
 
     # RF-IC / LMS8001.
     ("lms8", 0,
-        Subsignal("reset_n", Pins("N1")),
+        Subsignal("reset_n", Pins("E18")),
      # IOStandard/Slew Rate.
      IOStandard("LVCMOS18"),
      ),
@@ -233,7 +235,7 @@ _io = [
     ),
 
     ("pwr", 0,
-     Subsignal("ldoen", Pins("E18")),
+     Subsignal("ldoen", Pins("M3")),
      IOStandard("LVCMOS18")
      )
 ]

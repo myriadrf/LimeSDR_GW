@@ -70,11 +70,13 @@ class CRG(LiteXModule):
         # # #
         if platform.default_clk_name == "clk26":
             self.clk26 = platform.request("clk26")
-            self.specials += [Instance("IBUFDS",
-                                       i_I=self.clk26.p,
-                                       i_IB=self.clk26.n,
-                                       o_O=self.cd_xo_fpga.clk
-                                       )]
+
+            #self.specials += [Instance("IBUFDS",
+            #                           i_I=self.clk26.p,
+            #                           i_IB=self.clk26.n,
+            #                           o_O=self.cd_xo_fpga.clk
+            #                           )]
+            self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
 
 
             #self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
