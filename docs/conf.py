@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 import json
 
-# -- Setup and helper functions------------------------------------------------
+# -- Setup and helper functions-----------------------------------------------
 
 # Path to remote assets
 asset_base = 'https://assets.myriadrf.net/sphinx/'
@@ -40,7 +40,7 @@ def _read_local(path: Path) -> str:
     except Exception:
         return ""
 
-# -- Basic configuration ------------------------------------------------------
+# -- Basic configuration -----------------------------------------------------
 
 # Sphinx extensions
 extensions = [
