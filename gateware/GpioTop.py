@@ -68,8 +68,7 @@ class GpioTop(LiteXModule):
             # Tri-state interface
             i_GPIO_I            = self.GPIO_I,
             o_GPIO_O            = self.GPIO_O,
-            o_GPIO_OE           = self.GPIO_OE
-            o_GPIO_OE           = self.GPIO_T
+            o_GPIO_OE           = self.GPIO_OE,
         )
 
         # Add HDL source
