@@ -274,6 +274,7 @@ class Platform(Xilinx7SeriesPlatform):
             "set_property BITSTREAM.CONFIG.USR_ACCESS 0X20200000 [current_design]",
             # "set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 0x00400000 [current_design]",
             "write_bitstream -force SSDR_golden.bit ",
+            "file copy -force SSDR_golden.bit ../../../bitstream/SSDR/SSDR_golden.bit",
             "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 SSDR_golden.bit\" -file ../../../bitstream/SSDR/SSDR_golden.bin"
         ]
         self.user_img_commands = [
@@ -288,7 +289,14 @@ class Platform(Xilinx7SeriesPlatform):
             #[15: 0] - Reserved
             "set_property BITSTREAM.CONFIG.USR_ACCESS 0X20210000 [current_design]",
             "write_bitstream -force SSDR_user.bit ",
+            "file copy -force SSDR_user.bit ../../../bitstream/SSDR/SSDR_user.bit",
             "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 SSDR_user.bit\" -file ../../../bitstream/SSDR/SSDR_user.bin",
+
+            # Set output file path and name
+            "set golden_bit_path ../../../bitstream/SSDR/SSDR_golden.bit",
+            "set user_bit_path ../../../bitstream/SSDR/SSDR_user.bit",
+            "set bit_string   \"up 0x00000000 $golden_bit_path up 0x220000 $user_bit_path\"",
+            "write_cfgmem  -format bin -force -size 4 -interface SPIx4 -loadbit $bit_string -file ../../../bitstream/SSDR/SSDR_combined.bin"
         ]
 
         # soc.get_build_name()
@@ -297,6 +305,7 @@ class Platform(Xilinx7SeriesPlatform):
             # non-multiboot flash images should not be used, so we don't generate them
             # Non-Multiboot SPI-Flash bitstream generation.
             # "write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit \"up 0x0 {build_name}.bit\" -file ../../../bitstream/{build_name}/{build_name}.bin",
+
         ]
 
     def create_programmer(self, cable="digilent_hs2"):

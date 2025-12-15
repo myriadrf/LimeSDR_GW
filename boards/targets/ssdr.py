@@ -48,6 +48,7 @@ from gateware.aux      import AUX
 from gateware.GpioTop  import GpioTop
 from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
+from gateware.helpers import write_module_hierarchy_json
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -397,7 +398,7 @@ class BaseSoC(SoCCore):
             "-group [get_clocks -include_generated_clocks txoutclk_x0y0] "
             "-group [get_clocks -include_generated_clocks rxclk_global_clk] "
             "-group [get_clocks -include_generated_clocks txclk_global_clk] "
-            "-group [get_clocks -include_generated_clocks clk26_p] "
+            "-group [get_clocks -include_generated_clocks clk26] "
             "-group [get_clocks -include_generated_clocks jtag_clk] "
             "-group [get_clocks -include_generated_clocks icap_clk] "
             "-group [get_clocks -include_generated_clocks dna_clk] "
@@ -644,97 +645,25 @@ class BaseSoC(SoCCore):
         self.platform.add_false_path_constraints(self.cd_jtag.clk, self.crg.cd_sys.clk)
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
-
-    def add_smpl_cmp_probe(self):
+    def add_debug(self):
         analyzer_signals = [
-            self.lms7002_top.smpl_cmp_en,
-            self.lms7002_top.smpl_cmp_done,
-            self.lms7002_top.smpl_cmp_error,
-            self.lms7002_top.smpl_cmp_cnt,
-            self.lms7002_top.lms7002_ddin.rx_diq2_h,
-            self.lms7002_top.lms7002_ddin.rx_diq2_l,
-            self.lms7002_top.DEBUG_IQ_ERR,
-            self.lms7002_top.DEBUG_AI_ERR,
-            self.lms7002_top.DEBUG_AQ_ERR,
-            self.lms7002_top.DEBUG_BI_ERR,
-            self.lms7002_top.DEBUG_BQ_ERR,
-        ]
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 1024,
-            clock_domain = "lms_rx",
-            register     = True,
-            csr_csv      = "analyzer.csv"
-        )
 
-    def add_rx_stream_ctrl_probe(self):
-        analyzer_signals = [
-            self.lms7002_top.lms7002_ddin.rx_diq2_h,
-            self.lms7002_top.lms7002_ddin.rx_diq2_l,
-            self.lms7002_top.rx_diq2_h_mux,
-            self.lms7002_top.rx_diq2_l_mux,
-            self.lms7002_top.rx_cdc.sink.valid,
-            self.lms7002_top.rx_cdc.sink.ready,
-            self.lms7002_top.source.valid,
-            self.lms7002_top.source.ready,
-            self.lms7002_top.rx_reset_n,
-            self.fpgacfg.rx_en,
-            self.rxtx_top.rx_path.iq_to_bit_pack_tvalid,
-            self.rxtx_top.rx_path.bit_pack_to_nto1_tvalid,
-            self.rxtx_top.rx_path.bit_pack_to_nto1_tlast,
-            self.rxtx_top.rx_path.fifo_conv.sink.ready,
-            self.rxtx_top.rx_path.fifo_conv.sink.valid,
-            self.rxtx_top.rx_path.source.valid,
-            self.rxtx_top.rx_path.source.ready,
         ]
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 1024,
-            clock_domain = "lms_rx",
-            register     = True,
-            csr_csv      = "analyzer.csv"
-        )
 
-    def add_rx_pct_hdr_1_probe(self):
-        analyzer_signals = [
-            self.rxtx_top.rx_path.sink.valid,
-            self.rxtx_top.rx_path.int_clk_smpl_nr_clr,
-            self.rxtx_top.rx_path.pct_hdr_1,
-            self.rxtx_top.rx_path.iqsmpls_fifo.source.last,
-            self.rxtx_top.rx_path.iqsmpls_fifo_source_valid,
-            self.rxtx_top.rx_path.iqsmpls_fifo_source_ready,
-            self.rxtx_top.rx_path.int_clk_rst_n,
-            self.rxtx_top.rx_path.int_clk_mimo_en,
-            self.rxtx_top.rx_path.int_clk_ch_en,
-        ]
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 1024,
+            depth        = 256,
             clock_domain = "sys",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
 
-    def add_tx_stream_ctrl_probe(self):
-        analyzer_signals = [
-            self.gpio.GPIO_DIR,
-            self.gpio.GPIO_OUT_VAL,
-            self.gpio.GPIO_IN_VAL,
-            self.gpio.gpio_override.storage,
-            self.gpio.gpio_override_dir.storage,
-            self.gpio.gpio_override_val.storage,
-            self.gpio.gpio_val.status,
-            self.lime_top.rx_delay_mode.storage,
-            self.lime_top.tx_delay_mode.storage,
-            self.lime_top.fpgacfg.reg10.fields.rx_en,
-            self.lime_top.fpgacfg.rx_en,
-            self.lime_top.fpgacfg.tx_en,
-            self.lime_top.fpgacfg.rx_en_delay_signal,
-        ]
+    # SoC hierarchy JSON utilities -----------------------------------------------------------------
 
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 1024,
-            clock_domain = "sys",
-            register     = True,
-            csr_csv      = "analyzer.csv"
-        )
+    def print_soc_hierarchy_json(self, outfile=None):
+        """Generate the SoC submodule hierarchy and write it as JSON to soc_structure.json.
+        The filename is constant. No terminal printing.
+        """
+        write_module_hierarchy_json(self, outfile="soc_structure.json", name="SoC")
 
 
 # Build --------------------------------------------------------------------------------------------
@@ -764,12 +693,12 @@ def main():
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
 
+    # Introspection.
+    parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
+
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
-    probeopts.add_argument("--with-smpl-cmp-probe",       action="store_true", help="Enable RX Sample Compare Probe.")
-    probeopts.add_argument("--with-rx-stream-ctrl-probe", action="store_true", help="Enable RX Stream Control Probe.")
-    probeopts.add_argument("--with-rx-pct-hdr-1-probe",   action="store_true", help="Enable RX PCT HDR 1 Probe.")
-    probeopts.add_argument("--with-tx-stream-ctrl-probe", action="store_true", help="Enable TX Stream Control Probe.")
+    probeopts.add_argument("--debug",       action="store_true", help="Enable Debug Probes.")
 
     args = parser.parse_args()
 
@@ -794,18 +723,13 @@ def main():
         )
 
         # LiteScope Analyzer Probes.
-        if args.with_smpl_cmp_probe or args.with_rx_stream_ctrl_probe or args.with_rx_pct_hdr_1_probe:
+        if args.debug:
             assert args.with_uartbone or not args.with_bscan
-            if args.with_smpl_cmp_probe:
-                soc.add_smpl_cmp_probe()
-            if args.with_rx_stream_ctrl_probe:
-                soc.add_rx_stream_ctrl_probe()
-            if args.with_rx_pct_hdr_1_probe:
-                soc.add_rx_pct_hdr_1_probe()
-        if args.with_tx_stream_ctrl_probe:
-            assert args.with_uartbone or not args.with_bscan
-            if args.with_tx_stream_ctrl_probe:
-                soc.add_tx_stream_ctrl_probe()
+            soc.add_debug()
+
+        # Always generate SoC hierarchy JSON during prepare pass unless disabled.
+        if prepare and not args.no_soc_json:
+            soc.print_soc_hierarchy_json()
 
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
