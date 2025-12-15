@@ -10,6 +10,14 @@ generic information applicable to all supported boards or jump to the specific b
 - :doc:`limesdr_mini_v1`
 - :doc:`limesdr_mini_v2`
 
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+
+   addfeatures
+
+Some LimeSDR boards offer a range of auxiliary features. More information on them can be found :doc:`here <addfeatures>`.
+
 .. _pcie_usb_interfacing:
 
 PCIe and USB Interfacing
