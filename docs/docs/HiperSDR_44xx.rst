@@ -53,7 +53,6 @@ The **LimeTop Module** serves as a wrapper for the RF transceiver control and da
    :align: center
    :alt: Lime_top block diagram
 
-
 .. _rx_path_top_module:
 
 RX Path Top Module
@@ -101,6 +100,15 @@ The **Flash** module is implemented using the ``USSPIFlash`` class provided by L
 
 Source code:
 `USSPIFlash in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi_flash.py>`_
+
+HiperSDR_44xx RF controls
+---------------------------
+
+HiperSDR_44xx board utilises over a hundred GPIO signals to all of the RF elements present on the board. The mapping of the GPIO signals to the onboard elements can be seen in the diagram provided below:
+
+.. image:: hipersdr-44xx/images/hiper_RF.drawio.svg
+   :align: center
+   :alt: Lime_top block diagram
 
 Gateware Register Reference
 ---------------------------
