@@ -303,7 +303,7 @@ class TXPathTop(LiteXModule):
             o_wrusedw         = Open(),#wr_usedw
             )
 
-            self.sync +=[
+            self.comb +=[
                 p2d_wr_buf_empty[i].eq(~p2d_rd_tvalid[i])
             ]
 

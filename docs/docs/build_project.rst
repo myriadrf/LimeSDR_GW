@@ -11,7 +11,7 @@ Requirements
 Before building the project, you **must install** the following tools:
 
 - **LiteX**  
-  Follow the official installation instructions in the
+  **2025.08** version tag is required. Follow the official installation instructions in the
   `LiteX repository <https://github.com/enjoy-digital/litex>`_.
 
 - **SBT (Scala Build Tool)**  
@@ -19,7 +19,7 @@ Before building the project, you **must install** the following tools:
   `here <https://www.scala-sbt.org/1.x/docs/Installing-sbt-on-Linux.html#Installing+sbt+on+Linux>`_.
 
 - **GHDL**  
-  GHDL is required for VHDL-to-Verilog conversion in some targets.
+  **4.1.0** Version is required for VHDL-to-Verilog conversion in some targets.
   See the `GHDL repository <https://github.com/ghdl/ghdl>`_ for installation instructions.
 
 - **openFPGALoader**
@@ -57,7 +57,7 @@ To clone the repository and initialize its submodules, run:
    git submodule update
 
 Build/Load/Flash Instructions
-------------------
+-----------------------------
 
 Gateware for wanted target can be build with folowing command:
 

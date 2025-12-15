@@ -33,6 +33,7 @@ from litespi.phy.generic import LiteSPIPHY
 from litescope import LiteScopeAnalyzer
 
 from gateware.Revision import *
+from gateware.helpers import write_module_hierarchy_json
 from gateware.max10_onchipflash.max10_onchipflash import Max10OnChipFlash
 from gateware.max10_dual_cfg.max10_dual_cfg       import Max10DualCfg
 
@@ -379,6 +380,13 @@ class BaseSoC(SoCCore):
             register     = True,
             csr_csv      = "analyzer.csv"
         )
+    # SoC hierarchy JSON utilities -----------------------------------------------------------------
+
+    def print_soc_hierarchy_json(self, outfile=None):
+        """Generate the SoC submodule hierarchy and write it as JSON to soc_structure.json.
+        The filename is constant. No terminal printing.
+        """
+        write_module_hierarchy_json(self, outfile="soc_structure.json", name="SoC")
 
 # Build --------------------------------------------------------------------------------------------
 
@@ -401,6 +409,9 @@ def main():
     probeopts = parser.add_mutually_exclusive_group()
     probeopts.add_argument("--with-ft601-ctrl-probe",   action="store_true", help="Enable FT601 Ctrl Probe.")
     probeopts.add_argument("--with-i2c0-signals-probe", action="store_true", help="Enable I2C0 SDA/SCL Probe.")
+
+    # Introspection.
+    parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
 
     args = parser.parse_args()
 
@@ -430,6 +441,11 @@ def main():
         if args.with_i2c0_signals_probe:
             assert args.with_uartbone
             soc.add_i2c0_signals_probe()
+
+        # Always generate SoC hierarchy JSON during prepare pass unless disabled.
+        if prepare and not args.no_soc_json:
+            soc.print_soc_hierarchy_json()
+
         # Builder.
         output_dir = os.path.abspath(os.path.join("build", soc.platform.name))
         if args.golden:

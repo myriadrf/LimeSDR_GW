@@ -16,6 +16,7 @@ from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
 
 from litex.gen import *
+from litex.gen.genlib.misc import WaitTimer
 
 from boards.platforms import limesdr_mini_v2_platform as limesdr_mini_v2
 
@@ -36,6 +37,7 @@ from gateware.LimeTop                       import LimeTop
 
 from gateware.LimeDFB_LiteX.FT601.src.ft601 import FT601
 from gateware.Revision import *
+from gateware.helpers import write_module_hierarchy_json
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -133,6 +135,7 @@ class BaseSoC(SoCCore):
         with_uartbone  = False,
         with_spi_flash = False,
         cpu_firmware   = None,
+        with_ppsdo     = True,
         with_fft       = False,
         **kwargs):
 
@@ -208,7 +211,8 @@ class BaseSoC(SoCCore):
         self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C"))
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
-        self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
+        spi_pads = platform.request("FPGA_SPI")
+        self.add_spi_master(name="spimaster", pads=spi_pads, data_width=32, spi_clk_freq=10e6)
 
         # SPI Flash --------------------------------------------------------------------------------
         if with_spi_flash:
@@ -297,25 +301,36 @@ class BaseSoC(SoCCore):
             f.write("create_clock -name LMS_MCLK2 -period 8.000  [get_ports LMS_MCLK2]\n")
         self.platform.add_sdc(timings_sdc_filename)
 
+        # PPSDO ------------------------------------------------------------------------------------
+
+        if with_ppsdo:
+            # Imports.
+            from gateware.LimePPSDO.src.ppsdo import PPSDO
+
+            # PPSDO PPS Input.
+            class PPSDOPPSInput(LiteXModule):
+                def __init__(self, soc):
+                    self.pps = Signal()
+
+                    # # #
+
+                    # Set FPGA_GPIO[1] as Input.
+                    self.comb += soc.limetop.general_periph.gpio_dir[1].eq(0)
+
+                    # Use FPGA_GPIO[1] as PPS.
+                    self.comb += self.pps.eq(soc.limetop.general_periph.gpio_in_val[1])
+
+            self.ppsdo_pps_input = PPSDOPPSInput(soc=self)
+
+            # PPSDO Instance.
+            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="lmk", with_csr=True)
+            self.ppsdo.add_sources()
+            self.comb += self.ppsdo.pps.eq(self.ppsdo_pps_input.pps)
+
     # LiteScope Analyzer Probes --------------------------------------------------------------------
-
-    def add_ft601_ctrl_probe(self):
+    def add_debug_probes(self):
         analyzer_signals = [
-            self.fifo_ctrl.ctrl_fifo.rd,
-            self.fifo_ctrl.ctrl_fifo.rdata,
-            self.fifo_ctrl.ctrl_fifo.empty,
-            self.fifo_ctrl.ctrl_fifo.wr,
-            self.fifo_ctrl.ctrl_fifo.wdata,
-            self.fifo_ctrl.ctrl_fifo.full,
-            self.fifo_ctrl.fifo_reset,
-
-            self.ft601.ctrl_fifo.rd,
-            self.ft601.ctrl_fifo.rdata,
-            self.ft601.ctrl_fifo.empty,
-            self.ft601.ctrl_fifo.wr,
-            self.ft601.ctrl_fifo.wdata,
-            self.ft601.ctrl_fifo.full,
-            self.ft601.ctrl_fifo_fpga_pc_reset_n,
+            self.ppsdo.pps,
         ]
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 1024,
@@ -323,49 +338,13 @@ class BaseSoC(SoCCore):
             register     = True,
             csr_csv      = "analyzer.csv"
         )
+    # SoC hierarchy JSON utilities -----------------------------------------------------------------
 
-    def add_rxdatapath_ctrl_probe(self):
-        analyzer_signals = [
-            #self.lms7002_top.source.ready,
-            #self.lms7002_top.source.valid,
-            self.rxtx_top.rx_path.iqsmpls_fifo.sink.ready,
-            self.rxtx_top.rx_path.iqsmpls_fifo.sink.valid,
-            self.rxtx_top.rx_path.iqsmpls_fifo.sink.last,
-            self.rxtx_top.rx_path.iqsmpls_fifo.source.valid,
-            self.rxtx_top.rx_path.iqsmpls_fifo.source.ready,
-            self.rxtx_top.rx_path.iqsmpls_fifo.source.last,
-            self.rxtx_top.rx_path.iqpacket_axis.ready,
-            self.rxtx_top.rx_path.iqpacket_axis.valid,
-            self.rxtx_top.rx_path.fifo_iqpacket.sink.ready,
-            self.rxtx_top.rx_path.fifo_iqpacket.sink.valid,
-            self.rxtx_top.rx_path.fifo_iqpacket.level,
-            self.rxtx_top.rx_path.iqpacket_cdc.sink.valid,
-            self.rxtx_top.rx_path.iqpacket_cdc.sink.ready,
-            self.rxtx_top.rx_path.iqpacket_cdc.source.valid,
-            self.rxtx_top.rx_path.iqpacket_cdc.source.ready,
-            self.rxtx_top.rx_path.source.ready,
-            self.rxtx_top.rx_path.source.valid,
-            self.rxtx_top.rx_path.drop_samples,
-            self.rxtx_top.rx_path.wr_header,
-
-            self.ft601.sink.ready,
-            self.ft601.sink.valid,
-            self.ft601.EP83_fifo.level,
-            self.ft601.EP83_fifo.sink.ready,
-            self.ft601.EP83_fifo.sink.valid,
-            self.ft601.EP83_fifo.sink.data,
-            self.ft601.EP83_conv.sink.valid,
-            self.ft601.EP83_conv.sink.ready,
-            self.ft601.EP83_conv.source.valid,
-            self.ft601.EP83_conv.source.ready,
-            #self.ft601.EP83_fifo_status.busy_in,
-        ]
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 1024,
-            clock_domain = "sys",
-            register     = True,
-            csr_csv      = "analyzer.csv"
-        )
+    def print_soc_hierarchy_json(self, outfile=None):
+        """Generate the SoC submodule hierarchy and write it as JSON to soc_structure.json.
+        The filename is constant. No terminal printing.
+        """
+        write_module_hierarchy_json(self, outfile="soc_structure.json", name="SoC")
 
 # Build --------------------------------------------------------------------------------------------
 
@@ -388,13 +367,18 @@ def main():
     parser.add_argument("--cpu-type",          default="vexriscv",  help="Select CPU.", choices=[
         "vexriscv", "picorv32", "fazyrv", "firev"]),
 
+    # PPSDO.
+    parser.add_argument("--no-ppsdo", action="store_true", help="Disable PPSDO support.")
+
     # Examples.
-    parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
+    parser.add_argument("--with-fft", action="store_true", help="Enable FFT module examples.")
+
+    # Introspection.
+    parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
-    probeopts.add_argument("--with-ft601-ctrl-probe",      action="store_true", help="Enable FT601 Ctrl Probe.")
-    probeopts.add_argument("--with-rxdatapath-probe",      action="store_true", help="Enable RXDatapath Ctrl Probe.")
+    probeopts.add_argument("--debug",      action="store_true", help="Enable debug probes.")
 
     args = parser.parse_args()
 
@@ -410,15 +394,14 @@ def main():
             with_uartbone  = args.with_uartbone,
             with_spi_flash = not args.without_spi_flash,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
+            with_ppsdo     = not args.no_ppsdo,
             with_fft       = args.with_fft,
         )
         # LiteScope Analyzer Probes.
-        if args.with_ft601_ctrl_probe or args.with_rxdatapath_probe:
+        if args.debug:
             assert args.with_uartbone
-            if args.with_ft601_ctrl_probe:
-                soc.add_ft601_ctrl_probe()
-            if args.with_rxdatapath_probe:
-                soc.add_rxdatapath_ctrl_probe()
+            if args.debug:
+                soc.add_debug_probes()
         # Builder.
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
         builder.build(run=build)
@@ -441,6 +424,10 @@ def main():
             bistream_output_dir = "bitstream/LimeSDR_Mini_V2"
             if not os.path.exists(bistream_output_dir):
                 os.makedirs(bistream_output_dir)
+
+        # Always generate SoC hierarchy JSON during prepare pass unless disabled.
+        if prepare and not args.no_soc_json:
+            soc.print_soc_hierarchy_json()
 
     # Prepare User/Golden bitstream.
     if which("ddtcmd") is None:

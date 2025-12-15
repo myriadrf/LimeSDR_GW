@@ -16,8 +16,7 @@ from gateware.common import FromFPGACfg
 # FPGA Cfg -----------------------------------------------------------------------------------------
 
 class FPGACfg(LiteXModule):
-    def __init__(self, platform, board_id, major_rev, compile_rev, pads=None,
-        soc_has_timesource = False):
+    def __init__(self, platform, board_id, major_rev, compile_rev, pads=None, soc_has_timesource=False):
         self.from_fpgacfg      = FromFPGACfg()
         self.pwr_src           = Signal()
         self.soc_has_timesource= soc_has_timesource
