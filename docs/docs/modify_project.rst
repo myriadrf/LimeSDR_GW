@@ -16,6 +16,12 @@ The gateware sources are organized into several folders:
   
 To make it easier to understand how to add a custom module, some examples are provided below:
 
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+
+   FFT module example <fft_example>
+
 +--------------------------------------------------+------------------------+------------------------+------------------------+
 | **Example**                                      | **Supported Boards**                                                     |
 +                                                  +------------------------+------------------------+------------------------+

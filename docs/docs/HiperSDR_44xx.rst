@@ -106,4 +106,10 @@ Gateware Register Reference
 ---------------------------
 The following documentation is automatically generated from the LiteX SoC definitions. It includes the complete **Control and Status Register (CSR)** map, interrupt vector table, and memory regions for the modules described above (PCIe, I2C, SPI, etc.).
 
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+
+   Register reference <hipersdr-44xx/litex_doc/index>
+
 :doc:`hipersdr-44xx/litex_doc/index`
