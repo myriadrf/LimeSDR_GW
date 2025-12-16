@@ -33,6 +33,9 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
         case 0x8:
             value = lime_top_fpgacfg_reg08_read() & (0x3 | (1 << 7) | (1 << 8) | (1 << 9)); 
             break;
+        case 0x9:
+            value = lime_top_fpgacfg_reg09_read();
+            break;
         case 0xA:
             tmp = lime_top_fpgacfg_reg10_read();
             value = tmp & 0x03;//(tmp >> 1) & 0x01;
@@ -130,12 +133,14 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
         case 0x280:
             value = lime_top_rxtx_top_rx_path_timestamp_settings_read() & 0xFFFF;
             break;
+#endif
         case 0x281:
             value = lime_top_rx_delay_mode_read() & 0xFFFF;
             break;
         case 0x282:
             value = lime_top_tx_delay_mode_read() & 0xFFFF;
             break;
+#ifdef TIMESOURCE_PRESENT
         // current time
         case 0x283:
             value = main_time_min_sec_read() & 0xFFFF;
@@ -208,6 +213,9 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             reg |= (value & 0x100); // mimo_int_en
             reg |= (value & 0x200); // sync_dis
             lime_top_fpgacfg_reg08_write(reg);
+            break;
+        case 0x9:
+            lime_top_fpgacfg_reg09_write(value);
             break;
         case 0xA:
             reg =  (value & 0x003) << 0; // rx_en + tx_en
@@ -305,6 +313,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
         case 0x280:
             lime_top_rxtx_top_rx_path_timestamp_settings_write(value);
             break;
+#endif
         case 0x281:
             lime_top_rx_delay_mode_write(value);
             break;
@@ -312,7 +321,6 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             lime_top_tx_delay_mode_write(value);
             break;
 
-#endif
         default:
             break;
     }
