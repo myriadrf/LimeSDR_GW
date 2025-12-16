@@ -51,7 +51,7 @@
 /*-----------------------------------------------------------------------*/
 #ifdef LIMESDR_XTRX
 #define I2C_DAC_ADDR     0x4C
-#define I2C_TERMO_ADDR   0x4E // TMP114NB
+#define I2C_TERMO_ADDR   0x4B
 #define LP8758_I2C_ADDR  0x60
 //#define FW_VER 1 // Initial version
 //#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
@@ -60,7 +60,7 @@
 
 #elif defined(SSDR)
 #define I2C_DAC_ADDR     0x4C
-#define I2C_TERMO_ADDR   0x4B
+#define I2C_TERMO_ADDR   0x4E // TMP114NB
 #define LP8758_I2C_ADDR  0x60
 //#define FW_VER 1 // Initial version
 //#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
@@ -2232,7 +2232,7 @@ int main(void) {
                                 break;
 
                             case 1: // temperature
-#if defined(LIMESDR_XTRX) || defined(SSDR)
+#if defined(LIMESDR_XTRX)
                                 //						i2c_buf[0] = 1;
                                 //						i2c_buf[1] = 0x60;
                                 //						i2c_buf[2] = 0xA0;
@@ -2248,6 +2248,16 @@ int main(void) {
                                 converted_value = converted_value >> 4;
                                 converted_value = converted_value * 10;
                                 converted_value = converted_value >> 4;
+#elif defined(SSDR)
+                                // TMP114 sensor performs periodical temperature readings by default
+                                // we only need to read the most recent value
+                                i2c_buf[0] = 0;
+                                i2c0_read(I2C_TERMO_ADDR, i2c_buf[0], &i2c_buf[0], 2, false);
+
+                                /* Combine MSB/LSB */
+                                int16_t converted_value = i2c_buf[1] | (i2c_buf[0] << 8);
+                                /* Convert to 0.1 °C units */
+                                converted_value = (converted_value * 10) / 128;
 #else
                                 i2c_wdata[0]=0x00; // Pointer = temperature register
                                 // Read temperature and recalculate
