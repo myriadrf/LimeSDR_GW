@@ -302,6 +302,8 @@ class RXPathTop(LiteXModule):
             o_DBG_WR_HEADER          = self.wr_header,
         )
 
+        self.comb += self.pct_hdr_cap.eq(self.wr_header)
+
         self.comb += [
             If(int_clk_rst_n,
                self.iqsmpls_fifo_sink_ready.eq(iqsmpls_fifo.sink.ready),
