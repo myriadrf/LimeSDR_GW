@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 import json
 
-# -- Setup and helper functions------------------------------------------------
+# -- Setup and helper functions-----------------------------------------------
 
 # Path to remote assets
 asset_base = 'https://assets.myriadrf.net/sphinx/'
@@ -40,7 +40,7 @@ def _read_local(path: Path) -> str:
     except Exception:
         return ""
 
-# -- Basic configuration ------------------------------------------------------
+# -- Basic configuration -----------------------------------------------------
 
 # Sphinx extensions
 extensions = [
@@ -51,7 +51,9 @@ extensions = [
     'sphinx_code_tabs',
     'sphinx_rtd_theme',
     'notfound.extension',
-    'myst_parser'
+    'myst_parser',
+    'sphinx.ext.imgconverter',
+    'sphinxcontrib.wavedrom',
 ]
 
 # Allow same section headings and thus labels to be used across documents.

@@ -6,9 +6,28 @@ including interfacing, toolchains, and update mechanisms. For board-specific det
 diagrams, module breakdowns), refer to the following links. You can continue reading below for
 generic information applicable to all supported boards or jump to the specific board documentation:
 
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+
+   limesdr_xtrx
+   limesdr_mini_v1
+   limesdr_mini_v2
+   HiperSDR_44xx
+
+
 - :doc:`limesdr_xtrx`
 - :doc:`limesdr_mini_v1`
 - :doc:`limesdr_mini_v2`
+- :doc:`HiperSDR_44xx`
+
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+
+   addfeatures
+
+Some LimeSDR boards offer a range of auxiliary features. More information on them can be found :doc:`here <addfeatures>`.
 
 .. _pcie_usb_interfacing:
 
