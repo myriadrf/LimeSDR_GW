@@ -3,9 +3,10 @@ Configuration Memory information
 ===================================
 File Format        BIN
 Interface          SPIX4
-Size               16M
+Size               4M
 Start Address      0x00000000
-End Address        0x00FFFFFF
+End Address        0x003FFFFF
 
 Addr1         Addr2         Date                    File(s)
-0x00000000    0x0018B07B    Dec 16 15:55:11 2025    SSDR_user.bit
+0x00000000    0x0018B73F    Dec 15 16:24:16 2025    ../../../bitstream/SSDR/SSDR_golden.bit
+0x00220000    0x003AB07B    Dec 16 15:55:11 2025    ../../../bitstream/SSDR/SSDR_user.bit
