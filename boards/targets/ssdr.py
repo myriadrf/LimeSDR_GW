@@ -65,26 +65,12 @@ class CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
         self.cd_sys    = ClockDomain()
         self.cd_idelay = ClockDomain()
-        #self.cd_usb = ClockDomain()
         self.cd_xo_fpga = ClockDomain()
 
         # # #
         if platform.default_clk_name == "clk26":
             self.clk26 = platform.request("clk26")
-
-            #self.specials += [Instance("IBUFDS",
-            #                           i_I=self.clk26.p,
-            #                           i_IB=self.clk26.n,
-            #                           o_O=self.cd_xo_fpga.clk
-            #                           )]
             self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
-
-
-            #self.comb += self.cd_xo_fpga.clk.eq(self.clk26)
-        else: # Fairwaves XTRX
-            self.clk60 = platform.request("clk60")
-
-            self.comb += self.cd_xo_fpga.clk.eq(self.clk60)
 
         # Clk / Rst.
         clk125 = ClockSignal("pcie")
@@ -96,7 +82,6 @@ class CRG(LiteXModule):
         pll.register_clkin(clk125, 125e6)
         pll.create_clkout(self.cd_idelay, 200e6, margin=0)
         pll.create_clkout(self.cd_sys,    sys_clk_freq, margin=0)
-        #pll.create_clkout(self.cd_usb, 26e6, margin=0)
 
         # IDelayCtrl.
         self.idelayctrl = S7IDELAYCTRL(self.cd_idelay)
@@ -122,7 +107,7 @@ class CNTRL_CSR(LiteXModule):
 # periphcfg
 class periphcfg_csr(LiteXModule):
     def __init__(self):
-        self.BOARD_GPIO_OVRD        = CSRStorage(16, reset=0)
+        self.BOARD_GPIO_OVRD        = CSRStorage(16, reset=2)
         self.BOARD_GPIO_RD          = CSRStorage(16, reset=0)
         self.BOARD_GPIO_DIR         = CSRStorage(16, reset=0)
         self.BOARD_GPIO_VAL         = CSRStorage(16, reset=0)
@@ -234,7 +219,7 @@ class BaseSoC(SoCCore):
         uart_console_pads = Record(uart_console_pads_layout)
 
         SoCCore.__init__(self, platform, sys_clk_freq,
-            ident                    = f"LiteX SoC on {board.capitalize()} XTRX ",
+            ident                    = f"LiteX SoC on {board.capitalize()} SSDR ",
             ident_version            = True,
             cpu_type                 = cpu_type,
             cpu_variant              = cpu_variant,
@@ -281,7 +266,6 @@ class BaseSoC(SoCCore):
                 sys_clk_freq = sys_clk_freq
             )
             self.comb += platform.request("user_led",0).eq(self.led_placeholder)
-            #self.comb += platform.request("user_led",1).eq(self.led_placeholder)
         else:
             self.leds = LedChaser(
                 pads         = platform.request_all("user_led"),
@@ -363,29 +347,16 @@ class BaseSoC(SoCCore):
         platform.add_false_path_constraints(self.crg.cd_sys.clk, self.pcie_phy.cd_pcie.clk)
 
         # I2C Bus0 ---------------------------------------------------------------------------------
-        # - Temperature Sensor (TMP108  @ 0x4a) Lime: (TMP1075 @ 0x4b).
+        # - Temperature Sensor (TMP114NB  @ 0x4E).
         # - PMIC-LMS           (LP8758  @ 0x60).
-        # - VCTCXO DAC         Rev4: (MCP4725 @ 0x62) Rev5: (DAC60501 @ 0x4b) Lime: (AD5693 @ 0x4c).
         self.i2c0 = I2CMaster(pads=platform.request("i2c", 0))
 
-        # I2C Bus1 ---------------------------------------------------------------------------------
-        # PMIC-FPGA (LP8758 @ 0x60).
-        #self.i2c1 = I2CMaster(pads=platform.request("i2c", 1))
-
-        # PMIC-FPGA --------------------------------------------------------------------------------
+        # PMIC --------------------------------------------------------------------------------
         # Buck0: 1.0V VCCINT + 1.0V MGTAVCC.
-        # Buck1: 1.8V/3.3V VCCIO (DIGPRVDD2/DIGPRVDD3/DIGPRPOC + VDD18_TXBUF of LMS + Bank 0/14/16/34/35 of FPGA).
-        # Buck2: 1.2V MGTAVTT + 1.2V VDLMS (VDD12_DIG / VDD_SPI_BUF / DVDD_SXR / DVDD_SXT / DVDD_CGEN).
-        # Buck3: 1.8V VCCAUX  + 1.8V VDLMS (VDD18_DIG).
+        # Buck1: 2.0V
+        # Buck2: 1.2V
+        # Buck3: 1.8V
 
-        # PMIC-LMS ---------------------------------------------------------------------------------
-        # Buck0: +2.05V (used as input to 1.8V LDO for LMS analog 1.8V).
-        # Buck1: +3.3V rail.
-        # Buck2: +1.75V (used as input to 1.4V LDO for LMS analog 1.4V).
-        # Buck3: +1.5V  (used as input to 1.25V LDO for LMS analog 1.25V).
-
-        # Aux -------------------------------------------------------------------------------------
-        #self.aux = AUX(platform.request("aux"))
 
         # Timing Constraints/False Paths -----------------------------------------------------------
         platform.toolchain.pre_placement_commands.append(
@@ -427,10 +398,6 @@ class BaseSoC(SoCCore):
         platform.toolchain.pre_placement_commands.append(
             "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets txpll_clk_c1_clk] "
         )
-
-
-
-
 
 
         # LimeTOP ----------------------------------------------------------------------------------
