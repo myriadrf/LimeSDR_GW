@@ -410,7 +410,7 @@ class BaseSoC(SoCCore):
             with_fft             = with_fft,
 
             # FPGACFG.
-            board_id             = 27,
+            board_id             = 32,
             # GOLD image can be recocgnized by 0xDEAD in major and compile revisions
             major_rev            =  MajorRevision if not gold_img else 0xDEAD,
             compile_rev          =  CompileRevision if not gold_img else 0xDEAD,
