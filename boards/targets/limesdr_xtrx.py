@@ -306,7 +306,7 @@ class BaseSoC(SoCCore):
             self.flash      = S7SPIFlash(platform.request("spiflash"), sys_clk_freq, 4e6)
 
         # Leds GPIO. -------------------------------------------------------------------------------
-        gpio_top_led = platform.request_all("user_led2")
+        gpio_top_led = platform.request("user_led2")
         self.gpio = GpioTop(platform, gpio_top_led)
 
         # XADC -------------------------------------------------------------------------------------
