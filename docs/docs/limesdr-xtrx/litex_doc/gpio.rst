@@ -46,7 +46,7 @@ GPIO_GPIO_OVERRIDE_DIR
 
         {
             "reg": [
-                {"name": "gpio_override_dir[2:0]", "bits": 3},
+                {"name": "gpio_override_dir[2:0]", "attr": 'reset: 7', "bits": 3},
                 {"bits": 29},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }

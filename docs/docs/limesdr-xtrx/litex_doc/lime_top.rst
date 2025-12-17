@@ -351,7 +351,7 @@ LIME_TOP_FPGACFG_COMPILE_REV
 
         {
             "reg": [
-                {"name": "fpgacfg_compile_rev[15:0]", "attr": 'reset: 4', "bits": 16},
+                {"name": "fpgacfg_compile_rev[15:0]", "attr": 'reset: 5', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
