@@ -81,7 +81,7 @@ _io = [
     ),
 
     # GPIO
-    ("gpio", 0, Pins("L2 L1 K2 J2 J1 H1 M2 M1 N2"), IOStandard("LVCMOS18")), #GPIO[6:0], GPLED[1:0]
+    ("gpio", 0, Pins("L2 L1 K2 J1 H1 J2 H2 M1 N1 N2"), IOStandard("LVCMOS18")), #GPIO[6:0], GPLED[1:0]
 
     # RF-Switches / SKY13330, SKY13384.
     ("rf_switches", 0,

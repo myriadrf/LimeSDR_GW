@@ -418,7 +418,7 @@ class BaseSoC(SoCCore):
             with_fft             = with_fft,
 
             # FPGACFG.
-            board_id             = 27,
+            board_id             = 32,
             # GOLD image can be recocgnized by 0xDEAD in major and compile revisions
             major_rev            =  MajorRevision if not gold_img else 0xDEAD,
             compile_rev          =  CompileRevision if not gold_img else 0xDEAD,
@@ -513,33 +513,25 @@ class BaseSoC(SoCCore):
         #    self.zda_parser.pps.eq(self.pps_internal)
         #]
 
-        #synchro_pads = platform.request("synchro")
-        self.comb += [
-            If(self.periphcfg.PERIPH_INPUT_SEL_0.storage[0:1] == 0b01,
-                #self.pps_internal.eq(synchro_pads.pps_in)
-            ).Else(
-                #self.pps_internal.eq(self.gps_pads.pps)
-            )
-        ]
 
         # Define a layout for vctcxo_tamer_pads
         vctcxo_tamer_layout        = [("tune_ref", 1)]  # 1-bit wide signal for tune_ref
         vctcxo_tamer_pads          = Record(vctcxo_tamer_layout)
         vctcxo_tamer_pads.tune_ref = self.pps_internal
 
-        #from gateware.LimeDFB.vctcxo_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
-        #self.vctcxo_tamer = vctcxo_tamer_top(platform=platform,
-        #    vctcxo_tamer_pads = vctcxo_tamer_pads,
-        #    clk100_domain     = "sys",
-        #    vctcxo_clk_domain = "xo_fpga"
-        #)
-        #self.comb += self.vctcxo_tamer.RESET_N.eq(self.crg.pll.locked)
+        from gateware.LimeDFB.legacy_rpcm_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
+        self.vctcxo_tamer = vctcxo_tamer_top(platform=platform,
+            vctcxo_tamer_pads = vctcxo_tamer_pads,
+            clk100_domain     = "sys",
+            vctcxo_clk_domain = "xo_fpga"
+        )
+        self.comb += self.vctcxo_tamer.RESET_N.eq(self.crg.pll.locked)
 
         vctcxo_tamer_serial_layout = [("rx", 1),
                                       ("tx", 1)]  # 1-bit wide signal for tune_ref
         vctcxo_tamer_serial_pads = Record(vctcxo_tamer_serial_layout)
-        #self.comb += vctcxo_tamer_serial_pads.rx.eq(self.vctcxo_tamer.UART_TX)
-        #self.comb += self.vctcxo_tamer.UART_RX.eq(vctcxo_tamer_serial_pads.tx)
+        self.comb += vctcxo_tamer_serial_pads.rx.eq(self.vctcxo_tamer.UART_TX)
+        self.comb += self.vctcxo_tamer.UART_RX.eq(vctcxo_tamer_serial_pads.tx)
 
         pcie_uart1_phy = UARTPHY(vctcxo_tamer_serial_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
         pcie_uart1     = UART(pcie_uart1_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
@@ -579,10 +571,19 @@ class BaseSoC(SoCCore):
         self.gpio = GpioTop(platform, gpio_pads)
 
         self.comb += [ self.gpio.GPIO_DIR.eq(0b111011111),
-                       self.gpio.GPIO_OUT_VAL[5].eq(self.lime_top.fpgacfg.reg10.fields.rx_en)]
+                       self.gpio.GPIO_OUT_VAL[5].eq(self.lime_top.lms7002_top.tx_ant_en)]
 
         self.comb += [
             self.lime_top.rxtx_top.rx_path.pps.eq(self.gpio.GPIO_IN_VAL[6]),
+        ]
+
+        self.comb += [
+            If(self.periphcfg.PERIPH_INPUT_SEL_0.storage[0:1] == 0b01,
+                self.pps_internal.eq(self.gpio.GPIO_IN_VAL[2])
+            ).Else(
+                # No GPS module
+                self.pps_internal.eq(0)
+            )
         ]
 
 
