@@ -237,7 +237,7 @@ class LMS7002Top(LiteXModule):
         # ----------------------
         self.tx_ant_en = Signal()
 
-        self.edge_delay = Instance("EDGE_DELAY",
+        self.edge_delay = Instance("edge_delay",
             i_clk       = ClockSignal("lms_tx"),
             i_reset_n   = tx_reset_n,
             i_rise_dly  = fpgacfg_manager.txant_pre,
