@@ -65,7 +65,7 @@ _io = [
     ),
 
     # Temperature Sensor.
-    ("LM75_OS", 0, Pins("K2"), IOStandard("LVCMOS25")),
+    ("LM75_OS", 0, Pins("K2"), IOStandard("LVCMOS25"), Misc("PULLMODE=UP")),
 
     # Fan Control.
     ("FAN_CTRL", 0, Pins("A11"), IOStandard("LVCMOS33")),
