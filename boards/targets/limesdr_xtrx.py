@@ -570,7 +570,7 @@ class BaseSoC(SoCCore):
 
 
         tdd_pads = platform.request_all("tdd_gpio")
-        self.comb += tdd_pads.eq(self.lime_top.lms7002_top.tx_ant_en)
+        self.comb += tdd_pads.eq(self.lime_top.rfsw_control.TDD_OUT)
 
         # PPSDO ------------------------------------------------------------------------------------
         if with_ppsdo:
@@ -606,21 +606,15 @@ class BaseSoC(SoCCore):
     # LiteScope Analyzer Probes --------------------------------------------------------------------
     def add_debug(self):
         analyzer_signals = [
-            self.ppsdo.enable,
-            self.ppsdo.pps,
-            #self.ppsdo.config.one_s_target,
-            #self.ppsdo.config.one_s_tol,
-            #self.ppsdo.config.ten_s_target,
-            #self.ppsdo.config.ten_s_tol,
-            #self.ppsdo.config.hundred_s_target,
-            #self.ppsdo.config.hundred_s_tol,
-            #self.ppsdo.status.one_s_error,
-            #self.ppsdo.status.ten_s_error,
-            #self.ppsdo.status.hundred_s_error,
-            #self.ppsdo.status.dac_tuned_val,
-            self.ppsdo.status.accuracy,
-            self.ppsdo.status.pps_active,
-            self.ppsdo.status.state,
+            self.lime_top.rfsw_control.AUTO_IN,
+            self.lime_top.rfsw_control.TDD_OUT,
+            self.lime_top.rfsw_control.tdd_manual_val.storage,
+            self.lime_top.rfsw_control.tdd_auto_en.storage,
+            self.lime_top.rfsw_control.tdd_invert.storage,
+            self.lime_top.rfsw_control.rfsw_rx.storage,
+            self.lime_top.rfsw_control.rfsw_tx.storage,
+            self.lime_top.rfsw_control.rfsw_auto_en.storage,
+
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
