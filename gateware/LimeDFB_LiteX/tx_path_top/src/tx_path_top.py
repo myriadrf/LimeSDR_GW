@@ -87,36 +87,36 @@ class TXPathTop(LiteXModule):
         # # #
 
         # Signals.
-        s_reset_n        = Signal()
-        m_reset_n        = Signal()
+        self.s_reset_n = s_reset_n        = Signal()
+        self.m_reset_n = m_reset_n        = Signal()
 
         # Synchro
-        rx_sample_nr_sync= Signal(64)
-        ch_en            = Signal(2)
-        smpl_width       = Signal(2)
-        synch_dis        = Signal()
+        self.rx_sample_nr_sync = rx_sample_nr_sync= Signal(64)
+        self.ch_en             = ch_en            = Signal(2)
+        self.smpl_width        = smpl_width       = Signal(2)
+        self.synch_dis         = synch_dis        = Signal()
 
-        pct_loss_flg_clr = Signal()
+        self.pct_loss_flg_clr = pct_loss_flg_clr = Signal()
 
-        p2d_wr_tvalid    = Signal(BUFF_COUNT)
-        p2d_wr_tdata     = Signal(128)
-        p2d_wr_tready    = Signal(BUFF_COUNT)
-        p2d_wr_tlast     = Signal(BUFF_COUNT)
+        self.p2d_wr_tvalid = p2d_wr_tvalid    = Signal(BUFF_COUNT)
+        self.p2d_wr_tdata  = p2d_wr_tdata     = Signal(128)
+        self.p2d_wr_tready = p2d_wr_tready    = Signal(BUFF_COUNT)
+        self.p2d_wr_tlast  = p2d_wr_tlast     = Signal(BUFF_COUNT)
 
-        p2d_rd_tvalid    = Signal(BUFF_COUNT)
-        p2d_rd_tdata     = Signal(128)
-        p2d_rd_tready    = Signal(BUFF_COUNT)
-        p2d_rd_tlast     = Signal(BUFF_COUNT)
-        p2d_rd_resetn    = Signal(BUFF_COUNT)
+        self.p2d_rd_tvalid = p2d_rd_tvalid    = Signal(BUFF_COUNT)
+        self.p2d_rd_tdata  = p2d_rd_tdata     = Signal(128)
+        self.p2d_rd_tready = p2d_rd_tready    = Signal(BUFF_COUNT)
+        self.p2d_rd_tlast  = p2d_rd_tlast     = Signal(BUFF_COUNT)
+        self.p2d_rd_resetn = p2d_rd_resetn    = Signal(BUFF_COUNT)
 
-        curr_buf_index   = Signal(math.ceil(math.log2(BUFF_COUNT)))
+        self.curr_buf_index = curr_buf_index   = Signal(math.ceil(math.log2(BUFF_COUNT)))
 
         self.p2d_wr_buf_empty = p2d_wr_buf_empty = Signal(BUFF_COUNT)
 
-        data_pad_tvalid  = Signal()
-        data_pad_tdata   = Signal(128)
-        data_pad_tready  = Signal()
-        data_pad_tlast   = Signal()
+        self.data_pad_tvalid = data_pad_tvalid  = Signal()
+        self.data_pad_tdata  = data_pad_tdata   = Signal(128)
+        self.data_pad_tready = data_pad_tready  = Signal()
+        self.data_pad_tlast  = data_pad_tlast   = Signal()
 
         # AXI Slave FIFO_DATA_W -> 128 (must uses s_axis_domain)
         conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(FIFO_DATA_W, 128)))
