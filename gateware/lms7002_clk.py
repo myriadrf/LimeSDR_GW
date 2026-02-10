@@ -130,12 +130,12 @@ class ClkDlyFxd(LiteXModule):
     def __init__(self, i, o, dly_val=31, refclk_freq=200):
 
         self.specials += Instance("IDELAYE2",
-            p_CINVCTRL_SEL              = "True",
+            p_CINVCTRL_SEL              = True,
             p_DELAY_SRC                 = "DATAIN",
-            p_HIGH_PERFORMANCE_MODE     = "True",
+            p_HIGH_PERFORMANCE_MODE     = True,
             p_IDELAY_TYPE               = "FIXED",
             p_IDELAY_VALUE              = dly_val,
-            p_PIPE_SEL                  = "False",
+            p_PIPE_SEL                  = False,
             p_REFCLK_FREQUENCY          = refclk_freq,
             p_SIGNAL_PATTERN            = "CLOCK",
             o_CNTVALUEOUT   = None,

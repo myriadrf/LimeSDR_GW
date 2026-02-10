@@ -33,23 +33,31 @@ from gateware.LimeDFB_LiteX.self_test.src.tst_top             import TstTop
 from gateware.examples.fft.LimeFFT                            import LimeFFT
 
 from gateware.common import *
+import warnings
 
 # LimeTop ------------------------------------------------------------------------------------------
 
 class LimeTop(LiteXModule):
     def __init__(self, soc, platform,
         # Configuration.
+        double_channels_mode = False,
         LMS_DIQ_WIDTH        = 12,
         sink_width           = 128,
         sink_clk_domain      = "sys",
         source_width         = 64,
         source_clk_domain    = "sys",
+        rx_sys_clk_domain    = "sys",
         TX_N_BUFF            = 5,
         TX_PCT_SIZE          = 4096,
         TX_IN_PCT_HDR_SIZE   = 16,
         tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
 
         with_lms7002         = True,
+        # These clocks are only used if with_lms7002 is False
+        phy_tx_source_clk    = "sys",
+        phy_tx_sink_width    = 128,
+        phy_rx_sink_clk      = "sys",
+        phy_rx_sink_width    = 128,
         with_rx_tx_top       = True,
         fft_pts              = 512,     #Changing FFT points requires FFT src rebuild, use rebuild_fft_rtl=True
         rebuild_fft_rtl      = False,
@@ -62,6 +70,7 @@ class LimeTop(LiteXModule):
         revision_pads        = None,
 
         soc_has_timesource   = False,
+
 
         ):
 
@@ -129,6 +138,12 @@ class LimeTop(LiteXModule):
                 diq_width       = LMS_DIQ_WIDTH,
                 with_max10_pll  = True,
             )
+        else:
+            # Create ports to interface with rxtx top, if lms7002 is not used.
+            # Assuming a different phy module is used instead.
+            self.phy_tx_source = AXIStreamInterface(phy_tx_sink_width, clock_domain=phy_tx_source_clk)
+            self.phy_rx_sink   = AXIStreamInterface(phy_rx_sink_width, clock_domain=phy_rx_sink_clk)
+
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
 
@@ -167,31 +182,33 @@ class LimeTop(LiteXModule):
 
         if with_rx_tx_top:
 
-            rxtx_top = RXTXTop(platform, self.fpgacfg,
+            self.rxtx_top = RXTXTop(platform, self.fpgacfg,
                 # TX parameters
                 TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
                 TX_N_BUFF              = TX_N_BUFF,
                 TX_IN_PCT_SIZE         = TX_PCT_SIZE,
                 TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
                 TX_IN_PCT_DATA_W       = sink_width,
-                tx_s_clk_domain        = sink_clk_domain,
+                tx_s_clk_domain        = "sys",
+                tx_m_clk_domain        = "lms_tx" if with_lms7002 else phy_tx_source_clk,
                 tx_buffer_size         = tx_buffer_size,
+                tx_4ch_mode            = double_channels_mode,
 
                 # RX parameters
                 RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
+                rx_sink_width          = 64 if with_lms7002 else phy_rx_sink_width,
+                RX_OUT_PCT_DATA_W      = source_width,
                 # "sys" uses less resources, presumably due to less clock domain crossings
                 # but lms_rx is necessary if timesource syncrhonisation is needed
                 # TODO: Investigate WHY exactly "sys" uses less resources, because it shouldn't
-                rx_int_clk_domain      = "lms_rx" if soc_has_timesource else source_clk_domain,
-                rx_m_clk_domain        = source_clk_domain,
+                rx_int_clk_domain      = "lms_rx" if with_lms7002 else phy_rx_sink_clk if soc_has_timesource else rx_sys_clk_domain,
+                rx_s_clk_domain        = "lms_rx" if with_lms7002 else phy_rx_sink_clk,
+                rx_m_clk_domain        = "sys",
+                rx_use_channel_combiner = False if with_lms7002 else True,
 
                 # Misc
                 soc_has_timesource     = soc_has_timesource,
             )
-            # TODO: This will not work if sink and source clk domains are different, but it's good for now
-            #       Move this logic to somewhere more appropriate
-            rxtx_top = ClockDomainsRenamer({"sys": source_clk_domain})(rxtx_top)
-            self.rxtx_top =  rxtx_top
 
             if soc_has_timesource:
                 # TODO: move notes from here and other similar locations to top of limetop to act as a checklist
@@ -215,9 +232,9 @@ class LimeTop(LiteXModule):
                         self.fpgacfg.tx_en_delay_mode.eq(self.tx_delay_mode.fields.tx_del_sel),
                         self.fpgacfg.rx_en_delay_mode.eq(self.rx_delay_mode.fields.rx_del_sel),
                 ]
-
-            # LMS7002 <-> RXTX Top.
-            self.comb += self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en)
+            if with_lms7002:
+                # LMS7002 <-> RXTX Top.
+                self.comb += self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en)
 
             if platform.name.startswith("limesdr_mini"):
                 self.comb += [
@@ -265,30 +282,44 @@ class LimeTop(LiteXModule):
 
                 # Connect reset signal to FFT module
                 self.comb += self.fft_example.reset.eq(~fft_reset_n)
+            # TODO: maybe distribute pipeline.add commands to be near appropriate module instantiations?
+            # ----- RX PIPELINE
+            self.rx_pipeline = stream.Pipeline()
+            # Add lms7002 to the pipeline.
+            if with_lms7002:
+                self.rx_pipeline.add(self.lms7002_top)
+            else:
+                self.rx_pipeline.add(self.phy_rx_sink)
+            # Add fft example to the pipeline
+            if with_fft:
+                self.rx_pipeline.add(self.fft_example)
+            # Add rxtx top to the pipeline.
+            if with_rx_tx_top:
+                self.rx_pipeline.add(self.rxtx_top.rx_path)
+            else:
+                warnings.warn("LimeTop: RXTX Top not used, RX pipeline will likely not work!")
+            # Add endpoint to the pipeline.
+            self.rx_pipeline.add(self.source)
+
+            # ----- TX PIPELINE
+            self.tx_pipeline = stream.Pipeline()
+            self.tx_pipeline.add(self.sink)
+            if with_rx_tx_top:
+                self.tx_pipeline.add(self.rxtx_top.tx_path)
+            else:
+                warnings.warn("LimeTop: RXTX Top not used, TX pipeline will likely not work!")
+            if with_lms7002:
+                self.tx_pipeline.add(self.lms7002_top)
+            else:
+                self.tx_pipeline.add(self.phy_tx_source)
 
 
-            # LMS7002 -> [LimeFFT example] -> RX Path -> Sink Pipeline.
-            if with_lms7002 and with_rx_tx_top and with_fft:
-                # LMS7002 -> RX Path -> Sink Pipeline.
-                self.rx_pipeline = stream.Pipeline(
-                    self.lms7002_top,
-                    self.fft_example,   # Inserting FFT module
-                    self.rxtx_top.rx_path,
-                    self.source,
-                )
-            elif with_lms7002 and with_rx_tx_top:
-                self.rx_pipeline = stream.Pipeline(
-                    self.lms7002_top,
-                    self.rxtx_top.rx_path,
-                    self.source,
-                )
+        # VCTCXO -----------------------------------------------------------------------------------
 
-            # Source -> TX Path -> LMS7002 Pipeline.
-            self.tx_pipeline = stream.Pipeline(
-                self.sink,
-                self.rxtx_top.tx_path,
-                self.lms7002_top.sink,
-            )
+        if platform.name.startswith("limesdr_xtrx"):
+            vctcxo_pads = platform.request("vctcxo")
+            self.comb  += vctcxo_pads.sel.eq(self.fpgacfg.ext_clk)
+            self.comb  += vctcxo_pads.en.eq(self.fpgacfg.tcxo_en)
 
         # RF Switches ------------------------------------------------------------------------------
 
@@ -308,18 +339,18 @@ class LimeTop(LiteXModule):
                 tx_lb_pads.AT.eq(  self.gpio.storage[1]),
                 tx_lb_pads.SH.eq(  self.gpio.storage[2]),
             ]
-        else:
+        elif platform.name.startswith("limesdr_xtrx"):
             rfsw_pads         = platform.request("rf_switches")
             self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
             #self.comb += rfsw_pads.tx.eq(1)
             self.comb +=  self.rfsw_control.AUTO_IN.eq(self.lms7002_top.tx_ant_en)
 
         # Interrupt --------------------------------------------------------------------------------
-
-        if not platform.name.startswith("limesdr_mini"):
-            self.comb += self.ev.clk_ctrl_irq.trigger.eq((lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.storage == 1)
-                | (lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.storage == 1)
-                | (lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.storage == 1) )
+        if with_lms7002:
+            if not platform.name.startswith("limesdr_mini"):
+                self.comb += self.ev.clk_ctrl_irq.trigger.eq((lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.storage == 1)
+                    | (lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.storage == 1)
+                    | (lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PLLRST_START.storage == 1) )
 
         if soc_has_timesource:
             # TODO: maybe move this to a separate module
