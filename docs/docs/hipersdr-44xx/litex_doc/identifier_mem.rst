@@ -15,7 +15,7 @@ IDENTIFIER_MEM
 
 `Address: 0xf0005000 + 0x0 = 0xf0005000`
 
-    8 x 53-bit memory
+    8 x 56-bit memory
 
     .. wavedrom::
         :caption: IDENTIFIER_MEM

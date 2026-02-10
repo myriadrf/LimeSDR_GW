@@ -21,7 +21,7 @@ Register Groups
     uart
     pcie_phy
     pcie_msi
-    afe
+    bsp
     pcie_dma0
     ctrl
     fpgacfg
@@ -40,6 +40,7 @@ Register Groups
     periphcfg
     pwr_control
     CNTRL
+    afe
     spimaster_adf
     timer0
 

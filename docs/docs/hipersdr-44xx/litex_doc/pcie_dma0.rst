@@ -431,7 +431,7 @@ PCIE_DMA0_BUFFERING_READER_FIFO_CONTROL
 
         {
             "reg": [
-                {"name": "depth",  "attr": '8192', "bits": 24},
+                {"name": "depth",  "attr": '16384', "bits": 24},
                 {"name": "scratch",  "bits": 4},
                 {"bits": 3},
                 {"name": "level_mode",  "bits": 1}
@@ -491,7 +491,7 @@ PCIE_DMA0_BUFFERING_WRITER_FIFO_CONTROL
 
         {
             "reg": [
-                {"name": "depth",  "attr": '8192', "bits": 24},
+                {"name": "depth",  "attr": '16384', "bits": 24},
                 {"name": "scratch",  "bits": 4},
                 {"bits": 3},
                 {"name": "level_mode",  "bits": 1}
