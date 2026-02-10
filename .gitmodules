@@ -4,3 +4,7 @@
 [submodule "gateware/LimePPSDO"]
 	path = gateware/LimePPSDO
 	url = ../../myriadrf/LimePPSDO.git
+[submodule "gateware/AFE79xx"]
+	path = gateware/AFE79xx
+	url = ../../limemicro/AFE79xx.git
+	update = none
