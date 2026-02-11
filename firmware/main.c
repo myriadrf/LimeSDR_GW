@@ -854,7 +854,7 @@ int main(void) {
 
                     for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
                     {
-                        bsp_control_adf(1, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block*3)]);//write data to ADF
+                        bsp_control_adf(1, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block*3)], false);//write data to ADF
                     }
 
                     // No error status possible from bsp_control_adf, so always report completed

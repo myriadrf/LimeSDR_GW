@@ -916,46 +916,41 @@ void bsp_lms8_pwrup(void) {
 	LP8758_init(&I2C2_REGS);
 }
 
-
-// Helper function just to pack the integer into the buffer
-static void adf_pack_u32(uint32_t value, uint8_t *buf) {
-    buf[0] = (value >> 16) & 0xFF; // Upper byte
-    buf[1] = (value >> 8) & 0xFF;  // Middle byte
-    buf[2] = value & 0xFF;         // Lower byte
-}
-
- void bsp_control_adf(uint8_t oe, const uint8_t data[3])
+ void bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data)
 {
-    Control_TCXO_ADF(ADF4002_SPIMASTER, ADF4002_CS, oe, (uint8_t*)data);
+    const uint8_t spi_master = ADF4002_SPIMASTER;
+    const uint8_t spi_cs = ADF4002_CS;
+    if (pack_data == false) {
+        Control_TCXO_ADF(spi_master, spi_cs, oe, (uint8_t*)data);
+    }
+    else {
+        Control_TCXO_ADF_packed(spi_master, spi_cs, oe, (uint8_t*)data);
+    }
 }
 
 void bsp_init_adf(void) {
     uint32_t data;
-    uint8_t tx_buf[3];
+    uint8_t* data_ptr = (uint8_t*)&data;
 
     // R-counter to 5
     data = (1 << 20) | (5 << 2);
     data |= 0; // 00 control bits - R counter
-    adf_pack_u32(data, tx_buf); // 1. Pack
-    bsp_control_adf(1, tx_buf); // 2. Send
+    bsp_control_adf(1, data_ptr, true); // Pack and Send
 
     // N-counter to 8
     data = (0 << 21) | (8 << 8);
     data |= 1; // 01 control bits - N counter
-    adf_pack_u32(data, tx_buf); // 1. Pack
-    bsp_control_adf(1, tx_buf); // 2. Send
+    bsp_control_adf(1, data_ptr, true); // Pack and Send
 
     // Function latch
     data = (3 << 18) | (3 << 15) | (8 << 11) | (1 << 7) | (1 << 4);
     data |= 2; // 10 control bits - Function latch
-    adf_pack_u32(data, tx_buf); // 1. Pack
-    bsp_control_adf(1, tx_buf); // 2. Send
+    bsp_control_adf(1, data_ptr, true); // Pack and send
 
     // Init latch
     data = (3 << 18) | (3 << 15) | (8 << 11) | (1 << 7) | (1 << 4);
     data |= 3; // 11 control bits - Init latch
-    adf_pack_u32(data, tx_buf); // 1. Pack
-    bsp_control_adf(1, tx_buf); // 2. Send
+    bsp_control_adf(1, data_ptr, true); // Pack and send
 }
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data) {

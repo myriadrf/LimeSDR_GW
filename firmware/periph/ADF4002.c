@@ -37,3 +37,23 @@ void Control_TCXO_ADF (uint8_t spi_master, uint8_t spi_cs, uint8_t oe, uint8_t *
         bsp_spi_transfer(spi_master, spi_cs, data, 3, 0, NULL);
     }
 }
+
+// Helper function just to pack the integer into the buffer
+void adf_pack(uint8_t *in_buf, uint8_t *out_buf) {
+    out_buf[0] = in_buf[2];// Upper byte
+    out_buf[1] = in_buf[1];// Middle byte
+    out_buf[2] = in_buf[0];// Lower byte
+}
+
+// Helper wrapper
+// ADF expects data MSB first
+// If this function is used, the LSB in buffer pointed to by data
+// will be the last byte sent do ADF and be correctly identified as LSB
+// This can help with code readability
+void Control_TCXO_ADF_packed (uint8_t spi_master, uint8_t spi_cs, uint8_t oe, uint8_t *data) {
+    uint8_t buf[3];
+    adf_pack(data, buf);
+    Control_TCXO_ADF(spi_master,spi_cs,oe,buf);
+}
+
+
