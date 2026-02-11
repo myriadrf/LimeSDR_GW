@@ -240,7 +240,8 @@ class RXPathTop(LiteXModule):
             # Second counter instance
             base_inc_val = Signal(32)
 
-            self.sync.afe += self.num_of_channels.eq(
+            sync_s_clk_domain = getattr(self.sync, s_clk_domain)
+            sync_s_clk_domain += self.num_of_channels.eq(
                 sum(self.s_clk_ch_en[i] for i in range(len(self.s_clk_ch_en))))
 
             cases = {
@@ -253,7 +254,7 @@ class RXPathTop(LiteXModule):
 
             self.comb += Case(self.num_of_channels, cases)
 
-            self.sync.afe += [
+            sync_s_clk_domain += [
                 If (s_smpl_width == 2,
                     self.sample_counter_1_inc_val.eq(base_inc_val*4),
                 ).Else(
