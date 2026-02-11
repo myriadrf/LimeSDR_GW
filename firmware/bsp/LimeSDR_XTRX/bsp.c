@@ -1,5 +1,33 @@
 #include "bsp.h"
 
+void bsp_init(void) {
+#error "bsp_init not implemented"
+}
+
+void bsp_powerup(void) {
+#error "bsp_powerup not implemented"
+}
+
+void bsp_shutdown(void) {
+#error "bsp_shutdown not implemented"
+}
+
+static void bsp_isr(void) {
+#error "bsp_isr not implemented"
+}
+
+void bsp_isr_init(void) {
+#error "bsp_isr_init not implemented"
+}
+
+void bsp_process_irqs(void) {
+#error "bsp_process_irqs not implemented"
+}
+
+void bsp_delay_ms(unsigned int ms) {
+#error "bsp_delay_ms not implemented"
+}
+
 int8_t lms7002m_periph_id_check(uint8_t periph_id) {
 #error "lms7002m_periph_id_check not implemented"
 }
@@ -73,6 +101,10 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
 #error "bsp_spi_transfer not implemented"
 }
 
-void bsp_control_adf(uint8_t oe, const uint8_t data[3]) {
+void bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data) {
 #error "bsp_control_adf not implemented"
+}
+
+void bsp_init_adf(void) {
+#error "bsp_init_adf not implemented"
 }

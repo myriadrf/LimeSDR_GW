@@ -80,6 +80,11 @@ void bsp_lms8_pwrup(void);
 // Optional: shutdown or reset board hardware
 void bsp_shutdown(void);
 
+// ISR functions
+static void bsp_isr(void);
+void bsp_isr_init(void);
+void bsp_process_irqs(void);
+
 // Optional: board-specific delay or timer
 void bsp_delay_ms(unsigned int ms);
 // LMS specific functions
