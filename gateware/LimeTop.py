@@ -313,14 +313,6 @@ class LimeTop(LiteXModule):
             else:
                 self.tx_pipeline.add(self.phy_tx_source)
 
-
-        # VCTCXO -----------------------------------------------------------------------------------
-
-        if platform.name.startswith("limesdr_xtrx"):
-            vctcxo_pads = platform.request("vctcxo")
-            self.comb  += vctcxo_pads.sel.eq(self.fpgacfg.ext_clk)
-            self.comb  += vctcxo_pads.en.eq(self.fpgacfg.tcxo_en)
-
         # RF Switches ------------------------------------------------------------------------------
 
         if platform.name.startswith("limesdr_mini"):
