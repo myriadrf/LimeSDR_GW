@@ -420,6 +420,7 @@ def main():
                 f.write(f"BUILD_DIR={builder.output_dir}\n")
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
+                f.write("BSP_PROJECT_DIR=bsp/LimeSDR_Mini_V2\n")
             os.system(f"cd firmware && make clean all")
             bistream_output_dir = "bitstream/LimeSDR_Mini_V2"
             if not os.path.exists(bistream_output_dir):

@@ -472,6 +472,7 @@ def main():
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
                 f.write(f"GOLDEN={is_golden}\n")
+                f.write("BSP_PROJECT_DIR=bsp/LimeSDR_Mini_V1\n")
             os.system(f"cd firmware && make clean all")
             assert os.path.exists(cpu_firmware), f"Error: {cpu_firmware} not available"
 
