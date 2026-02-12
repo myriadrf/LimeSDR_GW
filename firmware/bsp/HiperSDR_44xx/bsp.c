@@ -59,6 +59,9 @@ static uint8_t gpio_shadow_cache[BSP_GPIO_COUNT] = {0};
 
 static volatile uint32_t bsp_irq_pending = 0;
 
+static uint8_t prev_pwr_lms8_nrst_state = 0;
+static bool pwr_lms8_nrst_init_done = false;
+
 static void bsp_isr(void) {
     bsp_irq_pending = bsp_ev_pending_read();
     bsp_ev_pending_write(bsp_ev_pending_read()); // Clear interrupt
@@ -88,6 +91,28 @@ void bsp_isr_init(void) {
 }
 
 void bsp_process_irqs(void) {
+    // Poll: Extract the current state of that specific bit
+    uint8_t current_byte = bsp_gpio_get_cached(PWR_LMS8_NRST_OFFSET);
+    uint8_t curr_pwr_lms8_nrst_state = (current_byte >> PWR_LMS8_NRST_POS) & 0x01;
+
+    if (!pwr_lms8_nrst_init_done) {
+        prev_pwr_lms8_nrst_state = curr_pwr_lms8_nrst_state;
+        pwr_lms8_nrst_init_done = true;
+    }
+
+    // Compare: Check if the bit state flipped
+    if (curr_pwr_lms8_nrst_state != prev_pwr_lms8_nrst_state) {
+        if (curr_pwr_lms8_nrst_state == 1) {
+            printf("PWR_LMS8_NRST ON\n");
+            bsp_lms8_pwrup();
+        } else {
+            printf("PWR_LMS8_NRST OFF\n");
+        }
+
+        // Update history
+        prev_pwr_lms8_nrst_state = curr_pwr_lms8_nrst_state;
+    }
+
     // If no interrupts are pending, return immediately
     if (bsp_irq_pending == 0) return;
 

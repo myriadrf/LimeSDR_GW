@@ -77,8 +77,6 @@ volatile unsigned char tmp_serial[32] = {0};
 volatile unsigned char tmprd_serial[32] = {0};
 
 
-#define PWR_LMS8_NRST_OFFSET 7
-#define PWR_LMS8_NRST_POS    0
 
 //#define FW_VER 1 // Initial version
 //#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
@@ -225,28 +223,8 @@ int main(void) {
     help();
     prompt();
 
-    uint8_t prev_pwr_lms8_nrst_state = (bsp_gpio_get_cached(PWR_LMS8_NRST_OFFSET) >> PWR_LMS8_NRST_POS) & 0x01;
-
     while (1) {
         console_service();
-
-        //TODO: move this to bsp_process_irqs
-        // 2. Poll: Extract the current state of that specific bit
-        uint8_t current_byte = bsp_gpio_get_cached(PWR_LMS8_NRST_OFFSET);
-        uint8_t curr_pwr_lms8_nrst_state = (current_byte >> PWR_LMS8_NRST_POS) & 0x01;
-
-        // 3. Compare: Check if the bit state flipped
-        if (curr_pwr_lms8_nrst_state != prev_pwr_lms8_nrst_state) {
-            if (curr_pwr_lms8_nrst_state == 1) {
-                printf("PWR_LMS8_NRST ON\n");
-                bsp_lms8_pwrup();
-            } else {
-                printf("PWR_LMS8_NRST OFF\n");
-            }
-
-            // 4. Update history
-            prev_pwr_lms8_nrst_state = curr_pwr_lms8_nrst_state;
-        }
 
         bsp_process_irqs();
 

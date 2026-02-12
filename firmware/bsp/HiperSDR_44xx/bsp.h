@@ -40,6 +40,9 @@
 #define PG_EN_2P05_BIT		(1U << CSR_PWR_CONTROL_REG01_PG_EN_2P05_OFFSET)
 #define PG_AFE_AVDD_1P2_BIT	(1U << CSR_PWR_CONTROL_REG01_PG_AFE_AVDD_1P2_OFFSET)
 
+#define PWR_LMS8_NRST_OFFSET 7
+#define PWR_LMS8_NRST_POS    0
+
 // TCA6424 I/O expander control signals
 // U115
 #define ENABLE_6VIN             (1U<<0)
