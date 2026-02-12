@@ -149,11 +149,11 @@ static void lms64c_init(void) {
 
 static void clk_ctrl_isr(void) {
 #ifdef CSR_LIME_TOP_LMS7002
-	// Reset relevant CSR's
-	csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
-	csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
-	csr_write_simple(0, clk_ctrl_addrs.pllcfg_error);
-	csr_write_simple(0, clk_ctrl_addrs.phcfg_err);
+    // Reset relevant CSR's
+    csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
+    csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
+    csr_write_simple(0, clk_ctrl_addrs.pllcfg_error);
+    csr_write_simple(0, clk_ctrl_addrs.phcfg_err);
 
     var_phcfg_start = csr_read_simple(clk_ctrl_addrs.phcfg_start);
     var_pllcfg_start = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
@@ -162,14 +162,14 @@ static void clk_ctrl_isr(void) {
     if (var_phcfg_start || var_pllcfg_start || var_pllrst_start)
         clk_cfg_pending = 1;
 
-	lime_top_ev_pending_write(lime_top_ev_pending_read()); //Clear interrupt
-	lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
+    lime_top_ev_pending_write(lime_top_ev_pending_read()); //Clear interrupt
+    lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
 #endif
 }
 
 static void clk_cfg_irq_init(void) {
 #ifdef CSR_LIME_TOP_LMS7002
-	printf("CLK config irq initialization \n");
+    printf("CLK config irq initialization \n");
 
     /* Clear all pending interrupts. */
     lime_top_ev_pending_write(lime_top_ev_pending_read());
@@ -208,9 +208,7 @@ int main(void) {
 
     //init_pmic();
     //init_vctcxo_dac();
-    bsp_init();
-    {
-
+    bsp_init(); {
         //Check if there is a value in permanent vctcxo memory
         //If there is, write it to runtime DAC
         //If there isn't write default
@@ -219,9 +217,8 @@ int main(void) {
         bsp_vctcxo_permanent_dac_read((uint8_t *) &perm_dac_val);
         if (perm_dac_val != 0xFFFF) {
             bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
-        }
-        else {
-            bsp_analog_write(BSP_DAC_INDEX, 0x00, (DAC_DEFF_VAL&0xff00 >>8), DAC_DEFF_VAL&0xff);
+        } else {
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, (DAC_DEFF_VAL & 0xff00 >> 8), DAC_DEFF_VAL & 0xff);
         }
     }
 
@@ -235,24 +232,23 @@ int main(void) {
 
         //TODO: move this to bsp_process_irqs
         // 2. Poll: Extract the current state of that specific bit
-		uint8_t current_byte = bsp_gpio_get_cached(PWR_LMS8_NRST_OFFSET);
-		uint8_t curr_pwr_lms8_nrst_state = (current_byte >> PWR_LMS8_NRST_POS) & 0x01;
+        uint8_t current_byte = bsp_gpio_get_cached(PWR_LMS8_NRST_OFFSET);
+        uint8_t curr_pwr_lms8_nrst_state = (current_byte >> PWR_LMS8_NRST_POS) & 0x01;
 
-		// 3. Compare: Check if the bit state flipped
-		if (curr_pwr_lms8_nrst_state != prev_pwr_lms8_nrst_state) {
+        // 3. Compare: Check if the bit state flipped
+        if (curr_pwr_lms8_nrst_state != prev_pwr_lms8_nrst_state) {
+            if (curr_pwr_lms8_nrst_state == 1) {
+                printf("PWR_LMS8_NRST ON\n");
+                bsp_lms8_pwrup();
+            } else {
+                printf("PWR_LMS8_NRST OFF\n");
+            }
 
-			if (curr_pwr_lms8_nrst_state == 1) {
-				printf("PWR_LMS8_NRST ON\n");
-				bsp_lms8_pwrup();
-			} else {
-				printf("PWR_LMS8_NRST OFF\n");
-			}
+            // 4. Update history
+            prev_pwr_lms8_nrst_state = curr_pwr_lms8_nrst_state;
+        }
 
-			// 4. Update history
-			prev_pwr_lms8_nrst_state = curr_pwr_lms8_nrst_state;
-		}
-
-	bsp_process_irqs();
+        bsp_process_irqs();
 
         // Process received packet
         if (lms64_packet_pending) {
@@ -575,7 +571,7 @@ int main(void) {
                         break;
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                        cmd_errors += bsp_gpio_dir_write(LMS_Ctrl_Packet_Rx->Data_field[block],block);
+                        cmd_errors += bsp_gpio_dir_write(LMS_Ctrl_Packet_Rx->Data_field[block], block);
                     }
                     if (cmd_errors)
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
@@ -588,7 +584,7 @@ int main(void) {
                         break;
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                        cmd_errors += bsp_gpio_dir_read(&LMS_Ctrl_Packet_Tx->Data_field[block],block);
+                        cmd_errors += bsp_gpio_dir_read(&LMS_Ctrl_Packet_Tx->Data_field[block], block);
                     }
                     if (cmd_errors)
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
@@ -597,14 +593,14 @@ int main(void) {
                     break;
 
                 case CMD_GPIO_WR:
-                	//printf("[CMD]: CMD_GPIO_WR\n");
+                    //printf("[CMD]: CMD_GPIO_WR\n");
                     if (Check_many_blocks(1)) {
-                    	//printf("[DATA_BLOCK]: %x ", LMS_Ctrl_Packet_Rx->Header.Data_blocks);
+                        //printf("[DATA_BLOCK]: %x ", LMS_Ctrl_Packet_Rx->Header.Data_blocks);
                         break;
                     }
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                        cmd_errors += bsp_gpio_write(LMS_Ctrl_Packet_Rx->Data_field[block],block);
+                        cmd_errors += bsp_gpio_write(LMS_Ctrl_Packet_Rx->Data_field[block], block);
                         //printf("[%x]: %x\n ", block, LMS_Ctrl_Packet_Rx->Data_field[block]);
                     }
                     if (cmd_errors)
@@ -613,14 +609,14 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
-                	//printf("[CMD]: %x ", cmd_errors);
+                //printf("[CMD]: %x ", cmd_errors);
 
                 case CMD_GPIO_RD:
                     if (Check_many_blocks(1))
                         break;
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                        cmd_errors += bsp_gpio_read(&LMS_Ctrl_Packet_Tx->Data_field[block],block);
+                        cmd_errors += bsp_gpio_read(&LMS_Ctrl_Packet_Tx->Data_field[block], block);
                     }
                     if (cmd_errors)
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
@@ -697,8 +693,8 @@ int main(void) {
                                     // Check if new address is bottom of sector, erase if needed
                                     if ((address & 0xFFF) == 0)
                                         FlashQspi_EraseSector(address);
-                                        memcpy(&page_buffer[0], &LMS_Ctrl_Packet_Rx->Data_field[24 + data_to_copy],
-                                               data_leftover);
+                                    memcpy(&page_buffer[0], &LMS_Ctrl_Packet_Rx->Data_field[24 + data_to_copy],
+                                           data_leftover);
                                     page_buffer_cnt = data_leftover;
                                 } else {
                                     // Incoming data would not overflow the page buffer
@@ -712,7 +708,7 @@ int main(void) {
                                         total_data += 256;
                                         // Check if new address is bottom of sector, erase if needed
                                         if ((address & 0xFFF) == 0)
-                                        FlashQspi_EraseSector(address);
+                                            FlashQspi_EraseSector(address);
                                     }
                                 }
                             }
@@ -735,25 +731,25 @@ int main(void) {
                 case CMD_PERIPHSPI_TRNSF:
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                    	/*
+                        /*
                         printf("[d] Block: 0x%x\n", block);
 
-                    	printf("[RX]: %x ", LMS_Ctrl_Packet_Rx->Data_field[8 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[9 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[10 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[11 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[12 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[13 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[14 + (block * 8)]);
-                    	printf("%x\n", LMS_Ctrl_Packet_Rx->Data_field[15 + (block * 8)]);
+                        printf("[RX]: %x ", LMS_Ctrl_Packet_Rx->Data_field[8 + (block * 8)]);
+                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[9 + (block * 8)]);
+                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[10 + (block * 8)]);
+                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[11 + (block * 8)]);
+                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[12 + (block * 8)]);
+                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[13 + (block * 8)]);
+                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[14 + (block * 8)]);
+                        printf("%x\n", LMS_Ctrl_Packet_Rx->Data_field[15 + (block * 8)]);
                         */
                         cmd_errors += bsp_spi_transfer(
-                        		LMS_Ctrl_Packet_Rx->Header.Periph_ID,
-                        		LMS_Ctrl_Packet_Rx->Data_field[0],
-								&LMS_Ctrl_Packet_Rx->Data_field[8 + (block * 8)],
-								LMS_Ctrl_Packet_Rx->Data_field[2],
-								2,
-								&LMS_Ctrl_Packet_Tx->Data_field[8 + (block * 8)]
+                            LMS_Ctrl_Packet_Rx->Header.Periph_ID,
+                            LMS_Ctrl_Packet_Rx->Data_field[0],
+                            &LMS_Ctrl_Packet_Rx->Data_field[8 + (block * 8)],
+                            LMS_Ctrl_Packet_Rx->Data_field[2],
+                            2,
+                            &LMS_Ctrl_Packet_Tx->Data_field[8 + (block * 8)]
                         );
                         /*
                     	printf("[TX]: %x ", LMS_Ctrl_Packet_Tx->Data_field[8 + (block * 8)]);
@@ -776,14 +772,13 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
-                	break;
+                    break;
 
                 case CMD_ADF4002_WR:
-                    if(Check_many_blocks (3)) break;
+                    if (Check_many_blocks(3)) break;
 
-                    for(block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++)
-                    {
-                        bsp_control_adf(1, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block*3)], false);//write data to ADF
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        bsp_control_adf(1, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 3)], false); //write data to ADF
                     }
 
                     // No error status possible from bsp_control_adf, so always report completed
@@ -794,10 +789,10 @@ int main(void) {
                 case CMD_ANALOG_VAL_RD:
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
                         cmd_errors += bsp_analog_read(
-                            LMS_Ctrl_Packet_Rx->Data_field[0 + (block)],      // Channel (8bit)
+                            LMS_Ctrl_Packet_Rx->Data_field[0 + (block)], // Channel (8bit)
                             &LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)], // Units (8bit)
                             &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)], // Value MSB (8bit/16bit)
-                            &LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)]  // Value LSB (8bit/16bit)
+                            &LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] // Value LSB (8bit/16bit)
                         );
                     }
 
@@ -817,7 +812,7 @@ int main(void) {
                             LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], // Channel (8bit)
                             LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)], // Units (8bit)
                             LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)], // Value MSB (8bit)
-                            LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]  // Value LSB (8bit)
+                            LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)] // Value LSB (8bit)
                         );
                     }
                     if (cmd_errors)
@@ -827,28 +822,25 @@ int main(void) {
                     break;
 
 
-                case CMD_MEMORY_WR:
-
-                {
-                    uint8_t* rx_ptr    = &LMS_Ctrl_Packet_Rx->Data_field[0];
-                    const uint32_t offset    = rx_ptr[9] | (rx_ptr[8] << 8) | (rx_ptr[7] << 16) | (rx_ptr[6] << 24);
-                    const uint8_t progmode   = rx_ptr[0];
-                    const uint16_t target    = rx_ptr[11] | (rx_ptr[10] << 8);
+                case CMD_MEMORY_WR: {
+                    uint8_t *rx_ptr = &LMS_Ctrl_Packet_Rx->Data_field[0];
+                    const uint32_t offset = rx_ptr[9] | (rx_ptr[8] << 8) | (rx_ptr[7] << 16) | (rx_ptr[6] << 24);
+                    const uint8_t progmode = rx_ptr[0];
+                    const uint16_t target = rx_ptr[11] | (rx_ptr[10] << 8);
                     const uint8_t data_count = rx_ptr[5];
 
-                    LMS_Ctrl_Packet_Tx->Header.Status = bsp_mem_write(offset, progmode, target, &rx_ptr[24], data_count);
+                    LMS_Ctrl_Packet_Tx->Header.Status =
+                            bsp_mem_write(offset, progmode, target, &rx_ptr[24], data_count);
 
                     break;
                 }
 
-                case CMD_MEMORY_RD:
-
-                {
-                    uint8_t* rx_ptr    = &LMS_Ctrl_Packet_Rx->Data_field[0];
-                    uint8_t* tx_ptr    = &LMS_Ctrl_Packet_Tx->Data_field[0];
-                    const uint32_t offset    = rx_ptr[9] | (rx_ptr[8] << 8) | (rx_ptr[7] << 16) | (rx_ptr[6] << 24);
-                    const uint8_t progmode   = rx_ptr[0];
-                    const uint16_t target    = rx_ptr[11] | (rx_ptr[10] << 8);
+                case CMD_MEMORY_RD: {
+                    uint8_t *rx_ptr = &LMS_Ctrl_Packet_Rx->Data_field[0];
+                    uint8_t *tx_ptr = &LMS_Ctrl_Packet_Tx->Data_field[0];
+                    const uint32_t offset = rx_ptr[9] | (rx_ptr[8] << 8) | (rx_ptr[7] << 16) | (rx_ptr[6] << 24);
+                    const uint8_t progmode = rx_ptr[0];
+                    const uint16_t target = rx_ptr[11] | (rx_ptr[10] << 8);
                     const uint8_t data_count = rx_ptr[5];
 
                     LMS_Ctrl_Packet_Tx->Header.Status = bsp_mem_read(offset, progmode, target, &tx_ptr[24], data_count);
@@ -862,34 +854,31 @@ int main(void) {
                         break;
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        // Calculate the starting address of the current 16-byte block
+                        uint8_t *pCurrentBlock = (uint8_t *) &LMS_Ctrl_Packet_Rx->Data_field[block * 16];
 
-                    	// Calculate the starting address of the current 16-byte block
-                    	uint8_t *pCurrentBlock = (uint8_t *)&LMS_Ctrl_Packet_Rx->Data_field[block * 16];
+                        // Extract the Offset (take only 4 bytes since CSR is 4bits wide)
+                        uint32_t offset = ((uint32_t) pCurrentBlock[4] << 24) |
+                                          ((uint32_t) pCurrentBlock[5] << 16) |
+                                          ((uint32_t) pCurrentBlock[6] << 8) |
+                                          ((uint32_t) pCurrentBlock[7] << 0);
 
-                    	// Extract the Offset (take only 4 bytes since CSR is 4bits wide)
-                    	uint32_t offset = 	((uint32_t)pCurrentBlock[4] << 24) |
-                    						((uint32_t)pCurrentBlock[5] << 16) |
-											((uint32_t)pCurrentBlock[6] << 8)  |
-											((uint32_t)pCurrentBlock[7] << 0);
+                        //Extract the Value (take only 4 bytes since CSR is 4bits wide)
+                        uint32_t value = ((uint32_t) pCurrentBlock[12] << 24) |
+                                         ((uint32_t) pCurrentBlock[13] << 16) |
+                                         ((uint32_t) pCurrentBlock[14] << 8) |
+                                         ((uint32_t) pCurrentBlock[15] << 0);
 
-                    	//Extract the Value (take only 4 bytes since CSR is 4bits wide)
-                    	uint32_t value  = 	((uint32_t)pCurrentBlock[12] << 24) |
-                    						((uint32_t)pCurrentBlock[13] << 16) |
-											((uint32_t)pCurrentBlock[14] << 8)  |
-											((uint32_t)pCurrentBlock[15] << 0);
-
-                    	// Check if address is within range AND aligned to 32 bits (4 bytes)
-                    	//TODO: find a way to reuse CSR_SIZE define instead of constant 0x00010000
-                    	if (offset >= CSR_BASE && offset < (CSR_BASE + 0x00010000) && (offset & ((CONFIG_CSR_ALIGNMENT / 8) - 1)) == 0) {
-                    		// Perform CSR Write
-                    		csr_write_simple(value, offset);
-                    	}
-                    	else {
-                    		cmd_errors++;
-                    		break;
-                    	}
-
-
+                        // Check if address is within range AND aligned to 32 bits (4 bytes)
+                        //TODO: find a way to reuse CSR_SIZE define instead of constant 0x00010000
+                        if (offset >= CSR_BASE && offset < (CSR_BASE + 0x00010000) && (
+                                offset & ((CONFIG_CSR_ALIGNMENT / 8) - 1)) == 0) {
+                            // Perform CSR Write
+                            csr_write_simple(value, offset);
+                        } else {
+                            cmd_errors++;
+                            break;
+                        }
                     }
 
                     if (cmd_errors)
@@ -906,28 +895,27 @@ int main(void) {
 
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        // Set Pointers for both RX (Request) and TX (Response)
+                        uint8_t *pCurrentBlockRx = (uint8_t *) &LMS_Ctrl_Packet_Rx->Data_field[block * 16];
+                        uint8_t *pCurrentBlockTx = (uint8_t *) &LMS_Ctrl_Packet_Tx->Data_field[block * 16];
 
-                    	// Set Pointers for both RX (Request) and TX (Response)
-                    	uint8_t *pCurrentBlockRx = (uint8_t *)&LMS_Ctrl_Packet_Rx->Data_field[block * 16];
-                    	uint8_t *pCurrentBlockTx = (uint8_t *)&LMS_Ctrl_Packet_Tx->Data_field[block * 16];
+                        // Extract Offset from RX (Bytes 4-7)
+                        uint32_t offset = ((uint32_t) pCurrentBlockRx[4] << 24) |
+                                          ((uint32_t) pCurrentBlockRx[5] << 16) |
+                                          ((uint32_t) pCurrentBlockRx[6] << 8) |
+                                          ((uint32_t) pCurrentBlockRx[7] << 0);
 
-                    	// Extract Offset from RX (Bytes 4-7)
-                    	uint32_t offset = 	((uint32_t)pCurrentBlockRx[4] << 24) |
-                    						((uint32_t)pCurrentBlockRx[5] << 16) |
-											((uint32_t)pCurrentBlockRx[6] << 8)  |
-											((uint32_t)pCurrentBlockRx[7] << 0);
-
-                    	uint32_t value =0;
-                    	// Check if address is within range AND aligned to 32 bits (4 bytes)
-                    	//TODO: find a way to reuse CSR_SIZE define instead of constant 0x00010000
-                    	if (offset >= CSR_BASE && offset < (CSR_BASE + 0x00010000) && (offset & ((CONFIG_CSR_ALIGNMENT / 8) - 1)) == 0) {
-                    		// Perform CSR Read
+                        uint32_t value = 0;
+                        // Check if address is within range AND aligned to 32 bits (4 bytes)
+                        //TODO: find a way to reuse CSR_SIZE define instead of constant 0x00010000
+                        if (offset >= CSR_BASE && offset < (CSR_BASE + 0x00010000) && (
+                                offset & ((CONFIG_CSR_ALIGNMENT / 8) - 1)) == 0) {
+                            // Perform CSR Read
                             value = csr_read_simple(offset);
-                    	}
-                    	else {
-                    		cmd_errors++;
-                    		break;
-                    	}
+                        } else {
+                            cmd_errors++;
+                            break;
+                        }
 
 
                         // Response Offset (Echoing the Offset back, and fill MSB with zeros since CSR are 4bytes wide)
@@ -937,8 +925,8 @@ int main(void) {
                         pCurrentBlockTx[3] = 0;
                         pCurrentBlockTx[4] = (offset >> 24) & 0xff;
                         pCurrentBlockTx[5] = (offset >> 16) & 0xff;
-                        pCurrentBlockTx[6] = (offset >> 8)  & 0xff;
-                        pCurrentBlockTx[7] = (offset >> 0)  & 0xff;
+                        pCurrentBlockTx[6] = (offset >> 8) & 0xff;
+                        pCurrentBlockTx[7] = (offset >> 0) & 0xff;
 
                         //Response Value, (CSR read value and fill MSB with zeros since CSR are 4bytes wide)
                         pCurrentBlockTx[8] = 0;
@@ -947,9 +935,8 @@ int main(void) {
                         pCurrentBlockTx[11] = 0;
                         pCurrentBlockTx[12] = (value >> 24) & 0xff;
                         pCurrentBlockTx[13] = (value >> 16) & 0xff;
-                        pCurrentBlockTx[14] = (value >> 8)  & 0xff;
-                        pCurrentBlockTx[15] = (value >> 0)  & 0xff;
-
+                        pCurrentBlockTx[14] = (value >> 8) & 0xff;
+                        pCurrentBlockTx[15] = (value >> 0) & 0xff;
                     }
 
                     if (cmd_errors)
