@@ -716,6 +716,7 @@ def main():
                 f.write(f"BUILD_DIR={builder.output_dir}\n")
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
+                f.write("BSP_PROJECT_DIR=bsp/SSDR\n")
             os.system(f"cd firmware && make clean all")
             bistream_output_dir = "bitstream/SSDR"
             if not os.path.exists(bistream_output_dir):
