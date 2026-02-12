@@ -1,5 +1,21 @@
 #include "bsp.h"
 
+litei2c_regs I2C0_REGS = {
+    .master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
+    .master_addr_addr     = CSR_I2C0_MASTER_ADDR_ADDR,
+    .master_settings_addr = CSR_I2C0_MASTER_SETTINGS_ADDR,
+    .master_status_addr   = CSR_I2C0_MASTER_STATUS_ADDR,
+    .master_rxtx_addr     = CSR_I2C0_MASTER_RXTX_ADDR
+};
+
+litei2c_regs I2C1_REGS = {
+    .master_active_addr   = CSR_I2C1_MASTER_ACTIVE_ADDR,
+    .master_addr_addr     = CSR_I2C1_MASTER_ADDR_ADDR,
+    .master_settings_addr = CSR_I2C1_MASTER_SETTINGS_ADDR,
+    .master_status_addr   = CSR_I2C1_MASTER_STATUS_ADDR,
+    .master_rxtx_addr     = CSR_I2C1_MASTER_RXTX_ADDR
+};
+
 void bsp_init(void) {
 #error "bsp_init not implemented"
 }
@@ -33,7 +49,8 @@ int8_t lms7002m_periph_id_check(uint8_t periph_id) {
 }
 
 int8_t lms8001_periph_id_check(uint8_t periph_id) {
-#error "lms8001_periph_id_check not implemented"
+    // No LMS8's on XTRX board
+    return 2; // No LMS8's
 }
 
 void lms7002m_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id) {
@@ -45,39 +62,79 @@ uint16_t lms7002m_spi_read(uint16_t addr, uint8_t periph_id) {
 }
 
 void lms8001_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id) {
-#error "lms8001_spi_write not implemented"
+    // no LMS8 on XTRX
 }
 
 uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id) {
-#error "lms8001_spi_read not implemented"
+    return -1;
 }
 
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb) {
-#error "bsp_analog_read not implemented"
+    if (channel == 0) {
+        uint16_t val = 0;
+        uint8_t* val_ptr = (uint8_t*)&val;
+        litei2c_a8d16_read_register(&I2C0_REGS, I2C_DAC_ADDR, 0x00, &val);
+        *value_lsb = val_ptr[1];
+        *value_msb = val_ptr[0];
+        return STATUS_COMPLETED_CMD;
+    }
+    if (channel == 1) {
+        uint16_t converted_value;
+        uint8_t* val_ptr = (uint8_t*)&converted_value;
+        uint8_t buf;
+        litei2c_a8d16_read_register(&I2C0_REGS, I2C_DAC_ADDR, 0x30, &converted_value);
+        //flip bytes
+        buf = val_ptr[0];
+        val_ptr[0] = val_ptr[1];
+        val_ptr[1] = buf;
+
+        converted_value = converted_value >> 4;
+        converted_value = converted_value * 10;
+        converted_value = converted_value >> 4;
+
+        *value_lsb = val_ptr[1];
+        *value_msb = val_ptr[0];
+        return STATUS_COMPLETED_CMD;
+
+    }
+    return STATUS_ERROR_CMD;
 }
 
 uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8_t value_lsb) {
-#error "bsp_analog_write not implemented"
+    if (channel == 0 && unit == 0) { // TCXO DAC, RAW units
+        uint16_t val = 0;
+        uint8_t* val_ptr = (uint8_t*)&val;
+        val_ptr[0] = value_msb;
+        val_ptr[1] = value_lsb;
+        litei2c_a8d16_write_register(&I2C0_REGS, I2C_DAC_ADDR, 0x30, val);
+        return STATUS_COMPLETED_CMD;
+    }
+    return STATUS_ERROR_CMD;
 }
 
 uint8_t bsp_gpio_dir_read(uint8_t *data, uint8_t offset) {
-#error "bsp_gpio_dir_read not implemented"
+// Unsupported on XTRX
+    return 1;
 }
 
 uint8_t bsp_gpio_dir_write(uint8_t data, uint8_t offset) {
-#error "bsp_gpio_dir_write not implemented"
+    // Unsupported on XTRX
+    return 1;
 }
 
 uint8_t bsp_gpio_read(uint8_t *data, uint8_t offset) {
-#error "bsp_gpio_read not implemented"
+    // Unsupported on XTRX
+    return 1;
 }
 
 uint8_t bsp_gpio_write(uint8_t data, uint8_t offset) {
-#error "bsp_gpio_write not implemented"
+    // Unsupported on XTRX
+    return 1;
 }
 
 uint8_t bsp_gpio_get_cached(const uint8_t offset) {
-#error "bsp_gpio_get_cached not implemented"
+    // Unsupported on XTRX
+    return 1;
 }
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data) {

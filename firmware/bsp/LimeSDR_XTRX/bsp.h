@@ -22,6 +22,7 @@
 /*-----------------------------------------------------------------------*/
 // Define device indexes, addresses and similar here
 #define I2C_DAC_ADDR     0x4C
+#define I2C_TERMO_ADDR    0x4B
 
 // Initialize board-specific hardware
 void bsp_init(void);
