@@ -35,7 +35,7 @@ from litex.soc.cores.xadc      import XADC
 from litex.soc.cores.dna       import DNA
 from litex.soc.cores.gpio      import GPIOOut
 from litex.soc.cores.spi_flash import S7SPIFlash
-from litex.soc.cores.bitbang   import I2CMaster
+from litei2c import LiteI2C
 from litex.soc.cores.spi       import SPIMaster
 
 from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
@@ -140,9 +140,8 @@ class BaseSoC(SoCCore):
         "xadc"        : 16,  # 11
         "dna"         : 17,  # 12
 
-        # XTRX.
+        # I2C.
         "i2c0"        : 18,
-        "i2c1"        : 19,
 
         # CNTRL
         "CNTRL"       : 26,
@@ -349,7 +348,7 @@ class BaseSoC(SoCCore):
         # I2C Bus0 ---------------------------------------------------------------------------------
         # - Temperature Sensor (TMP114NB  @ 0x4E).
         # - PMIC-LMS           (LP8758  @ 0x60).
-        self.i2c0 = I2CMaster(pads=platform.request("i2c", 0))
+        self.i2c1 = LiteI2C(sys_clk_freq=sys_clk_freq, pads=platform.request("i2c", 0), clock_domain="sys")
 
         # PMIC --------------------------------------------------------------------------------
         # Buck0: 1.0V VCCINT + 1.0V MGTAVCC.

@@ -35,7 +35,7 @@ from litex.soc.cores.xadc      import XADC
 from litex.soc.cores.dna       import DNA
 from litex.soc.cores.gpio      import GPIOOut
 from litex.soc.cores.spi_flash import S7SPIFlash
-from litex.soc.cores.bitbang   import I2CMaster
+from litei2c import LiteI2C
 from litex.soc.cores.spi       import SPIMaster
 
 from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
@@ -353,11 +353,11 @@ class BaseSoC(SoCCore):
         # - Temperature Sensor (TMP108  @ 0x4a) Lime: (TMP1075 @ 0x4b).
         # - PMIC-LMS           (LP8758  @ 0x60).
         # - VCTCXO DAC         Rev4: (MCP4725 @ 0x62) Rev5: (DAC60501 @ 0x4b) Lime: (AD5693 @ 0x4c).
-        self.i2c0 = I2CMaster(pads=platform.request("i2c", 0))
+        self.i2c0 = LiteI2C(sys_clk_freq=sys_clk_freq,pads=platform.request("i2c", 0),clock_domain="sys")
 
         # I2C Bus1 ---------------------------------------------------------------------------------
         # PMIC-FPGA (LP8758 @ 0x60).
-        self.i2c1 = I2CMaster(pads=platform.request("i2c", 1))
+        self.i2c1 = LiteI2C(sys_clk_freq=sys_clk_freq,pads=platform.request("i2c", 1),clock_domain="sys")
 
         # PMIC-FPGA --------------------------------------------------------------------------------
         # Buck0: 1.0V VCCINT + 1.0V MGTAVCC.

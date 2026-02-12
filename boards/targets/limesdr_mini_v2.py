@@ -26,7 +26,7 @@ from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder  import *
 
 from litex.soc.cores.clock          import ECP5PLL
-from litex.soc.cores.bitbang        import I2CMaster
+from litei2c import LiteI2C
 from litex.soc.cores.spi.spi_master import SPIMaster
 
 from litespi.phy.generic import LiteSPIPHY
@@ -208,7 +208,7 @@ class BaseSoC(SoCCore):
         self.crg = _CRG(platform, sys_clk_freq)
 
         # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
-        self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C"))
+        self.i2c0 = LiteI2C(sys_clk_freq=sys_clk_freq,pads=platform.request("FPGA_I2C"),clock_domain="sys")
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
         spi_pads = platform.request("FPGA_SPI")

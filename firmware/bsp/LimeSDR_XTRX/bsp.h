@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <generated/csr.h>
+#include "litei2c.h"
 #include <stdio.h>  // For debug/logging (optional)
 #include "LMS.h"
 #include "lime_litex_helpers.h"
@@ -19,8 +20,8 @@
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
-
 // Define device indexes, addresses and similar here
+#define I2C_DAC_ADDR     0x4C
 
 // Initialize board-specific hardware
 void bsp_init(void);

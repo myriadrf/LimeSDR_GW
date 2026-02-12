@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <generated/csr.h>
+#include "litei2c.h"
 #include <stdio.h>  // For debug/logging (optional)
 #include "LMS.h"
 #include "lime_litex_helpers.h"
