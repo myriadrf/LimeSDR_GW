@@ -85,59 +85,6 @@ volatile unsigned char tmprd_serial[32] = {0};
 //#define FW_VER 3 // Added serial number into GET_INFO cmd
 #define FW_VER 5 // Firmware for Litex project
 
-/*-----------------------------------------------------------------------*/
-/* IRQ                                                                   */
-/*-----------------------------------------------------------------------*/
-
-///** IRQ example ISR. */
-//static void irq_example_isr(void)
-//{
-//	uint8_t stat;
-//
-//	/* Read the pending interrupt status. */
-//	stat = lime_top_ev_pending_read();
-//
-//	/* Check if IRQ0 is pending. */
-//	if(stat & (1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET)) {
-//		// printf("IRQ0!\n");
-//		/* Clear the IRQ0 pending status. */
-//		lime_top_ev_pending_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET));
-//	}
-//
-//	/* Check if IRQ1 is pending. */
-//	if(stat & (1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET)) {
-//		// uint32_t dest;
-//		// printf(" CNTRL: ");
-//		// for (int cnt = 0; cnt < 16 ; cnt++)
-//		// {
-//		// 	dest = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt*4));
-//		// 	printf("%x ", dest);
-//		// }
-//		// printf(" \n");
-//		// busy_wait_us(10000);
-//		// printf("IRQ1!\n");
-//		/* Clear the IRQ1 pending status. */
-//		lime_top_ev_pending_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET));
-//	}
-//}
-//
-///* Initialize the IRQ example. */
-//// static void irq_example_init(void)
-//// {
-//// 	/* Clear all pending interrupts. */
-//// 	lime_top_ev_pending_write(lime_top_ev_pending_read());
-////
-//// 	/* Enable IRQ0 and IRQ1. */
-//// 	lime_top_ev_enable_write((1 << CSR_LIME_TOP_EV_STATUS_IRQ0_OFFSET) | (1 << CSR_LIME_TOP_EV_STATUS_IRQ1_OFFSET));
-////
-//// 	/* Attach the example ISR to the interrupt. */
-//// 	irq_attach(LIME_TOP_INTERRUPT, irq_example_isr);
-////
-//// 	/* Enable the example interrupt. */
-//// 	irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
-//// }
-
-
 /**	This function checks if all blocks could fit in data field.
  *	If blocks will not fit, function returns TRUE. */
 unsigned char Check_many_blocks(unsigned char block_size) {
@@ -148,21 +95,6 @@ unsigned char Check_many_blocks(unsigned char block_size) {
         return 0;
 }
 
-/**
- * Gets 64 bytes packet
- */
-/*
-void getLMS64Packet(uint8_t *buf, uint8_t k)
-{
-	uint8_t cnt = 0;
-	uint32_t* dest = (uint32_t*)buf;
-	for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++)
-	{
-		busy_wait_us(1);
-		dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
-	}
-
-}*/
 
 void getLMS64Packet(uint8_t *buf, uint8_t k) {
     uint8_t cnt = 0;
@@ -192,13 +124,11 @@ void getLMS64Packet(uint8_t *buf, uint8_t k) {
     }
 }
 
-
 static void lms64c_isr(void) {
     lms64_packet_pending = 1;
     CNTRL_ev_pending_write(CNTRL_ev_pending_read()); // Clear interrupt
     CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET); // re-enable the event handler
 }
-
 
 static void lms64c_init(void) {
     printf("CNTRL IRQ initialization \n");
@@ -279,7 +209,6 @@ int main(void) {
     //init_pmic();
     //init_vctcxo_dac();
     bsp_init();
-
     {
 
         //Check if there is a value in permanent vctcxo memory
