@@ -197,16 +197,13 @@ int main(void) {
     irq_setie(1);
 #endif
     uart_init();
-    //init_pmic();
     printf("CSR_CNTRL_BASE 0x%lx \n", CSR_CNTRL_BASE);
-    // irq_example_init();
     lms64c_init();
     bsp_isr_init();
     clk_cfg_irq_init();
 
-    //init_pmic();
-    //init_vctcxo_dac();
-    bsp_init(); {
+    bsp_init();
+    {
         //Check if there is a value in permanent vctcxo memory
         //If there is, write it to runtime DAC
         //If there isn't write default
@@ -283,6 +280,7 @@ int main(void) {
                     break;
 
                 case CMD_SERIAL_WR:
+                    // TODO: This should probably be in BSP
 
                     copyArray(LMS_Ctrl_Packet_Rx->Data_field, tmp_serial, 24, 0, 32);
 
@@ -319,6 +317,8 @@ int main(void) {
                     break;
 
                 case CMD_SERIAL_RD:
+                    // TODO: This should probably be in BSP
+
                     //spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, 32, tmprd_serial);
                     copyArray(tmprd_serial, LMS_Ctrl_Packet_Tx->Data_field, 0, 24, 32);
                     LMS_Ctrl_Packet_Tx->Data_field[1] = 16;
@@ -327,6 +327,8 @@ int main(void) {
                     break;
 
                 case CMD_LMS_RST:
+                    // TODO: Move this function to bsp's
+
                     // Reuse val variable to save on memory
                     val = (uint16_t) lms7002m_periph_id_check(LMS_Ctrl_Packet_Rx->Header.Periph_ID);
                     // If periph ID is invalid
@@ -366,6 +368,8 @@ int main(void) {
                 // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
 
                 case CMD_BRDSPI16_WR:
+                    //TODO: refactor for readability
+
                     if (Check_many_blocks(4))
                         break;
 
@@ -382,6 +386,8 @@ int main(void) {
                     break;
 
                 case CMD_BRDSPI16_RD:
+                    //TODO: refactor for readability
+
                     if (Check_many_blocks(4))
                         break;
 
@@ -403,6 +409,8 @@ int main(void) {
                 // COMMAND LMS7 WRITE
 
                 case CMD_LMS7002_WR:
+                    // TODO: Either move to BSP or refactor
+
                     // Reuse val variable to save on memory
                     val = (uint16_t) lms7002m_periph_id_check(LMS_Ctrl_Packet_Rx->Header.Periph_ID);
                     // If periph ID is invalid
@@ -438,6 +446,8 @@ int main(void) {
 
 
                 case CMD_LMS7002_RD:
+                    // TODO: Either move to BSP or refactor
+
                     // Reuse val variable to save on memory
                     val = (uint16_t) lms7002m_periph_id_check(LMS_Ctrl_Packet_Rx->Header.Periph_ID);
                     // If periph ID is invalid
@@ -475,6 +485,8 @@ int main(void) {
                 // COMMAND LMS7 WRITE
 
                 case CMD_LMS8001_WR:
+                    // TODO: Either move to BSP or refactor
+
                     // Reuse val variable to save on memory
                     val = (uint16_t) lms8001_periph_id_check(LMS_Ctrl_Packet_Rx->Header.Periph_ID);
                     // If periph ID is invalid
@@ -510,6 +522,8 @@ int main(void) {
 
 
                 case CMD_LMS8001_RD:
+                    // TODO: Either move to BSP or refactor
+
                     // Reuse val variable to save on memory
                     val = (uint16_t) lms8001_periph_id_check(LMS_Ctrl_Packet_Rx->Header.Periph_ID);
                     // If periph ID is invalid
@@ -603,6 +617,7 @@ int main(void) {
                     break;
 
                 case CMD_ALTERA_FPGA_GW_WR: // FPGA active serial
+                    // TODO: This probably should be moved to common BSP
 
                     current_portion = (LMS_Ctrl_Packet_Rx->Data_field[1] << 24) | (
                                           LMS_Ctrl_Packet_Rx->Data_field[2] << 16)
