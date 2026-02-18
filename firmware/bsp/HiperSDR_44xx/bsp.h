@@ -5,19 +5,21 @@
 #include "hiper_regremap.h"
 // Required includes
 #include <generated/csr.h>
+#include <stdio.h>  // For debug/logging (optional)
+#include "lime_litex_helpers.h"
+#include "LMS64C_protocol.h"
+
 #include "litei2c.h"
 #include "TMP114.h"
 #include "TCA6424.h"
 #include "LMK05318B.h"
 #include "LP8754.h"
 #include "LP8758.h"
-#include <stdio.h>  // For debug/logging (optional)
 #include "LMS.h"
 #include "AFE7901.h"
 #include "DAC8050.h"
-#include "lime_litex_helpers.h"
 #include "ADF4002.h"
-#include "LMS64C_protocol.h"
+#include "fpga_flash_qspi.h"
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
@@ -121,7 +123,7 @@ uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_
 uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata);
 
 //Misc functions
-void bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
+uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 void bsp_init_adf(void);
 
 

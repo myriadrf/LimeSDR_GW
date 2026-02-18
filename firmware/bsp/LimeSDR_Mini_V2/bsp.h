@@ -67,8 +67,7 @@ uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_
 uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata);
 
 //ADF functions
-void bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
-void bsp_init_adf(void);
+uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 
 //Misc/device specific functions
 

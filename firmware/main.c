@@ -768,14 +768,20 @@ int main(void) {
                     break;
 
                 case CMD_ADF4002_WR:
+                    {
+                    uint8_t retval = 0;
                     if (Check_many_blocks(3)) break;
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                        bsp_control_adf(1, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 3)], false); //write data to ADF
+                        retval += bsp_control_adf(1, &LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 3)], false); //write data to ADF
                     }
 
-                    // No error status possible from bsp_control_adf, so always report completed
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+
+                    if (retval == 0)
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    else
+                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    }
                     break;
 
                 // COMMAND ANALOG VALUE READ

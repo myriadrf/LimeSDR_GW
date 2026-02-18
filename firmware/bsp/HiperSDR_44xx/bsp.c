@@ -1,8 +1,6 @@
 #include <irq.h>
 #include "bsp.h"
 
-#include "fpga_flash_qspi.h"
-
 litei2c_regs I2C0_REGS = {
     .master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
     .master_addr_addr     = CSR_I2C0_MASTER_ADDR_ADDR,
@@ -941,7 +939,7 @@ void bsp_lms8_pwrup(void) {
 	LP8758_init(&I2C2_REGS);
 }
 
- void bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data)
+uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data)
 {
     const uint8_t spi_master = ADF4002_SPIMASTER;
     const uint8_t spi_cs = ADF4002_CS;
@@ -951,6 +949,7 @@ void bsp_lms8_pwrup(void) {
     else {
         Control_TCXO_ADF_packed(spi_master, spi_cs, oe, (uint8_t*)data);
     }
+    return 0;
 }
 
 void bsp_init_adf(void) {

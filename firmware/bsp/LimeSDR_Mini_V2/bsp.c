@@ -101,10 +101,7 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
 #error "bsp_spi_transfer not implemented"
 }
 
-void bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data) {
-#error "bsp_control_adf not implemented"
-}
-
-void bsp_init_adf(void) {
-#error "bsp_init_adf not implemented"
+uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data) {
+    // No ADF on this board
+    return 1;
 }
