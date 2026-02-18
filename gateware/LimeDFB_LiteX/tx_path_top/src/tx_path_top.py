@@ -180,14 +180,15 @@ class TXPathTop(LiteXModule):
                 self.cd_smpl_nr_fifo.rst.eq( (~(s_reset_n & self.ext_reset_n))),
             ]
 
-        p2d_wr_sink_ready = Signal()
+        self.p2d_wr_sink_ready = p2d_wr_sink_ready = Signal()
 
         self.comb += [
             conv_64_to_128.reset.eq(     ~s_reset_n),
             conv_64_to_128.sink.last.eq( 0),
 
-            # Required when connecting AXIStreamInterface to regular Endpoint
-            self.sink.connect(input_buff.sink, omit=["keep","id","dest","user"]),
+            conv_64_to_128.sink.data.eq( self.sink.data),
+            conv_64_to_128.sink.valid.eq(self.sink.valid & s_reset_n),
+            self.sink.ready.eq(          conv_64_to_128.sink.ready & s_reset_n),
 
             # smpl_nr_fifo
             smpl_nr_fifo.sink.data.eq(   self.rx_sample_nr),
