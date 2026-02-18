@@ -12,17 +12,30 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <generated/csr.h>
-#include "litei2c.h"
 #include <stdio.h>  // For debug/logging (optional)
-#include "LMS.h"
 #include "lime_litex_helpers.h"
 #include "LMS64C_protocol.h"
+
+#include "LMS.h"
+#include "litei2c.h"
+#include "LP8758.h"
+#include "LMS.h"
+#include "fpga_flash_qspi.h"
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
 // Define device indexes, addresses and similar here
 #define I2C_DAC_ADDR     0x4C
-#define I2C_TERMO_ADDR    0x4B
+#define I2C_TERMO_ADDR   0x4B
+#define I2C_LP8758_ADDR  0x60
+
+#define BSP_DAC_INDEX    0
+
+#define MAX_ID_LMS7 1
+#define MAX_ID_LMS8 0
+// Since there is no eeprom on the board and the flash is too large for the gw
+// we use the top of the flash instead of eeprom, thus the offset to last sector
+#define mem_write_offset 0x01FF0000
 
 // Initialize board-specific hardware
 void bsp_init(void);
