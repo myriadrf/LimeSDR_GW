@@ -435,6 +435,10 @@ void bsp_delay_ms(unsigned int ms) {
     }
 }
 
+int8_t lms_reset(uint8_t periph_id, uint8_t command) {
+#error "lms_reset not implemented"
+}
+
 void lms7002m_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id) {
     // No LMS7's on HiPer board and nothing to return
     }

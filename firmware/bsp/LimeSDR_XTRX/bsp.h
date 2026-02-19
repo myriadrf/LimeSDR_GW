@@ -6,7 +6,7 @@
 #endif
 
 // BSP includes the associated regremap
-// #include "placeholder_regremap.h"
+#include "regremap.h"
 
 // Required includes
 #include <stdbool.h>
@@ -21,6 +21,7 @@
 #include "LP8758.h"
 #include "LMS.h"
 #include "fpga_flash_qspi.h"
+#include "Xil_clk_drp.h"
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
@@ -75,6 +76,7 @@ void bsp_process_irqs(void);
 // Optional: board-specific delay or timer
 void bsp_delay_ms(unsigned int ms);
 // LMS specific functions
+int8_t lms_reset(uint8_t periph_id, uint8_t command);
 int8_t lms7002m_periph_id_check(uint8_t periph_id);
 int8_t lms8001_periph_id_check(uint8_t periph_id);
 void lms7002m_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id);

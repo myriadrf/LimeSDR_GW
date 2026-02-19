@@ -326,46 +326,17 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
-                case CMD_LMS_RST:
-                    // TODO: Move this function to bsp's
-
-                    // Reuse val variable to save on memory
-                    val = (uint16_t) lms7002m_periph_id_check(LMS_Ctrl_Packet_Rx->Header.Periph_ID);
-                    // If periph ID is invalid
-                    if (val == 1) {
-                        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_INVALID_PERIPH_ID_CMD;
-                        break;
-                    }
-                    // If periph ID is valid
-                    if (val == 0) {
-                        switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
-                            case LMS_RST_DEACTIVATE:
-                                //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
-                                //printf("LMS RESET deactivate...\n");
-                                break;
-                            case LMS_RST_ACTIVATE:
-                                //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
-                                //printf("LMS RESET activate...\n");
-                                break;
-
-                            case LMS_RST_PULSE:
-                                //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 0); // low level
-                                //Modify_BRDSPI16_Reg_bits(BRD_SPI_REG_LMS1_LMS2_CTRL, LMS1_RESET, LMS1_RESET, 1); // high level
-#ifdef CSR_LIME_TOP_LMS7002
-                                lime_top_lms7002_lms1_resetn_write(0x0);
-                                lime_top_lms7002_lms1_resetn_write(0x1);
-                                //printf("LMS RST pulse...\n");
-#endif
-                                break;
-                            default:
-                                cmd_errors++;
-                                break;
-                        }
+                case CMD_LMS_RST: {
+                    uint8_t periph_id = LMS_Ctrl_Packet_Rx->Header.Periph_ID;
+                    uint8_t command = LMS_Ctrl_Packet_Rx->Data_field[0];
+                    uint8_t retval = lms_reset(periph_id, command);
+                    if (retval == 0) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                         break;
                     }
-                // If val is neither 0 nor 1, fallthrough to default to indicate the function is not implemented.
-                // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
+                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
+                    break;
+                }
 
                 case CMD_BRDSPI16_WR:
                     //TODO: refactor for readability

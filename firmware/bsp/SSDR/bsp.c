@@ -31,6 +31,10 @@ void bsp_delay_ms(unsigned int ms) {
 #error "bsp_delay_ms not implemented"
 }
 
+int8_t lms_reset(uint8_t periph_id, uint8_t command) {
+#error "lms_reset not implemented"
+}
+
 int8_t lms7002m_periph_id_check(uint8_t periph_id) {
 #error "lms7002m_periph_id_check not implemented"
 }
