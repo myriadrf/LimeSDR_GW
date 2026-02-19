@@ -167,15 +167,18 @@ void bsp_shutdown(void) {
 }
 
 static void bsp_isr(void) {
-#error "bsp_isr not implemented"
+    // BSP isr controller not implemented in this board's gw
+    //TODO: Update this if it gets implemented
 }
 
 void bsp_isr_init(void) {
-#error "bsp_isr_init not implemented"
+    // BSP isr controller not implemented in this board's gw
+    //TODO: Update this if it gets implemented
 }
 
 void bsp_process_irqs(void) {
-#error "bsp_process_irqs not implemented"
+    // BSP isr controller not implemented in this board's gw
+    //TODO: Update this if it gets implemented
 }
 
 void bsp_delay_ms(unsigned int ms) {

@@ -13,15 +13,18 @@ void bsp_shutdown(void) {
 }
 
 static void bsp_isr(void) {
-#error "bsp_isr not implemented"
+    // BSP isr controller not implemented in this board's gw
+    //TODO: Update this if it gets implemented
 }
 
 void bsp_isr_init(void) {
-#error "bsp_isr_init not implemented"
+    // BSP isr controller not implemented in this board's gw
+    //TODO: Update this if it gets implemented
 }
 
 void bsp_process_irqs(void) {
-#error "bsp_process_irqs not implemented"
+    // BSP isr controller not implemented in this board's gw
+    //TODO: Update this if it gets implemented
 }
 
 void bsp_delay_ms(unsigned int ms) {
@@ -61,23 +64,28 @@ uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8
 }
 
 uint8_t bsp_gpio_dir_read(uint8_t *data, uint8_t offset) {
-#error "bsp_gpio_dir_read not implemented"
+    // Unsupported on XTRX
+    return 1;
 }
 
 uint8_t bsp_gpio_dir_write(uint8_t data, uint8_t offset) {
-#error "bsp_gpio_dir_write not implemented"
+    // Unsupported on XTRX
+    return 1;
 }
 
 uint8_t bsp_gpio_read(uint8_t *data, uint8_t offset) {
-#error "bsp_gpio_read not implemented"
+    // Unsupported on XTRX
+    return 1;
 }
 
 uint8_t bsp_gpio_write(uint8_t data, uint8_t offset) {
-#error "bsp_gpio_write not implemented"
+    // Unsupported on XTRX
+    return 1;
 }
 
 uint8_t bsp_gpio_get_cached(const uint8_t offset) {
-#error "bsp_gpio_get_cached not implemented"
+    // Unsupported on XTRX
+    return 1;
 }
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data) {
