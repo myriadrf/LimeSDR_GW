@@ -12,12 +12,8 @@
 #include <generated/mem.h>
 
 #include "LMS64C_protocol.h"
-#include "HiperSDR_44xx.h"
-#include "regremap.h"
-#include "Xil_clk_drp.h"
 #include "bsp.h"
 #include "console_func.h"
-#include "fpga_flash_qspi.h"
 
 #define sbi(p, n) ((p) |= (1UL << (n)))
 #define cbi(p, n) ((p) &= ~(1 << (n)))
@@ -35,13 +31,14 @@ uint8_t glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
 tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet *) glEp0Buffer_Tx;
 tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *) glEp0Buffer_Rx;
 
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef WITH_LMS7002
 // If an error points here, most likely some of the macros are invalid.
-PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_PLL1_RX_MMCM);
-PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_PLL0_TX_MMCM);
-SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIME_TOP_LMS7002);
+PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
+PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
+SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIME_TOP_LMS7002_TOP);
 // clk_ctrl_addrs is declared in regremap.h
-CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIME_TOP_LMS7002_CLK_CTRL);
+CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
+
 #endif
 
 volatile uint8_t lms64_packet_pending;
@@ -146,7 +143,7 @@ static void lms64c_init(void) {
 }
 
 static void clk_ctrl_isr(void) {
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef WITH_LMS7002
     // Reset relevant CSR's
     csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
     csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
@@ -166,7 +163,7 @@ static void clk_ctrl_isr(void) {
 }
 
 static void clk_cfg_irq_init(void) {
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef WITH_LMS7002
     printf("CLK config irq initialization \n");
 
     /* Clear all pending interrupts. */
@@ -943,7 +940,8 @@ int main(void) {
             CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
             irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
         }
-#ifdef CSR_LIME_TOP_LMS7002
+
+#ifdef WITH_LMS7002
         if (clk_cfg_pending) {
             irq_mask = irq_getmask(); // save irq mask
             irq_setmask(0); // disable all interrupts until clock cfg is completed
