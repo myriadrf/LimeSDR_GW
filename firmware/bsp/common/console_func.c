@@ -142,20 +142,26 @@
 #ifdef CSR_GPIO_BASE
     int i, j;
     printf("GPIO Led override demo...\n");
-    lime_top_gpio_gpio_override_write(0x7);
-    lime_top_gpio_gpio_override_dir_write(0x0);
-    lime_top_gpio_gpio_override_val_write(0x0);
-    for (i = 0; i < 3; i++) {
-        for (j = 0; j < 8; j++) {
-            lime_top_gpio_gpio_override_val_write(0x0);
-            busy_wait(100);
-            lime_top_gpio_gpio_override_val_write(1 << i);
-            busy_wait(100);
-        }
-    }
 
-    lime_top_gpio_gpio_override_val_write(0x0);
-    printf("GPIO Led override demo...ended\n");
+      // Commented out code and added an error
+      // TODO: Implement in the future maybe
+    printf("ERROR: NOT IMPLEMENTED");
+
+    //
+    // lime_top_gpio_gpio_override_write(0x7);
+    // lime_top_gpio_gpio_override_dir_write(0x0);
+    // lime_top_gpio_gpio_override_val_write(0x0);
+    // for (i = 0; i < 3; i++) {
+    //     for (j = 0; j < 8; j++) {
+    //         lime_top_gpio_gpio_override_val_write(0x0);
+    //         busy_wait(100);
+    //         lime_top_gpio_gpio_override_val_write(1 << i);
+    //         busy_wait(100);
+    //     }
+    // }
+    //
+    // lime_top_gpio_gpio_override_val_write(0x0);
+    // printf("GPIO Led override demo...ended\n");
 #endif
 }
 
