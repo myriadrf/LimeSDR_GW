@@ -211,7 +211,7 @@ AFE_RX_CFG3
 
         {
             "reg": [
-                {"name": "swap_iq",  "bits": 4},
+                {"name": "swap_iq",  "attr": '15', "bits": 4},
                 {"bits": 28}
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
@@ -325,7 +325,7 @@ AFE_TX_CFG3
 
         {
             "reg": [
-                {"name": "swap_iq",  "bits": 4},
+                {"name": "swap_iq",  "attr": '15', "bits": 4},
                 {"bits": 28}
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
