@@ -6,7 +6,7 @@
 #endif
 
 // BSP includes the associated regremap
-// #include "placeholder_regremap.h"
+#include "regremap.h"
 
 // Required includes
 #include <stdbool.h>
@@ -17,11 +17,41 @@
 #include "LMS.h"
 #include "lime_litex_helpers.h"
 #include "LMS64C_protocol.h"
+
+#include "LP8758.h"
+#include "Xil_clk_drp.h"
+#include "TMP114.h"
+#include "fpga_flash_qspi.h"
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
+#define I2C_DAC_ADDR     0x4C
+#define I2C_TERMO_ADDR   0x4E // TMP114NB
+#define I2C_LP8758_ADDR  0x60
+//#define FW_VER 1 // Initial version
+//#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
+//#define FW_VER 3 // Added serial number into GET_INFO cmd
+#define FW_VER 5 // Firmware for Litex project
 
-// Define device indexes, addresses and similar here
+#define BSP_DAC_INDEX    0
+
+//I2C devices
+
+#define   LM75_I2C_ADDR		0x48
+#define   I2C_ADDR_EEPROM   0x50
+
+//GET INFO
+#define DEV_TYPE			LMS_DEV_SSDR
+#define HW_VER				2
+#define EXP_BOARD			EXP_BOARD_UNSUPPORTED
+
+#define MAX_ID_LMS7		1
+
+#define OTP_UNLOCK_KEY		0x5A
+#define OTP_SERIAL_ADDRESS  0x0000010
+#define OTP_SERIAL_LENGTH   0x10
+
+#define DAC_DEFF_VAL			46870			// Default TCXO DAC value loaded when EEPROM is empty
 
 // Initialize board-specific hardware
 void bsp_init(void);

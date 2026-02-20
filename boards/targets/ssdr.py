@@ -348,7 +348,7 @@ class BaseSoC(SoCCore):
         # I2C Bus0 ---------------------------------------------------------------------------------
         # - Temperature Sensor (TMP114NB  @ 0x4E).
         # - PMIC-LMS           (LP8758  @ 0x60).
-        self.i2c1 = LiteI2C(sys_clk_freq=sys_clk_freq, pads=platform.request("i2c", 0), clock_domain="sys")
+        self.i2c0 = LiteI2C(sys_clk_freq=sys_clk_freq, pads=platform.request("i2c", 0), clock_domain="sys")
 
         # PMIC --------------------------------------------------------------------------------
         # Buck0: 1.0V VCCINT + 1.0V MGTAVCC.

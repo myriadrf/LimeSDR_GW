@@ -314,7 +314,8 @@ class LimeTop(LiteXModule):
                 self.tx_pipeline.add(self.phy_tx_source)
 
         # RF Switches ------------------------------------------------------------------------------
-
+        # TODO: modules should never check for what board they are used in
+        #       custom board-specific logic should be present at top board file
         if platform.name.startswith("limesdr_mini"):
             rfsw_pads  = platform.request("RFSW")
             tx_lb_pads = platform.request("TX_LB")
@@ -331,7 +332,7 @@ class LimeTop(LiteXModule):
                 tx_lb_pads.AT.eq(  self.gpio.storage[1]),
                 tx_lb_pads.SH.eq(  self.gpio.storage[2]),
             ]
-        elif platform.name.startswith("limesdr_xtrx"):
+        elif platform.name.startswith("limesdr_xtrx") or platform.name.startswith("ssdr"):
             rfsw_pads         = platform.request("rf_switches")
             self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
             #self.comb += rfsw_pads.tx.eq(1)
@@ -339,6 +340,8 @@ class LimeTop(LiteXModule):
 
         # Interrupt --------------------------------------------------------------------------------
         if with_lms7002:
+            # TODO: modules should never check for what board they are used in
+            #       custom board-specific logic should be present at top board file
             if not platform.name.startswith("limesdr_mini"):
                 self.comb += self.ev.clk_ctrl_irq.trigger.eq((lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PHCFG_START.storage == 1)
                     | (lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.re & lms7002_top.lms7002_clk.CLK_CTRL.PLLCFG_START.storage == 1)

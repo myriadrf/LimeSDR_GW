@@ -238,11 +238,6 @@ int main(void) {
             uint8_t i2c_buf[3];
 
             getLMS64Packet(glEp0Buffer_Rx, 64);
-            // printf("RX: ");
-            // for (int i = 0; i < 64; i++) {
-            //     printf("%02x ", glEp0Buffer_Rx[i]);
-            // }
-            // printf("\n");
 
             memset(glEp0Buffer_Tx, 0, sizeof(glEp0Buffer_Tx)); // fill whole tx buffer with zeros
             cmd_errors = 0;
@@ -284,11 +279,9 @@ int main(void) {
                     // STORAGE_TYPE
                     switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
                         case 0: //Default
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                            break;
+                            // Fall-through
                         case 1: //Volatile memory
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                            break;
+                            // Fall-through
                         case 2: //Non-Volatile memory
                             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             break;
@@ -677,8 +670,6 @@ int main(void) {
                             // if (spirez == XST_SUCCESS)
                             if (true) {
                                 LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                            } else {
-                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             }
                             break;
 
@@ -731,8 +722,6 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                     else
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                    break;
-
                     break;
 
                 case CMD_ADF4002_WR:

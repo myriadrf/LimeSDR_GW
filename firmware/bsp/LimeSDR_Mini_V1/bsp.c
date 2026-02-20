@@ -103,10 +103,67 @@ uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_
 #error "bsp_mem_write not implemented"
 }
 
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
-    uint8_t *misodata) {
-#error "bsp_spi_transfer not implemented"
+/**
+ * @brief Transfers data over SPI using the selected SPI master and chip select.
+ *
+ * This function handles SPI transactions for LiteX SPIMaster cores.
+ *
+ * @param master        SPI master index
+ * @param cs            Chip select line index (converted to bitmask internally).
+ * @param mosidata      Pointer to the transmit buffer (MSB-first).
+ * @param transfer_len  Total number of bytes to toggle on the SPI bus (1-4).
+ * @param recv_data_len Number of bytes to extract from the received MISO data (0-4),
+ *                      counting from the end of the transfer (i.e. if recv_data_len = 1,
+ *                      the last byte of the MISO data is extracted).
+ * @param misodata      Pointer to receive buffer (can be NULL if response is ignored).
+ *                      Buffer must be at least 'data_len' bytes.
+ *
+ * @return 0 on success, 1 on error (invalid master or length).
+ */
+uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata) {
+
+    uint32_t recv_val = 0;
+    uint32_t bits = transfer_len * 8;
+    uint32_t cs_mask = 1 << cs;
+
+    if (transfer_len == 0 || transfer_len > 4) return 1;
+
+    // Pack mosidata MSB-first into a 32-bit register
+    uint32_t packed_mosi = 0;
+    for (uint32_t i = 0; i < transfer_len; i++) {
+        packed_mosi = (packed_mosi << 8) | mosidata[i];
+    }
+
+    // LiteX SPIMaster in 'raw' mode (default) shifts out from the MSB of its data_width.
+    // We must left-align our data to the core's width.
+    switch (master) {
+        case 0: // 32-bit data_width
+            packed_mosi <<= (4 - transfer_len) * 8;
+            spimaster_cs_write(cs_mask);
+            cdelay(1);
+            while ((spimaster_status_read() & 0x1) == 0) {}
+            spimaster_mosi_write(packed_mosi);
+            spimaster_control_write(bits * SPI_LENGTH | SPI_START);
+            while ((spimaster_status_read() & 0x1) == 0) {}
+            recv_val = spimaster_miso_read();
+            break;
+
+        default:
+            return 1;
+    }
+
+    // LiteX SPIMaster captures MISO into the LSBs of the register.
+    // If we want 'recv_data_len' bytes, they are in recv_val[recv_data_len*8-1:0].
+    if (misodata && recv_data_len > 0) {
+        for (int i = recv_data_len - 1; i >= 0; i--) {
+            misodata[i] = recv_val & 0xFF;
+            recv_val >>= 8;
+        }
+    }
+
+    return 0;
 }
+
 
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data) {
     // No ADF on this board
