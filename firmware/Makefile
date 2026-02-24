@@ -43,10 +43,6 @@ OBJECTS += $(BSP_COMMON_OBJS)
 OBJECTS += $(DRIVERS_OBJS)
 OBJECTS += $(PERIPH_OBJS)
 
-ifeq ($(filter LIMESDR_MINI_V1 LIMESDR_MINI_V2, $(TARGET)), $(TARGET))
-OBJECTS += csr_access.o spiflash.o
-endif
-
 ifeq ($(TARGET), LIMESDR_MINI_V1)
 ifeq ($(GOLDEN), 0)
 CFLAGS := $(filter-out -Os, $(CFLAGS)) -O0 -ggdb3 -g3
