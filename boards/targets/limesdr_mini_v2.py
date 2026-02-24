@@ -430,14 +430,16 @@ def main():
         if prepare and not args.no_soc_json:
             soc.print_soc_hierarchy_json()
 
-    # Prepare User/Golden bitstream.
-    if which("ddtcmd") is None:
-        msg = "\nUnable to find Diamond ddtcmd tool, please:\n"
-        msg += "- Add Diamond toolchain to your $PATH.\n"
-        msg += "\nCannot generate the MCS file.\n"
-        print(msg)
-    else:
-        os.system(f"./tools/limesdr_mini_v2_bitstream.py")
+    # Do not prepare bitstream if it has not been built
+    if args.build:
+        # Prepare User/Golden bitstream.
+        if which("ddtcmd") is None:
+            msg = "\nUnable to find Diamond ddtcmd tool, please:\n"
+            msg += "- Add Diamond toolchain to your $PATH.\n"
+            msg += "\nCannot generate the MCS file.\n"
+            print(msg)
+        else:
+            os.system(f"./tools/limesdr_mini_v2_bitstream.py")
 
     # Load Bistream.
     if args.load:
