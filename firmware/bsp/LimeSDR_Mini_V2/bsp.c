@@ -28,7 +28,14 @@ void bsp_process_irqs(void) {
 }
 
 void bsp_delay_ms(unsigned int ms) {
-#error "bsp_delay_ms not implemented"
+    //TODO: Check if delay is reasonably accurate
+
+    // Implement platform-specific delay
+    // Example: busy wait or use a hardware timer
+    while (ms--) {
+        // rough CPU delay loop (not accurate)
+        for (volatile int i = 0; i < 1000; i++);
+    }
 }
 
 int8_t lms_reset(uint8_t periph_id, uint8_t command) {
