@@ -42,7 +42,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
         case 0xA:
 #ifdef CSR_LIME_TOP_BASE
             tmp = lime_top_fpgacfg_reg10_read();
-            value = tmp & 0x03;//(tmp >> 1) & 0x01;
+            value = tmp & 0x03; //(tmp >> 1) & 0x01;
             // rfsw registers are only present in LimeSDR-XTRX. Commenting only for now
             // value |= lime_top_rfsw_control_rfsw_rx_read() << 2;
             // value |= lime_top_rfsw_control_rfsw_tx_read() << 4;
@@ -188,8 +188,8 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             break;
     }
 
-    regdata_array[0] = (uint8_t) (value & 0xFF); // Byte 0 (LSB)
-    regdata_array[1] = (uint8_t) ((value >> 8) & 0xFF); // Byte 1
+    regdata_array[0] = (uint8_t)(value & 0xFF); // Byte 0 (LSB)
+    regdata_array[1] = (uint8_t)((value >> 8) & 0xFF); // Byte 1
     // Litex CSRs are 4byte words, LMS64C spi regs are 2byte - others unused.
     //regdata_array[2] = (uint8_t)((value >> 16) & 0xFF);  // Byte 2
     //regdata_array[3] = (uint8_t)((value >> 24) & 0xFF);  // Byte 3 (MSB)`
@@ -221,8 +221,8 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
 #ifdef CSR_LIME_TOP_BASE
             reg = lime_top_fpgacfg_reg08_read();
             reg &= ~((1 << CSR_LIME_TOP_FPGACFG_REG08_SYNCH_DIS_OFFSET) |
-                (1 << CSR_LIME_TOP_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
-                (1 << CSR_LIME_TOP_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
+                     (1 << CSR_LIME_TOP_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
+                     (1 << CSR_LIME_TOP_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
             reg |= (value & 0x03); // smpl_width
             reg |= (value & 0x80); // trxiq_pulse
             reg |= (value & 0x100); // mimo_int_en
@@ -237,12 +237,12 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             gpio_control_TDD_TXANT_POST_write(value);
             break;
         case 0x11:
-            gpio_control_TDDControlEnable_write(value&0xf);
-            gpio_control_TDDSignalInvert_write((value&0xf0)>>4);
+            gpio_control_TDDControlEnable_write(value & 0xf);
+            gpio_control_TDDSignalInvert_write((value & 0xf0) >> 4);
             break;
         case 0xA:
 #ifdef CSR_LIME_TOP_BASE
-            reg =  (value & 0x003) << 0; // rx_en + tx_en
+            reg = (value & 0x003) << 0; // rx_en + tx_en
             // reg |= (value & 0x002) << 1; // tx_en
             reg |= (value & 0x200) << 0; // test_ptrn_en
             lime_top_fpgacfg_reg10_write(reg);

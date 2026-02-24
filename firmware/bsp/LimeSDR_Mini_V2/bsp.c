@@ -55,8 +55,16 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command) {
 
         case LMS_RST_PULSE:
             limetop_lms7002_top_lms_ctr_gpio_write(0x0);
-            asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
-            asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
             limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
             return 0;
     }
@@ -151,8 +159,8 @@ uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_
  *
  * @return 0 on success, 1 on error (invalid master or length).
  */
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata) {
-
+uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
+                         uint8_t *misodata) {
     uint32_t recv_val = 0;
     uint32_t bits = transfer_len * 8;
     uint32_t cs_mask = 1 << cs;
@@ -172,10 +180,12 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
             packed_mosi <<= (4 - transfer_len) * 8;
             spimaster_cs_write(cs_mask);
             cdelay(1);
-            while ((spimaster_status_read() & 0x1) == 0) {}
+            while ((spimaster_status_read() & 0x1) == 0) {
+            }
             spimaster_mosi_write(packed_mosi);
             spimaster_control_write(bits * SPI_LENGTH | SPI_START);
-            while ((spimaster_status_read() & 0x1) == 0) {}
+            while ((spimaster_status_read() & 0x1) == 0) {
+            }
             recv_val = spimaster_miso_read();
             break;
 
@@ -239,16 +249,16 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
                 //Start erase CFM0
                 //if ((0x03 & MicoSPIFlash_StatusRead (spiflash)) == 0)
                 if ((0x03 & spiflash_read_status_register()) == 0) {
-                state = 20;
-                Flash = 1;
-            }
+                    state = 20;
+                    Flash = 1;
+                }
                 if ((0x01 & spiflash_read_status_register()) == 0x01) {
-                state = 11;
-                Flash = 1;
-            }
+                    state = 11;
+                    Flash = 1;
+                }
                 if ((0x02 & spiflash_read_status_register()) == 0x02) {
-                state = 0;
-            }
+                    state = 0;
+                }
 
                 break;
 
@@ -263,7 +273,8 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
                     p_spi_wrdata[3] = payload[byte + 3];
 
                     //Command to write into On-Chip Flash IP
-                    if (address <= CFM0EndAddress) {
+                    if (address <= CFM0EndAddress
+                    ) {
                         // Erase Block if we reach starting address of 64KB block
                         if (address % FLASH_BLOCK_SIZE == 0) {
                             //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
@@ -291,7 +302,8 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
                                  {
                                  };
                         */
-                    } else {
+                    }
+                    else {
                         retval = 1;
                     };
                 };

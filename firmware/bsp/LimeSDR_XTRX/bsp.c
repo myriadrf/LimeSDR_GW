@@ -1,19 +1,19 @@
 #include "bsp.h"
 
 litei2c_regs I2C0_REGS = {
-    .master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
-    .master_addr_addr     = CSR_I2C0_MASTER_ADDR_ADDR,
+    .master_active_addr = CSR_I2C0_MASTER_ACTIVE_ADDR,
+    .master_addr_addr = CSR_I2C0_MASTER_ADDR_ADDR,
     .master_settings_addr = CSR_I2C0_MASTER_SETTINGS_ADDR,
-    .master_status_addr   = CSR_I2C0_MASTER_STATUS_ADDR,
-    .master_rxtx_addr     = CSR_I2C0_MASTER_RXTX_ADDR
+    .master_status_addr = CSR_I2C0_MASTER_STATUS_ADDR,
+    .master_rxtx_addr = CSR_I2C0_MASTER_RXTX_ADDR
 };
 
 litei2c_regs I2C1_REGS = {
-    .master_active_addr   = CSR_I2C1_MASTER_ACTIVE_ADDR,
-    .master_addr_addr     = CSR_I2C1_MASTER_ADDR_ADDR,
+    .master_active_addr = CSR_I2C1_MASTER_ACTIVE_ADDR,
+    .master_addr_addr = CSR_I2C1_MASTER_ADDR_ADDR,
     .master_settings_addr = CSR_I2C1_MASTER_SETTINGS_ADDR,
-    .master_status_addr   = CSR_I2C1_MASTER_STATUS_ADDR,
-    .master_rxtx_addr     = CSR_I2C1_MASTER_RXTX_ADDR
+    .master_status_addr = CSR_I2C1_MASTER_STATUS_ADDR,
+    .master_rxtx_addr = CSR_I2C1_MASTER_RXTX_ADDR
 };
 
 void bsp_init(void) {
@@ -31,7 +31,7 @@ void bsp_powerup(void) {
 
     printf("FPGA_I2C1 PMIC: Check ID ");
     adr = 0x01;
-    LP8758_read_reg(&I2C0_REGS,adr,&dat);
+    LP8758_read_reg(&I2C0_REGS, adr, &dat);
     if (dat != 0xe0) {
         printf("KO, exiting.\n");
     } else {
@@ -40,54 +40,54 @@ void bsp_powerup(void) {
         printf("PMIC: Enable Buck0.\n");
         adr = 0x02;
         dat = 0x88;
-        LP8758_write_reg(&I2C0_REGS,adr,dat);
+        LP8758_write_reg(&I2C0_REGS, adr, dat);
 
         printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
         adr = 0x03;
         dat = 0xD2;
-        LP8758_write_reg(&I2C0_REGS,adr,dat);
+        LP8758_write_reg(&I2C0_REGS, adr, dat);
 
         printf("PMIC: Enable Buck1.\n");
         adr = 0x04;
         dat = 0x88;
-        LP8758_write_reg(&I2C0_REGS,adr,dat);
+        LP8758_write_reg(&I2C0_REGS, adr, dat);
 
         printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
         adr = 0x05;
         dat = 0xD2;
-        LP8758_write_reg(&I2C0_REGS,adr,dat);
+        LP8758_write_reg(&I2C0_REGS, adr, dat);
 
         printf("PMIC: Enable Buck2.\n");
         adr = 0x06;
         dat = 0x88;
-        LP8758_write_reg(&I2C0_REGS,adr,dat);
+        LP8758_write_reg(&I2C0_REGS, adr, dat);
 
         printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
         adr = 0x07;
         dat = 0xD2;
-        LP8758_write_reg(&I2C0_REGS,adr,dat);
+        LP8758_write_reg(&I2C0_REGS, adr, dat);
 
         printf("PMIC: Enable Buck3.\n");
         adr = 0x08;
         dat = 0x88;
-        LP8758_write_reg(&I2C0_REGS,adr,dat);
+        LP8758_write_reg(&I2C0_REGS, adr, dat);
 
         printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
         adr = 0x09;
         dat = 0xD2;
-        LP8758_write_reg(&I2C0_REGS,adr,dat);
+        LP8758_write_reg(&I2C0_REGS, adr, dat);
 
         printf("PMIC: Set Buck1 to 3.3V.\n");
         adr = 0x0C;
         dat = 0xFC;
-        LP8758_write_reg(&I2C0_REGS,adr,dat);
+        LP8758_write_reg(&I2C0_REGS, adr, dat);
 
         busy_wait(1);
     }
 
     printf("FPGA_I2C2 PMIC: Check ID ");
     adr = 0x01;
-    LP8758_read_reg(&I2C1_REGS,adr,&dat);
+    LP8758_read_reg(&I2C1_REGS, adr, &dat);
     if (dat != 0xe0) {
         printf("KO, exiting.\n");
     } else {
@@ -96,74 +96,74 @@ void bsp_powerup(void) {
         printf("PMIC: Enable Buck0.\n");
         adr = 0x02;
         dat = 0x88;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
         adr = 0x03;
         dat = 0xD2;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: Enable Buck1.\n");
         adr = 0x04;
         dat = 0x88;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
         adr = 0x05;
         dat = 0xD2;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: Enable Buck2.\n");
         adr = 0x06;
         dat = 0x88;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
         adr = 0x07;
         dat = 0xD2;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: Enable Buck3.\n");
         adr = 0x08;
         dat = 0x88;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
         adr = 0x09;
         dat = 0xD2;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: Set Buck0 to 1.5V.\n");
         adr = 0x0A;
         dat = 0xA2;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: Set Buck1 to 3.3V.\n");
         adr = 0x0C;
         dat = 0xFC;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: Set Buck2 to 1.75V.\n");
         adr = 0x0E;
         dat = 0xAF;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: Set Buck3 to 2.05V.\n");
         adr = 0x10;
         dat = 0xBE;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         printf("PMIC: Clear INT_BUCK_2_3 Status.\n");
         adr = 0x1A;
         dat = 0xFF;
-        LP8758_write_reg(&I2C1_REGS,adr,dat);
+        LP8758_write_reg(&I2C1_REGS, adr, dat);
 
         busy_wait(1);
     }
 }
 
 void bsp_shutdown(void) {
-//No implementation intended for this board
+    //No implementation intended for this board
 }
 
 static void bsp_isr(void) {
@@ -246,7 +246,7 @@ uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id) {
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb) {
     if (channel == 0) {
         uint16_t val = 0;
-        uint8_t* val_ptr = (uint8_t*)&val;
+        uint8_t *val_ptr = (uint8_t *) &val;
         litei2c_a8d16_read_register(&I2C0_REGS, I2C_DAC_ADDR, 0x00, &val);
         *value_lsb = val_ptr[1];
         *value_msb = val_ptr[0];
@@ -254,7 +254,7 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
     }
     if (channel == 1) {
         uint16_t converted_value;
-        uint8_t* val_ptr = (uint8_t*)&converted_value;
+        uint8_t *val_ptr = (uint8_t *) &converted_value;
         uint8_t buf;
         litei2c_a8d16_read_register(&I2C0_REGS, I2C_DAC_ADDR, 0x30, &converted_value);
         //flip bytes
@@ -269,15 +269,15 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
         *value_lsb = val_ptr[1];
         *value_msb = val_ptr[0];
         return STATUS_COMPLETED_CMD;
-
     }
     return STATUS_ERROR_CMD;
 }
 
 uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8_t value_lsb) {
-    if (channel == 0 && unit == 0) { // TCXO DAC, RAW units
+    if (channel == 0 && unit == 0) {
+        // TCXO DAC, RAW units
         uint16_t val = 0;
-        uint8_t* val_ptr = (uint8_t*)&val;
+        uint8_t *val_ptr = (uint8_t *) &val;
         val_ptr[0] = value_msb;
         val_ptr[1] = value_lsb;
         litei2c_a8d16_write_register(&I2C0_REGS, I2C_DAC_ADDR, 0x30, val);
@@ -364,8 +364,8 @@ uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_
  *
  * @return 0 on success, 1 on error (invalid master or length).
  */
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata) {
-
+uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
+                         uint8_t *misodata) {
     uint32_t recv_val = 0;
     uint32_t bits = transfer_len * 8;
     uint32_t cs_mask = 1 << cs;
@@ -385,10 +385,12 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
             packed_mosi <<= (4 - transfer_len) * 8;
             spimaster_cs_write(cs_mask);
             cdelay(1);
-            while ((spimaster_status_read() & 0x1) == 0) {}
+            while ((spimaster_status_read() & 0x1) == 0) {
+            }
             spimaster_mosi_write(packed_mosi);
             spimaster_control_write(bits * SPI_LENGTH | SPI_START);
-            while ((spimaster_status_read() & 0x1) == 0) {}
+            while ((spimaster_status_read() & 0x1) == 0) {
+            }
             recv_val = spimaster_miso_read();
             break;
 
@@ -450,67 +452,67 @@ uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint
     static uint8_t data_to_copy; // how much data to copy to page buffer (incase of overflow)
     static uint8_t data_leftover;
 
-                            // write data to Flash from PC
-                            // Start of programming? reset variables
-                            if (current_portion == 0) {
-                                // Gold image must be written at address 0x0
-                                if (payload[0] == 3) {
-                                    address = 0;
-                                    // printf("DEBUG: Gold Image write to flash\n");
-                                } else {
-                                    // User image must be written at offset
-                                    address = 0x00310000;
-                                    // printf("DEBUG: User Image write to flash\n");
-                                }
+    // write data to Flash from PC
+    // Start of programming? reset variables
+    if (current_portion == 0) {
+        // Gold image must be written at address 0x0
+        if (payload[0] == 3) {
+            address = 0;
+            // printf("DEBUG: Gold Image write to flash\n");
+        } else {
+            // User image must be written at offset
+            address = 0x00310000;
+            // printf("DEBUG: User Image write to flash\n");
+        }
 
-                                page_buffer_cnt = 0;
-                                total_data = 0;
-                                // Erase first sector
-                                FlashQspi_EraseSector(address);
-                            }
+        page_buffer_cnt = 0;
+        total_data = 0;
+        // Erase first sector
+        FlashQspi_EraseSector(address);
+    }
 
-                            inc_data_count = payload[5];
+    inc_data_count = payload[5];
 
-                            // Check if final packet
-                            if (inc_data_count == 0) {
-                                // Flush leftover data, if any
-                                if (page_buffer_cnt > 0) {
-                                    // Fill unused page data with 1 (no write)
-                                    memset(&page_buffer[page_buffer_cnt], 0xFF, PAGE_SIZE - page_buffer_cnt);
-                                    FlashQspi_ProgramPage(address, page_buffer);
-                                }
-                            } else {
-                                if (PAGE_SIZE < (inc_data_count + page_buffer_cnt)) {
-                                    // Incoming data would overflow the page buffer
-                                    // Calculate ammount of data to copy
-                                    data_to_copy = PAGE_SIZE - page_buffer_cnt;
-                                    data_leftover = page_buffer_cnt - data_to_copy;
-                                    memcpy(&page_buffer[page_buffer_cnt], &payload[24],
-                                           data_to_copy);
-                                    // We already know the page is full because of overflowing input
-                                    FlashQspi_ProgramPage(address, page_buffer);
-                                    address += 256;
-                                    total_data += 256;
-                                    // Check if new address is bottom of sector, erase if needed
-                                    if ((address & 0xFFF) == 0)
-                                        FlashQspi_EraseSector(address);
-                                    memcpy(&page_buffer[0], &payload[24 + data_to_copy],
-                                           data_leftover);
-                                    page_buffer_cnt = data_leftover;
-                                } else {
-                                    // Incoming data would not overflow the page buffer
-                                    memcpy(&page_buffer[page_buffer_cnt], &payload[24],
-                                           inc_data_count);
-                                    page_buffer_cnt += inc_data_count;
-                                    if (page_buffer_cnt == PAGE_SIZE) {
-                                        FlashQspi_ProgramPage(address, page_buffer);
-                                        page_buffer_cnt = 0;
-                                        address += 256;
-                                        total_data += 256;
-                                        // Check if new address is bottom of sector, erase if needed
-                                        if ((address & 0xFFF) == 0)
-                                            FlashQspi_EraseSector(address);
-                                    }
-                                }
-                            }
+    // Check if final packet
+    if (inc_data_count == 0) {
+        // Flush leftover data, if any
+        if (page_buffer_cnt > 0) {
+            // Fill unused page data with 1 (no write)
+            memset(&page_buffer[page_buffer_cnt], 0xFF, PAGE_SIZE - page_buffer_cnt);
+            FlashQspi_ProgramPage(address, page_buffer);
+        }
+    } else {
+        if (PAGE_SIZE < (inc_data_count + page_buffer_cnt)) {
+            // Incoming data would overflow the page buffer
+            // Calculate ammount of data to copy
+            data_to_copy = PAGE_SIZE - page_buffer_cnt;
+            data_leftover = page_buffer_cnt - data_to_copy;
+            memcpy(&page_buffer[page_buffer_cnt], &payload[24],
+                   data_to_copy);
+            // We already know the page is full because of overflowing input
+            FlashQspi_ProgramPage(address, page_buffer);
+            address += 256;
+            total_data += 256;
+            // Check if new address is bottom of sector, erase if needed
+            if ((address & 0xFFF) == 0)
+                FlashQspi_EraseSector(address);
+            memcpy(&page_buffer[0], &payload[24 + data_to_copy],
+                   data_leftover);
+            page_buffer_cnt = data_leftover;
+        } else {
+            // Incoming data would not overflow the page buffer
+            memcpy(&page_buffer[page_buffer_cnt], &payload[24],
+                   inc_data_count);
+            page_buffer_cnt += inc_data_count;
+            if (page_buffer_cnt == PAGE_SIZE) {
+                FlashQspi_ProgramPage(address, page_buffer);
+                page_buffer_cnt = 0;
+                address += 256;
+                total_data += 256;
+                // Check if new address is bottom of sector, erase if needed
+                if ((address & 0xFFF) == 0)
+                    FlashQspi_EraseSector(address);
+            }
+        }
+    }
 }

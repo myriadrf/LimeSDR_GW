@@ -31,14 +31,14 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             value = lime_top_fpgacfg_ch_en_read();
             break;
         case 0x8:
-            value = lime_top_fpgacfg_reg08_read() & (0x3 | (1 << 7) | (1 << 8) | (1 << 9)); 
+            value = lime_top_fpgacfg_reg08_read() & (0x3 | (1 << 7) | (1 << 8) | (1 << 9));
             break;
         case 0x9:
             value = lime_top_fpgacfg_reg09_read();
             break;
         case 0xA:
             tmp = lime_top_fpgacfg_reg10_read();
-            value = tmp & 0x03;//(tmp >> 1) & 0x01;
+            value = tmp & 0x03; //(tmp >> 1) & 0x01;
             value |= lime_top_rfsw_control_rfsw_rx_read() << 2;
             value |= lime_top_rfsw_control_rfsw_tx_read() << 4;
             value |= lime_top_rfsw_control_tdd_manual_val_read() << 5;
@@ -135,7 +135,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             value = lms_clock_test_test_cnt_read() >> 16;
             break;
 #ifdef TIMESOURCE_PRESENT
-        // timesource registers
+            // timesource registers
         case 0x280:
             value = lime_top_rxtx_top_rx_path_timestamp_settings_read() & 0xFFFF;
             break;
@@ -147,7 +147,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             value = lime_top_tx_delay_mode_read() & 0xFFFF;
             break;
 #ifdef TIMESOURCE_PRESENT
-        // current time
+            // current time
         case 0x283:
             value = main_time_min_sec_read() & 0xFFFF;
             break;
@@ -157,7 +157,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
         case 0x285:
             value = main_time_yrs_read() & 0xFFFF;
             break;
-        // rx start time
+            // rx start time
         case 0x286:
             value = lime_top_rx_time_min_sec_read() & 0xFFFF;
             break;
@@ -167,7 +167,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
         case 0x288:
             value = lime_top_rx_time_yrs_read() & 0xFFFF;
             break;
-        // tx start time
+            // tx start time
         case 0x289:
             value = lime_top_tx_time_min_sec_read() & 0xFFFF;
             break;
@@ -184,8 +184,8 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             break;
     }
 
-    regdata_array[0] = (uint8_t) (value & 0xFF); // Byte 0 (LSB)
-    regdata_array[1] = (uint8_t) ((value >> 8) & 0xFF); // Byte 1
+    regdata_array[0] = (uint8_t)(value & 0xFF); // Byte 0 (LSB)
+    regdata_array[1] = (uint8_t)((value >> 8) & 0xFF); // Byte 1
     // Litex CSRs are 4byte words, LMS64C spi regs are 2byte - others unused.
     //regdata_array[2] = (uint8_t)((value >> 16) & 0xFF);  // Byte 2
     //regdata_array[3] = (uint8_t)((value >> 24) & 0xFF);  // Byte 3 (MSB)`
@@ -212,8 +212,8 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
         case 0x8:
             reg = lime_top_fpgacfg_reg08_read();
             reg &= ~((1 << CSR_LIME_TOP_FPGACFG_REG08_SYNCH_DIS_OFFSET) |
-                (1 << CSR_LIME_TOP_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
-                (1 << CSR_LIME_TOP_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
+                     (1 << CSR_LIME_TOP_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
+                     (1 << CSR_LIME_TOP_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
             reg |= (value & 0x03); // smpl_width
             reg |= (value & 0x80); // trxiq_pulse
             reg |= (value & 0x100); // mimo_int_en
@@ -224,7 +224,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             lime_top_fpgacfg_reg09_write(value);
             break;
         case 0xA:
-            reg =  (value & 0x003) << 0; // rx_en + tx_en
+            reg = (value & 0x003) << 0; // rx_en + tx_en
             // reg |= (value & 0x002) << 1; // tx_en
             reg |= (value & 0x200) << 0; // test_ptrn_en
             lime_top_fpgacfg_reg10_write(reg);
@@ -299,13 +299,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             csr_write_simple(value, smpl_cmp_addrs.cmp_length);
             break;
         case 0xC0:
-        	periphcfg_BOARD_GPIO_OVRD_write(value);
+            periphcfg_BOARD_GPIO_OVRD_write(value);
             break;
         case 0xC4:
-        	periphcfg_BOARD_GPIO_DIR_write(value);
+            periphcfg_BOARD_GPIO_DIR_write(value);
             break;
         case 0xC6:
-        	periphcfg_BOARD_GPIO_VAL_write(value);
+            periphcfg_BOARD_GPIO_VAL_write(value);
             break;
         case 0xCA:
             periphcfg_PERIPH_INPUT_SEL_0_write(value);
@@ -321,7 +321,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
             lms_clock_test_test_en_write((value & 0x4) >> 2);
             break;
 #ifdef TIMESOURCE_PRESENT
-        // timesource registers
+            // timesource registers
         case 0x280:
             lime_top_rxtx_top_rx_path_timestamp_settings_write(value);
             break;

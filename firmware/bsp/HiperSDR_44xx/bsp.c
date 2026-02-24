@@ -4,35 +4,35 @@
 #include <stdint.h>
 
 litei2c_regs I2C0_REGS = {
-    .master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
-    .master_addr_addr     = CSR_I2C0_MASTER_ADDR_ADDR,
+    .master_active_addr = CSR_I2C0_MASTER_ACTIVE_ADDR,
+    .master_addr_addr = CSR_I2C0_MASTER_ADDR_ADDR,
     .master_settings_addr = CSR_I2C0_MASTER_SETTINGS_ADDR,
-    .master_status_addr   = CSR_I2C0_MASTER_STATUS_ADDR,
-    .master_rxtx_addr     = CSR_I2C0_MASTER_RXTX_ADDR
+    .master_status_addr = CSR_I2C0_MASTER_STATUS_ADDR,
+    .master_rxtx_addr = CSR_I2C0_MASTER_RXTX_ADDR
 };
 
 litei2c_regs I2C1_REGS = {
-    .master_active_addr   = CSR_I2C1_MASTER_ACTIVE_ADDR,
-    .master_addr_addr     = CSR_I2C1_MASTER_ADDR_ADDR,
+    .master_active_addr = CSR_I2C1_MASTER_ACTIVE_ADDR,
+    .master_addr_addr = CSR_I2C1_MASTER_ADDR_ADDR,
     .master_settings_addr = CSR_I2C1_MASTER_SETTINGS_ADDR,
-    .master_status_addr   = CSR_I2C1_MASTER_STATUS_ADDR,
-    .master_rxtx_addr     = CSR_I2C1_MASTER_RXTX_ADDR
+    .master_status_addr = CSR_I2C1_MASTER_STATUS_ADDR,
+    .master_rxtx_addr = CSR_I2C1_MASTER_RXTX_ADDR
 };
 
 litei2c_regs I2C2_REGS = {
-    .master_active_addr   = CSR_I2C2_MASTER_ACTIVE_ADDR,
-    .master_addr_addr     = CSR_I2C2_MASTER_ADDR_ADDR,
+    .master_active_addr = CSR_I2C2_MASTER_ACTIVE_ADDR,
+    .master_addr_addr = CSR_I2C2_MASTER_ADDR_ADDR,
     .master_settings_addr = CSR_I2C2_MASTER_SETTINGS_ADDR,
-    .master_status_addr   = CSR_I2C2_MASTER_STATUS_ADDR,
-    .master_rxtx_addr     = CSR_I2C2_MASTER_RXTX_ADDR
+    .master_status_addr = CSR_I2C2_MASTER_STATUS_ADDR,
+    .master_rxtx_addr = CSR_I2C2_MASTER_RXTX_ADDR
 };
 
 litei2c_regs I2C3_REGS = {
-    .master_active_addr   = CSR_I2C3_MASTER_ACTIVE_ADDR,
-    .master_addr_addr     = CSR_I2C3_MASTER_ADDR_ADDR,
+    .master_active_addr = CSR_I2C3_MASTER_ACTIVE_ADDR,
+    .master_addr_addr = CSR_I2C3_MASTER_ADDR_ADDR,
     .master_settings_addr = CSR_I2C3_MASTER_SETTINGS_ADDR,
-    .master_status_addr   = CSR_I2C3_MASTER_STATUS_ADDR,
-    .master_rxtx_addr     = CSR_I2C3_MASTER_RXTX_ADDR
+    .master_status_addr = CSR_I2C3_MASTER_STATUS_ADDR,
+    .master_rxtx_addr = CSR_I2C3_MASTER_RXTX_ADDR
 };
 
 //Temperature sensors
@@ -121,7 +121,6 @@ void bsp_process_irqs(void) {
         bsp_init();
         bsp_irq_pending &= ~BSP_IRQ0_BIT;
     }
-
 }
 
 
@@ -138,53 +137,53 @@ void bsp_init(void) {
     afe7901_init();
 
     if (status) {
-    	printf("[BSP] Initialized\n");
+        printf("[BSP] Initialized\n");
     } else {
-    	printf("[BSP] Fail\n");
+        printf("[BSP] Fail\n");
     }
 
     // Set output values for all expanders to 0
-    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR,0,0);
-    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR,1,0);
-    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR,2,0);
+    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR, 0, 0);
+    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR, 1, 0);
+    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR, 2, 0);
 
-    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR,0,0);
-    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR,1,0);
-    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR,2,0);
+    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR, 0, 0);
+    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR, 1, 0);
+    TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR, 2, 0);
 
-    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP0_ADDR,0,(REF_EN_OSC|ENABLE_5VIN|ENABLE_6VIN));
-    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP0_ADDR,1,PWR_LMS8_NRST);
-    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP0_ADDR,2,0);
+    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP0_ADDR, 0, (REF_EN_OSC | ENABLE_5VIN | ENABLE_6VIN));
+    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP0_ADDR, 1,PWR_LMS8_NRST);
+    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP0_ADDR, 2, 0);
 
-    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP1_ADDR,0,0);
-    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP1_ADDR,1,0);
-    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP1_ADDR,2,0);
+    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 0, 0);
+    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 1, 0);
+    TCA6424_SetPortOutputValues(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 2, 0);
 
 
     // Set most expander pins to be output
-    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR,0,0);
-    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR,1,0);
-    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR,2,0);
+    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR, 0, 0);
+    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR, 1, 0);
+    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR, 2, 0);
 
-    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR,0,0);
-    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR,1,0);
-    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR,2,0);
+    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR, 0, 0);
+    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR, 1, 0);
+    TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR, 2, 0);
 
-    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP0_ADDR,0,0x30);
-    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP0_ADDR,1,0);
-    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP0_ADDR,2,0);
+    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP0_ADDR, 0, 0x30);
+    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP0_ADDR, 1, 0);
+    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP0_ADDR, 2, 0);
 
-    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR,0,0);
-    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR,1,0);
-    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR,2,0);
+    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 0, 0);
+    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 1, 0);
+    TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 2, 0);
 
     bsp_init_adf();
 
     // VCTCXO Init
-    DAC8050_Write_Command(&I2C3_REGS, I2C3_VCTCXO_DAC_ADDR,DAC8050_GAIN,257);
+    DAC8050_Write_Command(&I2C3_REGS, I2C3_VCTCXO_DAC_ADDR, DAC8050_GAIN, 257);
 
     // An arbitrary delay at the end of init seems to prevent some weird behavior
-    for (int i =0; i<10000; i++) {
+    for (int i = 0; i < 10000; i++) {
         __asm__ volatile ("nop");
     }
 
@@ -228,16 +227,14 @@ void bsp_init(void) {
         }
     }
     */
-
-
 }
 
 // Stub: Board power-up
 void bsp_powerup(void) {
-	uint32_t value =0;
-	uint32_t rd_val =0;
-	const int timeout_limit = 10000000;   // Timeout threshold (number of attempts)
-	int timeout_counter = 0;
+    uint32_t value = 0;
+    uint32_t rd_val = 0;
+    const int timeout_limit = 10000000; // Timeout threshold (number of attempts)
+    int timeout_counter = 0;
 
     printf("[BSP] Power up\n");
 
@@ -263,20 +260,19 @@ void bsp_powerup(void) {
     bsp_lmk0518_pwrup_seq();
 
     printf("[BSP] Power up done\n");
-
 }
 
 
 void bsp_lmk0518_pwrup_seq(void) {
-	uint32_t value =0;
-	uint32_t rd_val =0;
-	// TPS62088 PG rising edge has a 100-μs blanking time, CPU is typically
-	// running on 100MHz. We need at least 10000 threshold, 20000 to be safe
-	const int timeout_limit = 20000;   // Timeout threshold (number of attempts)
-	int timeout_counter = 0;
+    uint32_t value = 0;
+    uint32_t rd_val = 0;
+    // TPS62088 PG rising edge has a 100-μs blanking time, CPU is typically
+    // running on 100MHz. We need at least 10000 threshold, 20000 to be safe
+    const int timeout_limit = 20000; // Timeout threshold (number of attempts)
+    int timeout_counter = 0;
 
     // Read current register state
-	value = pwr_control_reg00_read();
+    value = pwr_control_reg00_read();
 
     // CLK_2P05 rail has to be powered first
     printf("value = 0x%08X\n", value);
@@ -287,7 +283,7 @@ void bsp_lmk0518_pwrup_seq(void) {
 
     // Wait for PG_EN_2P05_BIT to become 1, with timeout
     while ((pwr_control_reg01_read() & PG_EN_2P05_BIT) == 0) {
-        cdelay(1);  // Small delay to avoid hammering the register
+        cdelay(1); // Small delay to avoid hammering the register
         timeout_counter++;
         if (timeout_counter >= timeout_limit) {
             printf("[BSP] ERROR: Timeout waiting for PG_EN_2P05_BIT\n");
@@ -301,7 +297,7 @@ void bsp_lmk0518_pwrup_seq(void) {
         value = value | PWR_EN_2P05_BIT | PWR_EN_LMK_BIT;
         printf("value = 0x%08X\n", value);
         pwr_control_reg00_write(value);
-        cdelay(50000000);  // Delay to allow TPSA3501 5ms startup delay
+        cdelay(50000000); // Delay to allow TPSA3501 5ms startup delay
         printf("[BSP] LMK power-up sequence done\n");
     }
 
@@ -309,23 +305,23 @@ void bsp_lmk0518_pwrup_seq(void) {
 }
 
 void bsp_afe7901_pwrup_seq(void) {
-	uint32_t value =0;
-	uint32_t rd_val =0;
-	uint8_t i2c_val =0;
-	// TPS62088 has PG rising edge has a 100-μs blanking time, CPU is typically
-	// running on 100MHz. We need at least 10000 threshold, 20000 to be safe
-	int timeout_limit = 20000;   // Timeout threshold (number of attempts)
-	int timeout_counter = 0;
+    uint32_t value = 0;
+    uint32_t rd_val = 0;
+    uint8_t i2c_val = 0;
+    // TPS62088 has PG rising edge has a 100-μs blanking time, CPU is typically
+    // running on 100MHz. We need at least 10000 threshold, 20000 to be safe
+    int timeout_limit = 20000; // Timeout threshold (number of attempts)
+    int timeout_counter = 0;
 
-	//Hold AFE7901 in known reset state
-	afe_reg00_write(0x0);
+    //Hold AFE7901 in known reset state
+    afe_reg00_write(0x0);
 
     // Read current register state
     value = pwr_control_reg00_read();
 
-	//-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     // Power up PMIC_VIOSYS rail
-	//-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     printf("value = 0x%08X\n", value);
     value = value | PAFE_EN_D1P0_BIT;
     printf("value = 0x%08X\n", value);
@@ -352,22 +348,22 @@ void bsp_afe7901_pwrup_seq(void) {
     // 7ms delay to wait for LP8754 PG masking (400us+6.4msdatasheet spec)
     cdelay(700000);
 
-	timeout_limit = 20000;   // Timeout threshold (number of attempts)
-	timeout_counter = 0;
+    timeout_limit = 20000; // Timeout threshold (number of attempts)
+    timeout_counter = 0;
 
     while (true) {
-        if (!LP8754_read_reg(&I2C0_REGS,REG_FLAGS_0, &i2c_val)) {
+        if (!LP8754_read_reg(&I2C0_REGS, REG_FLAGS_0, &i2c_val)) {
             printf("[BSP] ERROR: Failed to read LP8754 register\n");
             //exit early, we cannot continue without LP8754
             return;
         }
 
         if ((i2c_val & FLAGS_0_nPG_B0_BIT) == 0x00) {
-        	printf("[BSP] Info: LP8754 nPG_B0_BIT=0 \n");
+            printf("[BSP] Info: LP8754 nPG_B0_BIT=0 \n");
             break;
         }
 
-        cdelay(1);  // Small delay to avoid hammering the register
+        cdelay(1); // Small delay to avoid hammering the register
         timeout_counter++;
         if (timeout_counter >= timeout_limit) {
             printf("[BSP] ERROR: Timeout waiting for LP8754  nPG_B0_BIT=0\n");
@@ -384,12 +380,12 @@ void bsp_afe7901_pwrup_seq(void) {
     printf("value = 0x%08X\n", value);
     pwr_control_reg00_write(value);
 
-    timeout_limit = 20000;   // Timeout threshold (number of attempts)
+    timeout_limit = 20000; // Timeout threshold (number of attempts)
     timeout_counter = 0;
 
     // Wait for PG_AFE_AVDD_1P2 bit to become 1, with timeout
     while ((pwr_control_reg01_read() & PG_AFE_AVDD_1P2_BIT) == 0) {
-        cdelay(1);  // Small delay to avoid hammering the register
+        cdelay(1); // Small delay to avoid hammering the register
         timeout_counter++;
         if (timeout_counter >= timeout_limit) {
             printf("[BSP] ERROR: Timeout waiting for PG_AFE_AVDD_1P2\n");
@@ -403,21 +399,20 @@ void bsp_afe7901_pwrup_seq(void) {
     // Ensure that AFE_VD12 is rail is powered up before powering AFE_AVDD_1P8 and
     // AFE_VDDCLK_1P8 rails. See afe7901 datasheet.
     // CLK_2P5 rail is needed for AFE_VDDCLK_1P8
-    if ( (pwr_control_reg01_read() & (PG_AFE_AVDD_1P2_BIT | PG_EN_2P05_BIT)) == (PG_AFE_AVDD_1P2_BIT | PG_EN_2P05_BIT) ) {
+    if ((pwr_control_reg01_read() & (PG_AFE_AVDD_1P2_BIT | PG_EN_2P05_BIT)) == (PG_AFE_AVDD_1P2_BIT | PG_EN_2P05_BIT)) {
         printf("value = 0x%08X\n", value);
         value = value | PAFE_EN_A1P8_BIT | PAFE_EN_A1P8_1_BIT;
         printf("value = 0x%08X\n", value);
         pwr_control_reg00_write(value);
         //Delays from datasheet Figure 9-7. Power Supply Sequence Requirements
-        cdelay(550000);	// Delay to allow TPSA3501 5ms startup delay
-        cdelay(15000);	// 100us+ delay for clk to toggle
+        cdelay(550000); // Delay to allow TPSA3501 5ms startup delay
+        cdelay(15000); // 100us+ delay for clk to toggle
         //afe_reg00_write(0x1); // deaser resetz
         //cdelay(10000);  // 100Us delay for reset to stabilize
         printf("[BSP] AFE7901 power-up sequence done\n");
     } else {
-    	printf("[BSP] AFE7901 power-up fail, AFE_VD12 or CLK_2P5 rails are not powered\n");
+        printf("[BSP] AFE7901 power-up fail, AFE_VD12 or CLK_2P5 rails are not powered\n");
     }
-
 }
 
 
@@ -459,7 +454,7 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command) {
 
 void lms7002m_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id) {
     // No LMS7's on HiPer board and nothing to return
-    }
+}
 
 uint16_t lms7002m_spi_read(uint16_t addr, uint8_t periph_id) {
     // No LMS7's on HiPer board
@@ -473,6 +468,7 @@ void lms8001_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id) {
 uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id) {
     return lms_spi_read(addr, periph_id);
 }
+
 /** Checks if peripheral ID is valid.
  Returns 1 if valid, else 0.
  Returns 2 if no LMS7's are present at all*/
@@ -492,38 +488,37 @@ int8_t lms8001_periph_id_check(uint8_t periph_id) {
 }
 
 
-
 void afe7901_bringup_pre(void) {
-	uint32_t res;
-	//Configuring JESD IP CORE
-	afe_rx_cfg0_write(0x0);  // tiafe_cfg_rx_lane_enabled=0x0, tiafe_cfg_rx_lane_polarity =0x0;
-	afe_tx_cfg0_write(0x0);  // tiafe_cfg_tx_lane_enabled=0x0, tiafe_cfg_tx_lane_polarity =0x0;
-	afe_rx_ctrl_write(0x1); //tiafe_rx_sync_reset
-	afe_tx_ctrl_write(0x1); //tiafe_tx_sync_reset
+    uint32_t res;
+    //Configuring JESD IP CORE
+    afe_rx_cfg0_write(0x0); // tiafe_cfg_rx_lane_enabled=0x0, tiafe_cfg_rx_lane_polarity =0x0;
+    afe_tx_cfg0_write(0x0); // tiafe_cfg_tx_lane_enabled=0x0, tiafe_cfg_tx_lane_polarity =0x0;
+    afe_rx_ctrl_write(0x1); //tiafe_rx_sync_reset
+    afe_tx_ctrl_write(0x1); //tiafe_tx_sync_reset
 
 
-	res = afe_core_ctrl_read();
-	afe_core_ctrl_write(res & ~(1U << CSR_AFE_CORE_CTRL_AFE_CORE_RST_N_OFFSET));  //afe_core_rst_n = 0;
+    res = afe_core_ctrl_read();
+    afe_core_ctrl_write(res & ~(1U << CSR_AFE_CORE_CTRL_AFE_CORE_RST_N_OFFSET)); //afe_core_rst_n = 0;
 
-	cdelay(10000);
+    cdelay(10000);
 
-	afe_rx_cfg2_write(0x00); // 0 means autodetect and adjust
+    afe_rx_cfg2_write(0x00); // 0 means autodetect and adjust
 
-	afe_rx_cfg1_write(0x3210); //tiafe_cfg_rx_lane_map
-	afe_tx_cfg1_write(0x3210); //tiafe_cfg_tx_lane_map
+    afe_rx_cfg1_write(0x3210); //tiafe_cfg_rx_lane_map
+    afe_tx_cfg1_write(0x3210); //tiafe_cfg_tx_lane_map
 
-	afe_rx_cfg0_write(0xF);  // tiafe_cfg_rx_lane_enabled=0xf, tiafe_cfg_rx_lane_polarity =0x0;
-	afe_tx_cfg0_write(0xF);  // tiafe_cfg_tx_lane_enabled=0xf, tiafe_cfg_tx_lane_polarity =0x0;
+    afe_rx_cfg0_write(0xF); // tiafe_cfg_rx_lane_enabled=0xf, tiafe_cfg_rx_lane_polarity =0x0;
+    afe_tx_cfg0_write(0xF); // tiafe_cfg_tx_lane_enabled=0xf, tiafe_cfg_tx_lane_polarity =0x0;
 
-	cdelay(1000);
+    cdelay(1000);
 
-	printf("[BSP] AFE Core reset_n = 1 \n");
-	res = afe_core_ctrl_read();
-	afe_core_ctrl_write(res | (1U << CSR_AFE_CORE_CTRL_AFE_CORE_RST_N_OFFSET));   //afe_core_rst_n = 0x1;
+    printf("[BSP] AFE Core reset_n = 1 \n");
+    res = afe_core_ctrl_read();
+    afe_core_ctrl_write(res | (1U << CSR_AFE_CORE_CTRL_AFE_CORE_RST_N_OFFSET)); //afe_core_rst_n = 0x1;
 
 
     for (unsigned k = 0; k < 100; k++) {
-    	cdelay(250000);
+        cdelay(250000);
 
         res = afe_rx_status0_read();
         //xil_printf("[BSP] AFE RX SYSREF_RAC : 0x%x\n",res);
@@ -531,61 +526,57 @@ void afe7901_bringup_pre(void) {
         //xil_printf("[BSP] AFE TX SYSREF_RAC : 0x%x\n",res);
         //xil_printf("[BSP] AFE TX SYSREF_RAC : 0x%x\n",res);
         if (res & 0x00000008) {
-        	printf("[BSP] AFE PLL ready \n");
+            printf("[BSP] AFE PLL ready \n");
             break;
         }
     }
 
     afe_tx_ctrl_write(0x00); //tiafe_tx_sync_reset
-	cdelay(1000000); //wait just to be safe
+    cdelay(1000000); //wait just to be safe
     res = afe_tx_status0_read();
-    xil_printf("[BSP] AFE TX SYSREF_RAC : 0x%x\n",res);
-
-
+    xil_printf("[BSP] AFE TX SYSREF_RAC : 0x%x\n", res);
 }
 
 void afe7901_bringup_post(void) {
-	uint32_t res;
-	afe_rx_ctrl_write(0x00); //tiafe_rx_sync_reset
+    uint32_t res;
+    afe_rx_ctrl_write(0x00); //tiafe_rx_sync_reset
 
-	cdelay(1000000); //wait just to be safe
+    cdelay(1000000); //wait just to be safe
     res = afe_rx_status0_read();
-    xil_printf("[BSP] AFE RX SYSREF_RAC : 0x%x\n",res);
+    xil_printf("[BSP] AFE RX SYSREF_RAC : 0x%x\n", res);
     res = afe_tx_status0_read();
-    xil_printf("[BSP] AFE TX SYSREF_RAC : 0x%x\n",res);
-
+    xil_printf("[BSP] AFE TX SYSREF_RAC : 0x%x\n", res);
 }
 
 /** AFE7901 initialization
  *
  */
 void afe7901_init(void) {
-	printf("[BSP] AFE7901 init\n");
+    printf("[BSP] AFE7901 init\n");
 
 
-	cdelay(10000000); //wait just to be safe
-	// Assuming clocks are stable
-	//Hardware reset deasert
-	afe_reg00_write(0x0); // AFE is in reset FPGA
-	cdelay(10000000);  // 100Us delay for reset to stabilize
+    cdelay(10000000); //wait just to be safe
+    // Assuming clocks are stable
+    //Hardware reset deasert
+    afe_reg00_write(0x0); // AFE is in reset FPGA
+    cdelay(10000000); // 100Us delay for reset to stabilize
     afe_reg00_write(0x1); // deaser resetz
-    cdelay(10000000);  // 100Us delay for reset to stabilize
+    cdelay(10000000); // 100Us delay for reset to stabilize
     afe7901_bringup_pre();
-	//AFE7901_bringup();
-	printf("[BSP] Waiting AFE7901 init\n");
-	//cdelay(300000000);
-	//afe7901_bringup_post();
-	//LMK05318B_write_reg(OUTCTL_2, 0xD0);
+    //AFE7901_bringup();
+    printf("[BSP] Waiting AFE7901 init\n");
+    //cdelay(300000000);
+    //afe7901_bringup_post();
+    //LMK05318B_write_reg(OUTCTL_2, 0xD0);
 
-	//AFE7901_resync();
+    //AFE7901_resync();
 
-	printf("[BSP] AFE7901 init done\n");
-
+    printf("[BSP] AFE7901 init done\n");
 }
 
-uint8_t bsp_analog_read(const uint8_t channel, uint8_t *unit, uint8_t* value_msb, uint8_t* value_lsb) {
+uint8_t bsp_analog_read(const uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb) {
     uint16_t buf;
-    uint8_t* buf_point = (uint8_t*)&buf;
+    uint8_t *buf_point = (uint8_t *) &buf;
     switch (channel) {
         // Assume Continuous conversion is enabled for all temperature sensors
         case 0:
@@ -624,7 +615,7 @@ uint8_t bsp_analog_read(const uint8_t channel, uint8_t *unit, uint8_t* value_msb
 
 uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_t value_msb, const uint8_t value_lsb) {
     uint16_t buf;
-    uint8_t* buf_point = (uint8_t*)&buf;
+    uint8_t *buf_point = (uint8_t *) &buf;
     switch (channel) {
         // No write options for temp sensors (case 0,1,2)
         case 3:
@@ -633,8 +624,7 @@ uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_
                 buf_point[1] = value_msb;
                 DAC8050_Write_Value(&I2C3_REGS, I2C3_VCTCXO_DAC_ADDR, buf);
                 break;
-            }
-            else {
+            } else {
                 // Wrong unit, return error
                 return 1;
             }
@@ -646,7 +636,7 @@ uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_
     return 0;
 }
 
-uint8_t bsp_gpio_dir_read(uint8_t* data, const uint8_t offset) {
+uint8_t bsp_gpio_dir_read(uint8_t *data, const uint8_t offset) {
     uint8_t buf;
     switch (offset) {
         case 0:
@@ -654,30 +644,30 @@ uint8_t bsp_gpio_dir_read(uint8_t* data, const uint8_t offset) {
         case 2:
             // Note: GPIO dir write/read command uses 0 for input, TCA6424 uses 1 for input,
             //       so we must do bitwise inversion
-            TCA6424_ReadPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR,offset,&buf);
+            TCA6424_ReadPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR, offset, &buf);
             *data = ~buf;
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U114_ADDR,buf,offset);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U114_ADDR, buf, offset);
             break;
         case 3:
         case 4:
         case 5:
-            TCA6424_ReadPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR,offset-3,&buf);
+            TCA6424_ReadPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR, offset - 3, &buf);
             *data = ~buf;
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U113_ADDR,buf,offset-3);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U113_ADDR, buf, offset - 3);
             break;
         case 6:
         case 7:
         case 8:
-            TCA6424_ReadPortDirection(&I2C3_REGS, I2C3_IO_EXP0_ADDR, offset-6, &buf);
+            TCA6424_ReadPortDirection(&I2C3_REGS, I2C3_IO_EXP0_ADDR, offset - 6, &buf);
             *data = ~buf;
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U115_ADDR,buf,offset-6);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U115_ADDR, buf, offset - 6);
             break;
         case 9:
         case 10:
         case 11:
-            TCA6424_ReadPortDirection(&I2C3_REGS, I2C3_IO_EXP1_ADDR, offset-9, &buf);
+            TCA6424_ReadPortDirection(&I2C3_REGS, I2C3_IO_EXP1_ADDR, offset - 9, &buf);
             *data = ~buf;
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U110_ADDR,buf,offset-9);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U110_ADDR, buf, offset - 9);
             break;
         case 12:
         case 13:
@@ -701,26 +691,26 @@ uint8_t bsp_gpio_dir_write(const uint8_t data, const uint8_t offset) {
         case 2:
             // Note: GPIO dir write/read command uses 0 for input, TCA6424 uses 1 for input,
             //       so we must do bitwise inversion
-            TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR,offset,~data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U114_ADDR,~data,offset);
+            TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP0_ADDR, offset, ~data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U114_ADDR, ~data, offset);
             break;
         case 3:
         case 4:
         case 5:
-            TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR,offset-3,~data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U113_ADDR,~data,offset-3);
+            TCA6424_SetPortDirection(&I2C2_REGS,I2C2_IO_EXP1_ADDR, offset - 3, ~data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U113_ADDR, ~data, offset - 3);
             break;
         case 6:
         case 7:
         case 8:
-            TCA6424_SetPortDirection(&I2C3_REGS, I2C3_IO_EXP0_ADDR, offset-6, ~data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U115_ADDR,~data,offset-6);
+            TCA6424_SetPortDirection(&I2C3_REGS, I2C3_IO_EXP0_ADDR, offset - 6, ~data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U115_ADDR, ~data, offset - 6);
             break;
         case 9:
         case 10:
         case 11:
-            TCA6424_SetPortDirection(&I2C3_REGS, I2C3_IO_EXP1_ADDR, offset-9, ~data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U110_ADDR,~data,offset-9);
+            TCA6424_SetPortDirection(&I2C3_REGS, I2C3_IO_EXP1_ADDR, offset - 9, ~data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_DIRECTION_U110_ADDR, ~data, offset - 9);
             break;
         case 12:
         case 13:
@@ -736,41 +726,41 @@ uint8_t bsp_gpio_dir_write(const uint8_t data, const uint8_t offset) {
     return 0;
 }
 
-uint8_t bsp_gpio_read(uint8_t* data, const uint8_t offset) {
+uint8_t bsp_gpio_read(uint8_t *data, const uint8_t offset) {
     switch (offset) {
         case 0:
         case 1:
         case 2:
-            TCA6424_ReadPortInputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR,offset, data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_IN_VALUE_114_ADDR,data[0],offset);
+            TCA6424_ReadPortInputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR, offset, data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_IN_VALUE_114_ADDR, data[0], offset);
             break;
         case 3:
         case 4:
         case 5:
-            TCA6424_ReadPortInputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR,offset-3, data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_IN_VALUE_113_ADDR,data[0],offset-3);
+            TCA6424_ReadPortInputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR, offset - 3, data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_IN_VALUE_113_ADDR, data[0], offset - 3);
             break;
         case 6:
         case 7:
         case 8:
-            TCA6424_ReadPortInputValues(&I2C3_REGS, I2C3_IO_EXP0_ADDR, offset-6, data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_IN_VALUE_115_ADDR,data[0],offset-6);
+            TCA6424_ReadPortInputValues(&I2C3_REGS, I2C3_IO_EXP0_ADDR, offset - 6, data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_IN_VALUE_115_ADDR, data[0], offset - 6);
             break;
         case 9:
         case 10:
         case 11:
-            TCA6424_ReadPortInputValues(&I2C3_REGS, I2C3_IO_EXP1_ADDR, offset-9, data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_IN_VALUE_110_ADDR,data[0],offset-9);
+            TCA6424_ReadPortInputValues(&I2C3_REGS, I2C3_IO_EXP1_ADDR, offset - 9, data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_IN_VALUE_110_ADDR, data[0], offset - 9);
             break;
         case 12:
         case 13:
         case 14:
         case 15:
-            helper_csr_read_byte(CSR_GPIO_CONTROL_GPIO_ADDR,data,offset-12);
+            helper_csr_read_byte(CSR_GPIO_CONTROL_GPIO_ADDR, data, offset - 12);
             break;
         case 16:
         case 17:
-            helper_csr_read_byte(CSR_GPIO_CONTROL_GPIO2_ADDR,data, offset-16);
+            helper_csr_read_byte(CSR_GPIO_CONTROL_GPIO2_ADDR, data, offset - 16);
             break;
         default:
             return 1;
@@ -825,7 +815,6 @@ uint8_t bsp_gpio_get_cached(const uint8_t offset) {
 }
 
 uint8_t bsp_gpio_write(const uint8_t data, const uint8_t offset) {
-
     if (offset >= BSP_GPIO_COUNT) {
         return 1; // Safety check
     }
@@ -837,36 +826,36 @@ uint8_t bsp_gpio_write(const uint8_t data, const uint8_t offset) {
         case 0:
         case 1:
         case 2:
-            TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR,offset,data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_OUT_VALUE_114_ADDR,data,offset);
+            TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR, offset, data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_OUT_VALUE_114_ADDR, data, offset);
             break;
         case 3:
         case 4:
         case 5:
-            TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR,offset-3,data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_OUT_VALUE_113_ADDR,data,offset-3);
+            TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP1_ADDR, offset - 3, data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_OUT_VALUE_113_ADDR, data, offset - 3);
             break;
         case 6:
         case 7:
         case 8:
-            TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP0_ADDR, offset-6, data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_OUT_VALUE_115_ADDR,data,offset-6);
+            TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP0_ADDR, offset - 6, data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_OUT_VALUE_115_ADDR, data, offset - 6);
             break;
         case 9:
         case 10:
         case 11:
-            TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP1_ADDR, offset-9, data);
-            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_OUT_VALUE_110_ADDR,data,offset-9);
+            TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP1_ADDR, offset - 9, data);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_PORT_OUT_VALUE_110_ADDR, data, offset - 9);
             break;
         case 12:
         case 13:
         case 14:
         case 15:
-            helper_csr_update_byte(CSR_GPIO_CONTROL_GPIO_ADDR,data,offset-12);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_GPIO_ADDR, data, offset - 12);
             break;
         case 16:
         case 17:
-            helper_csr_update_byte(CSR_GPIO_CONTROL_GPIO2_ADDR,data, offset-16);
+            helper_csr_update_byte(CSR_GPIO_CONTROL_GPIO2_ADDR, data, offset - 16);
             break;
         default:
             return 1;
@@ -891,8 +880,8 @@ uint8_t bsp_gpio_write(const uint8_t data, const uint8_t offset) {
  *
  * @return 0 on success, 1 on error (invalid master or length).
  */
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata) {
-
+uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
+                         uint8_t *misodata) {
     uint32_t recv_val = 0;
     uint32_t bits = transfer_len * 8;
     uint32_t cs_mask = 1 << cs;
@@ -912,10 +901,12 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
             packed_mosi <<= (4 - transfer_len) * 8;
             spimaster_cs_write(cs_mask);
             cdelay(1);
-            while ((spimaster_status_read() & 0x1) == 0) {}
+            while ((spimaster_status_read() & 0x1) == 0) {
+            }
             spimaster_mosi_write(packed_mosi);
             spimaster_control_write(bits * SPI_LENGTH | SPI_START);
-            while ((spimaster_status_read() & 0x1) == 0) {}
+            while ((spimaster_status_read() & 0x1) == 0) {
+            }
             recv_val = spimaster_miso_read();
             break;
 
@@ -923,10 +914,12 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
             packed_mosi <<= (3 - transfer_len) * 8;
             spimaster1_cs_write(cs_mask);
             cdelay(1);
-            while ((spimaster1_status_read() & 0x1) == 0) {}
+            while ((spimaster1_status_read() & 0x1) == 0) {
+            }
             spimaster1_mosi_write(packed_mosi);
             spimaster1_control_write(bits * SPI_LENGTH | SPI_START);
-            while ((spimaster1_status_read() & 0x1) == 0) {}
+            while ((spimaster1_status_read() & 0x1) == 0) {
+            }
             recv_val = spimaster1_miso_read();
             break;
 
@@ -934,10 +927,12 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
             packed_mosi <<= (3 - transfer_len) * 8;
             spimaster_adf_cs_write(cs_mask);
             cdelay(1);
-            while ((spimaster_adf_status_read() & 0x1) == 0) {}
+            while ((spimaster_adf_status_read() & 0x1) == 0) {
+            }
             spimaster_adf_mosi_write(packed_mosi);
             spimaster_adf_control_write(bits * SPI_LENGTH | SPI_START);
-            while ((spimaster_adf_status_read() & 0x1) == 0) {}
+            while ((spimaster_adf_status_read() & 0x1) == 0) {
+            }
             recv_val = spimaster_adf_miso_read();
             break;
 
@@ -958,25 +953,23 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
 }
 
 void bsp_lms8_pwrup(void) {
-	LP8758_init(&I2C2_REGS);
+    LP8758_init(&I2C2_REGS);
 }
 
-uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data)
-{
+uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data) {
     const uint8_t spi_master = ADF4002_SPIMASTER;
     const uint8_t spi_cs = ADF4002_CS;
     if (pack_data == false) {
-        Control_TCXO_ADF(spi_master, spi_cs, oe, (uint8_t*)data);
-    }
-    else {
-        Control_TCXO_ADF_packed(spi_master, spi_cs, oe, (uint8_t*)data);
+        Control_TCXO_ADF(spi_master, spi_cs, oe, (uint8_t *) data);
+    } else {
+        Control_TCXO_ADF_packed(spi_master, spi_cs, oe, (uint8_t *) data);
     }
     return 0;
 }
 
 void bsp_init_adf(void) {
     uint32_t data;
-    uint8_t* data_ptr = (uint8_t*)&data;
+    uint8_t *data_ptr = (uint8_t *) &data;
 
     // R-counter to 5
     data = (1 << 20) | (5 << 2);
@@ -1072,67 +1065,67 @@ uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint
     static uint8_t data_to_copy; // how much data to copy to page buffer (incase of overflow)
     static uint8_t data_leftover;
 
-                            // write data to Flash from PC
-                            // Start of programming? reset variables
-                            if (current_portion == 0) {
-                                // Gold image must be written at address 0x0
-                                if (payload[0] == 3) {
-                                    address = 0;
-                                    // printf("DEBUG: Gold Image write to flash\n");
-                                } else {
-                                    // User image must be written at offset
-                                    address = 0x00310000;
-                                    // printf("DEBUG: User Image write to flash\n");
-                                }
+    // write data to Flash from PC
+    // Start of programming? reset variables
+    if (current_portion == 0) {
+        // Gold image must be written at address 0x0
+        if (payload[0] == 3) {
+            address = 0;
+            // printf("DEBUG: Gold Image write to flash\n");
+        } else {
+            // User image must be written at offset
+            address = 0x00310000;
+            // printf("DEBUG: User Image write to flash\n");
+        }
 
-                                page_buffer_cnt = 0;
-                                total_data = 0;
-                                // Erase first sector
-                                FlashQspi_EraseSector(address);
-                            }
+        page_buffer_cnt = 0;
+        total_data = 0;
+        // Erase first sector
+        FlashQspi_EraseSector(address);
+    }
 
-                            inc_data_count = payload[5];
+    inc_data_count = payload[5];
 
-                            // Check if final packet
-                            if (inc_data_count == 0) {
-                                // Flush leftover data, if any
-                                if (page_buffer_cnt > 0) {
-                                    // Fill unused page data with 1 (no write)
-                                    memset(&page_buffer[page_buffer_cnt], 0xFF, PAGE_SIZE - page_buffer_cnt);
-                                    FlashQspi_ProgramPage(address, page_buffer);
-                                }
-                            } else {
-                                if (PAGE_SIZE < (inc_data_count + page_buffer_cnt)) {
-                                    // Incoming data would overflow the page buffer
-                                    // Calculate ammount of data to copy
-                                    data_to_copy = PAGE_SIZE - page_buffer_cnt;
-                                    data_leftover = page_buffer_cnt - data_to_copy;
-                                    memcpy(&page_buffer[page_buffer_cnt], &payload[24],
-                                           data_to_copy);
-                                    // We already know the page is full because of overflowing input
-                                    FlashQspi_ProgramPage(address, page_buffer);
-                                    address += 256;
-                                    total_data += 256;
-                                    // Check if new address is bottom of sector, erase if needed
-                                    if ((address & 0xFFF) == 0)
-                                        FlashQspi_EraseSector(address);
-                                    memcpy(&page_buffer[0], &payload[24 + data_to_copy],
-                                           data_leftover);
-                                    page_buffer_cnt = data_leftover;
-                                } else {
-                                    // Incoming data would not overflow the page buffer
-                                    memcpy(&page_buffer[page_buffer_cnt], &payload[24],
-                                           inc_data_count);
-                                    page_buffer_cnt += inc_data_count;
-                                    if (page_buffer_cnt == PAGE_SIZE) {
-                                        FlashQspi_ProgramPage(address, page_buffer);
-                                        page_buffer_cnt = 0;
-                                        address += 256;
-                                        total_data += 256;
-                                        // Check if new address is bottom of sector, erase if needed
-                                        if ((address & 0xFFF) == 0)
-                                            FlashQspi_EraseSector(address);
-                                    }
-                                }
-                            }
+    // Check if final packet
+    if (inc_data_count == 0) {
+        // Flush leftover data, if any
+        if (page_buffer_cnt > 0) {
+            // Fill unused page data with 1 (no write)
+            memset(&page_buffer[page_buffer_cnt], 0xFF, PAGE_SIZE - page_buffer_cnt);
+            FlashQspi_ProgramPage(address, page_buffer);
+        }
+    } else {
+        if (PAGE_SIZE < (inc_data_count + page_buffer_cnt)) {
+            // Incoming data would overflow the page buffer
+            // Calculate ammount of data to copy
+            data_to_copy = PAGE_SIZE - page_buffer_cnt;
+            data_leftover = page_buffer_cnt - data_to_copy;
+            memcpy(&page_buffer[page_buffer_cnt], &payload[24],
+                   data_to_copy);
+            // We already know the page is full because of overflowing input
+            FlashQspi_ProgramPage(address, page_buffer);
+            address += 256;
+            total_data += 256;
+            // Check if new address is bottom of sector, erase if needed
+            if ((address & 0xFFF) == 0)
+                FlashQspi_EraseSector(address);
+            memcpy(&page_buffer[0], &payload[24 + data_to_copy],
+                   data_leftover);
+            page_buffer_cnt = data_leftover;
+        } else {
+            // Incoming data would not overflow the page buffer
+            memcpy(&page_buffer[page_buffer_cnt], &payload[24],
+                   inc_data_count);
+            page_buffer_cnt += inc_data_count;
+            if (page_buffer_cnt == PAGE_SIZE) {
+                FlashQspi_ProgramPage(address, page_buffer);
+                page_buffer_cnt = 0;
+                address += 256;
+                total_data += 256;
+                // Check if new address is bottom of sector, erase if needed
+                if ((address & 0xFFF) == 0)
+                    FlashQspi_EraseSector(address);
+            }
+        }
+    }
 }

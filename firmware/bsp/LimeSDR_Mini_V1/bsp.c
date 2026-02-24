@@ -10,7 +10,7 @@ void bsp_init(void) {
 }
 
 void bsp_powerup(void) {
-// No implementation
+    // No implementation
 }
 
 void bsp_shutdown(void) {
@@ -60,8 +60,16 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command) {
 
         case LMS_RST_PULSE:
             limetop_lms7002_top_lms_ctr_gpio_write(0x0);
-            asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
-            asm("nop"); asm("nop"); asm("nop"); asm("nop"); asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
             limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
             return 0;
     }
@@ -156,8 +164,8 @@ uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_
  *
  * @return 0 on success, 1 on error (invalid master or length).
  */
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata) {
-
+uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
+                         uint8_t *misodata) {
     uint32_t recv_val = 0;
     uint32_t bits = transfer_len * 8;
     uint32_t cs_mask = 1 << cs;
@@ -177,10 +185,12 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
             packed_mosi <<= (4 - transfer_len) * 8;
             spimaster_cs_write(cs_mask);
             cdelay(1);
-            while ((spimaster_status_read() & 0x1) == 0) {}
+            while ((spimaster_status_read() & 0x1) == 0) {
+            }
             spimaster_mosi_write(packed_mosi);
             spimaster_control_write(bits * SPI_LENGTH | SPI_START);
-            while ((spimaster_status_read() & 0x1) == 0) {}
+            while ((spimaster_status_read() & 0x1) == 0) {
+            }
             recv_val = spimaster_miso_read();
             break;
 
