@@ -1,6 +1,8 @@
 #include <irq.h>
 #include "bsp.h"
 
+#include <stdint.h>
+
 litei2c_regs I2C0_REGS = {
     .master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
     .master_addr_addr     = CSR_I2C0_MASTER_ADDR_ADDR,
@@ -436,7 +438,23 @@ void bsp_delay_ms(unsigned int ms) {
 }
 
 int8_t lms_reset(uint8_t periph_id, uint8_t command) {
-#error "lms_reset not implemented"
+    uint8_t check_val = lms7002m_periph_id_check(periph_id);
+    if (check_val == 0) return 1;
+    uint32_t read_value;
+
+
+    switch (command) {
+        case LMS_RST_DEACTIVATE:
+            // No implementation
+            return 1;
+        case LMS_RST_ACTIVATE:
+            // No implementation
+            return 1;
+
+        case LMS_RST_PULSE:
+            // No implementation
+            return 1;
+    }
 }
 
 void lms7002m_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id) {
@@ -1015,4 +1033,106 @@ uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_
         return STATUS_COMPLETED_CMD;
     }
     return STATUS_ERROR_CMD;
+}
+
+uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    return 1;
+}
+
+uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    return 1;
+}
+
+uint8_t bsp_program_mode2_check_support(void) {
+    return 1;
+}
+
+uint8_t bsp_program_mode2_boot_from_flash(void) {
+    return 1;
+}
+
+uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    //Both user and gold share the same core implementation
+    bsp_program_flash(current_portion, data_cnt, payload);
+}
+
+uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    //Both user and gold share the same core implementation
+    bsp_program_flash(current_portion, data_cnt, payload);
+}
+
+// Same Implementation for both user and gold
+uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    static int address;
+    static uint16_t page_buffer_cnt;
+    static uint64_t total_data = 0;
+    static uint8_t inc_data_count;
+    static uint8_t page_buffer[256];
+    static int PAGE_SIZE = 256;
+    static uint8_t data_to_copy; // how much data to copy to page buffer (incase of overflow)
+    static uint8_t data_leftover;
+
+                            // write data to Flash from PC
+                            // Start of programming? reset variables
+                            if (current_portion == 0) {
+                                // Gold image must be written at address 0x0
+                                if (payload[0] == 3) {
+                                    address = 0;
+                                    // printf("DEBUG: Gold Image write to flash\n");
+                                } else {
+                                    // User image must be written at offset
+                                    address = 0x00310000;
+                                    // printf("DEBUG: User Image write to flash\n");
+                                }
+
+                                page_buffer_cnt = 0;
+                                total_data = 0;
+                                // Erase first sector
+                                FlashQspi_EraseSector(address);
+                            }
+
+                            inc_data_count = payload[5];
+
+                            // Check if final packet
+                            if (inc_data_count == 0) {
+                                // Flush leftover data, if any
+                                if (page_buffer_cnt > 0) {
+                                    // Fill unused page data with 1 (no write)
+                                    memset(&page_buffer[page_buffer_cnt], 0xFF, PAGE_SIZE - page_buffer_cnt);
+                                    FlashQspi_ProgramPage(address, page_buffer);
+                                }
+                            } else {
+                                if (PAGE_SIZE < (inc_data_count + page_buffer_cnt)) {
+                                    // Incoming data would overflow the page buffer
+                                    // Calculate ammount of data to copy
+                                    data_to_copy = PAGE_SIZE - page_buffer_cnt;
+                                    data_leftover = page_buffer_cnt - data_to_copy;
+                                    memcpy(&page_buffer[page_buffer_cnt], &payload[24],
+                                           data_to_copy);
+                                    // We already know the page is full because of overflowing input
+                                    FlashQspi_ProgramPage(address, page_buffer);
+                                    address += 256;
+                                    total_data += 256;
+                                    // Check if new address is bottom of sector, erase if needed
+                                    if ((address & 0xFFF) == 0)
+                                        FlashQspi_EraseSector(address);
+                                    memcpy(&page_buffer[0], &payload[24 + data_to_copy],
+                                           data_leftover);
+                                    page_buffer_cnt = data_leftover;
+                                } else {
+                                    // Incoming data would not overflow the page buffer
+                                    memcpy(&page_buffer[page_buffer_cnt], &payload[24],
+                                           inc_data_count);
+                                    page_buffer_cnt += inc_data_count;
+                                    if (page_buffer_cnt == PAGE_SIZE) {
+                                        FlashQspi_ProgramPage(address, page_buffer);
+                                        page_buffer_cnt = 0;
+                                        address += 256;
+                                        total_data += 256;
+                                        // Check if new address is bottom of sector, erase if needed
+                                        if ((address & 0xFFF) == 0)
+                                            FlashQspi_EraseSector(address);
+                                    }
+                                }
+                            }
 }

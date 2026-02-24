@@ -22,6 +22,7 @@
 #include "Xil_clk_drp.h"
 #include "TMP114.h"
 #include "fpga_flash_qspi.h"
+#include <string.h>
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
@@ -93,6 +94,13 @@ void bsp_vctcxo_permanent_dac_read(uint8_t *data);
 void bsp_vctcxo_permanent_dac_write(uint8_t *data);
 uint8_t bsp_mem_read(uint32_t offset, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
 uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
+uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion,uint8_t data_cnt,const uint8_t *payload);
+uint8_t bsp_program_mode1_to_flash(uint32_t current_portion,uint8_t data_cnt,const uint8_t *payload);
+uint8_t bsp_program_mode2_check_support(void);
+uint8_t bsp_program_mode2_boot_from_flash(void);
+uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion,uint8_t data_cnt,const uint8_t *payload);
+uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion,uint8_t data_cnt,const uint8_t *payload);
+uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
 //General SPI bus functions
 uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata);

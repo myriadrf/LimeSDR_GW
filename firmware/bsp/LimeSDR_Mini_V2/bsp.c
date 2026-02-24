@@ -169,3 +169,24 @@ uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data) {
     // No ADF on this board
     return 1;
 }
+
+uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+}
+
+uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+}
+
+uint8_t bsp_program_mode2_check_support(void) {
+}
+
+uint8_t bsp_program_mode2_boot_from_flash(void) {
+}
+
+
+uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    return 1;
+}
+
+uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    return 1;
+}

@@ -1,15 +1,20 @@
 #include "bsp.h"
 
 void bsp_init(void) {
-#error "bsp_init not implemented"
+    // RESET FIFO once on power-up
+    ft601_fifo_control_write(1);
+    ft601_fifo_control_write(0);
+    //Reset LMS7
+    limetop_lms7002_top_lms_ctr_gpio_write(0x0);
+    limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
 }
 
 void bsp_powerup(void) {
-#error "bsp_powerup not implemented"
+// No implementation
 }
 
 void bsp_shutdown(void) {
-#error "bsp_shutdown not implemented"
+    // No implementation
 }
 
 static void bsp_isr(void) {
@@ -167,5 +172,33 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
 
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data) {
     // No ADF on this board
+    return 1;
+}
+
+// Bit swap in byte. LimeSDR Mini V1 specific function.
+uint8_t reverse(uint8_t b) {
+    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+    return b;
+}
+
+uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+}
+
+uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+}
+
+uint8_t bsp_program_mode2_check_support(void) {
+}
+
+uint8_t bsp_program_mode2_boot_from_flash(void) {
+}
+
+uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    return 1;
+}
+
+uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
     return 1;
 }
