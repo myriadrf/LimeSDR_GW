@@ -517,6 +517,7 @@ class ChannelCombiner(LiteXModule):
 
         self.axis_chnl_combiner_conv = add_vhd2v_converter(self.platform,
                                                            instance=self.axis_chnl_combiner,
+                                                           flatten_source=False,
                                                            files=[
                                                                "gateware/LimeDFB/rx_path_top/src/axis_chnl_combiner.vhd"],
                                                            )
