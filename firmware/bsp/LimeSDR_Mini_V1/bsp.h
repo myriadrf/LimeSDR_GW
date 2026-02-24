@@ -29,6 +29,8 @@
 #define CFM0EndAddress    0x022FFF
 #define UFMStartAddress   0x0
 #define UFMEndAddress     0x01FFF
+
+#define MAX_ID_LMS7                1
 // Define device indexes, addresses and similar here
 #define SPI_CS_DAC (1 << 1)
 

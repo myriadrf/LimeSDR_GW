@@ -28,6 +28,8 @@
 #define CFM0EndAddress 0x13FFFF;
 #define FLASH_BLOCK_SIZE	0x10000 //64KB
 
+#define MAX_ID_LMS7                1
+
 // Initialize board-specific hardware
 void bsp_init(void);
 
