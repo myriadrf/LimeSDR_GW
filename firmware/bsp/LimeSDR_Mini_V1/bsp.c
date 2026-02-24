@@ -184,15 +184,205 @@ uint8_t reverse(uint8_t b) {
 }
 
 uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    return 1;
+    // No implementation
 }
 
 uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    static uint8_t state, Flash = 0x0;
+    static uint32_t word = 0x0;
+    static int address;
+    static uint32_t byte = 0;
+    uint8_t retval = 0;
+
+    if (current_portion == 0) state = 10;
+    if (data_cnt == 0) {
+        state = 30;
+    }
+    Flash = 1;
+
+    while (Flash) {
+        switch (state) {
+            //Init
+            case 10:
+                //Set Flash memory addresses
+                address = UFMStartAddress;
+                //Write Control Register of On-Chip Flash IP to un-protect and erase operation
+                //wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf67fffff);
+                //wishbone_write32(ONCHIP_FLASH_0_CSR_BASE + (1<<2), 0xf65fffff);
+                internal_flash_control_register_write(0xf67fffff);
+                internal_flash_control_register_write(0xf65fffff);
+
+                state = 11;
+                Flash = 1;
+
+            case 11:
+                //Start erase CFM0
+                if ((internal_flash_status_register_read() & 0x13) == 0x10) {
+                    internal_flash_control_register_write(0xf67fffff);
+                    state = 13;
+                    Flash = 1;
+                }
+                if ((internal_flash_status_register_read() & 0x13) == 0x01) {
+                    state = 11;
+                    Flash = 1;
+                }
+                if ((internal_flash_status_register_read() & 0x13) == 0x00) {
+                    state = 0;
+                }
+
+                break;
+
+            //Initiate UFM (ID1) Erase Operation
+            case 13:
+                //Write Control Register of On-Chip Flash IP to un-protect and erase operation
+                internal_flash_control_register_write(0xf67fffff);
+                internal_flash_control_register_write(0xf61fffff);
+
+                state = 14;
+                Flash = 1;
+                break;
+
+            case 14:
+                //Start erase UFM ID1
+                if ((internal_flash_status_register_read() & 0x13) == 0x10) {
+                    internal_flash_control_register_write(0xf67fffff);
+                    state = 16;
+                    Flash = 1;
+                }
+                if ((internal_flash_status_register_read() & 0x13) == 0x01) {
+                    state = 14;
+                    Flash = 1;
+                }
+                if ((internal_flash_status_register_read() & 0x13) == 0x00) {
+                    state = 0;
+                }
+                break;
+
+            //Initiate UFM (ID2) Erase Operation
+            case 16:
+
+                //Write Control Register of On-Chip Flash IP to un-protect and erase operation
+                internal_flash_control_register_write(0xf67fffff);
+                internal_flash_control_register_write(0xf62fffff);
+
+                state = 17;
+                Flash = 1;
+                break;
+
+            case 17:
+                //Start erase UFM ID2
+                if ((internal_flash_status_register_read() & 0x13) == 0x10) {
+                    internal_flash_control_register_write(0xf67fffff);
+                    state = 20;
+                    Flash = 1;
+                }
+                if ((internal_flash_status_register_read() & 0x13) == 0x01) {
+                    state = 17;
+                    Flash = 1;
+                }
+                if ((internal_flash_status_register_read() & 0x13) == 0x00) {
+                    state = 0;
+                }
+                break;
+
+            //Program
+            case 20:
+                for (byte = 24; byte <= 52; byte += 4) {
+                    //Take word and swap bits
+                    word = ((uint32_t) reverse(payload[byte + 0]) << 24)
+                           & 0xFF000000;
+                    word |= ((uint32_t) reverse(payload[byte + 1]) << 16)
+                            & 0x00FF0000;
+                    word |= ((uint32_t) reverse(payload[byte + 2]) << 8)
+                            & 0x0000FF00;
+                    word |= ((uint32_t) reverse(payload[byte + 3]) << 0)
+                            & 0x000000FF;
+
+                    //Command to write into On-Chip Flash IP
+                    if (address <= CFM0EndAddress) {
+                        *(uint32_t *) (INTERNAL_FLASH_BASE + (address << 2)) = word;
+                        //wishbone_write32(ONCHIP_FLASH_0_DATA_BASE + (address<<2), word);
+
+                        while ((internal_flash_status_register_read() & 0x0b) == 0x02) {
+                            //printf("Writing CFM0(%d)\n", address);
+                        }
+
+                        if ((internal_flash_status_register_read() & 0x0b) == 0x00) {
+                            state = 0;
+                            address = 700000;
+                        }
+
+                        if ((internal_flash_status_register_read() & 0x0b) == 0x08) {
+                        };
+
+                        // Increment address or move to CFM0 sector
+                        if (address == UFMEndAddress) address = CFM0StartAddress;
+                        else address += 1;
+                    } else {
+                        retval = 1;
+                    };
+                };
+
+                state = 20;
+                Flash = 0;
+                retval = 0;
+
+                break;
+
+            //Finish
+            case 30:
+                //Re-protect the sector
+                //IOWR(ONCHIP_FLASH_0_CSR_BASE, 1, 0xffffffff);
+                internal_flash_control_register_write(0xffffffff);
+
+                state = 0;
+                Flash = 0;
+                retval = 0;
+
+                break;
+
+            default:
+                retval = 1;
+                state = 0;
+                Flash = 0;
+        };
+    };
+    return retval;
 }
 
 uint8_t bsp_program_mode2_check_support(void) {
+    return 0;
 }
 
 uint8_t bsp_program_mode2_boot_from_flash(void) {
+    // Copy-pasted old implementation
+
+    uint32_t reg;
+    //set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 0
+    //wishbone_write32(DUAL_BOOT_0_BASE+(1<<2), 0x00000001);
+    reg = 0x00000001;
+
+    //set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 1
+    //IOWR(DUAL_BOOT_0_BASE, 1, 0x00000003);
+    reg = 0x00000003;
+
+    *(uint32_t *) (DUAL_CFG_BASE + (1 << 2)) = reg;
+
+    /*wait while core is busy*/
+    while (1) {
+        reg = *(uint32_t *) (DUAL_CFG_BASE + (3 << 2));
+        cdelay(2000);
+        if (reg != 0x01)
+            break;
+    }
+
+    //Trigger reconfiguration to selected Image
+    //wishbone_write32(DUAL_BOOT_0_BASE+(0<<2), 0x00000001);
+    reg = 0x00000001;
+    *(uint32_t *) (DUAL_CFG_BASE + (0 << 2)) = reg;
+
+    return 0;
 }
 
 uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {

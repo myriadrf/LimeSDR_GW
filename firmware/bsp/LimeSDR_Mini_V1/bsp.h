@@ -17,6 +17,7 @@
 #include "LMS.h"
 #include "lime_litex_helpers.h"
 #include "LMS64C_protocol.h"
+#include <generated/mem.h>
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
