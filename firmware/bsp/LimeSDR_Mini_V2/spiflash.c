@@ -11,29 +11,29 @@
 
 #include "spiflash.h"
 
-#if defined(CSR_SPIFLASH_CORE_BASE)
+#if defined(CSR_SPIFLASH_BASE)
 
-#ifdef CSR_SPIFLASH_CORE_MASTER_CS_ADDR
+#ifdef CSR_SPIFLASH_MASTER_CS_ADDR
 
 static void spiflash_len_mask_width_write(uint32_t len, uint32_t width, uint32_t mask)
 {
-	uint32_t tmp = len & ((1 <<  CSR_SPIFLASH_CORE_MASTER_PHYCONFIG_LEN_SIZE) - 1);
-	uint32_t word = tmp << CSR_SPIFLASH_CORE_MASTER_PHYCONFIG_LEN_OFFSET;
-	tmp = width & ((1 << CSR_SPIFLASH_CORE_MASTER_PHYCONFIG_WIDTH_SIZE) - 1);
-	word |= tmp << CSR_SPIFLASH_CORE_MASTER_PHYCONFIG_WIDTH_OFFSET;
-	tmp = mask & ((1 <<  CSR_SPIFLASH_CORE_MASTER_PHYCONFIG_MASK_SIZE) - 1);
-	word |= tmp << CSR_SPIFLASH_CORE_MASTER_PHYCONFIG_MASK_OFFSET;
-	spiflash_core_master_phyconfig_write(word);
+	uint32_t tmp = len & ((1 <<  CSR_SPIFLASH_MASTER_PHYCONFIG_LEN_SIZE) - 1);
+	uint32_t word = tmp << CSR_SPIFLASH_MASTER_PHYCONFIG_LEN_OFFSET;
+	tmp = width & ((1 << CSR_SPIFLASH_MASTER_PHYCONFIG_WIDTH_SIZE) - 1);
+	word |= tmp << CSR_SPIFLASH_MASTER_PHYCONFIG_WIDTH_OFFSET;
+	tmp = mask & ((1 <<  CSR_SPIFLASH_MASTER_PHYCONFIG_MASK_SIZE) - 1);
+	word |= tmp << CSR_SPIFLASH_MASTER_PHYCONFIG_MASK_OFFSET;
+	spiflash_master_phyconfig_write(word);
 }
 
 static bool spiflash_tx_ready(void)
 {
-	return (spiflash_core_master_status_read() >> CSR_SPIFLASH_CORE_MASTER_STATUS_TX_READY_OFFSET) & 1;
+	return (spiflash_master_status_read() >> CSR_SPIFLASH_MASTER_STATUS_TX_READY_OFFSET) & 1;
 }
 
 static bool spiflash_rx_ready(void)
 {
-	return (spiflash_core_master_status_read() >> CSR_SPIFLASH_CORE_MASTER_STATUS_RX_READY_OFFSET) & 1;
+	return (spiflash_master_status_read() >> CSR_SPIFLASH_MASTER_STATUS_RX_READY_OFFSET) & 1;
 }
 
 static volatile uint8_t w_buf[SPI_FLASH_BLOCK_SIZE + 4];
@@ -44,25 +44,25 @@ static uint32_t transfer_byte(uint8_t b)
 	/* wait for tx ready */
 	while (!spiflash_tx_ready());
 
-	spiflash_core_master_rxtx_write((uint32_t)b);
+	spiflash_master_rxtx_write((uint32_t)b);
 
 	/* wait for rx ready */
 	while (!spiflash_rx_ready());
 
-	return spiflash_core_master_rxtx_read();
+	return spiflash_master_rxtx_read();
 }
 
 static void transfer_cmd(volatile uint8_t *bs, volatile uint8_t *resp, int len)
 {
 	spiflash_len_mask_width_write(8, 1, 1);
-	spiflash_core_master_cs_write(1);
+	spiflash_master_cs_write(1);
 
 	flush_cpu_dcache();
 	for (int i=0; i < len; i++) {
 		resp[i] = transfer_byte(bs[i]);
 	}
 
-	spiflash_core_master_cs_write(0);
+	spiflash_master_cs_write(0);
 	flush_cpu_dcache();
 }
 

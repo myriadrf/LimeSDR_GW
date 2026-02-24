@@ -17,11 +17,16 @@
 #include "LMS.h"
 #include "lime_litex_helpers.h"
 #include "LMS64C_protocol.h"
+#include <generated/mem.h>
+#include "spiflash.h"
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
 
 // Define device indexes, addresses and similar here
+#define CFM0StartAddress 0x000000;
+#define CFM0EndAddress 0x13FFFF;
+#define FLASH_BLOCK_SIZE	0x10000 //64KB
 
 // Initialize board-specific hardware
 void bsp_init(void);

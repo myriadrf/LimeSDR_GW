@@ -171,15 +171,159 @@ uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data) {
 }
 
 uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    // No implementation
+    return 1;
 }
 
 uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
+    static uint8_t state, Flash = 0x0;
+    static int address;
+    static uint32_t byte = 0;
+    static uint8_t p_spi_wrdata[4];
+    uint8_t retval = 0;
+
+    if (current_portion == 0) state = 10;
+    if (data_cnt == 0) {
+        state = 30;
+    }
+    Flash = 1;
+
+    while (Flash) {
+        switch (state) {
+            //Init
+            case 10:
+                //Set Flash memory addresses
+                address = CFM0StartAddress;
+
+                //spiflash_erase_primary(spiflash);
+                // Erase First 64KB block, other blocks are erased later
+                //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base + 0x00000000, 3);
+                if (spiflash_erase(0x00000000) == false)
+                    printf("spiflash_erase_primary: Error\n");
+
+                state = 11;
+                Flash = 1;
+
+            case 11:
+                //Start erase CFM0
+                //if ((0x03 & MicoSPIFlash_StatusRead (spiflash)) == 0)
+                if ((0x03 & spiflash_read_status_register()) == 0) {
+                state = 20;
+                Flash = 1;
+            }
+                if ((0x01 & spiflash_read_status_register()) == 0x01) {
+                state = 11;
+                Flash = 1;
+            }
+                if ((0x02 & spiflash_read_status_register()) == 0x02) {
+                state = 0;
+            }
+
+                break;
+
+
+            //Program
+            case 20:
+                for (byte = 24; byte <= 52; byte += 4) {
+                    //Take word
+                    p_spi_wrdata[0] = payload[byte + 0];
+                    p_spi_wrdata[1] = payload[byte + 1];
+                    p_spi_wrdata[2] = payload[byte + 2];
+                    p_spi_wrdata[3] = payload[byte + 3];
+
+                    //Command to write into On-Chip Flash IP
+                    if (address <= CFM0EndAddress) {
+                        // Erase Block if we reach starting address of 64KB block
+                        if (address % FLASH_BLOCK_SIZE == 0) {
+                            //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
+                            spiflash_erase(address);
+                        }
+
+                        //IOWR_32DIRECT(ONCHIP_FLASH_0_DATA_BASE, address, word);
+                        //flash_op_status = MicoSPIFlash_AlignedPageProgram(spiflash, spiflash->memory_base+address, 0x4, wdata);
+                        spiflash_page_program(address, p_spi_wrdata, 0x04);
+
+                        address += 4;
+
+
+                        while ((0x01 & spiflash_read_status_register()) == 0x01) {
+                            //printf("Writing CFM0(%d)\n", address);
+                        }
+                        //TODO: Do we need this?
+                        if ((0x02 & spiflash_read_status_register()) == 0x02) {
+                            //printf("Write to %d failed\n", address);
+                            state = 0;
+                            address = 700000;
+                        }
+                        /*
+                                 if((IORD(ONCHIP_FLASH_0_CSR_BASE, 0) & 0x0b) == 0x08)
+                                 {
+                                 };
+                        */
+                    } else {
+                        retval = 1;
+                    };
+                };
+
+                state = 20;
+                Flash = 0;
+                retval = 0;
+
+                break;
+
+            //Finish
+            case 30:
+                //Re-protect the sector
+                //IOWR(ONCHIP_FLASH_0_CSR_BASE, 1, 0xffffffff);
+
+                state = 0;
+                Flash = 0;
+
+                retval = 0;
+
+                break;
+
+            default:
+                retval = 1;
+                state = 0;
+                Flash = 0;
+        };
+    };
+    return retval;
 }
 
 uint8_t bsp_program_mode2_check_support(void) {
+    return 0;
 }
 
 uint8_t bsp_program_mode2_boot_from_flash(void) {
+    // Copy-pasted old implementation
+
+    uint32_t reg;
+    //set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 0
+    //wishbone_write32(DUAL_BOOT_0_BASE+(1<<2), 0x00000001);
+    reg = 0x00000001;
+
+    //set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 1
+    //IOWR(DUAL_BOOT_0_BASE, 1, 0x00000003);
+    reg = 0x00000003;
+
+    *(uint32_t *) (DUAL_CFG_BASE + (1 << 2)) = reg;
+
+    /*wait while core is busy*/
+    while (1) {
+        reg = *(uint32_t *) (DUAL_CFG_BASE + (3 << 2));
+        cdelay(2000);
+        if (reg != 0x01)
+            break;
+    }
+
+    //Trigger reconfiguration to selected Image
+    //wishbone_write32(DUAL_BOOT_0_BASE+(0<<2), 0x00000001);
+    reg = 0x00000001;
+    *(uint32_t *) (DUAL_CFG_BASE + (0 << 2)) = reg;
+
+    return 0;
 }
 
 
