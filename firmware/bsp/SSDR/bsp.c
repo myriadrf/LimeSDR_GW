@@ -335,7 +335,8 @@ uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, 
 }
 
 uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
-    return 1;
+    //Mode 1 behaves the same as user mode on this board
+    return bsp_program_flash(current_portion, data_cnt, payload);
 }
 
 uint8_t bsp_program_mode2_check_support(void) {
@@ -349,12 +350,12 @@ uint8_t bsp_program_mode2_boot_from_flash(void) {
 
 uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
     //Both user and gold share the same core implementation
-    bsp_program_flash(current_portion, data_cnt, payload);
+    return bsp_program_flash(current_portion, data_cnt, payload);
 }
 
 uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
     //Both user and gold share the same core implementation
-    bsp_program_flash(current_portion, data_cnt, payload);
+    return bsp_program_flash(current_portion, data_cnt, payload);
 }
 
 // Same Implementation for both user and gold
@@ -431,4 +432,6 @@ uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint
             }
         }
     }
+    // No errors
+    return 0;
 }

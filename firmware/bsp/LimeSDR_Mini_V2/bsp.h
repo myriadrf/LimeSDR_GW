@@ -24,8 +24,8 @@
 /*-----------------------------------------------------------------------*/
 
 // Define device indexes, addresses and similar here
-#define CFM0StartAddress 0x000000;
-#define CFM0EndAddress 0x13FFFF;
+#define CFM0StartAddress 0x000000
+#define CFM0EndAddress 0x13FFFF
 #define FLASH_BLOCK_SIZE	0x10000 //64KB
 
 #define MAX_ID_LMS7                1

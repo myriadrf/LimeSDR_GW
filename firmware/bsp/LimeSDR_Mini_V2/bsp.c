@@ -273,8 +273,7 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
                     p_spi_wrdata[3] = payload[byte + 3];
 
                     //Command to write into On-Chip Flash IP
-                    if (address <= CFM0EndAddress
-                    ) {
+                    if (address <= CFM0EndAddress) {
                         // Erase Block if we reach starting address of 64KB block
                         if (address % FLASH_BLOCK_SIZE == 0) {
                             //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
@@ -302,8 +301,7 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
                                  {
                                  };
                         */
-                    }
-                    else {
+                    } else {
                         retval = 1;
                     };
                 };
@@ -336,37 +334,11 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
 }
 
 uint8_t bsp_program_mode2_check_support(void) {
-    return 0;
+    return 1;
 }
 
 uint8_t bsp_program_mode2_boot_from_flash(void) {
-    // Copy-pasted old implementation
-
-    uint32_t reg;
-    //set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 0
-    //wishbone_write32(DUAL_BOOT_0_BASE+(1<<2), 0x00000001);
-    reg = 0x00000001;
-
-    //set CONFIG_SEL overwrite to 1 and CONFIG_SEL to Image 1
-    //IOWR(DUAL_BOOT_0_BASE, 1, 0x00000003);
-    reg = 0x00000003;
-
-    *(uint32_t *) (DUAL_CFG_BASE + (1 << 2)) = reg;
-
-    /*wait while core is busy*/
-    while (1) {
-        reg = *(uint32_t *) (DUAL_CFG_BASE + (3 << 2));
-        cdelay(2000);
-        if (reg != 0x01)
-            break;
-    }
-
-    //Trigger reconfiguration to selected Image
-    //wishbone_write32(DUAL_BOOT_0_BASE+(0<<2), 0x00000001);
-    reg = 0x00000001;
-    *(uint32_t *) (DUAL_CFG_BASE + (0 << 2)) = reg;
-
-    return 0;
+    return 1;
 }
 
 
