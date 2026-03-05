@@ -99,40 +99,48 @@ fi
 # 5. Handle Install
 if [ "$INSTALL" = true ]; then
     INSTALL_ARGS="init install"
-    
-    if [ "$BYPASS_CONFIG" = true ]; then
-        echo "Installing newest LiteX repositories (bypassing config)..."
-        ./litex_setup.py $INSTALL_ARGS
-    else
-        if [ -f "../$CONFIG_FILE" ]; then
-            echo "Installing LiteX using config: ../$CONFIG_FILE"
-            # We create a temporary script to load the config and run litex_setup
-            cat <<EOF > litex_setup_with_config.py
+
+    # Create a wrapper to force non-editable installation
+    cat <<EOF > litex_setup_wrapper.py
 import sys
 import os
+import builtins
+import importlib.util
 
 # Add current directory to path so we can import litex_setup
 sys.path.append(os.getcwd())
 import litex_setup
 
+# Disable auto-update to avoid losing our wrapper logic
+litex_setup.litex_setup_auto_update = lambda: None
+
 # Inject GitRepo class into builtins so it's available for the config file
-import builtins
 builtins.GitRepo = litex_setup.GitRepo
 
-# Add parent directory to path so we can import the config
-sys.path.append(os.path.join(os.getcwd(), ".."))
-import ${CONFIG_FILE%.py} as config
-
-# Override git_repos with the ones from config
-litex_setup.git_repos = config.git_repos
-
 if __name__ == "__main__":
-    # Remove the script name from args so litex_setup.main() sees only its own args
+    config_file = os.environ.get("LITEX_CONFIG_FILE")
+    if config_file and os.path.exists(config_file):
+        spec = importlib.util.spec_from_file_location("config", config_file)
+        config = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(config)
+        litex_setup.git_repos = config.git_repos
+
+    # Force non-editable for ALL repos
+    for repo in litex_setup.git_repos.values():
+        repo.editable = False
+
+    # Remove the wrapper script name from args so litex_setup.main() sees only its own args
     sys.argv[0] = "litex_setup.py"
     litex_setup.main()
 EOF
-            python3 litex_setup_with_config.py $INSTALL_ARGS
-            rm litex_setup_with_config.py
+
+    if [ "$BYPASS_CONFIG" = true ]; then
+        echo "Installing newest LiteX repositories (bypassing config)..."
+        python3 litex_setup_wrapper.py $INSTALL_ARGS
+    else
+        if [ -f "../$CONFIG_FILE" ]; then
+            echo "Installing LiteX using config: ../$CONFIG_FILE"
+            LITEX_CONFIG_FILE="../$CONFIG_FILE" python3 litex_setup_wrapper.py $INSTALL_ARGS
         else
             echo "Error: $CONFIG_FILE not found."
             echo "Use --new to install newest repos, or --freeze to create a config from an existing installation."
@@ -140,9 +148,11 @@ EOF
             if [ "$LITEX_SETUP_PRESENT" = false ] && [ "$FORCE_KEEP" = false ]; then
                 rm litex_setup.py
             fi
+            rm litex_setup_wrapper.py
             exit 1
         fi
     fi
+    rm litex_setup_wrapper.py
 fi
 
 # 6. Cleanup litex_setup.py
