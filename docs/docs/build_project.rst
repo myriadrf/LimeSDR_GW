@@ -42,6 +42,10 @@ Additionally, the required FPGA toolchain depends on the target board:
 - **For HiperSDR 44xx:**
    - **Vivado 2022.2** exact 2022.2 version is required with `AR000035576 <https://adaptivesupport.amd.com/s/article/000035576?language=en_US>`_ Tactical patch. Download it and install from `Xilinx <http://www.xilinx.com>`_. Free version can be used. 
    - Ensure Vivado’s settings are sourced or its binaries are in your ``$PATH`` before building.
+
+- **For sSDR rev2:**
+   - **Vivado 2022.1** (or later) is required. Download it and install from `Xilinx <http://www.xilinx.com>`_. Free version can be used.
+   - Ensure Vivado’s settings are sourced or its binaries are in your ``$PATH`` before building.
   
 Consult respective toolchain’s documentation for installation details.
 
@@ -87,4 +91,5 @@ Detailed **build/load/flash** instructions and available options for each board 
    LimeSDR Mini V1 <./limesdr-mini-v1/build_gw>
    LimeSDR Mini V2 <./limesdr-mini-v2/build_gw>
    HiperSDR 44xx <./hipersdr-44xx/build_gw>
+   sSDR rev2 <./ssdr_rev2/build_gw>
 
