@@ -726,6 +726,15 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
+                case CMD_LMS_MCU_FW_WR:
+                    // bsp_lms_mcu_fw_wr directly returns status
+                    LMS_Ctrl_Packet_Tx->Header.Status = bsp_lms_mcu_fw_wr(
+                        LMS_Ctrl_Packet_Rx->Data_field[0],  /* prog_mode */
+                        LMS_Ctrl_Packet_Rx->Data_field[1],  /* current_portion */
+                        &LMS_Ctrl_Packet_Rx->Data_field[2]  /* 32 bytes of data */
+                    );
+                    break;
+
 
                 case CMD_MEMORY_WR: {
                     uint8_t *rx_ptr = &LMS_Ctrl_Packet_Rx->Data_field[0];

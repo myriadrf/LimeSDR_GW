@@ -1,15 +1,28 @@
 #include "bsp.h"
 
+litei2c_regs I2C0_REGS = {
+    .master_active_addr = CSR_I2C0_MASTER_ACTIVE_ADDR,
+    .master_addr_addr = CSR_I2C0_MASTER_ADDR_ADDR,
+    .master_settings_addr = CSR_I2C0_MASTER_SETTINGS_ADDR,
+    .master_status_addr = CSR_I2C0_MASTER_STATUS_ADDR,
+    .master_rxtx_addr = CSR_I2C0_MASTER_RXTX_ADDR
+};
+
 void bsp_init(void) {
-#error "bsp_init not implemented"
+    // RESET FIFO once on power-up
+    ft601_fifo_control_write(1);
+    ft601_fifo_control_write(0);
+    //Reset LMS7
+    limetop_lms7002_top_lms_ctr_gpio_write(0x0);
+    limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
 }
 
 void bsp_powerup(void) {
-#error "bsp_powerup not implemented"
+    // No implementation
 }
 
 void bsp_shutdown(void) {
-#error "bsp_shutdown not implemented"
+    // No implementation
 }
 
 static void bsp_isr(void) {
@@ -98,32 +111,71 @@ uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id) {
     return -1;
 }
 
+static uint16_t dac_val = 0;
+static uint8_t *dac_val_ptr = (uint8_t *) &dac_val;
+
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb) {
-#error "bsp_analog_read not implemented"
+    switch (channel)
+    {
+    case 0:
+        // No read function, return cached values
+        *unit = 0;
+        *value_lsb = dac_val_ptr[0];
+        *value_msb = dac_val_ptr[1];
+        return STATUS_COMPLETED_CMD;
+    case 1:
+        uint16_t temp_val = LM75_Read_Temperature(&I2C0_REGS,0x0);
+        uint8_t* temp_ptr = (uint8_t*) &temp_val;
+        *value_lsb = temp_ptr[0];
+        *value_msb = temp_ptr[1];
+        *unit = 0x50;
+
+        return STATUS_COMPLETED_CMD;
+
+    default:
+        return STATUS_ERROR_CMD;
+    }
 }
 
-uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8_t value_lsb) {
-#error "bsp_analog_write not implemented"
+uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_t value_msb, const uint8_t value_lsb) {
+    // Only channel 0 (DAC) and RAW units are supported for write
+    if (channel == 0 && unit == 0)
+    {
+        dac_val_ptr[0] = value_lsb;
+        dac_val_ptr[1] = value_msb;
+        const uint8_t retval = dacx311_write_value(dac_val, SPI_CS_DAC, DAC_MODEL_5311);
+        if (retval == 0)
+        {
+            return STATUS_COMPLETED_CMD;
+        }
+        return STATUS_ERROR_CMD;
+    }
+    return STATUS_ERROR_CMD;
 }
 
 uint8_t bsp_gpio_dir_read(uint8_t *data, uint8_t offset) {
-#error "bsp_gpio_dir_read not implemented"
+    // LMS64C GPIO control commands seem unused in software
+    return STATUS_ERROR_CMD;
 }
 
 uint8_t bsp_gpio_dir_write(uint8_t data, uint8_t offset) {
-#error "bsp_gpio_dir_write not implemented"
+    // LMS64C GPIO control commands seem unused in software
+    return STATUS_ERROR_CMD;
 }
 
 uint8_t bsp_gpio_read(uint8_t *data, uint8_t offset) {
-#error "bsp_gpio_read not implemented"
+    // LMS64C GPIO control commands seem unused in software
+    return STATUS_ERROR_CMD;
 }
 
 uint8_t bsp_gpio_write(uint8_t data, uint8_t offset) {
-#error "bsp_gpio_write not implemented"
+    // LMS64C GPIO control commands seem unused in software
+    return STATUS_ERROR_CMD;
 }
 
 uint8_t bsp_gpio_get_cached(const uint8_t offset) {
-#error "bsp_gpio_get_cached not implemented"
+    // LMS64C GPIO control commands seem unused in software
+    return STATUS_ERROR_CMD;
 }
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data) {
@@ -348,4 +400,121 @@ uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data
 
 uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
     return 1;
+}
+
+
+/* Persistent state across calls */
+static uint8_t last_portion_valid = 0;
+static uint8_t last_portion = 0;
+
+uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data)
+{
+    uint16_t addr;
+    uint16_t val;
+    uint8_t MCU_retries;
+    uint8_t cmd_errors = 0;
+
+    /* Check portion ordering */
+    if (current_portion != 0) {
+        if (!last_portion_valid || last_portion != (current_portion - 1)) {
+            return STATUS_WRONG_ORDER_CMD;
+        }
+    } else {
+        /* First portion resets tracking */
+        last_portion_valid = 0;
+    }
+
+    if (current_portion == 0) {
+        /* Reset MCU */
+        addr = (0x80 << 8) | MCU_CONTROL_REG;
+        val = 0x0000;
+        lms_spi_write(addr, val, SPI_CS_LMS);
+
+        /* Set mode */
+        addr = (0x80 << 8) | MCU_CONTROL_REG;
+
+        switch (prog_mode) {
+            case PROG_EEPROM:
+                val = 0x0001;
+                lms_spi_write(addr, val, SPI_CS_LMS);
+                break;
+
+            case PROG_SRAM:
+                val = 0x0002;
+                lms_spi_write(addr, val, SPI_CS_LMS);
+                break;
+
+            case BOOT_MCU:
+                val = 0x0003;
+                lms_spi_write(addr, val, SPI_CS_LMS);
+
+                /* Read MCU status (boot path) */
+                addr = (0x00 << 8) | MCU_STATUS_REG;
+                val = lms_spi_read(addr, SPI_CS_LMS);
+
+                /* Save portion and return immediately for boot */
+                last_portion = current_portion;
+                last_portion_valid = 1;
+
+                return (cmd_errors) ? STATUS_ERROR_CMD : STATUS_COMPLETED_CMD;
+
+            default:
+                return STATUS_ERROR_CMD;
+        }
+    }
+
+    /* Wait until EMPTY_WRITE_BUFF = 1 */
+    MCU_retries = 0;
+    while (MCU_retries < MAX_MCU_RETRIES) {
+        addr = (0x00 << 8) | MCU_STATUS_REG;
+        val = lms_spi_read(addr, SPI_CS_LMS);
+        printf("%08x\n", val);
+
+        if (val & 0x01) break;
+
+        MCU_retries++;
+        cdelay(3000);
+    }
+
+    /* Write 32 bytes to MCU FIFO */
+    for (uint8_t block = 0; block < 32; block++) {
+        addr = (0x80 << 8) | MCU_FIFO_WR_REG;
+        val = (0x00 << 8) | data[block];
+        lms_spi_write(addr, val, SPI_CS_LMS);
+    }
+
+    /* Wait until EMPTY_WRITE_BUFF = 1 again */
+    MCU_retries = 0;
+    while (MCU_retries < 500) {
+        addr = (0x00 << 8) | MCU_STATUS_REG;
+        val = lms_spi_read(addr, SPI_CS_LMS);
+
+        if (val & 0x01) break;
+
+        MCU_retries++;
+        cdelay(3000);
+    }
+
+    /* Last portion: verify programming completed */
+    if (current_portion == 255) {
+        MCU_retries = 0;
+        while (MCU_retries < MAX_MCU_RETRIES) {
+            addr = (0x00 << 8) | MCU_STATUS_REG;
+            val = lms_spi_read(addr, SPI_CS_LMS);
+
+            if (val & 0x40) break; /* PROGRAMMED = 1 */
+
+            MCU_retries++;
+            cdelay(30000);
+        }
+
+        if (MCU_retries == MAX_MCU_RETRIES)
+            cmd_errors++;
+    }
+
+    /* Save portion tracking */
+    last_portion = current_portion;
+    last_portion_valid = 1;
+
+    return (cmd_errors) ? STATUS_ERROR_CMD : STATUS_COMPLETED_CMD;
 }

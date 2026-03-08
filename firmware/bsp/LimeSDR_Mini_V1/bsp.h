@@ -18,11 +18,28 @@
 #include "lime_litex_helpers.h"
 #include "LMS64C_protocol.h"
 #include <generated/mem.h>
+#include "LMS64C_protocol.h"
+
+#include "DACx311.h"
+#include "LM75.h"
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
 #define DAC_DEFF_VAL			180
 #define FW_VER 6
+#define SPI_CS_LMS (1 << 0)
+
+/* MCU SPI register offsets */
+#define MCU_CONTROL_REG 0x02
+#define MCU_STATUS_REG  0x03
+#define MCU_FIFO_WR_REG 0x04
+
+/* Programming modes */
+#define PROG_EEPROM 1
+#define PROG_SRAM   2
+#define BOOT_MCU    3
+
+#define MAX_MCU_RETRIES 30
 
 // MAX 10 Flash programming
 #define CFM0StartAddress  0x012800
@@ -114,6 +131,8 @@ uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 
 //Misc/device specific functions
 uint8_t reverse(uint8_t b);
+
+uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data);
 
 
 #endif

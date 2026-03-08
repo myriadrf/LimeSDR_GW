@@ -120,6 +120,10 @@ uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_c
 #error "bsp_program_mode4_user_to_flash not implemented"
 }
 
+uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data) {
+#error "bsp_lms_mcu_fw_wr not implemented"
+}
+
 uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
     uint8_t *misodata) {
 #error "bsp_spi_transfer not implemented"

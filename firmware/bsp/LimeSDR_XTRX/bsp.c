@@ -442,6 +442,10 @@ uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_c
     return bsp_program_flash(current_portion, data_cnt, payload);
 }
 
+uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data) {
+    return STATUS_ERROR_CMD;
+}
+
 // Same Implementation for both user and gold
 uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload) {
     static int address;
