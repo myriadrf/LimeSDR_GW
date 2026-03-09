@@ -230,7 +230,9 @@ class BaseSoC(SoCCore):
             uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
-        # self.add_constant("LMS64C_METHOD","CSR")
+        # 1 for CSR
+        # 2 for FTDI
+        self.add_constant("LMS64C_METHOD",1)
 
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)

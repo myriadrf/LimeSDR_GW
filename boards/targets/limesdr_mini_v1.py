@@ -181,6 +181,11 @@ class BaseSoC(SoCCore):
             # with_uartbone            = with_uartbone,
             # uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
+
+        # 1 for CSR
+        # 2 for FTDI
+        self.add_constant("LMS64C_METHOD",2)
+
         serial_signals = Record(layout=[("tx", 1), ("rx", 1)])
         self.add_uart(name="uart", uart_name={True: "crossover", False:"serial"}[with_uartbone], baudrate=115200, fifo_depth=16, with_dynamic_baudrate=False, uart_pads=serial_signals)
         if with_uartbone:

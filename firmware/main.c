@@ -25,6 +25,18 @@
 #define I2C_TERMO_ADDR   0x4B
 #define LP8758_I2C_ADDR  0x60
 
+#ifndef LMS64C_METHOD
+#error "No method for obtaining LMS64C packet data is defined for this board. Use self.add_constant("LMS64C_METHOD",<METHOD NUMBER>) to select mode"
+#endif
+
+#define LMS64C_METHOD_CSR  1
+#define LMS64C_METHOD_FTDI 2
+
+#if (LMS64C_METHOD != LMS64C_METHOD_CSR) && \
+(LMS64C_METHOD != LMS64C_METHOD_FTDI)
+    #error "LMS64C_METHOD is set to an unsupported value."
+#endif
+
 /************************** Variable Definitions *****************************/
 uint8_t block, cmd_errors;
 uint8_t glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
