@@ -11,6 +11,7 @@ INSTALL=false
 FREEZE=false
 BYPASS_CONFIG=false
 FORCE_KEEP=false
+EDITABLE=true
 
 # Help message
 function show_help {
@@ -21,6 +22,7 @@ function show_help {
     echo "  --freeze         Save currently installed LiteX versions to $CONFIG_FILE"
     echo "  --new            Bypass $CONFIG_FILE and install newest LiteX repos"
     echo "  --keep           Do not remove litex_setup.py even if it was downloaded"
+    echo "  --non-editable   Install LiteX repos in non-editable mode"
     echo "  --help           Show this help message"
     echo ""
 }
@@ -47,6 +49,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --keep)
             FORCE_KEEP=true
+            shift
+            ;;
+        --non-editable)
+            EDITABLE=false
             shift
             ;;
         --help)
@@ -106,6 +112,7 @@ import sys
 import os
 import builtins
 import importlib.util
+import subprocess
 
 # Add current directory to path so we can import litex_setup
 sys.path.append(os.getcwd())
@@ -125,22 +132,31 @@ if __name__ == "__main__":
         spec.loader.exec_module(config)
         litex_setup.git_repos = config.git_repos
 
-    # Force non-editable for ALL repos
+    # Set editable mode for ALL repos
+    editable = os.environ.get("LITEX_EDITABLE", "true").lower() == "true"
     for repo in litex_setup.git_repos.values():
-        repo.editable = False
+        repo.editable = editable
 
     # Remove the wrapper script name from args so litex_setup.main() sees only its own args
     sys.argv[0] = "litex_setup.py"
     litex_setup.main()
+
+    # Post-install fix: submodules must be synchronized if SHA1 or Tag is used
+    for name, repo in litex_setup.git_repos.items():
+        if (repo.sha1 is not None or repo.tag is not None) and repo.clone == "recursive":
+            repo_path = os.path.join(os.getcwd(), name)
+            if os.path.exists(repo_path):
+                print(f"Synchronizing submodules for {name} (pinned version)...")
+                subprocess.run(["git", "submodule", "update", "--init", "--recursive"], cwd=repo_path)
 EOF
 
     if [ "$BYPASS_CONFIG" = true ]; then
         echo "Installing newest LiteX repositories (bypassing config)..."
-        python3 litex_setup_wrapper.py $INSTALL_ARGS
+        LITEX_EDITABLE=$EDITABLE python3 litex_setup_wrapper.py $INSTALL_ARGS
     else
         if [ -f "../$CONFIG_FILE" ]; then
             echo "Installing LiteX using config: ../$CONFIG_FILE"
-            LITEX_CONFIG_FILE="../$CONFIG_FILE" python3 litex_setup_wrapper.py $INSTALL_ARGS
+            LITEX_CONFIG_FILE="../$CONFIG_FILE" LITEX_EDITABLE=$EDITABLE python3 litex_setup_wrapper.py $INSTALL_ARGS
         else
             echo "Error: $CONFIG_FILE not found."
             echo "Use --new to install newest repos, or --freeze to create a config from an existing installation."
