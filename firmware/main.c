@@ -739,12 +739,13 @@ int main(void) {
                 case CMD_MEMORY_WR: {
                     uint8_t *rx_ptr = &LMS_Ctrl_Packet_Rx->Data_field[0];
                     const uint32_t offset = rx_ptr[9] | (rx_ptr[8] << 8) | (rx_ptr[7] << 16) | (rx_ptr[6] << 24);
+                    const uint32_t portion = rx_ptr[4] | (rx_ptr[3] << 8) | (rx_ptr[2] << 16) | (rx_ptr[1] << 24);
                     const uint8_t progmode = rx_ptr[0];
                     const uint16_t target = rx_ptr[11] | (rx_ptr[10] << 8);
                     const uint8_t data_count = rx_ptr[5];
 
                     LMS_Ctrl_Packet_Tx->Header.Status =
-                            bsp_mem_write(offset, progmode, target, &rx_ptr[24], data_count);
+                            bsp_mem_write(offset, portion, progmode, target, &rx_ptr[24], data_count);
 
                     break;
                 }
@@ -753,11 +754,12 @@ int main(void) {
                     uint8_t *rx_ptr = &LMS_Ctrl_Packet_Rx->Data_field[0];
                     uint8_t *tx_ptr = &LMS_Ctrl_Packet_Tx->Data_field[0];
                     const uint32_t offset = rx_ptr[9] | (rx_ptr[8] << 8) | (rx_ptr[7] << 16) | (rx_ptr[6] << 24);
+                    const uint32_t portion = rx_ptr[4] | (rx_ptr[3] << 8) | (rx_ptr[2] << 16) | (rx_ptr[1] << 24);
                     const uint8_t progmode = rx_ptr[0];
                     const uint16_t target = rx_ptr[11] | (rx_ptr[10] << 8);
                     const uint8_t data_count = rx_ptr[5];
 
-                    LMS_Ctrl_Packet_Tx->Header.Status = bsp_mem_read(offset, progmode, target, &tx_ptr[24], data_count);
+                    LMS_Ctrl_Packet_Tx->Header.Status = bsp_mem_read(offset, portion, progmode, target, &tx_ptr[24], data_count);
 
                     break;
                 }

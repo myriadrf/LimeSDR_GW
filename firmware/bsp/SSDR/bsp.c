@@ -239,7 +239,7 @@ void bsp_vctcxo_permanent_dac_write(uint8_t *data) {
     FlashQspi_CMD_PageProgramByte(mem_write_offset + 1, &data[1]);
 }
 
-uint8_t bsp_mem_read(uint32_t offset, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
+uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
     // Check if the operation is going to be performed on EEPROM #1 and
     // that it's specifically being used to read VCTCXO DAC value
     // NOTE: condition for IF is copied from previous implementation, might need review
@@ -250,7 +250,7 @@ uint8_t bsp_mem_read(uint32_t offset, uint8_t progmode, uint16_t target, uint8_t
     return STATUS_ERROR_CMD;
 }
 
-uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
+uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
     // Check if the operation is going to be performed on EEPROM #1 and
     // that it's specifically being used to store VCTCXO DAC value
     // NOTE: condition for IF is copied from previous implementation, might need review

@@ -1,5 +1,11 @@
 #include "bsp.h"
 
+// Static, bsp-wide variables (required by some bsp functions)
+
+/* Persistent state across calls */
+static uint8_t last_portion_valid = 0;
+static uint8_t last_portion = 0;
+
 litei2c_regs I2C0_REGS = {
     .master_active_addr = CSR_I2C0_MASTER_ACTIVE_ADDR,
     .master_addr_addr = CSR_I2C0_MASTER_ADDR_ADDR,
@@ -186,12 +192,12 @@ void bsp_vctcxo_permanent_dac_write(uint8_t *data) {
 #error "bsp_vctcxo_permanent_dac_write not implemented"
 }
 
-uint8_t bsp_mem_read(uint32_t offset, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
+uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
 #error "bsp_mem_read not implemented"
 }
 
-uint8_t bsp_mem_write(uint32_t offset, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
-#error "bsp_mem_write not implemented"
+uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
+
 }
 
 /**
@@ -481,9 +487,6 @@ uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_c
     return 1;
 }
 
-/* Persistent state across calls */
-static uint8_t last_portion_valid = 0;
-static uint8_t last_portion = 0;
 
 uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data)
 {
