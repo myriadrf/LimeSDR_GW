@@ -47,6 +47,9 @@
 #define UFMStartAddress   0x0
 #define UFMEndAddress     0x01FFF
 
+#define EEPROM_I2C_ADDR		0x50 //0xA2
+#define DAC_VAL_ADDR  		0x0010		// Address in EEPROM memory where TCXO DAC value is stored
+
 #define MAX_ID_LMS7                1
 // Define device indexes, addresses and similar here
 #define SPI_CS_DAC (1 << 1)

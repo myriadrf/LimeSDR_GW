@@ -185,19 +185,50 @@ uint8_t bsp_gpio_get_cached(const uint8_t offset) {
 }
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data) {
-#error "bsp_vctcxo_permanent_dac_read not implemented"
+    litei2c_a16d16_read_register(&I2C0_REGS, EEPROM_I2C_ADDR, DAC_VAL_ADDR, (uint16_t*)data);
 }
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data) {
-#error "bsp_vctcxo_permanent_dac_write not implemented"
+    litei2c_a16d16_write_register(&I2C0_REGS, EEPROM_I2C_ADDR, DAC_VAL_ADDR, (uint16_t)*data);
 }
 
 uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
-#error "bsp_mem_read not implemented"
+    const uint16_t read_addr = (uint16_t) offset & 0xFFFF;
+    if (target == 3) // TARGET = EEPROM
+    {
+        if (progmode == 0) // Read data from EEPROM #1
+        {
+            uint8_t retval = 0;
+            for (uint8_t i = 0; i < data_count; i++)
+            {
+                // Read a byte at a time
+                retval |= litei2c_a16d8_read_register(&I2C0_REGS, EEPROM_I2C_ADDR, read_addr + i, &data[i]);
+            }
+            if (retval == 0)
+                return STATUS_COMPLETED_CMD;
+        }
+    }
+    return STATUS_ERROR_CMD;
 }
 
 uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
-
+    const uint16_t write_addr = (uint16_t) offset & 0xFFFF;
+    if (target == 3) // TARGET = EEPROM
+    {
+        if (progmode == 0) // Write data to EEPROM #1
+        {
+            uint8_t retval = 0;
+            for (uint8_t i = 0; i < data_count; i++)
+            {
+                // Write a byte at a time
+                retval |= litei2c_a16d8_write_register(&I2C0_REGS, EEPROM_I2C_ADDR, write_addr + i, data[i]);
+            }
+            // Return Completed if no errors
+            if (retval == 0)
+                return STATUS_COMPLETED_CMD;
+        }
+    }
+    return STATUS_ERROR_CMD;
 }
 
 /**
