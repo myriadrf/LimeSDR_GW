@@ -38,5 +38,7 @@ void LMK05318B_dump_registers(litei2c_regs *litei2c_regs);
 
 bool LMK05318B_verify_config(litei2c_regs *litei2c_regs);
 
+void LMK05318B_wait_for_lock(litei2c_regs *i2c_regs);
+
 
 #endif // LMK05318B_H

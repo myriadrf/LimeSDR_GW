@@ -1132,3 +1132,9 @@ uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint
     // No errors
     return 0;
 }
+
+void bsp_lmk_check_lock(void) {
+
+  LMK05318B_wait_for_lock(&I2C1_REGS);
+
+}

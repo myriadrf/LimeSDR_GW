@@ -593,7 +593,7 @@ class BaseSoC(SoCCore):
                            m_clk_domain=self.crg.cd_fpga_1pps.name,
                            demux_clk_domain=self.crg.cd_afe.name,
                            demux=True,
-                           resampling_stages=2)
+                           resampling_stages=0)
 
         self.comb += self.afe.jesd_freerun_clk.eq(self.crg.cd_jesd_freerun.clk)
 
@@ -764,6 +764,8 @@ class BaseSoC(SoCCore):
 
             f.write("set_clock_groups -name sys_async1 -asynchronous -group [get_clocks sys]\n\n")
             f.write("set_clock_groups -name sys_async2 -asynchronous -group [get_clocks afe]\n\n")
+            f.write("set_clock_groups -name 1pps -asynchronous -group [get_clocks fpga_1pps_clk]\n\n")
+            # f.write("set_clock_groups -name 1pps_double -asynchronous -group [get_clocks fpga_1pps_double_clk]\n\n")
         self.platform.add_source(timings_xdx_filename)
 
 

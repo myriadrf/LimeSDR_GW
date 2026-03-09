@@ -172,15 +172,12 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
 
         case 0x100:
             // They all have the same value, so only one read is required
-            // value = afe_RX_A_RESAMPLER_out_mux_read();
-            // value = afe_RX_B_RESAMPLER_out_mux_read();
-            // value = afe_RX_C_RESAMPLER_out_mux_read();
-            // value = afe_RX_D_RESAMPLER_out_mux_read();
-            //
-            // value = afe_TX_A_RESAMPLER_out_mux_read();
-            // value = afe_TX_B_RESAMPLER_out_mux_read();
-            // value = afe_TX_C_RESAMPLER_out_mux_read();
-            value = afe_TX_D_RESAMPLER_out_mux_read();
+#ifdef CSR_AFE_TX_OUT_MUX_ADDR
+            value = afe_tx_out_mux_read();
+#endif
+#ifdef CSR_AFE_DECIMATE_STAGE_COUNT_ADDR
+        value = afe_interpolate_stage_count_read();
+#endif
             break;
 
 
@@ -351,15 +348,14 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
 
         case 0x100:
             value &= 0xF;
-            afe_RX_A_RESAMPLER_out_mux_write(value);
-            afe_RX_B_RESAMPLER_out_mux_write(value);
-            afe_RX_C_RESAMPLER_out_mux_write(value);
-            afe_RX_D_RESAMPLER_out_mux_write(value);
-
-            afe_TX_A_RESAMPLER_out_mux_write(value);
-            afe_TX_B_RESAMPLER_out_mux_write(value);
-            afe_TX_C_RESAMPLER_out_mux_write(value);
-            afe_TX_D_RESAMPLER_out_mux_write(value);
+#ifdef CSR_AFE_TX_OUT_MUX_ADDR
+            afe_tx_out_mux_write(value);
+            afe_rx_out_mux_write(value);
+#endif
+#ifdef CSR_AFE_DECIMATE_STAGE_COUNT_ADDR
+        afe_decimate_stage_count_write(value);
+        afe_interpolate_stage_count_write(value);
+#endif
             break;
 
         default:

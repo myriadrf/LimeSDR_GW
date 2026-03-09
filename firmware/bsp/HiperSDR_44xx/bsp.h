@@ -181,6 +181,7 @@ uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t 
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 
 void bsp_init_adf(void);
+void bsp_lmk_check_lock();
 
 
 #endif /* HiPer_BSP */
