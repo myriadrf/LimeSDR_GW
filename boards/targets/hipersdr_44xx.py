@@ -651,7 +651,7 @@ class BaseSoC(SoCCore):
 
         # Interrupt --------------------------------------------------------------------------------
         
-        self.irq.add("lime_top")
+        self.irq.add("limetop")
 
         #vctcxo_pads = platform.request("vctcxo")
         #self.comb += vctcxo_pads.sel.eq(self.fpgacfg.EXT_CLK.storage)

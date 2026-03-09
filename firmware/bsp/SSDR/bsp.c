@@ -128,10 +128,10 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command) {
             return 1;
 
         case LMS_RST_PULSE:
-            read_value = lime_top_lms7002_top_lms1_read() & ~(1 << CSR_LIME_TOP_LMS7002_TOP_LMS1_RESET_OFFSET);
-            lime_top_lms7002_top_lms1_write(read_value);
-            read_value |= (1 << CSR_LIME_TOP_LMS7002_TOP_LMS1_RESET_OFFSET);
-            lime_top_lms7002_top_lms1_write(read_value);
+            read_value = limetop_lms7002_top_lms1_read() & ~(1 << CSR_LIMETOP_LMS7002_TOP_LMS1_RESET_OFFSET);
+            limetop_lms7002_top_lms1_write(read_value);
+            read_value |= (1 << CSR_LIMETOP_LMS7002_TOP_LMS1_RESET_OFFSET);
+            limetop_lms7002_top_lms1_write(read_value);
             return 0;
     }
 }

@@ -12,52 +12,52 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
 
     switch (addr) {
         case 0x0:
-            value = lime_top_fpgacfg_board_id_read();
+            value = limetop_fpgacfg_board_id_read();
             break;
         case 0x1:
-            value = lime_top_fpgacfg_major_rev_read();
+            value = limetop_fpgacfg_major_rev_read();
             break;
         case 0x2:
-            value = lime_top_fpgacfg_compile_rev_read();
+            value = limetop_fpgacfg_compile_rev_read();
             break;
         case 0x3:
             value = 0x2;
             break;
         case 0x5:
-            value = lime_top_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
-            value = value | ((lime_top_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
+            value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
+            value = value | ((limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
             break;
         case 0x7:
-            value = lime_top_fpgacfg_ch_en_read();
+            value = limetop_fpgacfg_ch_en_read();
             break;
         case 0x8:
-            value = lime_top_fpgacfg_reg08_read() & (0x3 | (1 << 7) | (1 << 8) | (1 << 9));
+            value = limetop_fpgacfg_reg08_read() & (0x3 | (1 << 7) | (1 << 8) | (1 << 9));
             break;
         case 0x9:
-            value = lime_top_fpgacfg_reg09_read();
+            value = limetop_fpgacfg_reg09_read();
             break;
         case 0xA:
-            tmp = lime_top_fpgacfg_reg10_read();
+            tmp = limetop_fpgacfg_reg10_read();
             value = tmp & 0x03; //(tmp >> 1) & 0x01;
-            value |= lime_top_rfsw_control_rfsw_rx_read() << 2;
-            value |= lime_top_rfsw_control_rfsw_tx_read() << 4;
-            value |= lime_top_rfsw_control_tdd_manual_val_read() << 5;
-            value |= lime_top_rfsw_control_tdd_auto_en_read() << 6;
-            value |= lime_top_rfsw_control_tdd_invert_read() << 7;
+            value |= limetop_rfsw_control_rfsw_rx_read() << 2;
+            value |= limetop_rfsw_control_rfsw_tx_read() << 4;
+            value |= limetop_rfsw_control_tdd_manual_val_read() << 5;
+            value |= limetop_rfsw_control_tdd_auto_en_read() << 6;
+            value |= limetop_rfsw_control_tdd_invert_read() << 7;
             value |= (tmp & 0x200);
-            value |= lime_top_rfsw_control_rfsw_auto_en_read() << 11;
+            value |= limetop_rfsw_control_rfsw_auto_en_read() << 11;
             break;
         case 0xF:
-            value = lime_top_fpgacfg_txant_pre_read();
+            value = limetop_fpgacfg_txant_pre_read();
             break;
         case 0x10:
-            value = lime_top_fpgacfg_txant_post_read();
+            value = limetop_fpgacfg_txant_post_read();
             break;
         case 0x18:
-            value = lime_top_fpgacfg_reg18_read();
+            value = limetop_fpgacfg_reg18_read();
             break;
         case 0x19:
-            value = lime_top_rxtx_top_rx_path_pkt_size_read();
+            value = limetop_rxtx_top_rx_path_pkt_size_read();
             break;
         case 0x20:
             value = csr_read_simple(clk_ctrl_addrs.c1_phase);
@@ -137,14 +137,14 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
 #ifdef TIMESOURCE_PRESENT
             // timesource registers
         case 0x280:
-            value = lime_top_rxtx_top_rx_path_timestamp_settings_read() & 0xFFFF;
+            value = limetop_rxtx_top_rx_path_timestamp_settings_read() & 0xFFFF;
             break;
 #endif
         case 0x281:
-            value = lime_top_rx_delay_mode_read() & 0xFFFF;
+            value = limetop_rx_delay_mode_read() & 0xFFFF;
             break;
         case 0x282:
-            value = lime_top_tx_delay_mode_read() & 0xFFFF;
+            value = limetop_tx_delay_mode_read() & 0xFFFF;
             break;
 #ifdef TIMESOURCE_PRESENT
             // current time
@@ -159,23 +159,23 @@ void readCSR(uint8_t *address, uint8_t *regdata_array) {
             break;
             // rx start time
         case 0x286:
-            value = lime_top_rx_time_min_sec_read() & 0xFFFF;
+            value = limetop_rx_time_min_sec_read() & 0xFFFF;
             break;
         case 0x287:
-            value = lime_top_rx_time_mon_day_hrs_read() & 0xFFFF;
+            value = limetop_rx_time_mon_day_hrs_read() & 0xFFFF;
             break;
         case 0x288:
-            value = lime_top_rx_time_yrs_read() & 0xFFFF;
+            value = limetop_rx_time_yrs_read() & 0xFFFF;
             break;
             // tx start time
         case 0x289:
-            value = lime_top_tx_time_min_sec_read() & 0xFFFF;
+            value = limetop_tx_time_min_sec_read() & 0xFFFF;
             break;
         case 0x28A:
-            value = lime_top_tx_time_mon_day_hrs_read() & 0xFFFF;
+            value = limetop_tx_time_mon_day_hrs_read() & 0xFFFF;
             break;
         case 0x28B:
-            value = lime_top_tx_time_yrs_read() & 0xFFFF;
+            value = limetop_tx_time_yrs_read() & 0xFFFF;
             break;
 
 #endif
@@ -200,58 +200,58 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
 
     switch (addr) {
         case 0x3:
-            lime_top_fpgacfg_reserved_03_write(value);
+            limetop_fpgacfg_reserved_03_write(value);
             break;
         case 0x05:
-            lime_top_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
-            lime_top_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
+            limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
+            limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
             break;
         case 0x7:
-            lime_top_fpgacfg_ch_en_write(value);
+            limetop_fpgacfg_ch_en_write(value);
             break;
         case 0x8:
-            reg = lime_top_fpgacfg_reg08_read();
-            reg &= ~((1 << CSR_LIME_TOP_FPGACFG_REG08_SYNCH_DIS_OFFSET) |
-                     (1 << CSR_LIME_TOP_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
-                     (1 << CSR_LIME_TOP_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
+            reg = limetop_fpgacfg_reg08_read();
+            reg &= ~((1 << CSR_LIMETOP_FPGACFG_REG08_SYNCH_DIS_OFFSET) |
+                     (1 << CSR_LIMETOP_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
+                     (1 << CSR_LIMETOP_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
             reg |= (value & 0x03); // smpl_width
             reg |= (value & 0x80); // trxiq_pulse
             reg |= (value & 0x100); // mimo_int_en
             reg |= (value & 0x200); // sync_dis
-            lime_top_fpgacfg_reg08_write(reg);
+            limetop_fpgacfg_reg08_write(reg);
             break;
         case 0x9:
-            lime_top_fpgacfg_reg09_write(value);
+            limetop_fpgacfg_reg09_write(value);
             break;
         case 0xA:
             reg = (value & 0x003) << 0; // rx_en + tx_en
             // reg |= (value & 0x002) << 1; // tx_en
             reg |= (value & 0x200) << 0; // test_ptrn_en
-            lime_top_fpgacfg_reg10_write(reg);
-            //lime_top_lms7002_tx_en_write(value);
-            //lime_top_lms7002_rx_en_write(value);
-            lime_top_rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
-            lime_top_rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
-            lime_top_rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
-            lime_top_rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
-            lime_top_rfsw_control_tdd_invert_write((value & 0x80) >> 7);
-            //lime_top_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
-            lime_top_rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
+            limetop_fpgacfg_reg10_write(reg);
+            //limetop_lms7002_tx_en_write(value);
+            //limetop_lms7002_rx_en_write(value);
+            limetop_rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
+            limetop_rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
+            limetop_rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
+            limetop_rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
+            limetop_rfsw_control_tdd_invert_write((value & 0x80) >> 7);
+            //limetop_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
+            limetop_rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
             break;
         case 0xF:
-            lime_top_fpgacfg_txant_pre_write(value);
+            limetop_fpgacfg_txant_pre_write(value);
             break;
         case 0x10:
-            lime_top_fpgacfg_txant_post_write(value);
+            limetop_fpgacfg_txant_post_write(value);
             break;
         case 0x13:
             printf("13\n");
             break;
         case 0x18:
-            lime_top_fpgacfg_reg18_write(value);
+            limetop_fpgacfg_reg18_write(value);
             break;
         case 0x19:
-            lime_top_rxtx_top_rx_path_pkt_size_write(value);
+            limetop_rxtx_top_rx_path_pkt_size_write(value);
             break;
         case 0x20:
             csr_write_simple(value & 0x1FF, clk_ctrl_addrs.c1_phase);
@@ -323,14 +323,14 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array) {
 #ifdef TIMESOURCE_PRESENT
             // timesource registers
         case 0x280:
-            lime_top_rxtx_top_rx_path_timestamp_settings_write(value);
+            limetop_rxtx_top_rx_path_timestamp_settings_write(value);
             break;
 #endif
         case 0x281:
-            lime_top_rx_delay_mode_write(value);
+            limetop_rx_delay_mode_write(value);
             break;
         case 0x282:
-            lime_top_tx_delay_mode_write(value);
+            limetop_tx_delay_mode_write(value);
             break;
 
         default:

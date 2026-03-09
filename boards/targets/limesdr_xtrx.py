@@ -279,7 +279,7 @@ class BaseSoC(SoCCore):
         self.ram  = axi.AXILiteSRAM(0x1000)
         self.comb += self.mmap.connect(self.ram.bus)
         # Connect MMAP interface to SoC.
-        self.bus.add_slave(name="lime_top_mmap", slave=self.mmap, region=SoCRegion(origin=0x4000_000, size=0x1000))
+        self.bus.add_slave(name="limetop_mmap", slave=self.mmap, region=SoCRegion(origin=0x4000_000, size=0x1000))
 
         # ICAP -------------------------------------------------------------------------------------
         self.icap = ICAP()
@@ -440,7 +440,7 @@ class BaseSoC(SoCCore):
 
         # Interrupt --------------------------------------------------------------------------------
 
-        self.irq.add("lime_top")
+        self.irq.add("limetop")
 
         # GPS serial connected to LimeUART0
         from litex.soc.cores.uart import UARTPHY

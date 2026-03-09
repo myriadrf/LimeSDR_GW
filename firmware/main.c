@@ -32,13 +32,14 @@ tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet *) glEp0Buffer_Tx;
 tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *) glEp0Buffer_Rx;
 int boot_img_en = 0;
 
-#ifdef WITH_LMS7002
+// Check one of the base addresses to make sure
+#ifdef CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED_ADDR
 // If an error points here, most likely some of the macros are invalid.
-PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
-PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
-SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIME_TOP_LMS7002_TOP);
+PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
+PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
+SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP);
 // clk_ctrl_addrs is declared in regremap.h
-CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
+CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
 
 #endif
 
@@ -150,8 +151,8 @@ static void clk_ctrl_isr(void) {
     if (var_phcfg_start || var_pllcfg_start || var_pllrst_start)
         clk_cfg_pending = 1;
 
-    lime_top_ev_pending_write(lime_top_ev_pending_read()); //Clear interrupt
-    lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
+    limetop_ev_pending_write(limetop_ev_pending_read()); //Clear interrupt
+    limetop_ev_enable_write(1 << CSR_LIMETOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
 #endif
 }
 
@@ -160,17 +161,17 @@ static void clk_cfg_irq_init(void) {
     printf("CLK config irq initialization \n");
 
     /* Clear all pending interrupts. */
-    lime_top_ev_pending_write(lime_top_ev_pending_read());
+    limetop_ev_pending_write(limetop_ev_pending_read());
 
     /* Enable CLK CTRL irq */
-    lime_top_ev_enable_write(1 << CSR_LIME_TOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET);
+    limetop_ev_enable_write(1 << CSR_LIMETOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET);
 
     /* Attach isr to interrupt */
-    irq_attach(LIME_TOP_INTERRUPT, clk_ctrl_isr);
+    irq_attach(LIMETOP_INTERRUPT, clk_ctrl_isr);
 
     /* Enable interrupt */
 
-    irq_setmask(irq_getmask() | (1 << LIME_TOP_INTERRUPT));
+    irq_setmask(irq_getmask() | (1 << LIMETOP_INTERRUPT));
 #endif
 }
 
