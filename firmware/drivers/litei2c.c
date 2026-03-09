@@ -165,3 +165,28 @@ int8_t litei2c_a8d16_write_register(const litei2c_regs *regs, const uint8_t I2C_
     return litei2c_transfer(regs, I2C_addr, &buf, 3, 0);
 }
 
+int8_t litei2c_a16d16_read_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint16_t reg_addr, uint16_t *reg_val) {
+    uint32_t buf = 0;
+    uint8_t* buf_point = (uint8_t*) &buf;
+    uint8_t* adr_point = (uint8_t*) &reg_addr;
+    uint8_t* val_point = (uint8_t*) reg_val;
+    buf_point[0] = adr_point[0];
+    buf_point[1] = adr_point[1];
+    const int8_t retval = litei2c_transfer(regs, I2C_addr, &buf, 2, 2);
+    val_point[1] = buf_point[1];
+    val_point[0] = buf_point[0];
+    return retval;
+}
+
+int8_t litei2c_a16d16_write_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint16_t reg_addr, const uint16_t reg_val) {
+    uint32_t buf = 0;
+    uint8_t* buf_point = (uint8_t*) &buf;
+    uint8_t* adr_point = (uint8_t*) &reg_addr;
+    uint8_t* val_point = (uint8_t*) &reg_val;
+    buf_point[0] = val_point[0];
+    buf_point[1] = val_point[1];
+    buf_point[2] = adr_point[0];
+    buf_point[3] = adr_point[1];
+    return litei2c_transfer(regs, I2C_addr, &buf, 4, 0);
+}
+

@@ -192,4 +192,45 @@ int8_t litei2c_a8d16_read_register(const litei2c_regs *regs, const uint8_t I2C_a
  */
 int8_t litei2c_a8d16_write_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint8_t reg_addr, const uint16_t reg_val);
 
+/**
+ * @brief Reads a 16-bit register value from a device over I2C using a 16-bit register address.
+ *
+ * This function reads a 16-bit value stored at the specified 16-bit register address (reg_addr)
+ * on a peripheral device addressed by its 7-bit I2C address (I2C_addr). The register value
+ * is retrieved through the I2C interface controlled by the provided I2C register structure.
+ *
+ * Register address is transmitted MSB-first
+ *
+ * @param regs Pointer to a litei2c_regs structure containing the memory-mapped
+ *             addresses of the I2C controller's registers.
+ * @param I2C_addr 7-bit I2C address of the target device.
+ * @param reg_addr 16-bit address of the register to read on the target device.
+ * @param reg_val Pointer to an uint16_t variable where the read register value will be stored.
+ * @return Status of the register read operation. A return value of 0
+ *         indicates success, while a non-zero value indicates an error during
+ *         the transaction (e.g., if the device does not ACK the operation).
+ */
+int8_t litei2c_a16d16_read_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint16_t reg_addr, uint16_t *reg_val);
+
+/**
+ * @brief Writes a 16-bit value to a 16-bit register on a target device via I2C.
+ *
+ * This function writes a 16-bit value to a specific 16-bit register on a device
+ * identified by its I2C address. Communication is performed using the provided
+ * memory-mapped register set of the I2C controller.
+ *
+ * Register address is transmitted MSB-first
+ *
+ * @param regs Pointer to a litei2c_regs structure containing the memory-mapped
+ *             addresses of the I2C controller's registers.
+ * @param I2C_addr 7-bit I2C address of the target device.
+ * @param reg_addr The 16-bit address of the register within the target device
+ *                 where the 16-bit value will be written.
+ * @param reg_val The 16-bit value to be written into the specified device register.
+ * @return Status of the register write operation. A return value of 0
+ *         indicates success, while a non-zero value indicates an error during
+ *         the transaction (e.g., if the device does not ACK the operation).
+ */
+int8_t litei2c_a16d16_write_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint16_t reg_addr, const uint16_t reg_val);
+
 #endif //LITEI2C_H
