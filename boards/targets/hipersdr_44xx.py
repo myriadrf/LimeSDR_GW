@@ -489,7 +489,7 @@ class BaseSoC(SoCCore):
         #platform.toolchain.pre_placement_commands.append(f"set_property strategy Performance_Explore [get_runs impl_1]")
 
         # LimeTOP ----------------------------------------------------------------------------------
-        self.lime_top = LimeTop(self, platform,
+        self.limetop = LimeTop(self, platform,
            # Configuration.
            double_channels_mode = True,
            LMS_DIQ_WIDTH        = 12,
@@ -520,24 +520,24 @@ class BaseSoC(SoCCore):
            soc_has_timesource   = False,
         )
 
-        self.comb += self.lime_top.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
+        self.comb += self.limetop.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
         ## PCIE DMA -> TX Path -> LMS7002 Pipeline.
         self.comb += [
-           self.pcie_dma0.source.connect(self.lime_top.sink, omit=["ready"]),
-           self.pcie_dma0.source.ready.eq((self.lime_top.sink.ready & self.lime_top.fpgacfg.rx_en) | ~self.pcie_dma0.reader.enable),
+           self.pcie_dma0.source.connect(self.limetop.sink, omit=["ready"]),
+           self.pcie_dma0.source.ready.eq((self.limetop.sink.ready & self.limetop.fpgacfg.rx_en) | ~self.pcie_dma0.reader.enable),
         ]
 
-        self.comb += self.lime_top.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
+        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
 
         #self.comb += [
-        #    self.lime_top.dma_tx.valid.eq(self.pcie_dma0.source.valid),
-        #    self.lime_top.dma_tx.last.eq(self.pcie_dma0.source.last),
-        #    self.lime_top.dma_tx.data.eq(self.pcie_dma0.source.data),
-        #    self.pcie_dma0.source.ready.eq((self.lime_top.dma_tx.ready & self.lime_top.lms7002.tx_en.storage) | ~self.pcie_dma0.reader.enable),
+        #    self.limetop.dma_tx.valid.eq(self.pcie_dma0.source.valid),
+        #    self.limetop.dma_tx.last.eq(self.pcie_dma0.source.last),
+        #    self.limetop.dma_tx.data.eq(self.pcie_dma0.source.data),
+        #    self.pcie_dma0.source.ready.eq((self.limetop.dma_tx.ready & self.limetop.lms7002.tx_en.storage) | ~self.pcie_dma0.reader.enable),
         #]
 
-        #self.comb += self.lime_top.tx_path.RESET_N.eq(self.pcie_dma0.reader.enable)
+        #self.comb += self.limetop.tx_path.RESET_N.eq(self.pcie_dma0.reader.enable)
 
         # LMS SPI
         #self.lms_spi = SPIMaster(
@@ -608,25 +608,25 @@ class BaseSoC(SoCCore):
         #     ])
         # ]
         # self.comb += [
-        #     self.lime_top.phy_rx_sink.valid.eq(self.afe.source.valid),
-        #     self.afe.source.ready.eq(self.lime_top.phy_rx_sink.ready),
+        #     self.limetop.phy_rx_sink.valid.eq(self.afe.source.valid),
+        #     self.afe.source.ready.eq(self.limetop.phy_rx_sink.ready),
         # ]
         #
         # for i in range(8):
         #     start = i*16
         #     end = start+16
         #     self.comb += [
-        #         self.lime_top.phy_rx_sink.data[start:end].eq(Cat(self.debug_counter,Constant(0,4),Constant(i,4))),
+        #         self.limetop.phy_rx_sink.data[start:end].eq(Cat(self.debug_counter,Constant(0,4),Constant(i,4))),
         #     ]
 
         self.comb += [
-            self.afe.source.connect(self.lime_top.phy_rx_sink),
-            self.lime_top.phy_tx_source.connect(self.afe.sink)
+            self.afe.source.connect(self.limetop.phy_rx_sink),
+            self.limetop.phy_tx_source.connect(self.afe.sink)
         ]
 
         self.comb +=[
-            self.afe.rx_en.eq(self.lime_top.fpgacfg.rx_en),
-            self.afe.tx_en.eq(self.lime_top.fpgacfg.rx_en),
+            self.afe.rx_en.eq(self.limetop.fpgacfg.rx_en),
+            self.afe.tx_en.eq(self.limetop.fpgacfg.rx_en),
         ]
 
         #self.afe_pads = platform.request("afe79xx_serdes_x4")

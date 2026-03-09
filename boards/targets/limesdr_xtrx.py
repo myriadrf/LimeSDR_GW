@@ -171,7 +171,6 @@ class BaseSoC(SoCCore):
         gold_img              = False,
         firmware_flash_offset = 0x220000,
     ):
-
         # Platform ---------------------------------------------------------------------------------
         platform = {
             "fairwaves_cs"  : fairwaves_xtrx_platform.Platform(variant="xc7a35t"),
@@ -230,6 +229,8 @@ class BaseSoC(SoCCore):
             with_uartbone            = with_uartbone,
             uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
+
+        # self.add_constant("LMS64C_METHOD","CSR")
 
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
@@ -393,7 +394,7 @@ class BaseSoC(SoCCore):
         )
 
         # LimeTOP ----------------------------------------------------------------------------------
-        self.lime_top = LimeTop(self, platform,
+        self.limetop = LimeTop(self, platform,
             # Configuration.
             LMS_DIQ_WIDTH        = 12,
             sink_width           = 64,
@@ -420,18 +421,18 @@ class BaseSoC(SoCCore):
         )
         # VCTCXO -----------------------------------------------------------------------------------
         vctcxo_pads = platform.request("vctcxo")
-        self.comb  += vctcxo_pads.sel.eq(self.lime_top.fpgacfg.ext_clk)
-        self.comb  += vctcxo_pads.en.eq(self.lime_top.fpgacfg.tcxo_en)
+        self.comb  += vctcxo_pads.sel.eq(self.limetop.fpgacfg.ext_clk)
+        self.comb  += vctcxo_pads.en.eq(self.limetop.fpgacfg.tcxo_en)
 
-        self.comb += self.lime_top.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
+        self.comb += self.limetop.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
         # PCIE DMA -> TX Path -> LMS7002 Pipeline.
         self.comb += [
-            self.pcie_dma0.source.connect(self.lime_top.sink, omit=["ready"]),
-            self.pcie_dma0.source.ready.eq((self.lime_top.sink.ready & self.lime_top.fpgacfg.rx_en) | ~self.pcie_dma0.reader.enable),
+            self.pcie_dma0.source.connect(self.limetop.sink, omit=["ready"]),
+            self.pcie_dma0.source.ready.eq((self.limetop.sink.ready & self.limetop.fpgacfg.rx_en) | ~self.pcie_dma0.reader.enable),
         ]
 
-        self.comb += self.lime_top.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
+        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
 
         # LMS SPI -----------------------------------------------------------------------------------
 
@@ -458,13 +459,13 @@ class BaseSoC(SoCCore):
         self.comb += [
             self.zda_parser.sink.data.eq (gnss_uart_phy.source.data ),
             self.zda_parser.sink.valid.eq(gnss_uart_phy.source.valid),
-            self.lime_top.time_seconds.eq(self.zda_parser.time_seconds),
-            self.lime_top.time_minutes.eq(self.zda_parser.time_minutes),
-            self.lime_top.time_hours.eq  (self.zda_parser.time_hours  ),
-            self.lime_top.time_day.eq    (self.zda_parser.time_day    ),
-            self.lime_top.time_month.eq  (self.zda_parser.time_month  ),
-            self.lime_top.time_year.eq   (self.zda_parser.time_year   ),
-            self.lime_top.rxtx_top.rx_path.pps.eq(self.zda_parser.pps ),
+            self.limetop.time_seconds.eq(self.zda_parser.time_seconds),
+            self.limetop.time_minutes.eq(self.zda_parser.time_minutes),
+            self.limetop.time_hours.eq  (self.zda_parser.time_hours  ),
+            self.limetop.time_day.eq    (self.zda_parser.time_day    ),
+            self.limetop.time_month.eq  (self.zda_parser.time_month  ),
+            self.limetop.time_year.eq   (self.zda_parser.time_year   ),
+            self.limetop.rxtx_top.rx_path.pps.eq(self.zda_parser.pps ),
         ]
         ####
         # Current time registers
@@ -557,20 +558,20 @@ class BaseSoC(SoCCore):
         ### Misc assignments
         # Stream delay signals
         self.comb += [
-            # self.lime_top.fpgacfg.tx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
-            # self.lime_top.fpgacfg.tx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
-            # self.lime_top.fpgacfg.rx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
-            # self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
+            # self.limetop.fpgacfg.tx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
+            # self.limetop.fpgacfg.tx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
+            # self.limetop.fpgacfg.rx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
+            # self.limetop.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
             # NOTE: using rx_path synced pps, because separate tx path enable is not used, should be fine
-            self.lime_top.fpgacfg.tx_en_delay_signal[0].eq(self.lime_top.rxtx_top.rx_path.pps_rising),
-            self.lime_top.fpgacfg.tx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
-            self.lime_top.fpgacfg.rx_en_delay_signal[0].eq(self.lime_top.rxtx_top.rx_path.pps_rising),
-            self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
+            self.limetop.fpgacfg.tx_en_delay_signal[0].eq(self.limetop.rxtx_top.rx_path.pps_rising),
+            self.limetop.fpgacfg.tx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
+            self.limetop.fpgacfg.rx_en_delay_signal[0].eq(self.limetop.rxtx_top.rx_path.pps_rising),
+            self.limetop.fpgacfg.rx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
         ]
 
 
         tdd_pads = platform.request_all("tdd_gpio")
-        self.comb += tdd_pads.eq(self.lime_top.lms7002_top.tx_ant_en)
+        self.comb += tdd_pads.eq(self.limetop.lms7002_top.tx_ant_en)
 
         # PPSDO ------------------------------------------------------------------------------------
         if with_ppsdo:
