@@ -168,8 +168,8 @@ class fpgacfg_csr(LiteXModule):
             self.major_rev      = CSRStatus(16, reset=0xDEAD)
             self.compile_rev    = CSRStatus(16, reset=0xDEAD)
         else:
-            self.major_rev      = CSRStatus(16, reset=2)
-            self.compile_rev    = CSRStatus(16, reset=26)
+            self.major_rev      = CSRStatus(16, reset=3)
+            self.compile_rev    = CSRStatus(16, reset=6)
         self.channel_cntrl  = CSRStorage(fields=[
             CSRField("ch_en", size=2, offset=0, values=[
                 ("``2b01", "Channel A"),
