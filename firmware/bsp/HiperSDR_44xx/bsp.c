@@ -54,6 +54,7 @@ litei2c_regs I2C3_REGS = {
 // Static ensures this is private to bsp.c, initialized to 0 by default
 static uint8_t gpio_shadow_cache[BSP_GPIO_COUNT] = {0};
 
+#define BSP_IRQ1_BIT    (1U << CSR_BSP_EV_PENDING_EVENT1_OFFSET)
 #define BSP_IRQ0_BIT    (1U << CSR_BSP_EV_PENDING_EVENT0_OFFSET)
 #define BSP_IRQ_SW_TRIG (1U << CSR_BSP_EV_PENDING_SW_OFFSET)
 
@@ -63,8 +64,14 @@ static uint8_t prev_pwr_lms8_nrst_state = 0;
 static bool pwr_lms8_nrst_init_done = false;
 
 static void bsp_isr(void) {
-    bsp_irq_pending = bsp_ev_pending_read();
-    bsp_ev_pending_write(bsp_ev_pending_read()); // Clear interrupt
+	// Read the pending register ONCE
+	uint32_t pending = bsp_ev_pending_read();
+
+	// Accumulate the pending bits (don't overwrite!)
+	bsp_irq_pending |= pending;
+
+	// Write back the exact value we read to clear ONLY those specific interrupts
+	bsp_ev_pending_write(pending);
     //bsp_ev_enable_write(1 << CSR_BSP_EV_STATUS_EVENT0_OFFSET); // re-enable the event handler
 }
 
@@ -77,6 +84,7 @@ void bsp_isr_init(void) {
     bsp_ev_pending_write(bsp_ev_pending_read());
 
     /* Enable irq */
+    irq_enable_mask |= (1 << CSR_BSP_EV_ENABLE_EVENT1_OFFSET);
     irq_enable_mask |= (1 << CSR_BSP_EV_ENABLE_EVENT0_OFFSET);
     irq_enable_mask |= (1 << CSR_BSP_EV_ENABLE_SW_OFFSET);
 
@@ -91,36 +99,28 @@ void bsp_isr_init(void) {
 }
 
 void bsp_process_irqs(void) {
-    // Poll: Extract the current state of that specific bit
-    uint8_t current_byte = bsp_gpio_get_cached(PWR_LMS8_NRST_OFFSET);
-    uint8_t curr_pwr_lms8_nrst_state = (current_byte >> PWR_LMS8_NRST_POS) & 0x01;
-
-    if (!pwr_lms8_nrst_init_done) {
-        prev_pwr_lms8_nrst_state = curr_pwr_lms8_nrst_state;
-        pwr_lms8_nrst_init_done = true;
-    }
-
-    // Compare: Check if the bit state flipped
-    if (curr_pwr_lms8_nrst_state != prev_pwr_lms8_nrst_state) {
-        if (curr_pwr_lms8_nrst_state == 1) {
-            printf("PWR_LMS8_NRST ON\n");
-            bsp_lms8_pwrup();
-        } else {
-            printf("PWR_LMS8_NRST OFF\n");
-        }
-
-        // Update history
-        prev_pwr_lms8_nrst_state = curr_pwr_lms8_nrst_state;
-    }
-
     // If no interrupts are pending, return immediately
     if (bsp_irq_pending == 0) return;
 
-    // Check specific bits and execute interrupt request and clear pending bit
-    if (bsp_irq_pending & BSP_IRQ0_BIT) {
-        bsp_init();
-        bsp_irq_pending &= ~BSP_IRQ0_BIT;
+    // Safely copy and clear the global pending variable to prevent race conditions
+    // Temporarily mask the BSP interrupt so the ISR doesn't fire while we are copying
+    irq_setmask(irq_getmask() & ~(1 << BSP_INTERRUPT));
+
+    uint32_t active_irqs = bsp_irq_pending;
+    bsp_irq_pending = 0; // Clear the software flags since we now own them
+
+    irq_setmask(irq_getmask() | (1 << BSP_INTERRUPT)); // Re-enable BSP interrupt
+
+    // Process the individual bits independently
+    if (active_irqs & BSP_IRQ0_BIT) {
+        bsp_init(); // Process Event 0
     }
+
+    if (active_irqs & BSP_IRQ1_BIT) { // Process Event 1
+    	bsp_lms8_pwrup();
+    	printf("PWR_LMS8_NRST ON\n");
+    }
+
 }
 
 
@@ -131,16 +131,6 @@ void bsp_init(void) {
     //NOTE: Do not change init sequence.
     //See AFE79xx Configuration Guide for Initialization flow
     bsp_powerup();
-
-    bool status = LMK05318B_init(&I2C1_REGS);
-
-    afe7901_init();
-
-    if (status) {
-        printf("[BSP] Initialized\n");
-    } else {
-        printf("[BSP] Fail\n");
-    }
 
     // Set output values for all expanders to 0
     TCA6424_SetPortOutputValues(&I2C2_REGS,I2C2_IO_EXP0_ADDR, 0, 0);
@@ -177,6 +167,17 @@ void bsp_init(void) {
     TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 1, 0);
     TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 2, 0);
 
+    for (int i = 0; i < 100; i++) {
+        __asm__ volatile ("nop");
+    }
+
+    bsp_lms8_pwrup(); // since PWR_LMS8_NRST is set high, also configure PMIC. This is needed for clock network
+
+    // An arbitrary delay to give some time after lms8 PMIC config
+    for (int i = 0; i < 10000; i++) {
+        __asm__ volatile ("nop");
+    }
+
     bsp_init_adf();
 
     // VCTCXO Init
@@ -185,6 +186,16 @@ void bsp_init(void) {
     // An arbitrary delay at the end of init seems to prevent some weird behavior
     for (int i = 0; i < 10000; i++) {
         __asm__ volatile ("nop");
+    }
+
+    bool status = LMK05318B_init(&I2C1_REGS);
+
+    afe7901_init();
+
+    if (status) {
+        printf("[BSP] Initialized\n");
+    } else {
+        printf("[BSP] Fail\n");
     }
 
 
