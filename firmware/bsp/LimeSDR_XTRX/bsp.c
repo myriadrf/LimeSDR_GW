@@ -312,6 +312,8 @@ uint8_t bsp_gpio_get_cached(const uint8_t offset) {
 }
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data) {
+    //TODO: FIX this, first FLASH read returns 0xFF. Workaround to read two times...
+    FlashQspi_CMD_ReadDataByte(mem_write_offset, &data[0]);
     FlashQspi_CMD_ReadDataByte(mem_write_offset, &data[0]);
     FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &data[1]);
 }
