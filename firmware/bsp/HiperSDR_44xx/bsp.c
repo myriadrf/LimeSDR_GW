@@ -167,7 +167,7 @@ void bsp_init(void) {
     TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 1, 0);
     TCA6424_SetPortDirection(&I2C3_REGS,I2C3_IO_EXP1_ADDR, 2, 0);
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10000; i++) {
         __asm__ volatile ("nop");
     }
 
@@ -178,10 +178,25 @@ void bsp_init(void) {
         __asm__ volatile ("nop");
     }
 
-    bsp_init_adf();
-
     // VCTCXO Init
+    // Set Gain
     DAC8050_Write_Command(&I2C3_REGS, I2C3_VCTCXO_DAC_ADDR, DAC8050_GAIN, 257);
+
+    {
+        //Check if there is a value in permanent vctcxo memory
+        //If there is, write it to runtime DAC
+        //If there isn't write default
+        uint16_t perm_dac_val;
+        const uint8_t *perm_dac_ptr = (uint8_t *) &perm_dac_val;
+        bsp_vctcxo_permanent_dac_read((uint8_t *) &perm_dac_val);
+        if (perm_dac_val != 0xFFFF) {
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
+        } else {
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, (DAC_DEFF_VAL & 0xff00 >> 8), DAC_DEFF_VAL & 0xff);
+        }
+    }
+
+    bsp_init_adf();
 
     // An arbitrary delay at the end of init seems to prevent some weird behavior
     for (int i = 0; i < 10000; i++) {
