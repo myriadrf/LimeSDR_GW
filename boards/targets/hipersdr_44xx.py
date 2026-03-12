@@ -746,9 +746,10 @@ class BaseSoC(SoCCore):
             self.comb += refctrl_pads.sel.eq(self.gpio_control.GPIO2.storage[12])
 
         from gateware.EventManagers.BSPEventManager import BSPEventManager
-        self.bsp = BSPEventManager(width=1)
+        self.bsp = BSPEventManager(width=2)
 
         self.comb += self.bsp.isr_vect[0].eq(self.afe.core_ctrl.fields.afe_init_trigger)
+        self.comb += self.bsp.isr_vect[1].eq(self.gpio_control.port_out_value_115.storage[8])  # Connecting PWR_LMS8_NRST bit to bsp isr
 
         self.irq.add("bsp")
 
