@@ -120,7 +120,7 @@ class TXPathTop(LiteXModule):
         data_pad_tlast   = Signal()
 
         # AXI Slave FIFO_DATA_W -> 128 (must uses s_axis_domain)
-        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(stream.Converter(FIFO_DATA_W, 128)))
+        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(FIFO_DATA_W, 128)))
         self.conv_64_to_128 = conv_64_to_128
 
         # Input data buffer (128 bit)
@@ -196,13 +196,15 @@ class TXPathTop(LiteXModule):
             rx_sample_nr_sync.eq(        smpl_nr_fifo.source.data),
             smpl_nr_fifo.source.ready.eq(smpl_nr_fifo.source.valid | ~m_reset_n),
 
-            # Ready is handled separately
-            input_buff.source.connect(conv_64_to_128.sink,omit=["ready"]),
+            # input_buff
+            input_buff.sink.data.eq(     conv_64_to_128.source.data),
+            input_buff.sink.last.eq(     conv_64_to_128.source.last),
+            input_buff.sink.valid.eq(    conv_64_to_128.source.valid),
 
             # Async fifo used by ClockDomainCrossing does not have a reset
             # Passing reset as a ready signal to clear out the fifo is a workaround
-            conv_64_to_128.source.ready.eq(p2d_wr_sink_ready | ~s_reset_n),
-            input_buff.source.ready.eq(conv_64_to_128.sink.ready | ~s_reset_n),
+            conv_64_to_128.source.ready.eq(input_buff.sink.ready | ~s_reset_n),
+            input_buff.source.ready.eq(p2d_wr_sink_ready | ~m_reset_n),
         ]
 
         self.pct2data_buf_wr = Instance("PCT2DATA_BUF_WR",
@@ -214,10 +216,10 @@ class TXPathTop(LiteXModule):
             i_S_AXIS_ARESET_N = m_reset_n,                    # m_axis_domain.a_reset_n
 
             # AXI Stream Slave
-            i_S_AXIS_TVALID   = conv_64_to_128.source.valid,
-            i_S_AXIS_TDATA    = conv_64_to_128.source.data,
+            i_S_AXIS_TVALID   = input_buff.source.valid,
+            i_S_AXIS_TDATA    = input_buff.source.data,
             o_S_AXIS_TREADY   = p2d_wr_sink_ready,
-            i_S_AXIS_TLAST    = conv_64_to_128.source.last,
+            i_S_AXIS_TLAST    = input_buff.source.last,
 
             # AXI Stream Master
             i_M_AXIS_ARESET_N = m_reset_n,                    # m_axis_domain.a_reset_n
