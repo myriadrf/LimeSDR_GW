@@ -22,6 +22,8 @@
 #define DAC8050_STATUS 0x7
 #define DAC8050_DAC_DATA 0x8
 
+// About: DAC8050 is a I2C controlled DAC with 8bit address and 16bit data
+
 /**
  * Issues a write command to the DAC8050 via the I2C interface using the specified parameters.
  *

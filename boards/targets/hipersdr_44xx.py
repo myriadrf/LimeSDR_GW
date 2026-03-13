@@ -90,6 +90,10 @@ class CRG(LiteXModule):
         self.cd_fpga_sysref = ClockDomain()
         self.cd_fpga_1pps   = ClockDomain()
 
+        self.cd_vctcxo_ref = ClockDomain()
+        self.cd_vctcxo_ref.clk.eq(platform.request("gpio_d11"))
+        platform.add_period_constraint(self.cd_vctcxo_ref.clk, 1e9/40e6)
+
         # # #
 
         # Clk / Rst.
@@ -233,6 +237,7 @@ class BaseSoC(SoCCore):
         "CNTRL"       : 26,
         "afe"         : 27,
 
+        "ppsdo"       : 30,
         # Analyzer.
         "analyzer"    : 31,
 
@@ -244,6 +249,7 @@ class BaseSoC(SoCCore):
         with_cpu              = True, cpu_firmware=None,
         with_jtagbone         = True,
         with_bscan            = False,
+        with_ppsdo            = True,
         with_fft              = False,
         flash_boot            = False,
         gold_img              = False,
@@ -337,8 +343,51 @@ class BaseSoC(SoCCore):
         self.CNTRL = CNTRL_CSR(1, 2)
         self.irq.add("CNTRL")
 
+
+        # GPS serial connected to LimeUART0
+        from litex.soc.cores.uart import UARTPHY
+        from litex.soc.cores.uart import UART
+
+        # self.gps_pads       = platform.request("gps")
+        gnss_uart_pads = self.platform.request("gps_serial", loose=True)
+        gnss_uart_phy  = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
+        pcie_uart0     = UART(gnss_uart_phy, tx_fifo_depth=64, rx_fifo_depth=16, rx_fifo_rx_we=True)
+        self.add_module(name=f"PCIE_UART0_phy", module=gnss_uart_phy)
+        self.add_module(name="PCIE_UART0", module=pcie_uart0)
+
         # CRG --------------------------------------------------------------------------------------
         self.crg = CRG(platform, sys_clk_freq)
+
+        # PPS --------------------------------------------------------------------------------------
+        self.pps_internal = Signal()
+        self.comb += self.pps_internal.eq(platform.request("pps"))
+
+        # Fake PPS generator in cd_sys
+        self.fake_pps = Signal()
+        pps_counter = Signal(32)
+        self.sync += [
+            If(pps_counter == int(sys_clk_freq) - 1,
+                pps_counter.eq(0),
+                self.fake_pps.eq(1)
+            ).Else(
+                pps_counter.eq(pps_counter + 1),
+                If(pps_counter == int(sys_clk_freq/100), # 10ms pulse
+                    self.fake_pps.eq(0)
+                )
+            )
+        ]
+
+        # PPSDO ------------------------------------------------------------------------------------
+        if with_ppsdo:
+            # Imports.
+            from gateware.LimePPSDO.src.ppsdo import PPSDO
+
+            # PPSDO Instance.
+            # Maybe TODO: use generic clock names and pass dac_bits by variable to enable copy-pasting this snippet?
+            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="vctcxo_ref", with_csr=True)
+            self.ppsdo.add_sources(dac_bits=16)
+            # self.comb += ppsdo.pps.eq(self.pps_internal)
+            self.comb += ppsdo.pps.eq(self.fake_pps)
 
         # JTAGBone ---------------------------------------------------------------------------------
         if with_jtagbone:
@@ -353,22 +402,26 @@ class BaseSoC(SoCCore):
         # Leds -------------------------------------------------------------------------------------
         # self.led_pads = platform.request_all("user_led")
         self.led_placeholder = Signal()
+        self.led_pins = Signal(3)
+        self.comb += platform.request_all("user_led").eq(self.led_pins)
         if gold_img:
             self.leds = LedChaser(
                 pads         = self.led_placeholder,
                 period       = 2,
                 sys_clk_freq = sys_clk_freq
             )
-            self.comb += platform.request("user_led",0).eq(self.led_placeholder)
-            self.comb += platform.request("user_led",1).eq(self.led_placeholder)
+            self.comb += self.led_pins[0].eq(self.led_placeholder)
+            self.comb += self.led_pins[1].eq(self.led_placeholder)
         else:
             leds = LedChaser(
-                pads         = platform.request_all("user_led"),
+                # pads         = platform.request_all("user_led"),
+                pads         = self.led_pins[0:3],
                 period       = 1,
-                sys_clk_freq = int(15.36e6)
+                sys_clk_freq = int(245.76e6)
             )
             leds = ClockDomainsRenamer("fpga_1pps")(leds)
             self.leds = leds
+            self.comb += self.led_pins[2].eq(self.pps_internal)
 
         # ICAP -------------------------------------------------------------------------------------
         #self.icap = ICAP()
@@ -841,6 +894,10 @@ def main():
     parser.add_argument("--flash-boot",            action="store_true",     help="Write Firmware in Flash instead of RAM.")
     parser.add_argument("--firmware-flash-offset", default=0x220000,        help="Firmware SPI Flash offset.")
     parser.add_argument("--gold",                  action="store_true",     help="Build/Flash golden image instead of user")
+
+    # PPSDO.
+    parser.add_argument("--no-ppsdo", action="store_true", help="Disable PPSDO support.")
+
 
     # SoC parameters.
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")

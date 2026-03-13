@@ -32,6 +32,10 @@ tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet *) glEp0Buffer_Tx;
 tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *) glEp0Buffer_Rx;
 int boot_img_en = 0;
 
+#ifdef CSR_PPSDO_BASE
+static uint16_t prev_dac_tuned = 0;
+#endif
+
 #ifdef WITH_LMS7002
 // If an error points here, most likely some of the macros are invalid.
 PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIME_TOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
@@ -58,8 +62,6 @@ volatile uint8_t var_pllrst_start;
 
 
 unsigned int irq_mask;
-
-uint16_t dac_val = DAC_DEFF_VAL;
 
 uint8_t serial_otp_unlock_key = 0;
 volatile unsigned char serial[32] = {0};
@@ -201,6 +203,16 @@ int main(void) {
         if (boot_img_en == 1) {
             bsp_program_mode2_boot_from_flash();
         }
+
+#ifdef CSR_PPSDO_BASE
+        if (ppsdo_enable_read()) {
+            uint16_t curr_dac_tuned = ppsdo_status_dac_tuned_val_read();
+            if (curr_dac_tuned != prev_dac_tuned) {
+                prev_dac_tuned = curr_dac_tuned;
+                bsp_analog_write(BSP_DAC_INDEX, 0x00, (curr_dac_tuned & 0xff00) >> 8, curr_dac_tuned & 0xff);
+            }
+        }
+#endif
 
         console_service();
 
