@@ -91,7 +91,7 @@ class CRG(LiteXModule):
         self.cd_fpga_1pps   = ClockDomain()
 
         self.cd_vctcxo_ref = ClockDomain()
-        self.cd_vctcxo_ref.clk.eq(platform.request("gpio_d11"))
+        self.comb += self.cd_vctcxo_ref.clk.eq(platform.request("gpio_d11"))
         platform.add_period_constraint(self.cd_vctcxo_ref.clk, 1e9/40e6)
 
         # # #
@@ -386,8 +386,7 @@ class BaseSoC(SoCCore):
             # Maybe TODO: use generic clock names and pass dac_bits by variable to enable copy-pasting this snippet?
             self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="vctcxo_ref", with_csr=True)
             self.ppsdo.add_sources(dac_bits=16)
-            # self.comb += ppsdo.pps.eq(self.pps_internal)
-            self.comb += ppsdo.pps.eq(self.fake_pps)
+            self.comb += ppsdo.pps.eq(self.pps_internal)
 
         # JTAGBone ---------------------------------------------------------------------------------
         if with_jtagbone:
@@ -415,7 +414,7 @@ class BaseSoC(SoCCore):
         else:
             leds = LedChaser(
                 # pads         = platform.request_all("user_led"),
-                pads         = self.led_pins[0:3],
+                pads         = self.led_pins[0:2],
                 period       = 1,
                 sys_clk_freq = int(245.76e6)
             )
@@ -819,6 +818,8 @@ class BaseSoC(SoCCore):
             f.write("set_clock_groups -name sys_async1 -asynchronous -group [get_clocks sys]\n\n")
             f.write("set_clock_groups -name sys_async2 -asynchronous -group [get_clocks afe]\n\n")
             f.write("set_clock_groups -name 1pps -asynchronous -group [get_clocks fpga_1pps_clk]\n\n")
+            f.write("set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]\n\n")
+            # set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]
             # f.write("set_clock_groups -name 1pps_double -asynchronous -group [get_clocks fpga_1pps_double_clk]\n\n")
         self.platform.add_source(timings_xdx_filename)
 
