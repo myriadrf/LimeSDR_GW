@@ -31,9 +31,10 @@ _io = [
 
 
     # Leds.
+    # Order of LED33 naming does not correspond to physical layout
     ("user_led", 0, Pins("AD13"),  IOStandard("LVCMOS33")),  # LED33_0
-    ("user_led", 1, Pins("AF13"),  IOStandard("LVCMOS33")),  # LED33_1
-    ("user_led", 2, Pins("AE13"),  IOStandard("LVCMOS33")),  # LED33_2
+    ("user_led", 2, Pins("AF13"),  IOStandard("LVCMOS33")),  # LED33_1
+    ("user_led", 1, Pins("AE13"),  IOStandard("LVCMOS33")),  # LED33_2
     ("user_led2", 0, Pins("B10 B11 C9"),  IOStandard("LVCMOS33")),
 
     # PCIe.
