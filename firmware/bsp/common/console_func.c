@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <generated/csr.h>
+
+#include "bsp.h"
 /*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
@@ -93,6 +95,7 @@
 #endif
     puts("dac_test           - Test DAC");
     puts("flash_test         - Test FPGA FLASH");
+    puts("lmk_stat           - Get status of LMK05318B");
 }
 
 /*-----------------------------------------------------------------------*/
@@ -238,6 +241,14 @@
 #endif
 }
 
+  /*-----------------------------------------------------------------------*/
+  /* LMK05318B status                                                       */
+  /*-----------------------------------------------------------------------*/
+ void lmk_status(void)
+{
+   bsp_lmk_check_lock();
+}
+
 /*-----------------------------------------------------------------------*/
 /* Console service / Main                                                */
 /*-----------------------------------------------------------------------*/
@@ -273,6 +284,8 @@
     else if (strcmp(token, "lms") == 0)
         lms7002_status();
 #endif
+    else if (strcmp(token, "lmk_stat") == 0)
+        lmk_status();
     //else if (strcmp(token, "dac_test") == 0)
         //dac_test();
     //else if (strcmp(token, "flash_test") == 0)

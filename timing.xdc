@@ -9,3 +9,7 @@ set_clock_groups -name sys_async1 -asynchronous -group [get_clocks sys]
 
 set_clock_groups -name sys_async2 -asynchronous -group [get_clocks afe]
 
+set_clock_groups -name 1pps -asynchronous -group [get_clocks fpga_1pps_clk]
+
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]
+

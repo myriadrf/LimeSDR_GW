@@ -44,6 +44,10 @@ tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Tx = (tLMS_Ctrl_Packet *) glEp0Buffer_Tx;
 tLMS_Ctrl_Packet *LMS_Ctrl_Packet_Rx = (tLMS_Ctrl_Packet *) glEp0Buffer_Rx;
 int boot_img_en = 0;
 
+#ifdef CSR_PPSDO_BASE
+static uint16_t prev_dac_tuned = 0;
+#endif
+
 // Check one of the base addresses to make sure
 #ifdef CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED_ADDR
 // If an error points here, most likely some of the macros are invalid.
@@ -71,8 +75,6 @@ volatile uint8_t var_pllrst_start;
 
 
 unsigned int irq_mask;
-
-uint16_t dac_val = DAC_DEFF_VAL;
 
 uint8_t serial_otp_unlock_key = 0;
 volatile unsigned char serial[32] = {0};
@@ -206,19 +208,6 @@ int main(void) {
     clk_cfg_irq_init();
 
     bsp_init();
-    {
-        //Check if there is a value in permanent vctcxo memory
-        //If there is, write it to runtime DAC
-        //If there isn't write default
-        uint16_t perm_dac_val;
-        const uint8_t *perm_dac_ptr = (uint8_t *) &perm_dac_val;
-        bsp_vctcxo_permanent_dac_read((uint8_t *) &perm_dac_val);
-        if (perm_dac_val != 0xFFFF) {
-            bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
-        } else {
-            bsp_analog_write(BSP_DAC_INDEX, 0x00, (DAC_DEFF_VAL & 0xff00 >> 8), DAC_DEFF_VAL & 0xff);
-        }
-    }
 
     help();
     prompt();
@@ -227,6 +216,16 @@ int main(void) {
         if (boot_img_en == 1) {
             bsp_program_mode2_boot_from_flash();
         }
+
+#ifdef CSR_PPSDO_BASE
+        if (ppsdo_enable_read()) {
+            uint16_t curr_dac_tuned = ppsdo_status_dac_tuned_val_read();
+            if (curr_dac_tuned != prev_dac_tuned) {
+                prev_dac_tuned = curr_dac_tuned;
+                bsp_analog_write(BSP_DAC_INDEX, 0x00, (curr_dac_tuned & 0xff00) >> 8, curr_dac_tuned & 0xff);
+            }
+        }
+#endif
 
         console_service();
 
