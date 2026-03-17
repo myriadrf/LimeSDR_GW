@@ -398,30 +398,6 @@ class BaseSoC(SoCCore):
         if with_bscan:
             self.add_jtag_cpu_debug()
 
-        # Leds -------------------------------------------------------------------------------------
-        # self.led_pads = platform.request_all("user_led")
-        self.led_placeholder = Signal()
-        self.led_pins = Signal(3)
-        self.comb += platform.request_all("user_led").eq(self.led_pins)
-        if gold_img:
-            self.leds = LedChaser(
-                pads         = self.led_placeholder,
-                period       = 2,
-                sys_clk_freq = sys_clk_freq
-            )
-            self.comb += self.led_pins[0].eq(self.led_placeholder)
-            self.comb += self.led_pins[1].eq(self.led_placeholder)
-        else:
-            leds = LedChaser(
-                # pads         = platform.request_all("user_led"),
-                pads         = self.led_pins[0:2],
-                period       = 1,
-                sys_clk_freq = int(245.76e6)
-            )
-            leds = ClockDomainsRenamer("fpga_1pps")(leds)
-            self.leds = leds
-            self.comb += self.led_pins[2].eq(self.pps_internal)
-
         # ICAP -------------------------------------------------------------------------------------
         #self.icap = ICAP()
         #self.icap.add_reload()
@@ -698,6 +674,66 @@ class BaseSoC(SoCCore):
             self.lmk_ctrl_pads.lmk_finc.eq(0),
             self.lmk_ctrl_pads.lmk_fdet.eq(0),
         ]
+
+        # Leds -------------------------------------------------------------------------------------
+        self.led_placeholder = Signal()
+        self.led_pins        = Signal(3)
+        self.comb += platform.request_all("user_led").eq(self.led_pins)
+
+        if gold_img:
+            self.leds = LedChaser(
+                pads         = self.led_placeholder,
+                period       = 2,
+                sys_clk_freq = sys_clk_freq
+            )
+            self.comb += self.led_pins[0].eq(self.led_placeholder)
+            self.comb += self.led_pins[1].eq(self.led_placeholder)
+        else:
+            self.leds = LedChaser(
+                # pads         = platform.request_all("user_led"),
+                pads         = self.led_pins[0],
+                period       = 1,
+                sys_clk_freq = int(245.76e6)
+            )
+            self.leds = ClockDomainsRenamer("fpga_1pps")(self.leds)
+
+            # PPSDO Status Led (led_pins[1])
+            if with_ppsdo:
+                # 1Hz and 4Hz blink counters
+                cnt_1hz = Signal(32)
+                cnt_4hz = Signal(32)
+                self.sync += [
+                    If(cnt_1hz == int(sys_clk_freq) - 1,
+                        cnt_1hz.eq(0)
+                    ).Else(
+                        cnt_1hz.eq(cnt_1hz + 1)
+                    ),
+                    If(cnt_4hz == int(sys_clk_freq/4) - 1,
+                        cnt_4hz.eq(0)
+                    ).Else(
+                        cnt_4hz.eq(cnt_4hz + 1)
+                    )
+                ]
+
+                # Blinking signals
+                blink_1hz = Signal()
+                blink_4hz = Signal()
+                self.comb += [
+                    blink_1hz.eq(cnt_1hz < int(sys_clk_freq/2)),
+                    blink_4hz.eq(cnt_4hz < int(sys_clk_freq/8))
+                ]
+
+                # Accuracy status mux
+                self.comb += Case(self.ppsdo.status.accuracy, {
+                    0: self.led_pins[1].eq(~0),         # off
+                    1: self.led_pins[1].eq(~blink_1hz), # slow blink (1Hz)
+                    2: self.led_pins[1].eq(~blink_4hz), # quick blink (4Hz)
+                    3: self.led_pins[1].eq(~1),         # on
+                })
+            else:
+                self.comb += self.led_pins[1].eq(self.led_pins[0])
+
+            self.comb += self.led_pins[2].eq(~self.afe.tiafe_jesd_plls_locked[1])
 
 
 
