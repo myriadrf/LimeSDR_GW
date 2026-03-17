@@ -11,6 +11,19 @@ litei2c_regs I2C0_REGS = {
 
 void bsp_init(void) {
     bsp_powerup();
+    {
+        //Check if there is a value in permanent vctcxo memory
+        //If there is, write it to runtime DAC
+        //If there isn't write default
+        uint16_t perm_dac_val;
+        const uint8_t *perm_dac_ptr = (uint8_t *) &perm_dac_val;
+        bsp_vctcxo_permanent_dac_read((uint8_t *) &perm_dac_val);
+        if (perm_dac_val != 0xFFFF) {
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
+        } else {
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, (DAC_DEFF_VAL & 0xff00 >> 8), DAC_DEFF_VAL & 0xff);
+        }
+    }
 }
 
 void bsp_powerup(void) {
