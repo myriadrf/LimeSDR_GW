@@ -50,6 +50,7 @@
 #define DEV_TYPE			LMS_DEV_XTRX
 #define HW_VER				2
 #define EXP_BOARD			EXP_BOARD_UNSUPPORTED
+#define FW_VER_BSP 11 // New main.c/bsp structure
 
 #define MAX_ID_LMS7		1
 

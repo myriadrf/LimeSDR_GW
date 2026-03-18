@@ -26,8 +26,13 @@
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
 #define DAC_DEFF_VAL			180
-#define FW_VER 6
 #define SPI_CS_LMS (1 << 0)
+#define DEV_TYPE			LMS_DEV_MINI
+#define HW_VER				0
+#define EXP_BOARD			EXP_BOARD_UNSUPPORTED
+
+// #define FW_VER 6
+#define FW_VER_BSP 11 // New main.c/bsp structure
 
 /* MCU SPI register offsets */
 #define MCU_CONTROL_REG 0x02

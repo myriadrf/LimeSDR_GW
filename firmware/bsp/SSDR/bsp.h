@@ -32,7 +32,8 @@
 //#define FW_VER 1 // Initial version
 //#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
 //#define FW_VER 3 // Added serial number into GET_INFO cmd
-#define FW_VER 5 // Firmware for Litex project
+// #define FW_VER 5 // Firmware for Litex project
+#define FW_VER_BSP 11 // New main.c/bsp structure
 
 #define BSP_DAC_INDEX    0
 

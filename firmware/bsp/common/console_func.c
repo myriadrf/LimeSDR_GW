@@ -246,7 +246,12 @@
   /*-----------------------------------------------------------------------*/
  void lmk_status(void)
 {
+#ifdef LMK05318B_H
    bsp_lmk_check_lock();
+#else
+      // TODO: Is this a good error message?
+      printf("ERROR: Not implemented for this board\n");
+#endif
 }
 
 /*-----------------------------------------------------------------------*/

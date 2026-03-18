@@ -27,7 +27,8 @@
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
 #define DAC_DEFF_VAL			566			// Default TCXO DAC value loaded when EEPROM is empty
-#define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
+// #define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
+#define FW_VER_BSP 11 // New main.c/bsp structure
 #define SPI_CS_LMS (1 << 0)
 
 /* MCU SPI register offsets */

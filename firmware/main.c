@@ -18,6 +18,8 @@
 #define sbi(p, n) ((p) |= (1UL << (n)))
 #define cbi(p, n) ((p) &= ~(1 << (n)))
 
+#define FW_VER_MAIN 11 // New main.c/bsp structure
+
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
@@ -37,6 +39,27 @@
     #error "LMS64C_METHOD is set to an unsupported value."
 #endif
 
+/********************** main.c function declarations **************************/
+// FTDI LMS64C Functions
+#if LMS64C_METHOD == LMS64C_METHOD_FTDI
+void FTDI_getFifoData(uint8_t *buf, uint8_t k);
+#endif
+// CSR LMS64C Functions
+#if LMS64C_METHOD == LMS64C_METHOD_CSR
+void getLMS64Packet(uint8_t *buf, uint8_t k);
+static void lms64c_isr(void);
+static void lms64c_init(void);
+#endif
+// PLL Config functions
+#if PLL_ADDRS_DEFINED
+static void clk_cfg_irq_init(void);
+static void clk_ctrl_isr(void);
+#endif
+// Helpers
+unsigned char Check_many_blocks(unsigned char block_size);
+void copyArray(unsigned char *source, unsigned char *destination, size_t sourceIndex, size_t destinationIndex,
+               size_t count);
+
 /************************** Variable Definitions *****************************/
 uint8_t block, cmd_errors;
 uint8_t glEp0Buffer_Rx[64], glEp0Buffer_Tx[64];
@@ -48,15 +71,15 @@ int boot_img_en = 0;
 static uint16_t prev_dac_tuned = 0;
 #endif
 
-// Check one of the base addresses to make sure
+// Check one of the base addresses to make sure PLL's exist
 #ifdef CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED_ADDR
+#define PLL_ADDRS_DEFINED
 // If an error points here, most likely some of the macros are invalid.
 PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
 PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
 SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP);
 // clk_ctrl_addrs is declared in regremap.h
 CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
-
 #endif
 
 volatile uint8_t lms64_packet_pending;
@@ -81,132 +104,21 @@ volatile unsigned char serial[32] = {0};
 volatile unsigned char tmp_serial[32] = {0};
 volatile unsigned char tmprd_serial[32] = {0};
 
-
-
-//#define FW_VER 1 // Initial version
-//#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
-//#define FW_VER 3 // Added serial number into GET_INFO cmd
-#define FW_VER 5 // Firmware for Litex project
-
-/**	This function checks if all blocks could fit in data field.
- *	If blocks will not fit, function returns TRUE. */
-unsigned char Check_many_blocks(unsigned char block_size) {
-    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks > (sizeof(LMS_Ctrl_Packet_Tx->Data_field) / block_size)) {
-        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
-        return 1;
-    } else
-        return 0;
-}
-
-
-void getLMS64Packet(uint8_t *buf, uint8_t k) {
-    uint8_t cnt = 0;
-    uint32_t *dest = (uint32_t *) buf;
-    uint32_t temp_buffer[k / sizeof(uint32_t)];
-    uint8_t is_stable = 0;
-
-    while (!is_stable) {
-        // Read the first buffer into temp_buffer
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
-            temp_buffer[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
-        }
-
-        // Read again into dest buffer
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
-            dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
-        }
-
-        // Compare the two buffers
-        is_stable = 1;
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
-            if (temp_buffer[cnt] != dest[cnt]) {
-                is_stable = 0;
-                break;
-            }
-        }
-    }
-}
-
-static void lms64c_isr(void) {
-    lms64_packet_pending = 1;
-    CNTRL_ev_pending_write(CNTRL_ev_pending_read()); // Clear interrupt
-    CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET); // re-enable the event handler
-}
-
-static void lms64c_init(void) {
-    printf("CNTRL IRQ initialization \n");
-
-    /* Clear all pending interrupts. */
-    CNTRL_ev_pending_write(CNTRL_ev_pending_read());
-
-    /* Enable CNTRL irq */
-    CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
-
-    /* Attach isr to interrupt */
-    irq_attach(CNTRL_INTERRUPT, lms64c_isr);
-
-    /* Enable interrupt */
-
-    irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
-}
-
-static void clk_ctrl_isr(void) {
-#ifdef WITH_LMS7002
-    // Reset relevant CSR's
-    csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
-    csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
-    csr_write_simple(0, clk_ctrl_addrs.pllcfg_error);
-    csr_write_simple(0, clk_ctrl_addrs.phcfg_err);
-
-    var_phcfg_start = csr_read_simple(clk_ctrl_addrs.phcfg_start);
-    var_pllcfg_start = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
-    var_pllrst_start = csr_read_simple(clk_ctrl_addrs.pllrst_start);
-
-    if (var_phcfg_start || var_pllcfg_start || var_pllrst_start)
-        clk_cfg_pending = 1;
-
-    limetop_ev_pending_write(limetop_ev_pending_read()); //Clear interrupt
-    limetop_ev_enable_write(1 << CSR_LIMETOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
-#endif
-}
-
-static void clk_cfg_irq_init(void) {
-#ifdef WITH_LMS7002
-    printf("CLK config irq initialization \n");
-
-    /* Clear all pending interrupts. */
-    limetop_ev_pending_write(limetop_ev_pending_read());
-
-    /* Enable CLK CTRL irq */
-    limetop_ev_enable_write(1 << CSR_LIMETOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET);
-
-    /* Attach isr to interrupt */
-    irq_attach(LIMETOP_INTERRUPT, clk_ctrl_isr);
-
-    /* Enable interrupt */
-
-    irq_setmask(irq_getmask() | (1 << LIMETOP_INTERRUPT));
-#endif
-}
-
-void copyArray(unsigned char *source, unsigned char *destination, size_t sourceIndex, size_t destinationIndex,
-               size_t count) {
-    memcpy(destination + destinationIndex, source + sourceIndex, count);
-}
-
-
 int main(void) {
-    int spirez;
+    uint32_t spirez;
 #ifdef CONFIG_CPU_HAS_INTERRUPT
     irq_setmask(0);
     irq_setie(1);
 #endif
-    uart_init();
-    printf("CSR_CNTRL_BASE 0x%lx \n", CSR_CNTRL_BASE);
+#if LMS64C_METHOD == LMS64C_METHOD_CSR
     lms64c_init();
-    bsp_isr_init();
+#endif
+#if PLL_ADDRS_DEFINED
     clk_cfg_irq_init();
+#endif
 
+    uart_init();
+    bsp_isr_init();
     bsp_init();
 
     help();
@@ -216,7 +128,14 @@ int main(void) {
         if (boot_img_en == 1) {
             bsp_program_mode2_boot_from_flash();
         }
+// LMS64C Method resolution
+#if LMS64C_METHOD == LMS64C_METHOD_FTDI
+        spirez = ft601_fifo_status_read();	// Read FIFO Status
+        lms64_packet_pending = !(spirez & 0x01);
+#endif
 
+
+// PPSDO
 #ifdef CSR_PPSDO_BASE
         if (ppsdo_enable_read()) {
             uint16_t curr_dac_tuned = ppsdo_status_dac_tuned_val_read();
@@ -233,6 +152,15 @@ int main(void) {
 
         // Process received packet
         if (lms64_packet_pending) {
+#if LMS64C_METHOD == LMS64C_METHOD_FTDI
+            limetop_gpo_write(1);
+
+            //Read packet from the FIFO
+            FTDI_getFifoData(glEp0Buffer_Rx, 64);
+#elif LMS64C_METHOD == LMS64C_METHOD_CSR
+            uint8_t reg_array[4];
+            uint32_t read_value;
+
             /* Disable CNTRL irq while processing packet */
             CNTRL_ev_enable_write(CNTRL_ev_enable_read() & ~(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET));
             irq_setmask(irq_getmask() & ~(1 << CNTRL_INTERRUPT));
@@ -241,12 +169,8 @@ int main(void) {
             // printf("CNTRL PCT GOT!\n");
             uint32_t *dest = (uint32_t *) glEp0Buffer_Tx;
 
-            uint8_t reg_array[4];
-            uint16_t addr;
-            uint16_t val;
-            uint8_t i2c_buf[3];
-
             getLMS64Packet(glEp0Buffer_Rx, 64);
+#endif
 
             memset(glEp0Buffer_Tx, 0, sizeof(glEp0Buffer_Tx)); // fill whole tx buffer with zeros
             cmd_errors = 0;
@@ -259,11 +183,14 @@ int main(void) {
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
                 case CMD_GET_INFO:
 
-                    LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER;
+                    // FW_VER LSB
+                    LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER_BSP;
                     LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
                     LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
+                    // FW_VER MSB
+                    LMS_Ctrl_Packet_Tx->Data_field[9] = FW_VER_MAIN;
 
                     // Read Serial number from FLASH OTP region
                     //spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, sizeof(serial), serial);
@@ -958,3 +885,124 @@ int main(void) {
 #endif
     }
 }
+
+#if LMS64C_METHOD == LMS64C_METHOD_FTDI
+void FTDI_getFifoData(uint8_t *buf, uint8_t k)
+{
+    uint8_t cnt = 0;
+    uint32_t* dest = (uint32_t*)buf;
+    uint32_t fifo_val = 0;
+
+    for (cnt=0; cnt<k/sizeof(uint32_t); ++cnt)
+    {
+        fifo_val = ft601_fifo_rdata_read();
+        dest[cnt] = fifo_val; // Read Data From Fifo
+    }
+}
+#endif
+
+#if LMS64C_METHOD == LMS64C_METHOD_CSR
+void getLMS64Packet(uint8_t *buf, uint8_t k) {
+    uint8_t cnt = 0;
+    uint32_t *dest = (uint32_t *) buf;
+    uint32_t temp_buffer[k / sizeof(uint32_t)];
+    uint8_t is_stable = 0;
+
+    while (!is_stable) {
+        // Read the first buffer into temp_buffer
+        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
+            temp_buffer[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
+        }
+
+        // Read again into dest buffer
+        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
+            dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
+        }
+
+        // Compare the two buffers
+        is_stable = 1;
+        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
+            if (temp_buffer[cnt] != dest[cnt]) {
+                is_stable = 0;
+                break;
+            }
+        }
+    }
+}
+
+static void lms64c_isr(void) {
+    lms64_packet_pending = 1;
+    CNTRL_ev_pending_write(CNTRL_ev_pending_read()); // Clear interrupt
+    CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET); // re-enable the event handler
+}
+
+static void lms64c_init(void) {
+    printf("CNTRL IRQ initialization \n");
+
+    /* Clear all pending interrupts. */
+    CNTRL_ev_pending_write(CNTRL_ev_pending_read());
+
+    /* Enable CNTRL irq */
+    CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
+
+    /* Attach isr to interrupt */
+    irq_attach(CNTRL_INTERRUPT, lms64c_isr);
+
+    /* Enable interrupt */
+
+    irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
+}
+#endif
+
+#ifdef PLL_ADDRS_DEFINED
+static void clk_ctrl_isr(void) {
+    // Reset relevant CSR's
+    csr_write_simple(0, clk_ctrl_addrs.pllcfg_done);
+    csr_write_simple(0, clk_ctrl_addrs.phcfg_done);
+    csr_write_simple(0, clk_ctrl_addrs.pllcfg_error);
+    csr_write_simple(0, clk_ctrl_addrs.phcfg_err);
+
+    var_phcfg_start = csr_read_simple(clk_ctrl_addrs.phcfg_start);
+    var_pllcfg_start = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
+    var_pllrst_start = csr_read_simple(clk_ctrl_addrs.pllrst_start);
+
+    if (var_phcfg_start || var_pllcfg_start || var_pllrst_start)
+        clk_cfg_pending = 1;
+
+    limetop_ev_pending_write(limetop_ev_pending_read()); //Clear interrupt
+    limetop_ev_enable_write(1 << CSR_LIMETOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET); // re-enable the event handler
+}
+static void clk_cfg_irq_init(void) {
+    printf("CLK config irq initialization \n");
+
+    /* Clear all pending interrupts. */
+    limetop_ev_pending_write(limetop_ev_pending_read());
+
+    /* Enable CLK CTRL irq */
+    limetop_ev_enable_write(1 << CSR_LIMETOP_EV_STATUS_CLK_CTRL_IRQ_OFFSET);
+
+    /* Attach isr to interrupt */
+    irq_attach(LIMETOP_INTERRUPT, clk_ctrl_isr);
+
+    /* Enable interrupt */
+
+    irq_setmask(irq_getmask() | (1 << LIMETOP_INTERRUPT));
+}
+#endif
+
+
+/**	This function checks if all blocks could fit in data field.
+ *	If blocks will not fit, function returns TRUE. */
+unsigned char Check_many_blocks(unsigned char block_size) {
+    if (LMS_Ctrl_Packet_Rx->Header.Data_blocks > (sizeof(LMS_Ctrl_Packet_Tx->Data_field) / block_size)) {
+        LMS_Ctrl_Packet_Tx->Header.Status = STATUS_BLOCKS_ERROR_CMD;
+        return 1;
+    } else
+        return 0;
+}
+
+void copyArray(unsigned char *source, unsigned char *destination, size_t sourceIndex, size_t destinationIndex,
+               size_t count) {
+    memcpy(destination + destinationIndex, source + sourceIndex, count);
+}
+
