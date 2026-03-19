@@ -2,6 +2,9 @@
 #include "bsp.h"
 
 #include <stdint.h>
+#include <string.h>
+
+static uint8_t serial_otp_unlock_key = 0;
 
 litei2c_regs I2C0_REGS = {
     .master_active_addr = CSR_I2C0_MASTER_ACTIVE_ADDR,
@@ -1169,4 +1172,33 @@ void bsp_lmk_check_lock(void) {
 
   LMK05318B_wait_for_lock(&I2C1_REGS);
 
+}
+
+uint8_t bsp_serial_read(uint8_t *data_field) {
+    uint8_t tmprd_serial[32];
+    FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, 32, tmprd_serial);
+    memcpy(data_field + 24, tmprd_serial, 32);
+    data_field[1] = 16;
+    data_field[2] = serial_otp_unlock_key;
+    return STATUS_COMPLETED_CMD;
+}
+
+uint8_t bsp_serial_write(const uint8_t *data_field) {
+    uint8_t storage_type = data_field[0];
+    uint8_t provided_key = data_field[2];
+    uint8_t tmp_serial[32];
+
+    if (storage_type != 3) return STATUS_ERROR_CMD;
+
+    if (serial_otp_unlock_key == OTP_UNLOCK_KEY) {
+        memcpy(tmp_serial, data_field + 24, 32);
+        FlashQspi_ProgramOTP(OTP_SERIAL_ADDRESS, data_field[1], tmp_serial);
+        serial_otp_unlock_key = 0;
+        return STATUS_COMPLETED_CMD;
+    } else if (provided_key == OTP_UNLOCK_KEY) {
+        serial_otp_unlock_key = provided_key;
+        return STATUS_COMPLETED_CMD;
+    }
+
+    return STATUS_RESOURCE_DENIED_CMD;
 }

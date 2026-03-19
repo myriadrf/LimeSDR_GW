@@ -532,3 +532,11 @@ uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint
 
     return (cmd_errors) ? STATUS_ERROR_CMD : STATUS_COMPLETED_CMD;
 }
+
+uint8_t bsp_serial_read(uint8_t *data_field) {
+    return STATUS_ERROR_CMD;
+}
+
+uint8_t bsp_serial_write(const uint8_t *data_field) {
+    return STATUS_ERROR_CMD;
+}

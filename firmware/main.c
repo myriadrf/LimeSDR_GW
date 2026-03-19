@@ -99,10 +99,10 @@ volatile uint8_t var_pllrst_start;
 
 unsigned int irq_mask;
 
-uint8_t serial_otp_unlock_key = 0;
-volatile unsigned char serial[32] = {0};
-volatile unsigned char tmp_serial[32] = {0};
-volatile unsigned char tmprd_serial[32] = {0};
+//uint8_t serial_otp_unlock_key = 0;
+//volatile unsigned char serial[32] = {0};
+//volatile unsigned char tmp_serial[32] = {0};
+//volatile unsigned char tmprd_serial[32] = {0};
 
 int main(void) {
     uint32_t spirez;
@@ -194,7 +194,7 @@ int main(void) {
 
                     // Read Serial number from FLASH OTP region
                     //spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, sizeof(serial), serial);
-
+                    /*
                     LMS_Ctrl_Packet_Tx->Data_field[10] = serial[7];
                     LMS_Ctrl_Packet_Tx->Data_field[11] = serial[6];
                     LMS_Ctrl_Packet_Tx->Data_field[12] = serial[5];
@@ -203,11 +203,13 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Data_field[15] = serial[2];
                     LMS_Ctrl_Packet_Tx->Data_field[16] = serial[1];
                     LMS_Ctrl_Packet_Tx->Data_field[17] = serial[0];
+                    */
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
                 case CMD_SERIAL_WR:
+                    /*
                     // TODO: This should probably be in BSP
 
                     copyArray(LMS_Ctrl_Packet_Rx->Data_field, tmp_serial, 24, 0, 32);
@@ -239,10 +241,12 @@ int main(void) {
                             LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
                             break;
                     }
-
+                    */
+                    LMS_Ctrl_Packet_Tx->Header.Status = bsp_serial_write(LMS_Ctrl_Packet_Rx->Data_field);
                     break;
 
                 case CMD_SERIAL_RD:
+                    /*
                     // TODO: This should probably be in BSP
 
                     //spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, 32, tmprd_serial);
@@ -250,6 +254,8 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Data_field[1] = 16;
                     LMS_Ctrl_Packet_Tx->Data_field[2] = serial_otp_unlock_key;
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                    */
+                    LMS_Ctrl_Packet_Tx->Header.Status = bsp_serial_read(LMS_Ctrl_Packet_Tx->Data_field);
                     break;
 
                 case CMD_LMS_RST: {

@@ -139,6 +139,11 @@ uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint
 uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
                          uint8_t *misodata);
 
+// Serial number functions
+uint8_t bsp_serial_read(uint8_t *data_field);
+
+uint8_t bsp_serial_write(const uint8_t *data_field);
+
 //ADF functions
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 

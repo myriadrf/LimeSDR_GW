@@ -136,3 +136,11 @@ void bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data) {
 void bsp_init_adf(void) {
 #error "bsp_init_adf not implemented"
 }
+
+uint8_t bsp_serial_read(uint8_t *data_field) {
+#error "bsp_serial_read not implemented"
+}
+
+uint8_t bsp_serial_write(const uint8_t *data_field) {
+#error "bsp_serial_write not implemented"
+}
