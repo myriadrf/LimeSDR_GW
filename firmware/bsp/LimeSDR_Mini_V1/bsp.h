@@ -6,7 +6,7 @@
 #endif
 
 // BSP includes the associated regremap
-// #include "placeholder_regremap.h"
+// #include "regremap.h"
 
 // Required includes
 #include <stdbool.h>
@@ -33,6 +33,8 @@
 
 // #define FW_VER 6
 #define FW_VER_BSP 11 // New main.c/bsp structure
+
+#define BSP_DAC_INDEX    0
 
 /* MCU SPI register offsets */
 #define MCU_CONTROL_REG 0x02

@@ -6,7 +6,7 @@
 #endif
 
 // BSP includes the associated regremap
-// #include "placeholder_regremap.h"
+// #include "regremap.h"
 
 // Required includes
 #include <stdbool.h>
@@ -30,6 +30,8 @@
 // #define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
 #define FW_VER_BSP 11 // New main.c/bsp structure
 #define SPI_CS_LMS (1 << 0)
+
+#define BSP_DAC_INDEX    0
 
 /* MCU SPI register offsets */
 #define MCU_CONTROL_REG 0x02
