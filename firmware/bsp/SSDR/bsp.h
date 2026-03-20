@@ -35,6 +35,10 @@
 // #define FW_VER 5 // Firmware for Litex project
 #define FW_VER_BSP 11 // New main.c/bsp structure
 
+// Since there is no eeprom on the board and the flash is too large for the gw
+// we use the top of the flash instead of eeprom, thus the offset to last sector
+#define mem_write_offset 0x01FF0000
+
 #define BSP_DAC_INDEX    0
 
 //I2C devices

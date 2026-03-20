@@ -14,9 +14,7 @@ void bsp_init(void) {
     ft601_fifo_control_write(0);
     //Reset LMS7
     limetop_lms7002_top_lms_ctr_gpio_write(0x0);
-    limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
-
-    {
+    limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF); {
         //Check if there is a value in permanent vctcxo memory
         //If there is, write it to runtime DAC
         //If there isn't write default
@@ -129,37 +127,34 @@ static uint16_t dac_val = 0;
 static uint8_t *dac_val_ptr = (uint8_t *) &dac_val;
 
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb) {
-    switch (channel)
-    {
-    case 0:
-        // No read function, return cached values
-        *unit = 0;
-        *value_lsb = dac_val_ptr[0];
-        *value_msb = dac_val_ptr[1];
-        return STATUS_COMPLETED_CMD;
-    case 1:
-        uint16_t temp_val = LM75_Read_Temperature(&I2C0_REGS,0x0);
-        uint8_t* temp_ptr = (uint8_t*) &temp_val;
-        *value_lsb = temp_ptr[0];
-        *value_msb = temp_ptr[1];
-        *unit = 0x50;
+    switch (channel) {
+        case 0:
+            // No read function, return cached values
+            *unit = 0;
+            *value_lsb = dac_val_ptr[0];
+            *value_msb = dac_val_ptr[1];
+            return STATUS_COMPLETED_CMD;
+        case 1:
+            uint16_t temp_val = LM75_Read_Temperature(&I2C0_REGS, 0x0);
+            uint8_t *temp_ptr = (uint8_t *) &temp_val;
+            *value_lsb = temp_ptr[0];
+            *value_msb = temp_ptr[1];
+            *unit = 0x50;
 
-        return STATUS_COMPLETED_CMD;
+            return STATUS_COMPLETED_CMD;
 
-    default:
-        return STATUS_ERROR_CMD;
+        default:
+            return STATUS_ERROR_CMD;
     }
 }
 
 uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_t value_msb, const uint8_t value_lsb) {
     // Only channel 0 (DAC) and RAW units are supported for write
-    if (channel == 0 && unit == 0)
-    {
+    if (channel == 0 && unit == 0) {
         dac_val_ptr[0] = value_lsb;
         dac_val_ptr[1] = value_msb;
         const uint8_t retval = dacx311_write_value(dac_val, SPI_CS_DAC, DAC_MODEL_5311);
-        if (retval == 0)
-        {
+        if (retval == 0) {
             return STATUS_COMPLETED_CMD;
         }
         return STATUS_ERROR_CMD;
@@ -193,19 +188,85 @@ uint8_t bsp_gpio_get_cached(const uint8_t offset) {
 }
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data) {
-#error "bsp_vctcxo_permanent_dac_read not implemented"
+    bsp_mem_read(0xff0000, 0, 2, 1, data, 2);
 }
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data) {
-#error "bsp_vctcxo_permanent_dac_write not implemented"
+    // Got values from LimeSuite source, portion byte unused, set to 0
+    bsp_mem_write(0xff0000, 0, 2, 1, data, 2);
 }
 
-uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
-#error "bsp_mem_read not implemented"
+uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data,
+                     uint8_t data_count) {
+    const uint16_t read_addr = (uint16_t) offset & 0xFFFF;
+    uint8_t cmd_errors = 0;
+    if (target == 1) {
+        //FX3
+        if (progmode == 2) {
+            spiFlash_read(offset, data_count, data);
+        }
+    } else if (target == 3) // TARGET = EEPROM
+    {
+        if (progmode == 0) // Read data from EEPROM #1
+        {
+            uint8_t retval = 0;
+            for (uint8_t i = 0; i < data_count; i++) {
+                // Read a byte at a time
+                retval |= litei2c_a16d8_read_register(&I2C0_REGS, EEPROM_I2C_ADDR, read_addr + i, &data[i]);
+            }
+            if (retval == 0)
+                return STATUS_COMPLETED_CMD;
+        }
+    }
+    return STATUS_ERROR_CMD;
 }
 
-uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
-#error "bsp_mem_write not implemented"
+uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data,
+                      uint8_t data_count) {
+    const uint16_t write_addr = (uint16_t) offset & 0xFFFF;
+    uint8_t cmd_errors = 0;
+    if (target == 1) {
+        //FX3
+        if (progmode == 2) {
+            // FW to flash (actually just used to write XO DAC VALUE)
+            printf("%08x\n", offset);
+
+            if (offset >= FLASH_USRSEC_START_ADDR) {
+                if (offset % FLASH_BLOCK_SIZE == 0 && data_count > 0) {
+                    //flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
+                    spiflash_erase(offset);
+                }
+
+                //for (int k=0; k<data_cnt; k++) {
+                //    wdata[k] = LMS_Ctrl_Packet_Rx->Data_field[24+k];
+                //}
+
+                if (data_count > 0) {
+                    //if(MicoSPIFlash_PageProgram(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt, wdata)!= 0) cmd_errors++;
+                    if (!spiflash_page_program(offset, &data[24], (unsigned int) data_count)) cmd_errors++;
+                    for (int i = 0; i < data_count; i++) {
+                        printf("%02x\n", data[i]);
+                    }
+                }
+                if (cmd_errors == 0)
+                    return STATUS_COMPLETED_CMD;
+            }
+        }
+    } else if (target == 3) // TARGET = EEPROM
+    {
+        if (progmode == 0) // Write data to EEPROM #1
+        {
+            uint8_t retval = 0;
+            for (uint8_t i = 0; i < data_count; i++) {
+                // Write a byte at a time
+                retval |= litei2c_a16d8_write_register(&I2C0_REGS, EEPROM_I2C_ADDR, write_addr + i, data[i]);
+            }
+            // Return Completed if no errors
+            if (retval == 0)
+                return STATUS_COMPLETED_CMD;
+        }
+    }
+    return STATUS_ERROR_CMD;
 }
 
 /**
@@ -421,8 +482,7 @@ uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_c
 static uint8_t last_portion_valid = 0;
 static uint8_t last_portion = 0;
 
-uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data)
-{
+uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data) {
     uint16_t addr;
     uint16_t val;
     uint8_t MCU_retries;
@@ -540,3 +600,33 @@ uint8_t bsp_serial_read(uint8_t *data_field) {
 uint8_t bsp_serial_write(const uint8_t *data_field) {
     return STATUS_ERROR_CMD;
 }
+
+// TODO: this should probably be moved to drivers/periph or bsp
+/* SPIFlash ------------------------------------------------------------------*/
+#if defined(CSR_SPIFLASH_BASE) | defined(CSR_INTERNAL_FLASH_BASE)
+void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata) {
+#ifdef CSR_SPIFLASH_BASE
+    void *addr = (void *) SPIFLASH_BASE;
+#else
+    void *addr = (void *) INTERNAL_FLASH_BASE;
+#endif
+    uint32_t real_len = length;
+    int i, ii, data_offset;
+    uint32_t rx;
+    uint32_t offset = 0;
+    // Read access is 32b: must be aligned
+    uint32_t base_addr = (rel_addr >> 2) << 2;
+    if (base_addr != rel_addr) {
+        offset = rel_addr - base_addr;
+        real_len++;
+    }
+    for (i = 0, data_offset = 0; i < real_len; i += 4) {
+        rx = *(uint32_t *) (addr + base_addr + i);
+        int max = (data_offset + 4 > length) ? length - data_offset : 4;
+        for (ii = offset; ii < max; ii++) {
+            rdata[data_offset++] = (rx >> (ii * 8));
+        }
+        offset = 0;
+    }
+}
+#endif

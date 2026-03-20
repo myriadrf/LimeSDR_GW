@@ -39,6 +39,17 @@
     #error "LMS64C_METHOD is set to an unsupported value."
 #endif
 
+// Check one of the base addresses to make sure PLL's exist
+#ifdef CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED_ADDR
+#define PLL_ADDRS_DEFINED
+// If an error points here, most likely some of the macros are invalid.
+PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
+PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
+SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP);
+// clk_ctrl_addrs is declared in regremap.h
+CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
+#endif
+
 /********************** main.c function declarations **************************/
 // FTDI LMS64C Functions
 #if LMS64C_METHOD == LMS64C_METHOD_FTDI
@@ -51,7 +62,7 @@ static void lms64c_isr(void);
 static void lms64c_init(void);
 #endif
 // PLL Config functions
-#if PLL_ADDRS_DEFINED
+#ifdef PLL_ADDRS_DEFINED
 static void clk_cfg_irq_init(void);
 static void clk_ctrl_isr(void);
 #endif
@@ -69,17 +80,6 @@ int boot_img_en = 0;
 
 #ifdef CSR_PPSDO_BASE
 static uint16_t prev_dac_tuned = 0;
-#endif
-
-// Check one of the base addresses to make sure PLL's exist
-#ifdef CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED_ADDR
-#define PLL_ADDRS_DEFINED
-// If an error points here, most likely some of the macros are invalid.
-PLL_ADDRS pll1_rx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
-PLL_ADDRS pll0_tx_addrs = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
-SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP);
-// clk_ctrl_addrs is declared in regremap.h
-CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
 #endif
 
 volatile uint8_t lms64_packet_pending;
@@ -112,8 +112,11 @@ int main(void) {
 #endif
 #if LMS64C_METHOD == LMS64C_METHOD_CSR
     lms64c_init();
+#elif LMS64C_METHOD == LMS64C_METHOD_FTDI
+    uint32_t dest_byte_reordered = 0;
+    uint32_t* dest = (uint32_t*)glEp0Buffer_Tx;
 #endif
-#if PLL_ADDRS_DEFINED
+#ifdef PLL_ADDRS_DEFINED
     clk_cfg_irq_init();
 #endif
 
@@ -152,13 +155,15 @@ int main(void) {
 
         // Process received packet
         if (lms64_packet_pending) {
+            uint8_t reg_array[4];
+            uint16_t addr;
+            uint16_t val;
 #if LMS64C_METHOD == LMS64C_METHOD_FTDI
             limetop_gpo_write(1);
 
             //Read packet from the FIFO
             FTDI_getFifoData(glEp0Buffer_Rx, 64);
 #elif LMS64C_METHOD == LMS64C_METHOD_CSR
-            uint8_t reg_array[4];
             uint32_t read_value;
 
             /* Disable CNTRL irq while processing packet */
@@ -183,78 +188,20 @@ int main(void) {
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
                 case CMD_GET_INFO:
 
-                    // FW_VER LSB
-                    LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER_BSP;
+                    LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER_BSP;        // FW_VER LSB
                     LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
                     LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
                     LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
-                    // FW_VER MSB
-                    LMS_Ctrl_Packet_Tx->Data_field[9] = FW_VER_MAIN;
-
-                    // Read Serial number from FLASH OTP region
-                    //spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, sizeof(serial), serial);
-                    /*
-                    LMS_Ctrl_Packet_Tx->Data_field[10] = serial[7];
-                    LMS_Ctrl_Packet_Tx->Data_field[11] = serial[6];
-                    LMS_Ctrl_Packet_Tx->Data_field[12] = serial[5];
-                    LMS_Ctrl_Packet_Tx->Data_field[13] = serial[4];
-                    LMS_Ctrl_Packet_Tx->Data_field[14] = serial[3];
-                    LMS_Ctrl_Packet_Tx->Data_field[15] = serial[2];
-                    LMS_Ctrl_Packet_Tx->Data_field[16] = serial[1];
-                    LMS_Ctrl_Packet_Tx->Data_field[17] = serial[0];
-                    */
-
+                    LMS_Ctrl_Packet_Tx->Data_field[9] = FW_VER_MAIN;       // FW_VER MSB
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
                 case CMD_SERIAL_WR:
-                    /*
-                    // TODO: This should probably be in BSP
-
-                    copyArray(LMS_Ctrl_Packet_Rx->Data_field, tmp_serial, 24, 0, 32);
-
-                    // STORAGE_TYPE
-                    switch (LMS_Ctrl_Packet_Rx->Data_field[0]) {
-                        case 0: //Default
-                            // Fall-through
-                        case 1: //Volatile memory
-                            // Fall-through
-                        case 2: //Non-Volatile memory
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                            break;
-                        case 3: //Non-Volatile OTP memory
-                            if (serial_otp_unlock_key == OTP_UNLOCK_KEY) {
-                                //FlashQspi_EraseSector(&CFG_QSPI, OTP_SERIAL_ADDRESS); //temp for testing
-                                //spirez = FlashQspi_ProgramOTP(OTP_SERIAL_ADDRESS, LMS_Ctrl_Packet_Rx->Data_field[1], tmp_serial);
-                                serial_otp_unlock_key = 0;
-                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                            } else if (serial_otp_unlock_key != OTP_UNLOCK_KEY && LMS_Ctrl_Packet_Rx->Data_field[2] ==
-                                       OTP_UNLOCK_KEY) {
-                                serial_otp_unlock_key = LMS_Ctrl_Packet_Rx->Data_field[2];
-                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                            } else {
-                                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_RESOURCE_DENIED_CMD;
-                            }
-                            break;
-                        default:
-                            LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                            break;
-                    }
-                    */
                     LMS_Ctrl_Packet_Tx->Header.Status = bsp_serial_write(LMS_Ctrl_Packet_Rx->Data_field);
                     break;
 
                 case CMD_SERIAL_RD:
-                    /*
-                    // TODO: This should probably be in BSP
-
-                    //spirez = FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, 32, tmprd_serial);
-                    copyArray(tmprd_serial, LMS_Ctrl_Packet_Tx->Data_field, 0, 24, 32);
-                    LMS_Ctrl_Packet_Tx->Data_field[1] = 16;
-                    LMS_Ctrl_Packet_Tx->Data_field[2] = serial_otp_unlock_key;
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                    */
                     LMS_Ctrl_Packet_Tx->Header.Status = bsp_serial_read(LMS_Ctrl_Packet_Tx->Data_field);
                     break;
 
@@ -309,7 +256,7 @@ int main(void) {
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
-                // COMMAND LMS7 WRITE
+                    // COMMAND LMS7 WRITE
 
                 case CMD_LMS7002_WR:
                     // TODO: Either move to BSP or refactor
@@ -342,10 +289,10 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                         break;
                     }
-                // If val is neither 0 nor 1, fallthrough to default to indicate the function is not implemented.
-                // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
+                    // If val is neither 0 nor 1, fallthrough to default to indicate the function is not implemented.
+                    // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
 
-                // COMMAND LMS7 READ
+                    // COMMAND LMS7 READ
 
 
                 case CMD_LMS7002_RD:
@@ -382,10 +329,10 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                         break;
                     }
-                // If val is neither 0 nor 1, fallthrough to default to indicate the function is not implemented.
-                // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
+                    // If val is neither 0 nor 1, fallthrough to default to indicate the function is not implemented.
+                    // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
 
-                // COMMAND LMS7 WRITE
+                    // COMMAND LMS7 WRITE
 
                 case CMD_LMS8001_WR:
                     // TODO: Either move to BSP or refactor
@@ -418,10 +365,10 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                         break;
                     }
-                // If val is neither 0 nor 1, fallthrough to default to indicate the function is not implemented.
-                // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
+                    // If val is neither 0 nor 1, fallthrough to default to indicate the function is not implemented.
+                    // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
 
-                // COMMAND LMS7 READ
+                    // COMMAND LMS7 READ
 
 
                 case CMD_LMS8001_RD:
@@ -458,8 +405,8 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                         break;
                     }
-                // If val is neither 0 nor 1, fallthrough to default to indicate the function is not implemented.
-                // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
+                    // If val is neither 0 nor 1, fallthrough to default to indicate the function is not implemented.
+                    // Values other than 0 or 1 will be hardcoded, so this whole case should be optimized out by compiler
 
                 case CMD_GPIO_DIR_WR:
                     if (Check_many_blocks(1))
@@ -488,15 +435,12 @@ int main(void) {
                     break;
 
                 case CMD_GPIO_WR:
-                    //printf("[CMD]: CMD_GPIO_WR\n");
                     if (Check_many_blocks(1)) {
-                        //printf("[DATA_BLOCK]: %x ", LMS_Ctrl_Packet_Rx->Header.Data_blocks);
                         break;
                     }
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
                         cmd_errors += bsp_gpio_write(LMS_Ctrl_Packet_Rx->Data_field[block], block);
-                        //printf("[%x]: %x\n ", block, LMS_Ctrl_Packet_Rx->Data_field[block]);
                     }
                     if (cmd_errors)
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
@@ -504,7 +448,6 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
-                //printf("[CMD]: %x ", cmd_errors);
 
                 case CMD_GPIO_RD:
                     if (Check_many_blocks(1))
@@ -577,18 +520,6 @@ int main(void) {
                 case CMD_PERIPHSPI_TRNSF:
 
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                        /*
-                        printf("[d] Block: 0x%x\n", block);
-
-                        printf("[RX]: %x ", LMS_Ctrl_Packet_Rx->Data_field[8 + (block * 8)]);
-                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[9 + (block * 8)]);
-                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[10 + (block * 8)]);
-                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[11 + (block * 8)]);
-                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[12 + (block * 8)]);
-                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[13 + (block * 8)]);
-                        printf("%x ", LMS_Ctrl_Packet_Rx->Data_field[14 + (block * 8)]);
-                        printf("%x\n", LMS_Ctrl_Packet_Rx->Data_field[15 + (block * 8)]);
-                        */
                         cmd_errors += bsp_spi_transfer(
                             LMS_Ctrl_Packet_Rx->Header.Periph_ID,
                             LMS_Ctrl_Packet_Rx->Data_field[0],
@@ -597,20 +528,7 @@ int main(void) {
                             2,
                             &LMS_Ctrl_Packet_Tx->Data_field[8 + (block * 8)]
                         );
-                        /*
-                    	printf("[TX]: %x ", LMS_Ctrl_Packet_Tx->Data_field[8 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[9 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[10 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[11 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[12 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[13 + (block * 8)]);
-                    	printf("%x ", LMS_Ctrl_Packet_Tx->Data_field[14 + (block * 8)]);
-                    	printf("%x\n", LMS_Ctrl_Packet_Tx->Data_field[15 + (block * 8)]);
-                        */
                     }
-
-                    //printf("Err=%x\n", cmd_errors);
-
 
                     if (cmd_errors)
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
@@ -619,7 +537,7 @@ int main(void) {
                     break;
 
                 case CMD_ADF4002_WR:
-                    {
+                {
                     uint8_t retval = 0;
                     if (Check_many_blocks(3)) break;
 
@@ -632,10 +550,10 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     else
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                    }
+                }
                     break;
 
-                // COMMAND ANALOG VALUE READ
+                    // COMMAND ANALOG VALUE READ
                 case CMD_ANALOG_VAL_RD:
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
                         cmd_errors += bsp_analog_read(
@@ -652,7 +570,7 @@ int main(void) {
                         LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                     break;
 
-                // COMMAND ANALOG VALUE WRITE
+                    // COMMAND ANALOG VALUE WRITE
                 case CMD_ANALOG_VAL_WR:
                     if (Check_many_blocks(4))
                         break;
@@ -679,7 +597,6 @@ int main(void) {
                         &LMS_Ctrl_Packet_Rx->Data_field[2]  /* 32 bytes of data */
                     );
                     break;
-
 
                 case CMD_MEMORY_WR: {
                     uint8_t *rx_ptr = &LMS_Ctrl_Packet_Rx->Data_field[0];
@@ -736,10 +653,10 @@ int main(void) {
                                 offset & ((CONFIG_CSR_ALIGNMENT / 8) - 1)) == 0) {
                             // Perform CSR Write
                             csr_write_simple(value, offset);
-                        } else {
-                            cmd_errors++;
-                            break;
-                        }
+                                } else {
+                                    cmd_errors++;
+                                    break;
+                                }
                     }
 
                     if (cmd_errors)
@@ -773,10 +690,10 @@ int main(void) {
                                 offset & ((CONFIG_CSR_ALIGNMENT / 8) - 1)) == 0) {
                             // Perform CSR Read
                             value = csr_read_simple(offset);
-                        } else {
-                            cmd_errors++;
-                            break;
-                        }
+                                } else {
+                                    cmd_errors++;
+                                    break;
+                                }
 
 
                         // Response Offset (Echoing the Offset back, and fill MSB with zeros since CSR are 4bytes wide)
@@ -815,27 +732,34 @@ int main(void) {
                     break;
             }
 
+#if LMS64C_METHOD == LMS64C_METHOD_CSR
             // Send response to the command
             // for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
             for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i) {
                 csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
             }
 
-
-            // printf("TX: ");
-            // for (int i = 0; i < 64; i++) {
-            //     printf("%02x ", dest[i]);
-            // }
-            // printf("\n");
-
             /* Clear all pending interrupts. */
             CNTRL_ev_pending_write(CNTRL_ev_pending_read());
             /* Reenable CNTRL irq */
             CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
             irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
+
+#elif LMS64C_METHOD == LMS64C_METHOD_FTDI
+            for (int i = 0; i < (64 / sizeof(uint32_t)); ++i) {
+                //dest_byte_reordered = ((dest[cnt] & 0x000000FF) <<24) | ((dest[cnt] & 0x0000FF00) <<8) | ((dest[cnt] & 0x00FF0000) >>8) | ((dest[cnt] & 0xFF000000) >>24);
+                dest_byte_reordered = dest[i];
+                ft601_fifo_wdata_write(dest_byte_reordered);
+                //printf("%ld\n", ft601_fifo_status_read());
+            }
+            //gpo_val = 0x0;
+            //*gpo_reg = gpo_val;
+            limetop_gpo_write(0);
+#endif
         }
 
-#ifdef WITH_LMS7002
+
+#ifdef PLL_ADDRS_DEFINED
         if (clk_cfg_pending) {
             irq_mask = irq_getmask(); // save irq mask
             irq_setmask(0); // disable all interrupts until clock cfg is completed

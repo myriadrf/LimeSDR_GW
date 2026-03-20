@@ -6,7 +6,7 @@
 #endif
 
 // BSP includes the associated regremap
-// #include "regremap.h"
+#include "regremap.h"
 
 // Required includes
 #include <stdbool.h>
@@ -30,6 +30,16 @@
 // #define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
 #define FW_VER_BSP 11 // New main.c/bsp structure
 #define SPI_CS_LMS (1 << 0)
+#define HW_VER				0
+#define EXP_BOARD			EXP_BOARD_UNSUPPORTED
+#define DEV_TYPE			LMS_DEV_MINI_V2
+#define SPI_CS_DAC (1 << 1)
+#define EEPROM_I2C_ADDR		0x50 //0xA2
+#define FLASH_USRSEC_START_ADDR	0x00400000  // Start address for user space in FLASH memory
+//FLash memory (W25Q128JV , 128M-bit))
+#define FLASH_PAGE_SIZE 	0x100 	//256 bytes, SPI Page size to be used for transfers
+#define FLASH_SECTOR_SIZE 	0x1000 	//4KB
+#define FLASH_BLOCK_SIZE	0x10000 //64KB
 
 #define BSP_DAC_INDEX    0
 
@@ -138,5 +148,7 @@ uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 //Misc/device specific functions
 
 uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data);
+
+void spiFlash_read(uint32_t rel_addr, uint32_t length, uint8_t *rdata);
 
 #endif

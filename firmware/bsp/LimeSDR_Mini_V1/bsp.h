@@ -6,7 +6,7 @@
 #endif
 
 // BSP includes the associated regremap
-// #include "regremap.h"
+#include "regremap.h"
 
 // Required includes
 #include <stdbool.h>

@@ -203,7 +203,7 @@ void bsp_vctcxo_permanent_dac_read(uint8_t *data) {
 }
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data) {
-    litei2c_a16d16_write_register(&I2C0_REGS, EEPROM_I2C_ADDR, DAC_VAL_ADDR, (uint16_t)*data);
+    litei2c_a16d16_write_register(&I2C0_REGS, EEPROM_I2C_ADDR, DAC_VAL_ADDR, (uint16_t*)*data);
 }
 
 uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count) {
