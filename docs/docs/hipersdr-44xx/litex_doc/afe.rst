@@ -4,59 +4,61 @@ AFE
 Register Listing for AFE
 ------------------------
 
-+----------------------------------------------------------------+------------------------------------------------+
-| Register                                                       | Address                                        |
-+================================================================+================================================+
-| :ref:`AFE_REG00 <AFE_REG00>`                                   | :ref:`0xf000d800 <AFE_REG00>`                  |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_CORE_CTRL <AFE_CORE_CTRL>`                           | :ref:`0xf000d804 <AFE_CORE_CTRL>`              |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_CTRL <AFE_RX_CTRL>`                               | :ref:`0xf000d808 <AFE_RX_CTRL>`                |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_CFG0 <AFE_RX_CFG0>`                               | :ref:`0xf000d80c <AFE_RX_CFG0>`                |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_CFG1 <AFE_RX_CFG1>`                               | :ref:`0xf000d810 <AFE_RX_CFG1>`                |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_CFG2 <AFE_RX_CFG2>`                               | :ref:`0xf000d814 <AFE_RX_CFG2>`                |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_CFG3 <AFE_RX_CFG3>`                               | :ref:`0xf000d818 <AFE_RX_CFG3>`                |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_STATUS0 <AFE_RX_STATUS0>`                         | :ref:`0xf000d81c <AFE_RX_STATUS0>`             |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_TX_CTRL <AFE_TX_CTRL>`                               | :ref:`0xf000d820 <AFE_TX_CTRL>`                |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_TX_CFG0 <AFE_TX_CFG0>`                               | :ref:`0xf000d824 <AFE_TX_CFG0>`                |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_TX_CFG1 <AFE_TX_CFG1>`                               | :ref:`0xf000d828 <AFE_TX_CFG1>`                |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_TX_CFG3 <AFE_TX_CFG3>`                               | :ref:`0xf000d82c <AFE_TX_CFG3>`                |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_TX_STATUS0 <AFE_TX_STATUS0>`                         | :ref:`0xf000d830 <AFE_TX_STATUS0>`             |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_CH_EN <AFE_CH_EN>`                                   | :ref:`0xf000d834 <AFE_CH_EN>`                  |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_SMPL_WIDTH <AFE_SMPL_WIDTH>`                         | :ref:`0xf000d838 <AFE_SMPL_WIDTH>`             |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_PKT_SIZE <AFE_PKT_SIZE>`                             | :ref:`0xf000d83c <AFE_PKT_SIZE>`               |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_A_RESAMPLER_OUT_MUX <AFE_RX_A_RESAMPLER_OUT_MUX>` | :ref:`0xf000d840 <AFE_RX_A_RESAMPLER_OUT_MUX>` |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_B_RESAMPLER_OUT_MUX <AFE_RX_B_RESAMPLER_OUT_MUX>` | :ref:`0xf000d844 <AFE_RX_B_RESAMPLER_OUT_MUX>` |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_C_RESAMPLER_OUT_MUX <AFE_RX_C_RESAMPLER_OUT_MUX>` | :ref:`0xf000d848 <AFE_RX_C_RESAMPLER_OUT_MUX>` |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RX_D_RESAMPLER_OUT_MUX <AFE_RX_D_RESAMPLER_OUT_MUX>` | :ref:`0xf000d84c <AFE_RX_D_RESAMPLER_OUT_MUX>` |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_TX_A_RESAMPLER_OUT_MUX <AFE_TX_A_RESAMPLER_OUT_MUX>` | :ref:`0xf000d850 <AFE_TX_A_RESAMPLER_OUT_MUX>` |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_TX_B_RESAMPLER_OUT_MUX <AFE_TX_B_RESAMPLER_OUT_MUX>` | :ref:`0xf000d854 <AFE_TX_B_RESAMPLER_OUT_MUX>` |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_TX_C_RESAMPLER_OUT_MUX <AFE_TX_C_RESAMPLER_OUT_MUX>` | :ref:`0xf000d858 <AFE_TX_C_RESAMPLER_OUT_MUX>` |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_TX_D_RESAMPLER_OUT_MUX <AFE_TX_D_RESAMPLER_OUT_MUX>` | :ref:`0xf000d85c <AFE_TX_D_RESAMPLER_OUT_MUX>` |
-+----------------------------------------------------------------+------------------------------------------------+
-| :ref:`AFE_RESAMPLER_MAX_VALUE <AFE_RESAMPLER_MAX_VALUE>`       | :ref:`0xf000d860 <AFE_RESAMPLER_MAX_VALUE>`    |
-+----------------------------------------------------------------+------------------------------------------------+
++------------------------------------------------------------------+-------------------------------------------------+
+| Register                                                         | Address                                         |
++==================================================================+=================================================+
+| :ref:`AFE_REG00 <AFE_REG00>`                                     | :ref:`0xf000d800 <AFE_REG00>`                   |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_CORE_CTRL <AFE_CORE_CTRL>`                             | :ref:`0xf000d804 <AFE_CORE_CTRL>`               |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_RX_CTRL <AFE_RX_CTRL>`                                 | :ref:`0xf000d808 <AFE_RX_CTRL>`                 |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_RX_CFG0 <AFE_RX_CFG0>`                                 | :ref:`0xf000d80c <AFE_RX_CFG0>`                 |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_RX_CFG1 <AFE_RX_CFG1>`                                 | :ref:`0xf000d810 <AFE_RX_CFG1>`                 |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_RX_CFG2 <AFE_RX_CFG2>`                                 | :ref:`0xf000d814 <AFE_RX_CFG2>`                 |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_RX_CFG3 <AFE_RX_CFG3>`                                 | :ref:`0xf000d818 <AFE_RX_CFG3>`                 |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_RX_STATUS0 <AFE_RX_STATUS0>`                           | :ref:`0xf000d81c <AFE_RX_STATUS0>`              |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_TX_CTRL <AFE_TX_CTRL>`                                 | :ref:`0xf000d820 <AFE_TX_CTRL>`                 |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_TX_CFG0 <AFE_TX_CFG0>`                                 | :ref:`0xf000d824 <AFE_TX_CFG0>`                 |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_TX_CFG1 <AFE_TX_CFG1>`                                 | :ref:`0xf000d828 <AFE_TX_CFG1>`                 |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_TX_CFG3 <AFE_TX_CFG3>`                                 | :ref:`0xf000d82c <AFE_TX_CFG3>`                 |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_TX_STATUS0 <AFE_TX_STATUS0>`                           | :ref:`0xf000d830 <AFE_TX_STATUS0>`              |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_CH_EN <AFE_CH_EN>`                                     | :ref:`0xf000d834 <AFE_CH_EN>`                   |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_SMPL_WIDTH <AFE_SMPL_WIDTH>`                           | :ref:`0xf000d838 <AFE_SMPL_WIDTH>`              |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_PKT_SIZE <AFE_PKT_SIZE>`                               | :ref:`0xf000d83c <AFE_PKT_SIZE>`                |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_CORE_STATUS0 <AFE_CORE_STATUS0>`                       | :ref:`0xf000d840 <AFE_CORE_STATUS0>`            |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_DECIMATE_STAGE_COUNT <AFE_DECIMATE_STAGE_COUNT>`       | :ref:`0xf000d844 <AFE_DECIMATE_STAGE_COUNT>`    |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_DECIMATE_BLANK0 <AFE_DECIMATE_BLANK0>`                 | :ref:`0xf000d848 <AFE_DECIMATE_BLANK0>`         |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_DECIMATE_BLANK1 <AFE_DECIMATE_BLANK1>`                 | :ref:`0xf000d84c <AFE_DECIMATE_BLANK1>`         |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_DECIMATE_BLANK2 <AFE_DECIMATE_BLANK2>`                 | :ref:`0xf000d850 <AFE_DECIMATE_BLANK2>`         |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_INTERPOLATE_STAGE_COUNT <AFE_INTERPOLATE_STAGE_COUNT>` | :ref:`0xf000d854 <AFE_INTERPOLATE_STAGE_COUNT>` |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_INTERPOLATE_BLANK0 <AFE_INTERPOLATE_BLANK0>`           | :ref:`0xf000d858 <AFE_INTERPOLATE_BLANK0>`      |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_INTERPOLATE_BLANK1 <AFE_INTERPOLATE_BLANK1>`           | :ref:`0xf000d85c <AFE_INTERPOLATE_BLANK1>`      |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_INTERPOLATE_BLANK2 <AFE_INTERPOLATE_BLANK2>`           | :ref:`0xf000d860 <AFE_INTERPOLATE_BLANK2>`      |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_RESAMPLER_MAX_VALUE <AFE_RESAMPLER_MAX_VALUE>`         | :ref:`0xf000d864 <AFE_RESAMPLER_MAX_VALUE>`     |
++------------------------------------------------------------------+-------------------------------------------------+
 
 AFE_REG00
 ^^^^^^^^^
@@ -412,146 +414,170 @@ AFE_PKT_SIZE
         }
 
 
-AFE_RX_A_RESAMPLER_OUT_MUX
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+AFE_CORE_STATUS0
+^^^^^^^^^^^^^^^^
 
 `Address: 0xf000d800 + 0x40 = 0xf000d840`
 
-    Select which resampling stage should be used as output
 
     .. wavedrom::
-        :caption: AFE_RX_A_RESAMPLER_OUT_MUX
+        :caption: AFE_CORE_STATUS0
 
         {
             "reg": [
-                {"name": "rx_a_resampler_out_mux[3:0]", "bits": 4},
-                {"bits": 28},
+                {"name": "xcvr_plls_locked",  "bits": 1},
+                {"name": "rx_all_lanes_locked",  "bits": 1},
+                {"bits": 30}
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
-AFE_RX_B_RESAMPLER_OUT_MUX
-^^^^^^^^^^^^^^^^^^^^^^^^^^
++-------+---------------------+-------------+
+| Field | Name                | Description |
++=======+=====================+=============+
++-------+---------------------+-------------+
++-------+---------------------+-------------+
+
+AFE_DECIMATE_STAGE_COUNT
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Address: 0xf000d800 + 0x44 = 0xf000d844`
 
-    Select which resampling stage should be used as output
+    Number of active decimator stages (0..4).
 
     .. wavedrom::
-        :caption: AFE_RX_B_RESAMPLER_OUT_MUX
+        :caption: AFE_DECIMATE_STAGE_COUNT
 
         {
             "reg": [
-                {"name": "rx_b_resampler_out_mux[3:0]", "bits": 4},
-                {"bits": 28},
+                {"name": "decimate_stage_count[2:0]", "bits": 3},
+                {"bits": 29},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
-AFE_RX_C_RESAMPLER_OUT_MUX
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+AFE_DECIMATE_BLANK0
+^^^^^^^^^^^^^^^^^^^
 
 `Address: 0xf000d800 + 0x48 = 0xf000d848`
 
-    Select which resampling stage should be used as output
+    Blank
 
     .. wavedrom::
-        :caption: AFE_RX_C_RESAMPLER_OUT_MUX
+        :caption: AFE_DECIMATE_BLANK0
 
         {
             "reg": [
-                {"name": "rx_c_resampler_out_mux[3:0]", "bits": 4},
-                {"bits": 28},
+                {"name": "decimate_blank0", "bits": 1},
+                {"bits": 31},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
-AFE_RX_D_RESAMPLER_OUT_MUX
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+AFE_DECIMATE_BLANK1
+^^^^^^^^^^^^^^^^^^^
 
 `Address: 0xf000d800 + 0x4c = 0xf000d84c`
 
-    Select which resampling stage should be used as output
+    Blank
 
     .. wavedrom::
-        :caption: AFE_RX_D_RESAMPLER_OUT_MUX
+        :caption: AFE_DECIMATE_BLANK1
 
         {
             "reg": [
-                {"name": "rx_d_resampler_out_mux[3:0]", "bits": 4},
-                {"bits": 28},
+                {"name": "decimate_blank1", "bits": 1},
+                {"bits": 31},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
-AFE_TX_A_RESAMPLER_OUT_MUX
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+AFE_DECIMATE_BLANK2
+^^^^^^^^^^^^^^^^^^^
 
 `Address: 0xf000d800 + 0x50 = 0xf000d850`
 
-    Select which resampling stage should be used as output
+    Blank
 
     .. wavedrom::
-        :caption: AFE_TX_A_RESAMPLER_OUT_MUX
+        :caption: AFE_DECIMATE_BLANK2
 
         {
             "reg": [
-                {"name": "tx_a_resampler_out_mux[3:0]", "bits": 4},
-                {"bits": 28},
+                {"name": "decimate_blank2", "bits": 1},
+                {"bits": 31},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
-AFE_TX_B_RESAMPLER_OUT_MUX
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+AFE_INTERPOLATE_STAGE_COUNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Address: 0xf000d800 + 0x54 = 0xf000d854`
 
-    Select which resampling stage should be used as output
+    Number of active interpolator stages (0..4).
 
     .. wavedrom::
-        :caption: AFE_TX_B_RESAMPLER_OUT_MUX
+        :caption: AFE_INTERPOLATE_STAGE_COUNT
 
         {
             "reg": [
-                {"name": "tx_b_resampler_out_mux[3:0]", "bits": 4},
-                {"bits": 28},
+                {"name": "interpolate_stage_count[2:0]", "bits": 3},
+                {"bits": 29},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
-AFE_TX_C_RESAMPLER_OUT_MUX
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+AFE_INTERPOLATE_BLANK0
+^^^^^^^^^^^^^^^^^^^^^^
 
 `Address: 0xf000d800 + 0x58 = 0xf000d858`
 
-    Select which resampling stage should be used as output
+    Blank
 
     .. wavedrom::
-        :caption: AFE_TX_C_RESAMPLER_OUT_MUX
+        :caption: AFE_INTERPOLATE_BLANK0
 
         {
             "reg": [
-                {"name": "tx_c_resampler_out_mux[3:0]", "bits": 4},
-                {"bits": 28},
+                {"name": "interpolate_blank0", "bits": 1},
+                {"bits": 31},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
-AFE_TX_D_RESAMPLER_OUT_MUX
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+AFE_INTERPOLATE_BLANK1
+^^^^^^^^^^^^^^^^^^^^^^
 
 `Address: 0xf000d800 + 0x5c = 0xf000d85c`
 
-    Select which resampling stage should be used as output
+    Blank
 
     .. wavedrom::
-        :caption: AFE_TX_D_RESAMPLER_OUT_MUX
+        :caption: AFE_INTERPOLATE_BLANK1
 
         {
             "reg": [
-                {"name": "tx_d_resampler_out_mux[3:0]", "bits": 4},
-                {"bits": 28},
+                {"name": "interpolate_blank1", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+AFE_INTERPOLATE_BLANK2
+^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf000d800 + 0x60 = 0xf000d860`
+
+    Blank
+
+    .. wavedrom::
+        :caption: AFE_INTERPOLATE_BLANK2
+
+        {
+            "reg": [
+                {"name": "interpolate_blank2", "bits": 1},
+                {"bits": 31},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
@@ -559,7 +585,7 @@ AFE_TX_D_RESAMPLER_OUT_MUX
 AFE_RESAMPLER_MAX_VALUE
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000d800 + 0x60 = 0xf000d860`
+`Address: 0xf000d800 + 0x64 = 0xf000d864`
 
     Maximum divider value for resampling
 

@@ -36,7 +36,7 @@ The source code for the CPU can be found at:
 AFE79xx
 ^^^^^^^
 
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`afe79xx <docs/afe79xx/readme:afe79xx>` description. It interfaces with TI JESD IP to exchange sample data with the AFE7901 chip. It also performs resampling, clock
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`afe79xx <docs/afe79xx/readme:afe79xx>` description. It interfaces with TI JESD IP to exchange sample data with the AFE7901 chip. It also performs resampling, clock
 domain crossing and aligns the data for proper integration with other LimeDFB modules.
 
 
@@ -57,13 +57,13 @@ The **LimeTop Module** serves as a wrapper for the RF transceiver control and da
 
 RX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`rx_path_top_litex <docs/rx_path_top_litex/readme:rx_path_top (LiteX)>` description. It handles the receive path from the RF Transceiver to the FPGA and host, including IQ sample packetization and timestamp generation.
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`rx_path_top_litex <docs/rx_path_top_litex/readme:rx_path_top (LiteX)>` description. It handles the receive path from the RF Transceiver to the FPGA and host, including IQ sample packetization and timestamp generation.
 
 .. _tx_path_top_module:
 
 TX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`tx_path_top <docs/tx_path_top/readme:tx_path_top>` description. This module manages the transmit path from the host through the FPGA to the RF Transceiver, including unpacking of IQ samples and stream synchronization.
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`tx_path_top_litex <docs/tx_path_top_litex/readme:tx_path_top (LiteX)>` description. This module manages the transmit path from the host through the FPGA to the RF Transceiver, including unpacking of IQ samples and stream synchronization.
 
 .. _pcie_phy_module:
 
