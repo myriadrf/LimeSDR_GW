@@ -30,6 +30,7 @@ Register Groups
     identifier_mem
     leds
     lime_top
+    PCIE_UART0
     flash
     i2c0
     i2c1
@@ -43,6 +44,7 @@ Register Groups
     afe
     spimaster_adf
     timer0
+    ppsdo
 
 Indices and tables
 ==================

@@ -973,6 +973,7 @@ def main():
             cpu_firmware          = None if prepare else "firmware/firmware.bin",
             with_jtagbone         = not args.with_bscan,
             with_bscan            = args.with_bscan,
+            with_ppsdo            = not args.no_ppsdo,
             with_fft              = args.with_fft,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,
