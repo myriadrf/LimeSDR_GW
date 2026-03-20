@@ -2,46 +2,45 @@
 #define Mini_V2_BSP
 
 #ifdef Template_BSP
-#error "Header guard 'Template_BSP' must be renamed to a project-specific identifier."
+#    error "Header guard 'Template_BSP' must be renamed to a project-specific identifier."
 #endif
 
 // BSP includes the associated regremap
 #include "regremap.h"
 
 // Required includes
+#include "LMS.h"
+#include "LMS64C_protocol.h"
+#include "lime_litex_helpers.h"
+#include "litei2c.h"
+#include "spiflash.h"
+#include <generated/csr.h>
+#include <generated/mem.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <generated/csr.h>
-#include "litei2c.h"
-#include <stdio.h>  // For debug/logging (optional)
-#include "LMS.h"
-#include "lime_litex_helpers.h"
-#include "LMS64C_protocol.h"
-#include <generated/mem.h>
-#include "spiflash.h"
-#include "LMS64C_protocol.h"
+#include <stdio.h> // For debug/logging (optional)
 
 #include "DACx311.h"
 #include "LM75.h"
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
-#define DAC_DEFF_VAL			566			// Default TCXO DAC value loaded when EEPROM is empty
+#define DAC_DEFF_VAL 566 // Default TCXO DAC value loaded when EEPROM is empty
 // #define FW_VER			   10 // Fix for LM75 temperature reading with 0.5 precision
-#define FW_VER_BSP 11 // New main.c/bsp structure
-#define SPI_CS_LMS (1 << 0)
-#define HW_VER				0
-#define EXP_BOARD			EXP_BOARD_UNSUPPORTED
-#define DEV_TYPE			LMS_DEV_MINI_V2
-#define SPI_CS_DAC (1 << 1)
-#define EEPROM_I2C_ADDR		0x50 //0xA2
-#define FLASH_USRSEC_START_ADDR	0x00400000  // Start address for user space in FLASH memory
-//FLash memory (W25Q128JV , 128M-bit))
-#define FLASH_PAGE_SIZE 	0x100 	//256 bytes, SPI Page size to be used for transfers
-#define FLASH_SECTOR_SIZE 	0x1000 	//4KB
-#define FLASH_BLOCK_SIZE	0x10000 //64KB
+#define FW_VER_BSP              11 // New main.c/bsp structure
+#define SPI_CS_LMS              (1 << 0)
+#define HW_VER                  0
+#define EXP_BOARD               EXP_BOARD_UNSUPPORTED
+#define DEV_TYPE                LMS_DEV_MINI_V2
+#define SPI_CS_DAC              (1 << 1)
+#define EEPROM_I2C_ADDR         0x50       // 0xA2
+#define FLASH_USRSEC_START_ADDR 0x00400000 // Start address for user space in FLASH memory
+// FLash memory (W25Q128JV , 128M-bit))
+#define FLASH_PAGE_SIZE   0x100   // 256 bytes, SPI Page size to be used for transfers
+#define FLASH_SECTOR_SIZE 0x1000  // 4KB
+#define FLASH_BLOCK_SIZE  0x10000 // 64KB
 
-#define BSP_DAC_INDEX    0
+#define BSP_DAC_INDEX 0
 
 /* MCU SPI register offsets */
 #define MCU_CONTROL_REG 0x02
@@ -57,10 +56,10 @@
 
 // Define device indexes, addresses and similar here
 #define CFM0StartAddress 0x000000
-#define CFM0EndAddress 0x13FFFF
-#define FLASH_BLOCK_SIZE	0x10000 //64KB
+#define CFM0EndAddress   0x13FFFF
+#define FLASH_BLOCK_SIZE 0x10000 // 64KB
 
-#define MAX_ID_LMS7                1
+#define MAX_ID_LMS7 1
 
 // Initialize board-specific hardware
 void bsp_init(void);
@@ -117,9 +116,11 @@ void bsp_vctcxo_permanent_dac_read(uint8_t *data);
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data);
 
-uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
+uint8_t
+bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
 
-uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
+uint8_t
+bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
 
 uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
@@ -133,19 +134,19 @@ uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data
 
 uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
-//General SPI bus functions
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
-                         uint8_t *misodata);
+// General SPI bus functions
+uint8_t bsp_spi_transfer(
+    uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata);
 
 // Serial number functions
 uint8_t bsp_serial_read(uint8_t *data_field);
 
 uint8_t bsp_serial_write(const uint8_t *data_field);
 
-//ADF functions
+// ADF functions
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 
-//Misc/device specific functions
+// Misc/device specific functions
 
 uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data);
 

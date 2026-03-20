@@ -2,62 +2,62 @@
 #define SSDR_BSP
 
 #ifdef Template_BSP
-#error "Header guard 'Template_BSP' must be renamed to a project-specific identifier."
+#    error "Header guard 'Template_BSP' must be renamed to a project-specific identifier."
 #endif
 
 // BSP includes the associated regremap
 #include "regremap.h"
 
 // Required includes
+#include "LMS.h"
+#include "LMS64C_protocol.h"
+#include "lime_litex_helpers.h"
+#include "litei2c.h"
+#include <generated/csr.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <generated/csr.h>
-#include "litei2c.h"
-#include <stdio.h>  // For debug/logging (optional)
-#include "LMS.h"
-#include "lime_litex_helpers.h"
-#include "LMS64C_protocol.h"
+#include <stdio.h> // For debug/logging (optional)
 
 #include "LP8758.h"
-#include "Xil_clk_drp.h"
 #include "TMP114.h"
+#include "Xil_clk_drp.h"
 #include "fpga_flash_qspi.h"
 #include <string.h>
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
-#define I2C_DAC_ADDR     0x4C
-#define I2C_TERMO_ADDR   0x4E // TMP114NB
-#define I2C_LP8758_ADDR  0x60
-//#define FW_VER 1 // Initial version
-//#define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
-//#define FW_VER 3 // Added serial number into GET_INFO cmd
-// #define FW_VER 5 // Firmware for Litex project
+#define I2C_DAC_ADDR    0x4C
+#define I2C_TERMO_ADDR  0x4E // TMP114NB
+#define I2C_LP8758_ADDR 0x60
+// #define FW_VER 1 // Initial version
+// #define FW_VER 2 // Fix for PLL config. hang when changing from low to high frequency.
+// #define FW_VER 3 // Added serial number into GET_INFO cmd
+//  #define FW_VER 5 // Firmware for Litex project
 #define FW_VER_BSP 11 // New main.c/bsp structure
 
 // Since there is no eeprom on the board and the flash is too large for the gw
 // we use the top of the flash instead of eeprom, thus the offset to last sector
 #define mem_write_offset 0x01FF0000
 
-#define BSP_DAC_INDEX    0
+#define BSP_DAC_INDEX 0
 
-//I2C devices
+// I2C devices
 
-#define   LM75_I2C_ADDR		0x48
-#define   I2C_ADDR_EEPROM   0x50
+#define LM75_I2C_ADDR   0x48
+#define I2C_ADDR_EEPROM 0x50
 
-//GET INFO
-#define DEV_TYPE			LMS_DEV_SSDR
-#define HW_VER				2
-#define EXP_BOARD			EXP_BOARD_UNSUPPORTED
+// GET INFO
+#define DEV_TYPE  LMS_DEV_SSDR
+#define HW_VER    2
+#define EXP_BOARD EXP_BOARD_UNSUPPORTED
 
-#define MAX_ID_LMS7		1
+#define MAX_ID_LMS7 1
 
-#define OTP_UNLOCK_KEY		0x5A
-#define OTP_SERIAL_ADDRESS  0x0000010
-#define OTP_SERIAL_LENGTH   0x10
+#define OTP_UNLOCK_KEY     0x5A
+#define OTP_SERIAL_ADDRESS 0x0000010
+#define OTP_SERIAL_LENGTH  0x10
 
-#define DAC_DEFF_VAL			46870			// Default TCXO DAC value loaded when EEPROM is empty
+#define DAC_DEFF_VAL 46870 // Default TCXO DAC value loaded when EEPROM is empty
 
 // Initialize board-specific hardware
 void bsp_init(void);
@@ -114,9 +114,11 @@ void bsp_vctcxo_permanent_dac_read(uint8_t *data);
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data);
 
-uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
+uint8_t
+bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
 
-uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
+uint8_t
+bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
 
 uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
@@ -129,23 +131,23 @@ uint8_t bsp_program_mode2_boot_from_flash(void);
 uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
 uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
+
 uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data);
 
 uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
-//General SPI bus functions
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
-                         uint8_t *misodata);
+// General SPI bus functions
+uint8_t bsp_spi_transfer(
+    uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata);
 
 // Serial number functions
 uint8_t bsp_serial_read(uint8_t *data_field);
 
 uint8_t bsp_serial_write(const uint8_t *data_field);
 
-//ADF functions
+// ADF functions
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 
-//Misc/device specific functions
-
+// Misc/device specific functions
 
 #endif

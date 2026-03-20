@@ -4,89 +4,86 @@
 // BSP includes the associated regremap
 #include "hiper_regremap.h"
 // Required includes
-#include <generated/csr.h>
-#include <stdio.h>  // For debug/logging (optional)
-#include "lime_litex_helpers.h"
 #include "LMS64C_protocol.h"
+#include "lime_litex_helpers.h"
+#include <generated/csr.h>
+#include <stdio.h> // For debug/logging (optional)
 
-#include "litei2c.h"
-#include "TMP114.h"
-#include "TCA6424.h"
-#include "LMK05318B.h"
-#include "LP8754.h"
-#include "LP8758.h"
-#include "LMS.h"
+#include "ADF4002.h"
 #include "AFE7901.h"
 #include "DAC8050.h"
-#include "ADF4002.h"
+#include "LMK05318B.h"
+#include "LMS.h"
+#include "LP8754.h"
+#include "LP8758.h"
+#include "TCA6424.h"
+#include "TMP114.h"
 #include "fpga_flash_qspi.h"
+#include "litei2c.h"
 #include <string.h>
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
-#define I2C_LMK05318B_ADDR	0x65
-#define I2C_LP8754_ADDR		0x60
-#define I2C_LP8758_ADDR		0x60
+#define I2C_LMK05318B_ADDR 0x65
+#define I2C_LP8754_ADDR    0x60
+#define I2C_LP8758_ADDR    0x60
 
 #define MAX_ID_LMS7 0
 #define MAX_ID_LMS8 5
 
+#define PWR_EN_2P05_BIT       (1U << CSR_PWR_CONTROL_REG00_PWR_EN_2P05_OFFSET)
+#define PWR_EN_LMK_BIT        (1U << CSR_PWR_CONTROL_REG00_PWR_EN_LMK_OFFSET)
+#define PAFE_EN_D1P0_BIT      (1U << CSR_PWR_CONTROL_REG00_PAFE_EN_D1P0_OFFSET)
+#define PAFE_EN_A1P2_BIT      (1U << CSR_PWR_CONTROL_REG00_PAFE_EN_A1P2_OFFSET)
+#define PAFE_EN_A1P8_BIT      (1U << CSR_PWR_CONTROL_REG00_PAFE_EN_A1P8_OFFSET)
+#define PAFE_EN_A1P8_1_BIT    (1U << CSR_PWR_CONTROL_REG00_PAFE_EN_A1P8_1_OFFSET)
+#define AFE_DCDC_1P0_NRST_BIT (1U << CSR_PWR_CONTROL_REG00_AFE_DCDC_1P0_NRST_OFFSET)
 
-#define PWR_EN_2P05_BIT			(1U << CSR_PWR_CONTROL_REG00_PWR_EN_2P05_OFFSET)
-#define PWR_EN_LMK_BIT			(1U << CSR_PWR_CONTROL_REG00_PWR_EN_LMK_OFFSET)
-#define PAFE_EN_D1P0_BIT		(1U << CSR_PWR_CONTROL_REG00_PAFE_EN_D1P0_OFFSET)
-#define PAFE_EN_A1P2_BIT		(1U << CSR_PWR_CONTROL_REG00_PAFE_EN_A1P2_OFFSET)
-#define PAFE_EN_A1P8_BIT		(1U << CSR_PWR_CONTROL_REG00_PAFE_EN_A1P8_OFFSET)
-#define PAFE_EN_A1P8_1_BIT		(1U << CSR_PWR_CONTROL_REG00_PAFE_EN_A1P8_1_OFFSET)
-#define AFE_DCDC_1P0_NRST_BIT 	(1U << CSR_PWR_CONTROL_REG00_AFE_DCDC_1P0_NRST_OFFSET)
-
-#define PG_EN_2P05_BIT		(1U << CSR_PWR_CONTROL_REG01_PG_EN_2P05_OFFSET)
-#define PG_AFE_AVDD_1P2_BIT	(1U << CSR_PWR_CONTROL_REG01_PG_AFE_AVDD_1P2_OFFSET)
+#define PG_EN_2P05_BIT      (1U << CSR_PWR_CONTROL_REG01_PG_EN_2P05_OFFSET)
+#define PG_AFE_AVDD_1P2_BIT (1U << CSR_PWR_CONTROL_REG01_PG_AFE_AVDD_1P2_OFFSET)
 
 #define PWR_LMS8_NRST_OFFSET 7
 #define PWR_LMS8_NRST_POS    0
 
 // TCA6424 I/O expander control signals
 // U115
-#define ENABLE_6VIN             (1U<<0)
-#define ENABLE_7.5VIN           (1U<<1)
-#define REF_EN_GPS              (1U<<2)
-#define REF_EN_OSC              (1U<<3)
-#define PG_8PO                  (1U<<4)
-#define PG_6PO                  (1U<<5)
-#define ENABLE_5VIN_EXTLO       (1U<<6)
-#define ENABLE_5VIN             (1U<<7)
+#define ENABLE_6VIN       (1U << 0)
+#define ENABLE_7          .5VIN(1U << 1)
+#define REF_EN_GPS        (1U << 2)
+#define REF_EN_OSC        (1U << 3)
+#define PG_8PO            (1U << 4)
+#define PG_6PO            (1U << 5)
+#define ENABLE_5VIN_EXTLO (1U << 6)
+#define ENABLE_5VIN       (1U << 7)
 
-#define PWR_LMS8_NRST           (1U<<0)
+#define PWR_LMS8_NRST (1U << 0)
 
 #define ADF4002_SPIMASTER 2
-#define ADF4002_CS 0
+#define ADF4002_CS        0
 
 #define BSP_DAC_INDEX 3
 // Since there is no eeprom on the board and the flash is too large for the gw
 // we use the top of the flash instead of eeprom, thus the offset to last sector
 #define mem_write_offset 0x01FF0000
 
-//I2C devices
+// I2C devices
 
-#define   LM75_I2C_ADDR		0x48
-#define   I2C_ADDR_EEPROM   0x50
+#define LM75_I2C_ADDR   0x48
+#define I2C_ADDR_EEPROM 0x50
 
-//GET INFO
-#define DEV_TYPE			LMS_DEV_HIPERSDR_44xx
-#define HW_VER				1
-#define EXP_BOARD			EXP_BOARD_UNSUPPORTED
+// GET INFO
+#define DEV_TYPE   LMS_DEV_HIPERSDR_44xx
+#define HW_VER     1
+#define EXP_BOARD  EXP_BOARD_UNSUPPORTED
 #define FW_VER_BSP 11 // New main.c/bsp structure
 
+#define MAX_ID_LMS7 1
 
-#define MAX_ID_LMS7		1
+#define OTP_UNLOCK_KEY     0x5A
+#define OTP_SERIAL_ADDRESS 0x0000010
+#define OTP_SERIAL_LENGTH  0x10
 
-#define OTP_UNLOCK_KEY		0x5A
-#define OTP_SERIAL_ADDRESS  0x0000010
-#define OTP_SERIAL_LENGTH   0x10
-
-#define DAC_DEFF_VAL			46870			// Default TCXO DAC value loaded when EEPROM is empty
-
+#define DAC_DEFF_VAL 46870 // Default TCXO DAC value loaded when EEPROM is empty
 
 // Initialize board-specific hardware
 void bsp_init(void);
@@ -157,9 +154,11 @@ void bsp_vctcxo_permanent_dac_read(uint8_t *data);
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data);
 
-uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
+uint8_t
+bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
 
-uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
+uint8_t
+bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
 
 uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
@@ -172,24 +171,25 @@ uint8_t bsp_program_mode2_boot_from_flash(void);
 uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
 uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
+
 uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data);
 
 uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
-//General SPI bus functions
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
-                         uint8_t *misodata);
+// General SPI bus functions
+uint8_t bsp_spi_transfer(
+    uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata);
 
 // Serial number functions
 uint8_t bsp_serial_read(uint8_t *data_field);
 
 uint8_t bsp_serial_write(const uint8_t *data_field);
 
-//Misc functions
+// Misc functions
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 
 void bsp_init_adf(void);
-void bsp_lmk_check_lock();
 
+void bsp_lmk_check_lock();
 
 #endif /* HiPer_BSP */

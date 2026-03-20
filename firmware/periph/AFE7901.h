@@ -5,9 +5,8 @@
 #ifndef AFE7901
 #define AFE7901
 
-#include <generated/csr.h>
 #include "stdint.h"
-
+#include <generated/csr.h>
 
 #define SPI_CS_HIGH (0 << 0)
 #define SPI_CS_LOW  (1 << 0)
@@ -29,4 +28,4 @@ void delaySec(int seconds);
 
 void AFE7901_bringup(void);
 
-#endif //AFE7901
+#endif // AFE7901

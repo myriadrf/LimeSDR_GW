@@ -45,7 +45,7 @@
  * @param port       Index of the port (0, 1, or 2).
  * @param dir        Bit pattern for setting the pin direction (high = input, low = output).
  */
-void TCA6424_SetPortDirection(const litei2c_regs* i2c_regs, uint8_t addr, uint8_t port, uint8_t dir);
+void TCA6424_SetPortDirection(const litei2c_regs *i2c_regs, uint8_t addr, uint8_t port, uint8_t dir);
 
 /**
  * @brief Read the direction of pins in a specific port on the TCA6424.
@@ -63,7 +63,7 @@ void TCA6424_SetPortDirection(const litei2c_regs* i2c_regs, uint8_t addr, uint8_
  * @param port       Index of the port (0, 1, or 2).
  * @param dir        Output pointer to store the bit pattern indicating the pin direction.*/
 
-void TCA6424_ReadPortDirection(const litei2c_regs* i2c_regs, uint8_t addr, uint8_t port, uint8_t* dir);
+void TCA6424_ReadPortDirection(const litei2c_regs *i2c_regs, uint8_t addr, uint8_t port, uint8_t *dir);
 
 /**
  * @brief Sets the polarity inversion for pins in a specific port on the TCA6424.
@@ -81,7 +81,7 @@ void TCA6424_ReadPortDirection(const litei2c_regs* i2c_regs, uint8_t addr, uint8
  * @param port Index of the port (0, 1, or 2).
  * @param pol Bit pattern for input pin polarity inversion.
  */
-void TCA6424_SetPortPolarityInversion(const litei2c_regs* i2c_regs, uint8_t addr, uint8_t port, uint8_t pol);
+void TCA6424_SetPortPolarityInversion(const litei2c_regs *i2c_regs, uint8_t addr, uint8_t port, uint8_t pol);
 
 /**
  * @brief Read the polarity inversion of pins in a specific port on the TCA6424.
@@ -98,7 +98,7 @@ void TCA6424_SetPortPolarityInversion(const litei2c_regs* i2c_regs, uint8_t addr
  * @param port       Index of the port (0, 1, or 2).
  * @param pol        Output pointer to store the bit pattern indicating the polarity inversion settings.
  */
-void TCA6424_ReadPortPolarityInversion(const litei2c_regs* i2c_regs, uint8_t addr, uint8_t port, uint8_t* pol);
+void TCA6424_ReadPortPolarityInversion(const litei2c_regs *i2c_regs, uint8_t addr, uint8_t port, uint8_t *pol);
 
 /**
  * @brief Sets the output value for pins in a specific port on the TCA6424.
@@ -118,7 +118,7 @@ void TCA6424_ReadPortPolarityInversion(const litei2c_regs* i2c_regs, uint8_t add
  *
  * @return None
  */
-void TCA6424_SetPortOutputValues(const litei2c_regs* i2c_regs, uint8_t addr, uint8_t port, uint8_t val);
+void TCA6424_SetPortOutputValues(const litei2c_regs *i2c_regs, uint8_t addr, uint8_t port, uint8_t val);
 
 /**
  * @brief Read the output values of pins in a specific port on the TCA6424.
@@ -137,7 +137,7 @@ void TCA6424_SetPortOutputValues(const litei2c_regs* i2c_regs, uint8_t addr, uin
  * @param port       Index of the port (0, 1, or 2).
  * @param val        Bit pattern for retrieving pin output values (high = output, low = input).
  */
-void TCA6424_ReadPortOutputValues(const litei2c_regs* i2c_regs, uint8_t addr, uint8_t port, uint8_t* val);
+void TCA6424_ReadPortOutputValues(const litei2c_regs *i2c_regs, uint8_t addr, uint8_t port, uint8_t *val);
 
 /**
  * Reads pin input values from a specific port on the TCA6424.
@@ -155,6 +155,6 @@ void TCA6424_ReadPortOutputValues(const litei2c_regs* i2c_regs, uint8_t addr, ui
  * @param port Index of the port (0, 1, or 2).
  * @param val Output pointer to store bit pattern corresponding to input values.
  */
-void TCA6424_ReadPortInputValues(const litei2c_regs* i2c_regs, uint8_t addr, uint8_t port, uint8_t* val);
+void TCA6424_ReadPortInputValues(const litei2c_regs *i2c_regs, uint8_t addr, uint8_t port, uint8_t *val);
 
-#endif //TCA6424_H
+#endif // TCA6424_H

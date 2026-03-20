@@ -4,14 +4,14 @@
 
 #ifndef TMP114_H
 #define TMP114_H
+#include "litei2c.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include "litei2c.h"
 
-#define TMP114A_ADDR 0x48
-#define TMP114B_ADDR 0x49
-#define TMP114C_ADDR 0x4A
-#define TMP114D_ADDR 0x4B
+#define TMP114A_ADDR  0x48
+#define TMP114B_ADDR  0x49
+#define TMP114C_ADDR  0x4A
+#define TMP114D_ADDR  0x4B
 #define TMP114ND_ADDR 0x4C
 #define TMP114NC_ADDR 0x4D
 #define TMP114NB_ADDR 0x4E
@@ -25,9 +25,10 @@
  *
  * @param i2c_regs Pointer to the litei2c_regs structure containing the registers for I2C communication.
  * @param addr I2C address of the TMP114 sensor.
- * @param enable Boolean flag to enable or disable continuous conversion mode. Set to true to enable, or false to disable.
+ * @param enable Boolean flag to enable or disable continuous conversion mode. Set to true to enable, or false to
+ * disable.
  */
-void TMP114_Continuous_Conversion(const litei2c_regs* i2c_regs, uint8_t addr, bool enable);
+void TMP114_Continuous_Conversion(const litei2c_regs *i2c_regs, uint8_t addr, bool enable);
 
 /**
  * @brief Reads the temperature from the TMP114 temperature sensor.
@@ -40,7 +41,7 @@ void TMP114_Continuous_Conversion(const litei2c_regs* i2c_regs, uint8_t addr, bo
  * @param addr The I2C address of the TMP114 sensor.
  * @return uint16_t Raw 16-bit temperature value retrieved from the TMP114 sensor.
  */
-uint16_t TMP114_Read_Temp(const litei2c_regs* i2c_regs, uint8_t addr);
+uint16_t TMP114_Read_Temp(const litei2c_regs *i2c_regs, uint8_t addr);
 
 /**
  * @brief Reads a single temperature measurement in one-shot mode from a TMP114 sensor.
@@ -61,7 +62,7 @@ uint16_t TMP114_Read_Temp(const litei2c_regs* i2c_regs, uint8_t addr);
  *         retrieved from the TMP114 sensor. The unit and format of this data
  *         follow the TMP114 datasheet.
  */
-uint16_t TMP114_Read_Temp_OneShot(const litei2c_regs* i2c_regs, uint8_t addr);
+uint16_t TMP114_Read_Temp_OneShot(const litei2c_regs *i2c_regs, uint8_t addr);
 
 /**
  * @brief Converts a raw temperature reading from the TMP114 sensor to a temperature value.
@@ -78,4 +79,4 @@ uint16_t TMP114_Read_Temp_OneShot(const litei2c_regs* i2c_regs, uint8_t addr);
  */
 uint16_t TMP114_Convert_Temp(uint16_t raw_temp);
 
-#endif //TMP114_H
+#endif // TMP114_H

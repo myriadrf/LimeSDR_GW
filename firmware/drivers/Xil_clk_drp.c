@@ -5,9 +5,10 @@
 #include "Xil_clk_drp.h"
 #include "stdio.h"
 
-uint16_t Read_MMCM_DRP(PLL_ADDRS *addresses, uint16_t Addr) {
+uint16_t Read_MMCM_DRP(PLL_ADDRS *addresses, uint16_t Addr)
+{
     uint16_t retval;
-    uint16_t timeout = 0;
+    uint16_t timeout       = 0;
     uint16_t timeout_limit = 2000;
     csr_write_simple(Addr, addresses->adr);
     // Reset drdy latch just in case
@@ -28,8 +29,9 @@ uint16_t Read_MMCM_DRP(PLL_ADDRS *addresses, uint16_t Addr) {
     return retval;
 }
 
-void Write_MMCM_DRP(PLL_ADDRS *addresses, uint16_t Addr, uint16_t Val) {
-    uint16_t timeout = 0;
+void Write_MMCM_DRP(PLL_ADDRS *addresses, uint16_t Addr, uint16_t Val)
+{
+    uint16_t timeout       = 0;
     uint16_t timeout_limit = 2000;
     csr_write_simple(Addr, addresses->adr);
     csr_write_simple(Val, addresses->dat_w);
@@ -48,29 +50,31 @@ void Write_MMCM_DRP(PLL_ADDRS *addresses, uint16_t Addr, uint16_t Val) {
     }
 }
 
-void Reset_Drdy_latch(uint16_t reset_addr) {
+void Reset_Drdy_latch(uint16_t reset_addr)
+{
     csr_write_simple(1, reset_addr);
     csr_write_simple(0, reset_addr);
 }
 
-void
-SetPhase_DRP(PLL_ADDRS *addresses, uint8_t phase_mux, uint8_t delay_time, uint16_t clkreg1_adr, uint16_t clkreg2_adr) {
+void SetPhase_DRP(
+    PLL_ADDRS *addresses, uint8_t phase_mux, uint8_t delay_time, uint16_t clkreg1_adr, uint16_t clkreg2_adr)
+{
     uint16_t reg_val;
     // Read current register value and update
     reg_val = Read_MMCM_DRP(addresses, clkreg1_adr); // Read current CLKOUT1 Reg1 Value
-    reg_val &= 0x1FFF; // Clear phase mux value (bits 15:13)
-    reg_val |= phase_mux
-            << 13; // Using &0x7 to extract 3LSB, in essence modulus(8). Shift left to phase mux location
+    reg_val &= 0x1FFF;                               // Clear phase mux value (bits 15:13)
+    reg_val |= phase_mux << 13; // Using &0x7 to extract 3LSB, in essence modulus(8). Shift left to phase mux location
     Write_MMCM_DRP(addresses, clkreg1_adr, reg_val); // Write new CLKOUT1 Reg1 Value
     // Read current register value and update
     reg_val = Read_MMCM_DRP(addresses, clkreg2_adr); // Read current CLKOUT1 Reg2 Value
-    reg_val &= 0xFCFF; // Clear MX bits(9:8). This is mandatory
-    reg_val &= 0xFFC0; // Clear Delay time bits(5:0)
-    reg_val |= delay_time; //(i>>3); // Write phase value divided by 8
+    reg_val &= 0xFCFF;                               // Clear MX bits(9:8). This is mandatory
+    reg_val &= 0xFFC0;                               // Clear Delay time bits(5:0)
+    reg_val |= delay_time;                           //(i>>3); // Write phase value divided by 8
     Write_MMCM_DRP(addresses, clkreg2_adr, reg_val); // Write new CLKOUT1 Reg2 Value
 }
 
-void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
+void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses)
+{
     uint16_t DIVIDE;
     uint8_t BYPASS;
     uint16_t PHASE;
@@ -84,7 +88,7 @@ void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
     // Add LSB and MSB to get divide value (register contains two values for counters)
     DIVIDE = (DIVIDE & 0xFF) + ((DIVIDE >> 8) & 0xFF);
     BYPASS = csr_read_simple(ctrl_addresses->c0_div_byp);
-    PHASE = 0;
+    PHASE  = 0;
     if (BYPASS == 1)
         DIVIDE = 1;
     SetMMCM_CLKREG(pll_addresses, DIVIDE, PHASE, ClkReg1_CLKOUT0, ClkReg2_CLKOUT0);
@@ -94,8 +98,8 @@ void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
     // Add LSB and MSB to get divide value (register contains two values for counters)
     DIVIDE = (DIVIDE & 0xFF) + ((DIVIDE >> 8) & 0xFF);
     BYPASS = csr_read_simple(ctrl_addresses->c1_div_byp);
-    PHASE = csr_read_simple(ctrl_addresses->c1_phase);
-    PHASE = PHASE % 360; // Make sure requested phase is between 0 and 359 deg
+    PHASE  = csr_read_simple(ctrl_addresses->c1_phase);
+    PHASE  = PHASE % 360; // Make sure requested phase is between 0 and 359 deg
     if (BYPASS == 1)
         DIVIDE = 1;
     SetMMCM_CLKREG(pll_addresses, DIVIDE, PHASE, ClkReg1_CLKOUT1, ClkReg2_CLKOUT1);
@@ -105,60 +109,59 @@ void Update_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses) {
     // Add LSB and MSB to get divide value (register contains two values for counters)
     DIVIDE = (DIVIDE & 0xFF) + ((DIVIDE >> 8) & 0xFF);
     BYPASS = csr_read_simple(ctrl_addresses->vco_mult_byp);
-    PHASE = 0;
+    PHASE  = 0;
     if (BYPASS == 1)
         DIVIDE = 1;
     SetMMCM_CLKREG(pll_addresses, DIVIDE, PHASE, ClkReg1_CLKFBOUT, ClkReg2_CLKFBOUT);
 
-
-    //unreset MMCM
+    // unreset MMCM
     csr_write_simple(0, pll_addresses->reset);
 }
 
-
-void SetMMCM_CLKREG(PLL_ADDRS *addresses, uint8_t DIVIDE, uint32_t PHASE, uint16_t clkreg1_adr, uint16_t clkreg2_adr) {
+void SetMMCM_CLKREG(PLL_ADDRS *addresses, uint8_t DIVIDE, uint32_t PHASE, uint16_t clkreg1_adr, uint16_t clkreg2_adr)
+{
     uint8_t DELAY_TIME;
     uint8_t PHASE_MUX;
     uint8_t HIGH_TIME;
     uint8_t LOW_TIME;
     uint8_t NO_COUNT;
     uint8_t EDGE;
-    uint32_t phase_step =
-            (45 * 10000000) / DIVIDE; // 360/(DIVIDE*8); Multiply by 10^7 to get better accuracy with fixed point
-    PHASE = PHASE * 10000000; // Multiply by 10^7 to get better accuracy with fixed point
+    uint32_t phase_step = (45 * 10000000) /
+                          DIVIDE; // 360/(DIVIDE*8); Multiply by 10^7 to get better accuracy with fixed point
+    PHASE = PHASE * 10000000;     // Multiply by 10^7 to get better accuracy with fixed point
     uint16_t phase_value;
 
     // calculate and write phase values first
     phase_value = PHASE / phase_step;
-    DELAY_TIME = phase_value >> 3;
-    PHASE_MUX = phase_value & 0x7;
+    DELAY_TIME  = phase_value >> 3;
+    PHASE_MUX   = phase_value & 0x7;
     SetPhase_DRP(addresses, PHASE_MUX, DELAY_TIME, clkreg1_adr, clkreg2_adr);
 
-    uint16_t reg_val = Read_MMCM_DRP(addresses, clkreg1_adr);
+    uint16_t reg_val   = Read_MMCM_DRP(addresses, clkreg1_adr);
     uint16_t reg_val_2 = Read_MMCM_DRP(addresses, clkreg2_adr);
 
     // PARSE OLD VALUES
     HIGH_TIME = (reg_val >> 6) & 0x3F;
-    LOW_TIME = reg_val & 0x3F;
+    LOW_TIME  = reg_val & 0x3F;
     //	NO_COUNT = (reg_val_2 >> 6) & 0x1;
     EDGE = (reg_val_2 >> 7) & 0x1;
 
     // Determine new values
     if (DIVIDE == 1) // If no dividing is required
     {
-        NO_COUNT = 1; // Enable NO COUNT byte (this ignores the dividers)
+        NO_COUNT = 1;           // Enable NO COUNT byte (this ignores the dividers)
     } else if (DIVIDE % 2 == 0) // If the divider is even
     {
-        EDGE = 0;
-        NO_COUNT = 0;
+        EDGE      = 0;
+        NO_COUNT  = 0;
         HIGH_TIME = DIVIDE / 2;
-        LOW_TIME = DIVIDE / 2;
+        LOW_TIME  = DIVIDE / 2;
     } else // Divider is odd
     {
-        EDGE = 1;
-        NO_COUNT = 0;
+        EDGE      = 1;
+        NO_COUNT  = 0;
         HIGH_TIME = DIVIDE / 2;
-        LOW_TIME = (DIVIDE / 2) + 1;
+        LOW_TIME  = (DIVIDE / 2) + 1;
     }
 
     // Set and write new values
@@ -173,18 +176,19 @@ void SetMMCM_CLKREG(PLL_ADDRS *addresses, uint8_t DIVIDE, uint32_t PHASE, uint16
     Write_MMCM_DRP(addresses, clkreg2_adr, reg_val_2);
 }
 
-int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SMPL_CMP_ADDRS *smpl_cmp_addrs) {
+int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SMPL_CMP_ADDRS *smpl_cmp_addrs)
+{
     uint8_t phase_mux;
     uint8_t delay_time;
-    uint16_t PhaseMin = 0;
-    uint16_t PhaseMax = 0;
-    uint16_t PhaseMinBest = 0;
-    uint16_t PhaseMaxBest = 0;
+    uint16_t PhaseMin        = 0;
+    uint16_t PhaseMax        = 0;
+    uint16_t PhaseMinBest    = 0;
+    uint16_t PhaseMaxBest    = 0;
     uint8_t PhaseWindowFound = 0;
     uint16_t PhaseMiddle;
 
     uint8_t cmp_error;
-    uint32_t timeout = 0;
+    uint32_t timeout       = 0;
     uint32_t timeout_limit = 2000000; // Function will timeout after 2 seconds
     // Read divider counter values
     uint16_t max_phase = csr_read_simple(ctrl_addresses->c1_div_cnt);
@@ -194,10 +198,10 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
     // *8 for 360 degree phase, to avoid missing phase windows
     // overlapping 0 phase we increase it to 540 degrees
     uint16_t max_phase_long = max_phase * 12;
-    max_phase = max_phase * 8;
+    max_phase               = max_phase * 8;
 
-
-    typedef enum state {
+    typedef enum state
+    {
         PHASE_MIN,
         PHASE_MAX
     } state_t;
@@ -209,8 +213,8 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
 
     for (uint16_t i = 0; i <= max_phase_long; i++) {
         // make sure written values are valid
-        phase_mux = ((i%max_phase) & 0x7);
-        delay_time = (i%max_phase) >> 3;
+        phase_mux  = ((i % max_phase) & 0x7);
+        delay_time = (i % max_phase) >> 3;
 
         csr_write_simple(1, pll_addresses->reset);
         Write_MMCM_DRP(pll_addresses, PowerReg_7Series, 0xffff);
@@ -252,34 +256,33 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
         cmp_error = csr_read_simple(smpl_cmp_addrs->cmp_error);
 
         switch (phase_state) {
-            case PHASE_MIN:
-                if (cmp_error == 0) {
-                    PhaseMin = i;
-                    // printf("PhaseMin = %d\n", PhaseMin);
-                    phase_state = PHASE_MAX;
-                }
-                break;
+        case PHASE_MIN:
+            if (cmp_error == 0) {
+                PhaseMin = i;
+                // printf("PhaseMin = %d\n", PhaseMin);
+                phase_state = PHASE_MAX;
+            }
+            break;
 
-            case PHASE_MAX:
-                if (cmp_error == 1) {
-                    PhaseMax = i - 1;
-                    // If no window is yet found, this is the best one
-                    if (PhaseWindowFound == 0) {
+        case PHASE_MAX:
+            if (cmp_error == 1) {
+                PhaseMax = i - 1;
+                // If no window is yet found, this is the best one
+                if (PhaseWindowFound == 0) {
+                    PhaseMinBest     = PhaseMin;
+                    PhaseMaxBest     = PhaseMax;
+                    PhaseWindowFound = 1;
+                } else {
+                    // If a better window is found, replace old one
+                    if ((PhaseMax - PhaseMin) > (PhaseMaxBest - PhaseMinBest)) {
                         PhaseMinBest = PhaseMin;
                         PhaseMaxBest = PhaseMax;
-                        PhaseWindowFound = 1;
                     }
-                    else {
-                        // If a better window is found, replace old one
-                        if ((PhaseMax-PhaseMin) > (PhaseMaxBest-PhaseMinBest)) {
-                            PhaseMinBest = PhaseMin;
-                            PhaseMaxBest = PhaseMax;
-                        }
-                    }
-                    // printf("PhaseMax = %d\n", PhaseMax);
-                    phase_state = PHASE_MIN;
                 }
-                break;
+                // printf("PhaseMax = %d\n", PhaseMax);
+                phase_state = PHASE_MIN;
+            }
+            break;
         }
     }
     // Check results
@@ -292,8 +295,8 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
     // printf("PhaseMiddle = %d\n", PhaseMiddle);
     // make sure written values are valid
     PhaseMiddle = PhaseMiddle % max_phase;
-    phase_mux = (PhaseMiddle & 0x7);
-    delay_time = PhaseMiddle >> 3;
+    phase_mux   = (PhaseMiddle & 0x7);
+    delay_time  = PhaseMiddle >> 3;
 
     csr_write_simple(1, pll_addresses->reset);
     Write_MMCM_DRP(pll_addresses, PowerReg_7Series, 0xffff);
@@ -308,7 +311,6 @@ int AutoPH_MMCM_CFG(PLL_ADDRS *pll_addresses, CLK_CTRL_ADDRS *ctrl_addresses, SM
             return AUTO_PH_MMCM_CFG_TIMEOUT;
         }
     }
-
 
     return AUTO_PH_MMCM_CFG_SUCCESS;
 }

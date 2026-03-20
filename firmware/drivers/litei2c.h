@@ -6,7 +6,8 @@
 #define LITEI2C_H
 #include <stdint.h>
 
-typedef struct {
+typedef struct
+{
     uint32_t master_active_addr;
     uint32_t master_addr_addr;
     uint32_t master_settings_addr;
@@ -63,7 +64,8 @@ int8_t litei2c_transfer(const litei2c_regs *regs, uint8_t I2C_addr, uint32_t *bu
  * @return Status of the I2C transfer operation. A return of 0 indicates
  *         success, while a non-zero value indicates an error during the transfer.
  */
-int8_t litei2c_transfer_reordered(const litei2c_regs *regs, uint8_t I2C_addr, uint32_t *buf, uint8_t txlen, uint8_t rxlen);
+int8_t
+litei2c_transfer_reordered(const litei2c_regs *regs, uint8_t I2C_addr, uint32_t *buf, uint8_t txlen, uint8_t rxlen);
 
 /**
  * @brief Recovers an I2C bus using the provided register set.
@@ -78,7 +80,7 @@ int8_t litei2c_transfer_reordered(const litei2c_regs *regs, uint8_t I2C_addr, ui
  *         of 0 indicates a successful recovery, while non-zero values
  *         signify an error or failure to recover the bus.
  */
-int8_t litei2c_recover_bus(const litei2c_regs* regs);
+int8_t litei2c_recover_bus(const litei2c_regs *regs);
 
 /**
  * @brief Reads an 8-bit register from an I2C device with an 8-bit register address.
@@ -95,7 +97,8 @@ int8_t litei2c_recover_bus(const litei2c_regs* regs);
  * @return Returns 0 if the register read operation is successful. A negative value
  *         is returned in case of an error (e.g., NACK received).
  */
-int8_t litei2c_a8d8_read_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint8_t reg_addr, uint8_t *reg_val);
+int8_t
+litei2c_a8d8_read_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint8_t reg_addr, uint8_t *reg_val);
 
 /**
  * @brief Writes a value to an 8-bit register of an I2C device with an 8-bit register address.
@@ -113,7 +116,10 @@ int8_t litei2c_a8d8_read_register(const litei2c_regs *regs, const uint8_t I2C_ad
  *         indicates success, while a non-zero value indicates an error during
  *         the transaction (e.g., if the device does not ACK the operation).
  */
-int8_t litei2c_a8d8_write_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint8_t reg_addr, const uint8_t reg_val);
+int8_t litei2c_a8d8_write_register(const litei2c_regs *regs,
+                                   const uint8_t I2C_addr,
+                                   const uint8_t reg_addr,
+                                   const uint8_t reg_val);
 
 /**
  * @brief Reads an 8-bit value from a 16-bit register of an I2C device.
@@ -134,7 +140,10 @@ int8_t litei2c_a8d8_write_register(const litei2c_regs *regs, const uint8_t I2C_a
  *         indicates success, while a non-zero value indicates an error during
  *         the transaction (e.g., if the device does not ACK the operation).
  */
-int8_t litei2c_a16d8_read_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint16_t reg_addr, uint8_t *reg_val);
+int8_t litei2c_a16d8_read_register(const litei2c_regs *regs,
+                                   const uint8_t I2C_addr,
+                                   const uint16_t reg_addr,
+                                   uint8_t *reg_val);
 
 /**
  * @brief Writes an 8-bit value to a 16-bit register address on an I2C device.
@@ -153,7 +162,10 @@ int8_t litei2c_a16d8_read_register(const litei2c_regs *regs, const uint8_t I2C_a
  *         indicates success, while a non-zero value indicates an error during
  *         the transaction (e.g., if the device does not ACK the operation).
  */
-int8_t litei2c_a16d8_write_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint16_t reg_addr, const uint8_t reg_val);
+int8_t litei2c_a16d8_write_register(const litei2c_regs *regs,
+                                    const uint8_t I2C_addr,
+                                    const uint16_t reg_addr,
+                                    const uint8_t reg_val);
 
 /**
  * @brief Reads a 16-bit register value from a device over I2C using an 8-bit register address.
@@ -171,7 +183,10 @@ int8_t litei2c_a16d8_write_register(const litei2c_regs *regs, const uint8_t I2C_
  *         indicates success, while a non-zero value indicates an error during
  *         the transaction (e.g., if the device does not ACK the operation).
  */
-int8_t litei2c_a8d16_read_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint8_t reg_addr, uint16_t *reg_val);
+int8_t litei2c_a8d16_read_register(const litei2c_regs *regs,
+                                   const uint8_t I2C_addr,
+                                   const uint8_t reg_addr,
+                                   uint16_t *reg_val);
 
 /**
  * @brief Writes a 16-bit value to an 8-bit register on a target device via I2C.
@@ -190,7 +205,10 @@ int8_t litei2c_a8d16_read_register(const litei2c_regs *regs, const uint8_t I2C_a
  *         indicates success, while a non-zero value indicates an error during
  *         the transaction (e.g., if the device does not ACK the operation).
  */
-int8_t litei2c_a8d16_write_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint8_t reg_addr, const uint16_t reg_val);
+int8_t litei2c_a8d16_write_register(const litei2c_regs *regs,
+                                    const uint8_t I2C_addr,
+                                    const uint8_t reg_addr,
+                                    const uint16_t reg_val);
 
 /**
  * @brief Reads a 16-bit register value from a device over I2C using a 16-bit register address.
@@ -210,7 +228,10 @@ int8_t litei2c_a8d16_write_register(const litei2c_regs *regs, const uint8_t I2C_
  *         indicates success, while a non-zero value indicates an error during
  *         the transaction (e.g., if the device does not ACK the operation).
  */
-int8_t litei2c_a16d16_read_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint16_t reg_addr, uint16_t *reg_val);
+int8_t litei2c_a16d16_read_register(const litei2c_regs *regs,
+                                    const uint8_t I2C_addr,
+                                    const uint16_t reg_addr,
+                                    uint16_t *reg_val);
 
 /**
  * @brief Writes a 16-bit value to a 16-bit register on a target device via I2C.
@@ -231,6 +252,9 @@ int8_t litei2c_a16d16_read_register(const litei2c_regs *regs, const uint8_t I2C_
  *         indicates success, while a non-zero value indicates an error during
  *         the transaction (e.g., if the device does not ACK the operation).
  */
-int8_t litei2c_a16d16_write_register(const litei2c_regs *regs, const uint8_t I2C_addr, const uint16_t reg_addr, const uint16_t reg_val);
+int8_t litei2c_a16d16_write_register(const litei2c_regs *regs,
+                                     const uint8_t I2C_addr,
+                                     const uint16_t reg_addr,
+                                     const uint16_t reg_val);
 
-#endif //LITEI2C_H
+#endif // LITEI2C_H

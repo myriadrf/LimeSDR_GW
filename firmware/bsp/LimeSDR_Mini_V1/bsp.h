@@ -2,39 +2,38 @@
 #define Mini_V1_BSP
 
 #ifdef Template_BSP
-#error "Header guard 'Template_BSP' must be renamed to a project-specific identifier."
+#    error "Header guard 'Template_BSP' must be renamed to a project-specific identifier."
 #endif
 
 // BSP includes the associated regremap
 #include "regremap.h"
 
 // Required includes
+#include "LMS.h"
+#include "LMS64C_protocol.h"
+#include "lime_litex_helpers.h"
+#include "litei2c.h"
+#include <generated/csr.h>
+#include <generated/mem.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <generated/csr.h>
-#include "litei2c.h"
-#include <stdio.h>  // For debug/logging (optional)
-#include "LMS.h"
-#include "lime_litex_helpers.h"
-#include "LMS64C_protocol.h"
-#include <generated/mem.h>
-#include "LMS64C_protocol.h"
+#include <stdio.h> // For debug/logging (optional)
 
 #include "DACx311.h"
 #include "LM75.h"
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
-#define DAC_DEFF_VAL			180
-#define SPI_CS_LMS (1 << 0)
-#define DEV_TYPE			LMS_DEV_MINI
-#define HW_VER				0
-#define EXP_BOARD			EXP_BOARD_UNSUPPORTED
+#define DAC_DEFF_VAL 180
+#define SPI_CS_LMS   (1 << 0)
+#define DEV_TYPE     LMS_DEV_MINI
+#define HW_VER       0
+#define EXP_BOARD    EXP_BOARD_UNSUPPORTED
 
 // #define FW_VER 6
 #define FW_VER_BSP 11 // New main.c/bsp structure
 
-#define BSP_DAC_INDEX    0
+#define BSP_DAC_INDEX 0
 
 /* MCU SPI register offsets */
 #define MCU_CONTROL_REG 0x02
@@ -49,15 +48,15 @@
 #define MAX_MCU_RETRIES 30
 
 // MAX 10 Flash programming
-#define CFM0StartAddress  0x012800
-#define CFM0EndAddress    0x022FFF
-#define UFMStartAddress   0x0
-#define UFMEndAddress     0x01FFF
+#define CFM0StartAddress 0x012800
+#define CFM0EndAddress   0x022FFF
+#define UFMStartAddress  0x0
+#define UFMEndAddress    0x01FFF
 
-#define EEPROM_I2C_ADDR		0x50 //0xA2
-#define DAC_VAL_ADDR  		0x0010		// Address in EEPROM memory where TCXO DAC value is stored
+#define EEPROM_I2C_ADDR 0x50   // 0xA2
+#define DAC_VAL_ADDR    0x0010 // Address in EEPROM memory where TCXO DAC value is stored
 
-#define MAX_ID_LMS7                1
+#define MAX_ID_LMS7 1
 // Define device indexes, addresses and similar here
 #define SPI_CS_DAC (1 << 1)
 
@@ -116,9 +115,11 @@ void bsp_vctcxo_permanent_dac_read(uint8_t *data);
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data);
 
-uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
+uint8_t
+bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
 
-uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
+uint8_t
+bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count);
 
 uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
@@ -132,22 +133,21 @@ uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data
 
 uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
-//General SPI bus functions
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len,
-                         uint8_t *misodata);
+// General SPI bus functions
+uint8_t bsp_spi_transfer(
+    uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata);
 
 // Serial number functions
 uint8_t bsp_serial_read(uint8_t *data_field);
 
 uint8_t bsp_serial_write(const uint8_t *data_field);
 
-//ADF functions
+// ADF functions
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
 
-//Misc/device specific functions
+// Misc/device specific functions
 uint8_t reverse(uint8_t b);
 
 uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data);
-
 
 #endif
