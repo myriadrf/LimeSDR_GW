@@ -25,7 +25,7 @@ from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder  import *
 
 from litex.soc.cores.clock          import Max10PLL
-from litex.soc.cores.bitbang        import I2CMaster
+from litei2c import LiteI2C
 from litex.soc.cores.spi.spi_master import SPIMaster
 
 from litespi.phy.generic import LiteSPIPHY
@@ -181,6 +181,11 @@ class BaseSoC(SoCCore):
             # with_uartbone            = with_uartbone,
             # uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
+
+        # 1 for CSR
+        # 2 for FTDI
+        self.add_constant("LMS64C_METHOD",2)
+
         serial_signals = Record(layout=[("tx", 1), ("rx", 1)])
         self.add_uart(name="uart", uart_name={True: "crossover", False:"serial"}[with_uartbone], baudrate=115200, fifo_depth=16, with_dynamic_baudrate=False, uart_pads=serial_signals)
         if with_uartbone:
@@ -200,7 +205,7 @@ class BaseSoC(SoCCore):
         self.crg = _CRG(platform, sys_clk_freq)
 
         # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
-        self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C"))
+        self.i2c0 = LiteI2C(sys_clk_freq=sys_clk_freq,pads=platform.request("FPGA_I2C"),clock_domain="sys")
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI"), data_width=32, spi_clk_freq=10e6)
@@ -472,6 +477,7 @@ def main():
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
                 f.write(f"GOLDEN={is_golden}\n")
+                f.write("BSP_PROJECT_DIR=bsp/LimeSDR_Mini_V1\n")
             os.system(f"cd firmware && make clean all")
             assert os.path.exists(cpu_firmware), f"Error: {cpu_firmware} not available"
 

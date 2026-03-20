@@ -36,13 +36,14 @@ def FromFPGACfg():
     return Record(from_fpgacfg_layout)
 
 # VHD2VConverter Wrapper ---------------------------------------------------------------------------
-def add_vhd2v_converter(platform, instance, files=[], force_convert=None):
+def add_vhd2v_converter(platform, instance, files=[], force_convert=None, add_instance=True, top_entity=None, flatten_source=True):
     force_convert = {True: platform.vhd2v_force, False: force_convert}[force_convert is None]
     return VHD2VConverter(platform,
         instance       = instance,
+        top_entity     = top_entity,
         work_package   = "work",
+        flatten_source = flatten_source,
         force_convert  = force_convert,
-        flatten_source = False, # disabled to avoid an out of resources error
-        add_instance   = True,
+        add_instance   = add_instance,
         files          = files,
     )

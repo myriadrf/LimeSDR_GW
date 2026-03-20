@@ -26,7 +26,7 @@ from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder  import *
 
 from litex.soc.cores.clock          import ECP5PLL
-from litex.soc.cores.bitbang        import I2CMaster
+from litei2c import LiteI2C
 from litex.soc.cores.spi.spi_master import SPIMaster
 
 from litespi.phy.generic import LiteSPIPHY
@@ -171,7 +171,7 @@ class BaseSoC(SoCCore):
             integrated_main_ram_size = 0x4800
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
         else:
-            integrated_rom_size      = 0x4200
+            integrated_rom_size      = 0x4500
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
@@ -190,6 +190,11 @@ class BaseSoC(SoCCore):
             # with_uartbone            = with_uartbone,
             # uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
+
+        # 1 for CSR
+        # 2 for FTDI
+        self.add_constant("LMS64C_METHOD",2)
+
         serial_signals = Record(layout=[("tx", 1), ("rx", 1)])
         self.add_uart(name="uart", uart_name={True: "crossover", False:"serial"}[with_uartbone], baudrate=115200, fifo_depth=16, with_dynamic_baudrate=False, uart_pads=serial_signals)
         if with_uartbone:
@@ -208,7 +213,7 @@ class BaseSoC(SoCCore):
         self.crg = _CRG(platform, sys_clk_freq)
 
         # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
-        self.i2c0 = I2CMaster(pads=platform.request("FPGA_I2C"))
+        self.i2c0 = LiteI2C(sys_clk_freq=sys_clk_freq,pads=platform.request("FPGA_I2C"),clock_domain="sys")
 
         # SPI (LMS7002 & DAC) ----------------------------------------------------------------------
         spi_pads = platform.request("FPGA_SPI")
@@ -420,6 +425,7 @@ def main():
                 f.write(f"BUILD_DIR={builder.output_dir}\n")
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
+                f.write("BSP_PROJECT_DIR=bsp/LimeSDR_Mini_V2\n")
             os.system(f"cd firmware && make clean all")
             bistream_output_dir = "bitstream/LimeSDR_Mini_V2"
             if not os.path.exists(bistream_output_dir):
@@ -429,14 +435,16 @@ def main():
         if prepare and not args.no_soc_json:
             soc.print_soc_hierarchy_json()
 
-    # Prepare User/Golden bitstream.
-    if which("ddtcmd") is None:
-        msg = "\nUnable to find Diamond ddtcmd tool, please:\n"
-        msg += "- Add Diamond toolchain to your $PATH.\n"
-        msg += "\nCannot generate the MCS file.\n"
-        print(msg)
-    else:
-        os.system(f"./tools/limesdr_mini_v2_bitstream.py")
+    # Do not prepare bitstream if it has not been built
+    if args.build:
+        # Prepare User/Golden bitstream.
+        if which("ddtcmd") is None:
+            msg = "\nUnable to find Diamond ddtcmd tool, please:\n"
+            msg += "- Add Diamond toolchain to your $PATH.\n"
+            msg += "\nCannot generate the MCS file.\n"
+            print(msg)
+        else:
+            os.system(f"./tools/limesdr_mini_v2_bitstream.py")
 
     # Load Bistream.
     if args.load:

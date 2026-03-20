@@ -111,7 +111,7 @@ begin
                
                if (S_AXIS_TVALID = '1') then
                   -- Determine maximum number of reads
-                  rd_cnt_max <= unsigned(S_AXIS_TDATA(23 downto 8)) / C_RD_RATIO + 1; -- +1 for header
+                  rd_cnt_max <= unsigned(S_AXIS_TDATA(23 downto 8)) / C_RD_RATIO; -- +1 for header
                   -- If current buffer is empty, start reading data
                   if (BUF_EMPTY(curbuf) = '1') then
                      state    <= DATA;
@@ -124,7 +124,7 @@ begin
                conn_buf <= '1';
                if (S_AXIS_TVALID = '1' and M_AXIS_TREADY(curbuf) = '1') then
                   rd_cnt <= rd_cnt + 1;
-                  if (rd_cnt = rd_cnt_max - 1) then
+                  if (rd_cnt = rd_cnt_max) then
                      state    <= SW_BUF;
                      conn_buf <= '0';
                   end if;
@@ -160,7 +160,7 @@ begin
     GEN_ASSIGN_VALID : for i in 0 to G_BUFF_COUNT - 1 generate
         m_axis_tvalid_int(i) <= S_AXIS_TVALID when (curbuf=i and conn_buf='1') else
             '0';
-            M_AXIS_TLAST(i) <= m_axis_tvalid_int(i) when (curbuf=i and (rd_cnt >= (rd_cnt_max - 1))) else
+            M_AXIS_TLAST(i) <= m_axis_tvalid_int(i) when (curbuf=i and (rd_cnt >= (rd_cnt_max))) else
                 '0';
         end generate GEN_ASSIGN_VALID;
 

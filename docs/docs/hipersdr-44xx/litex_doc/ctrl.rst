@@ -47,7 +47,7 @@ CTRL_SCRATCH
 
     Use this register as a scratch space to verify that software read/write accesses
     to the Wishbone/CSR bus are working correctly. The initial reset value of
-    0x1234578 can be used to verify endianness.
+    0x12345678 can be used to verify endianness.
 
     .. wavedrom::
         :caption: CTRL_SCRATCH

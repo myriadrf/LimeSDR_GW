@@ -40,7 +40,9 @@ enum eLMS_DEV {
 	LMS_DEV_MINI_V2                 = 25, //FTDI + ECP5 + LMS
 	LMS_5GRADIO                     = 26,
 	LMS_DEV_XTRX                    = 27,
+	LMS_DEV_HIPERSDR_44xx           = 31,
 	LMS_DEV_SSDR                    = 32,
+
 
 	LMS_DEV_COUNT
 };
@@ -81,6 +83,8 @@ enum eEXP_BOARD {
 #define CMD_LMS7002_RD		0x22 //Reads data from LMS7002 chip via SPI (16 bits word)
 #define CMD_LMS6002_WR		0x23 //Writes data to LMS6002 chip via SPI (8 bits word)
 #define CMD_LMS6002_RD		0x24 //Reads data from LMS6002 chip via SPI (8 bits word)
+#define CMD_LMS8001_WR		0x25 //Writes data to LMS8001 chip via SPI (16 bits word)
+#define CMD_LMS8001_RD		0x26 //Reads data from LMS8001 chip via SPI (16 bits word)
 
 #define CMD_LMS_LNA			0x2A
 #define CMD_LMS_PA			0x2B

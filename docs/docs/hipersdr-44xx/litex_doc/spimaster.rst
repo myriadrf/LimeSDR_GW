@@ -207,7 +207,7 @@ SPIMASTER_CLK_DIVIDER
 
         {
             "reg": [
-                {"name": "clk_divider[15:0]", "attr": 'reset: 250', "bits": 16},
+                {"name": "clk_divider[15:0]", "attr": 'reset: 300', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }

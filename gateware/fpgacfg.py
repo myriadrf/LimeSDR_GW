@@ -23,7 +23,7 @@ class FPGACfg(LiteXModule):
 
         # Export.
         # -------
-        self.ch_en             = Signal(2)
+        self.ch_en             = Signal(4)
         self.smpl_width        = Signal(2)
         self.mode              = Signal()
         self.ddr_en            = Signal()
@@ -88,8 +88,8 @@ class FPGACfg(LiteXModule):
             self.reserved_06 = CSRStorage(16, reset=0)
 
         # Interface config (7-15)
-        self._ch_en            = CSRStorage(2,  reset=0b11,
-            description="2b01 - Channel A, 2b10 - Channel B enabled, 2b11 - Channels A and B"
+        self._ch_en            = CSRStorage(4,  reset=0b1111,
+            description="4b0001 - Channel A, 4b0010 - Channel B enabled, 4b0100 - Channel C enabled,  4b1000 - Channel D enabled,2b1111 - Channels A, B, C, D Enabled"
         )
         self.reg08             = CSRStorage(fields=[
             CSRField("smpl_width",  size=2, offset=0,  reset=0b10),
