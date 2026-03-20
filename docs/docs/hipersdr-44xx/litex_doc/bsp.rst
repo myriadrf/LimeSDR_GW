@@ -54,8 +54,9 @@ BSP_EV_STATUS
         {
             "reg": [
                 {"name": "event0",  "bits": 1},
+                {"name": "event1",  "bits": 1},
                 {"name": "sw",  "bits": 1},
-                {"bits": 30}
+                {"bits": 29}
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
@@ -65,7 +66,9 @@ BSP_EV_STATUS
 +=======+========+===============================+
 | [0]   | EVENT0 | Level of the ``event0`` event |
 +-------+--------+-------------------------------+
-| [1]   | SW     | Level of the ``sw`` event     |
+| [1]   | EVENT1 | Level of the ``event1`` event |
++-------+--------+-------------------------------+
+| [2]   | SW     | Level of the ``sw`` event     |
 +-------+--------+-------------------------------+
 
 BSP_EV_PENDING
@@ -82,8 +85,9 @@ BSP_EV_PENDING
         {
             "reg": [
                 {"name": "event0",  "bits": 1},
+                {"name": "event1",  "bits": 1},
                 {"name": "sw",  "bits": 1},
-                {"bits": 30}
+                {"bits": 29}
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
@@ -94,7 +98,10 @@ BSP_EV_PENDING
 | [0]   | EVENT0 | `1` if a this particular event occurred. This Event is triggered on **rising** |
 |       |        | edge.                                                                          |
 +-------+--------+--------------------------------------------------------------------------------+
-| [1]   | SW     | `1` if a `sw` event occurred. This Event is triggered on a **rising** edge.    |
+| [1]   | EVENT1 | `1` if a this particular event occurred. This Event is triggered on **rising** |
+|       |        | edge.                                                                          |
++-------+--------+--------------------------------------------------------------------------------+
+| [2]   | SW     | `1` if a `sw` event occurred. This Event is triggered on a **rising** edge.    |
 +-------+--------+--------------------------------------------------------------------------------+
 
 BSP_EV_ENABLE
@@ -111,8 +118,9 @@ BSP_EV_ENABLE
         {
             "reg": [
                 {"name": "event0",  "bits": 1},
+                {"name": "event1",  "bits": 1},
                 {"name": "sw",  "bits": 1},
-                {"bits": 30}
+                {"bits": 29}
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
@@ -122,6 +130,8 @@ BSP_EV_ENABLE
 +=======+========+==============================================+
 | [0]   | EVENT0 | Write a ``1`` to enable the ``event0`` Event |
 +-------+--------+----------------------------------------------+
-| [1]   | SW     | Write a ``1`` to enable the ``sw`` Event     |
+| [1]   | EVENT1 | Write a ``1`` to enable the ``event1`` Event |
++-------+--------+----------------------------------------------+
+| [2]   | SW     | Write a ``1`` to enable the ``sw`` Event     |
 +-------+--------+----------------------------------------------+
 

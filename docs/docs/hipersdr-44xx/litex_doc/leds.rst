@@ -22,8 +22,8 @@ LEDS_OUT
 
         {
             "reg": [
-                {"name": "out[2:0]", "bits": 3},
-                {"bits": 29},
+                {"name": "out", "bits": 1},
+                {"bits": 31},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 

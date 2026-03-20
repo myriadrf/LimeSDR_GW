@@ -124,7 +124,7 @@ FPGACFG_MAJOR_REV
 
         {
             "reg": [
-                {"name": "major_rev[15:0]", "attr": 'reset: 2', "bits": 16},
+                {"name": "major_rev[15:0]", "attr": 'reset: 3', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
@@ -141,7 +141,7 @@ FPGACFG_COMPILE_REV
 
         {
             "reg": [
-                {"name": "compile_rev[15:0]", "attr": 'reset: 26', "bits": 16},
+                {"name": "compile_rev[15:0]", "attr": 'reset: 6', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
