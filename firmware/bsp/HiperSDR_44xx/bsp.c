@@ -119,7 +119,7 @@ void bsp_process_irqs(void)
     if (active_irqs & BSP_IRQ1_BIT) {
         // Process Event 1
         bsp_lms8_pwrup();
-        printf("PWR_LMS8_NRST ON\n");
+        printf("BSP_PWR_LMS8_NRST ON\n");
     }
 }
 
@@ -141,8 +141,8 @@ void bsp_init(void)
     TCA6424_SetPortOutputValues(&I2C2_REGS, I2C2_IO_EXP1_ADDR, 1, 0);
     TCA6424_SetPortOutputValues(&I2C2_REGS, I2C2_IO_EXP1_ADDR, 2, 0);
 
-    TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP0_ADDR, 0, (REF_EN_OSC | ENABLE_5VIN | ENABLE_6VIN));
-    TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP0_ADDR, 1, PWR_LMS8_NRST);
+    TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP0_ADDR, 0, (BSP_REF_EN_OSC | BSP_ENABLE_5VIN | BSP_ENABLE_6VIN));
+    TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP0_ADDR, 1, BSP_PWR_LMS8_NRST);
     TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP0_ADDR, 2, 0);
 
     TCA6424_SetPortOutputValues(&I2C3_REGS, I2C3_IO_EXP1_ADDR, 0, 0);
@@ -172,7 +172,7 @@ void bsp_init(void)
             "nop");
     }
 
-    bsp_lms8_pwrup(); // since PWR_LMS8_NRST is set high, also configure PMIC. This is needed for clock network
+    bsp_lms8_pwrup(); // since BSP_PWR_LMS8_NRST is set high, also configure PMIC. This is needed for clock network
 
     // An arbitrary delay to give some time after lms8 PMIC config
     for (int i = 0; i < 10000; i++) {
@@ -194,7 +194,7 @@ void bsp_init(void)
         if (perm_dac_val != 0xFFFF) {
             bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
         } else {
-            bsp_analog_write(BSP_DAC_INDEX, 0x00, (DAC_DEFF_VAL & 0xff00 >> 8), DAC_DEFF_VAL & 0xff);
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00 >> 8), BSP_DAC_DEFAULT_VAL & 0xff);
         }
     }
 
@@ -274,7 +274,7 @@ void bsp_powerup(void)
     //-------------------------------------------------------------------------
     // Enable power CLK_2P05 rail. It is needed for LMK and AFE
     //-------------------------------------------------------------------------
-    value = value | PWR_EN_2P05_BIT;
+    value = value | BSP_PWR_EN_2P05_BIT;
     pwr_control_reg00_write(value);
 
     //-------------------------------------------------------------------------
@@ -304,24 +304,24 @@ void bsp_lmk0518_pwrup_seq(void)
 
     // CLK_2P05 rail has to be powered first
     printf("value = 0x%08X\n", value);
-    value = value | PWR_EN_2P05_BIT;
+    value = value | BSP_PWR_EN_2P05_BIT;
     printf("value = 0x%08X\n", value);
     pwr_control_reg00_write(value);
 
-    // Wait for PG_EN_2P05_BIT to become 1, with timeout
-    while ((pwr_control_reg01_read() & PG_EN_2P05_BIT) == 0) {
+    // Wait for BSP_PG_EN_2P05_BIT to become 1, with timeout
+    while ((pwr_control_reg01_read() & BSP_PG_EN_2P05_BIT) == 0) {
         cdelay(1); // Small delay to avoid hammering the register
         timeout_counter++;
         if (timeout_counter >= timeout_limit) {
-            printf("[BSP] ERROR: Timeout waiting for PG_EN_2P05_BIT\n");
+            printf("[BSP] ERROR: Timeout waiting for BSP_PG_EN_2P05_BIT\n");
             break;
         }
     }
 
-    // Set PWR_EN_LMK_BIT to power up LMK
-    if ((pwr_control_reg01_read() & PG_EN_2P05_BIT) != 0) {
+    // Set BSP_PWR_EN_LMK_BIT to power up LMK
+    if ((pwr_control_reg01_read() & BSP_PG_EN_2P05_BIT) != 0) {
         printf("value = 0x%08X\n", value);
-        value = value | PWR_EN_2P05_BIT | PWR_EN_LMK_BIT;
+        value = value | BSP_PWR_EN_2P05_BIT | BSP_PWR_EN_LMK_BIT;
         printf("value = 0x%08X\n", value);
         pwr_control_reg00_write(value);
         cdelay(50000000); // Delay to allow TPSA3501 5ms startup delay
@@ -351,7 +351,7 @@ void bsp_afe7901_pwrup_seq(void)
     // Power up PMIC_VIOSYS rail
     //-------------------------------------------------------------------------
     printf("value = 0x%08X\n", value);
-    value = value | PAFE_EN_D1P0_BIT;
+    value = value | BSP_PAFE_EN_D1P0_BIT;
     printf("value = 0x%08X\n", value);
     pwr_control_reg00_write(value);
     // 200us delay to wait for LP590718Q start-up (datasheet - 150us max tON), there is no PG to check
@@ -369,7 +369,7 @@ void bsp_afe7901_pwrup_seq(void)
     cdelay(55000);
     bool status = LP8754_init(&I2C0_REGS);
     // Set NRST=1 to start LP8754
-    value = value | AFE_DCDC_1P0_NRST_BIT;
+    value = value | BSP_AFE_DCDC_1P0_NRST_BIT;
     pwr_control_reg00_write(value);
     printf("After LP8754_init: value = 0x%08X\n", value);
     // 7ms delay to wait for LP8754 PG masking (400us+6.4msdatasheet spec)
@@ -402,19 +402,19 @@ void bsp_afe7901_pwrup_seq(void)
     //-------------------------------------------------------------------------
     // Enable A1P2
     //-------------------------------------------------------------------------
-    value = value | PAFE_EN_A1P2_BIT;
+    value = value | BSP_PAFE_EN_A1P2_BIT;
     printf("value = 0x%08X\n", value);
     pwr_control_reg00_write(value);
 
     timeout_limit   = 20000; // Timeout threshold (number of attempts)
     timeout_counter = 0;
 
-    // Wait for PG_AFE_AVDD_1P2 bit to become 1, with timeout
-    while ((pwr_control_reg01_read() & PG_AFE_AVDD_1P2_BIT) == 0) {
+    // Wait for BSP_PG_AFE_AVDD_1P2 bit to become 1, with timeout
+    while ((pwr_control_reg01_read() & BSP_PG_AFE_AVDD_1P2_BIT) == 0) {
         cdelay(1); // Small delay to avoid hammering the register
         timeout_counter++;
         if (timeout_counter >= timeout_limit) {
-            printf("[BSP] ERROR: Timeout waiting for PG_AFE_AVDD_1P2\n");
+            printf("[BSP] ERROR: Timeout waiting for BSP_PG_AFE_AVDD_1P2\n");
             break;
         }
     }
@@ -425,9 +425,9 @@ void bsp_afe7901_pwrup_seq(void)
     // Ensure that AFE_VD12 is rail is powered up before powering AFE_AVDD_1P8 and
     // AFE_VDDCLK_1P8 rails. See afe7901 datasheet.
     // CLK_2P5 rail is needed for AFE_VDDCLK_1P8
-    if ((pwr_control_reg01_read() & (PG_AFE_AVDD_1P2_BIT | PG_EN_2P05_BIT)) == (PG_AFE_AVDD_1P2_BIT | PG_EN_2P05_BIT)) {
+    if ((pwr_control_reg01_read() & (BSP_PG_AFE_AVDD_1P2_BIT | BSP_PG_EN_2P05_BIT)) == (BSP_PG_AFE_AVDD_1P2_BIT | BSP_PG_EN_2P05_BIT)) {
         printf("value = 0x%08X\n", value);
-        value = value | PAFE_EN_A1P8_BIT | PAFE_EN_A1P8_1_BIT;
+        value = value | BSP_PAFE_EN_A1P8_BIT | BSP_PAFE_EN_A1P8_1_BIT;
         printf("value = 0x%08X\n", value);
         pwr_control_reg00_write(value);
         // Delays from datasheet Figure 9-7. Power Supply Sequence Requirements
@@ -516,7 +516,7 @@ int8_t lms7002m_periph_id_check(uint8_t periph_id)
  Returns 2 if no LMS8's are present at all*/
 int8_t lms8001_periph_id_check(uint8_t periph_id)
 {
-    if (periph_id > MAX_ID_LMS8) {
+    if (periph_id > BSP_MAX_ID_LMS8) {
         return 0; // Invalid ID
     }
     return 1; // Valid ID
@@ -1002,8 +1002,8 @@ void bsp_lms8_pwrup(void)
 
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data)
 {
-    const uint8_t spi_master = ADF4002_SPIMASTER;
-    const uint8_t spi_cs     = ADF4002_CS;
+    const uint8_t spi_master = BSP_ADF4002_SPIMASTER;
+    const uint8_t spi_cs     = BSP_ADF4002_CS;
     if (pack_data == false) {
         Control_TCXO_ADF(spi_master, spi_cs, oe, (uint8_t *)data);
     } else {
@@ -1041,19 +1041,19 @@ void bsp_init_adf(void)
 void bsp_vctcxo_permanent_dac_read(uint8_t *data)
 {
     // TODO: FIX this, first FLASH read returns 0xFF. Workaround to read two times...
-    FlashQspi_CMD_ReadDataByte(mem_write_offset, &data[0]);
-    FlashQspi_CMD_ReadDataByte(mem_write_offset, &data[0]);
-    FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &data[1]);
+    FlashQspi_CMD_ReadDataByte(BSP_FLASH_STORAGE_OFFSET, &data[0]);
+    FlashQspi_CMD_ReadDataByte(BSP_FLASH_STORAGE_OFFSET, &data[0]);
+    FlashQspi_CMD_ReadDataByte(BSP_FLASH_STORAGE_OFFSET + 1, &data[1]);
 }
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data)
 {
     FlashQspi_CMD_WREN();
-    FlashQspi_CMD_SectorErase(mem_write_offset);
+    FlashQspi_CMD_SectorErase(BSP_FLASH_STORAGE_OFFSET);
     FlashQspi_CMD_WREN();
-    FlashQspi_CMD_PageProgramByte(mem_write_offset, &data[0]);
+    FlashQspi_CMD_PageProgramByte(BSP_FLASH_STORAGE_OFFSET, &data[0]);
     FlashQspi_CMD_WREN();
-    FlashQspi_CMD_PageProgramByte(mem_write_offset + 1, &data[1]);
+    FlashQspi_CMD_PageProgramByte(BSP_FLASH_STORAGE_OFFSET + 1, &data[1]);
 }
 
 uint8_t
@@ -1062,7 +1062,7 @@ bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targe
     // Check if the operation is going to be performed on EEPROM #1 and
     // that it's specifically being used to read VCTCXO DAC value
     // NOTE: condition for IF is copied from previous implementation, might need review
-    if (data_count == 2 && target == 3 && progmode == 0 && offset == 16) {
+    if (data_count == 2 && target == 3 && progmode == 0 && offset == BSP_EEPROM_DAC_ADDR) {
         bsp_vctcxo_permanent_dac_read(data);
         return STATUS_COMPLETED_CMD;
     }
@@ -1075,7 +1075,7 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
     // Check if the operation is going to be performed on EEPROM #1 and
     // that it's specifically being used to store VCTCXO DAC value
     // NOTE: condition for IF is copied from previous implementation, might need review
-    if (data_count == 2 && target == 3 && progmode == 0 && offset == 16) {
+    if (data_count == 2 && target == 3 && progmode == 0 && offset == BSP_EEPROM_DAC_ADDR) {
         bsp_vctcxo_permanent_dac_write(data);
         return STATUS_COMPLETED_CMD;
     }
@@ -1204,7 +1204,7 @@ void bsp_lmk_check_lock(void)
 uint8_t bsp_serial_read(uint8_t *data_field)
 {
     uint8_t tmprd_serial[32];
-    FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, 32, tmprd_serial);
+    FlashQspi_CMD_ReadOTPData(BSP_OTP_SERIAL_ADDR, 32, tmprd_serial);
     memcpy(data_field + 24, tmprd_serial, 32);
     data_field[1] = 16;
     data_field[2] = serial_otp_unlock_key;
@@ -1220,12 +1220,12 @@ uint8_t bsp_serial_write(const uint8_t *data_field)
     if (storage_type != 3)
         return STATUS_ERROR_CMD;
 
-    if (serial_otp_unlock_key == OTP_UNLOCK_KEY) {
+    if (serial_otp_unlock_key == BSP_OTP_UNLOCK_KEY) {
         memcpy(tmp_serial, data_field + 24, 32);
-        FlashQspi_ProgramOTP(OTP_SERIAL_ADDRESS, data_field[1], tmp_serial);
+        FlashQspi_ProgramOTP(BSP_OTP_SERIAL_ADDR, data_field[1], tmp_serial);
         serial_otp_unlock_key = 0;
         return STATUS_COMPLETED_CMD;
-    } else if (provided_key == OTP_UNLOCK_KEY) {
+    } else if (provided_key == BSP_OTP_UNLOCK_KEY) {
         serial_otp_unlock_key = provided_key;
         return STATUS_COMPLETED_CMD;
     }

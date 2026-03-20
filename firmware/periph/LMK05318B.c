@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdio.h> // For debug/logging (optional)
 
-#ifndef I2C_LMK05318B_ADDR
-#    error "I2C_LMK05318B_ADDR is not defined. Please define it before including this file."
+#ifndef BSP_I2C_LMK_ADDR
+#    error "BSP_I2C_LMK_ADDR is not defined. Please define it before including this file."
 #endif
 
 uint32_t lmk05318b_config[] = {
@@ -770,7 +770,7 @@ bool LMK05318B_init(litei2c_regs *i2c_regs)
 // Function to write a 16-bit register address and 8-bit data
 bool LMK05318B_write_reg(litei2c_regs *i2c_regs, uint16_t reg_addr, uint8_t value)
 {
-    return litei2c_a16d8_write_register(i2c_regs, I2C_LMK05318B_ADDR, reg_addr, value) == 0;
+    return litei2c_a16d8_write_register(i2c_regs, BSP_I2C_LMK_ADDR, reg_addr, value) == 0;
 }
 
 bool LMK05318B_apply_config(litei2c_regs *litei2c_regs)
@@ -789,7 +789,7 @@ bool LMK05318B_apply_config(litei2c_regs *litei2c_regs)
 
 bool LMK05318B_read_reg(litei2c_regs *i2c_regs, uint16_t reg_addr, uint8_t *rdata)
 {
-    return litei2c_a16d8_read_register(i2c_regs, I2C_LMK05318B_ADDR, reg_addr, rdata) == 0;
+    return litei2c_a16d8_read_register(i2c_regs, BSP_I2C_LMK_ADDR, reg_addr, rdata) == 0;
 }
 
 bool LMK05318B_check_ID(litei2c_regs *litei2c_regs)
@@ -853,7 +853,7 @@ bool LMK05318B_verify_config(litei2c_regs *litei2c_regs)
 // Function to dump all register (usefull for testing only)
 void LMK05318B_dump_registers(litei2c_regs *litei2c_regs)
 {
-    const uint8_t i2c_addr = I2C_LMK05318B_ADDR; // LMK05318B I2C address (example)
+    const uint8_t i2c_addr = BSP_I2C_LMK_ADDR; // LMK05318B I2C address (example)
     const int num_regs     = sizeof(reg_addrs) / sizeof(reg_addrs[0]);
 
     // Array to store the read data

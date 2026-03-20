@@ -23,8 +23,8 @@
 /*-----------------------------------------------------------------------*/
 /* Constants                                                             */
 /*-----------------------------------------------------------------------*/
-#define I2C_DAC_ADDR    0x4C
-#define I2C_TERMO_ADDR  0x4B
+#define BSP_I2C_DAC_ADDR    0x4C
+#define BSP_I2C_TEMP_SENSOR_ADDR  0x4B
 #define LP8758_I2C_ADDR 0x60
 
 #ifndef LMS64C_METHOD
@@ -190,11 +190,11 @@ int main(void)
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
             case CMD_GET_INFO:
 
-                LMS_Ctrl_Packet_Tx->Data_field[0] = FW_VER_BSP; // FW_VER LSB
-                LMS_Ctrl_Packet_Tx->Data_field[1] = DEV_TYPE;
+                LMS_Ctrl_Packet_Tx->Data_field[0] = BSP_FW_VER; // FW_VER LSB
+                LMS_Ctrl_Packet_Tx->Data_field[1] = BSP_DEV_TYPE;
                 LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
-                LMS_Ctrl_Packet_Tx->Data_field[3] = HW_VER;
-                LMS_Ctrl_Packet_Tx->Data_field[4] = EXP_BOARD;
+                LMS_Ctrl_Packet_Tx->Data_field[3] = BSP_HW_VER;
+                LMS_Ctrl_Packet_Tx->Data_field[4] = BSP_EXP_BOARD;
                 LMS_Ctrl_Packet_Tx->Data_field[9] = FW_VER_MAIN; // FW_VER MSB
                 LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                 break;

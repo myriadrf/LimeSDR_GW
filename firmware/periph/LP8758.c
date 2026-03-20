@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdio.h> // For debug/logging (optional)
 
-#ifndef I2C_LP8758_ADDR
-#    error "I2C_LP8758_ADDR is not defined. Please define it before including this file."
+#ifndef BSP_I2C_LP8758_ADDR
+#    error "BSP_I2C_LP8758_ADDR is not defined. Please define it before including this file."
 #endif
 
 // TODO: replace magic number with defines and control fields
@@ -74,7 +74,7 @@ bool LP8758_init(litei2c_regs *litei2c_regs)
 // Function to write a 16-bit register address and 8-bit data
 bool LP8758_write_reg(litei2c_regs *litei2c_regs, uint8_t reg_addr, uint8_t value)
 {
-    return litei2c_a8d8_write_register(litei2c_regs, I2C_LP8758_ADDR, reg_addr, value) == 0;
+    return litei2c_a8d8_write_register(litei2c_regs, BSP_I2C_LP8758_ADDR, reg_addr, value) == 0;
 }
 
 bool LP8758_apply_config(litei2c_regs *litei2c_regs)
@@ -94,13 +94,13 @@ bool LP8758_apply_config(litei2c_regs *litei2c_regs)
 // Read a single 8-bit register from LP8758
 bool LP8758_read_reg(litei2c_regs *litei2c_regs, uint8_t reg_addr, uint8_t *reg_value)
 {
-    return litei2c_a8d8_read_register(litei2c_regs, I2C_LP8758_ADDR, reg_addr, reg_value) == 0;
+    return litei2c_a8d8_read_register(litei2c_regs, BSP_I2C_LP8758_ADDR, reg_addr, reg_value) == 0;
 }
 
 // Function to read a 8-bit register address and 8-bit data (usefull for testing only)
 void LP8758_read_registers(litei2c_regs *litei2c_regs)
 {
-    const uint8_t i2c_addr = I2C_LP8758_ADDR; // LP8758 I2C address (example)
+    const uint8_t i2c_addr = BSP_I2C_LP8758_ADDR; // LP8758 I2C address (example)
 
     // Define the register addresses you want to read from
     uint8_t reg_addrs[] = {

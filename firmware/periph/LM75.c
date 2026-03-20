@@ -14,7 +14,7 @@
  */
 int8_t LM75_Read_Register(const litei2c_regs *I2C_REGS, uint8_t I2C_ADDR_LSB, uint8_t reg_addr, uint16_t *data)
 {
-    uint8_t full_addr = LM75_I2C_ADDR | (I2C_ADDR_LSB & 0x07);
+    uint8_t full_addr = BSP_I2C_LM75_ADDR | (I2C_ADDR_LSB & 0x07);
     return litei2c_a8d16_read_register(I2C_REGS, full_addr, reg_addr, data);
 }
 
@@ -28,7 +28,7 @@ int8_t LM75_Read_Register(const litei2c_regs *I2C_REGS, uint8_t I2C_ADDR_LSB, ui
  */
 int8_t LM75_Write_Register(const litei2c_regs *I2C_REGS, uint8_t I2C_ADDR_LSB, uint8_t reg_addr, uint16_t data)
 {
-    uint8_t full_addr = LM75_I2C_ADDR | (I2C_ADDR_LSB & 0x07);
+    uint8_t full_addr = BSP_I2C_LM75_ADDR | (I2C_ADDR_LSB & 0x07);
     return litei2c_a8d16_write_register(I2C_REGS, full_addr, reg_addr, data);
 }
 

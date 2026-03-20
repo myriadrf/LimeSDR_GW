@@ -21,7 +21,7 @@ void bsp_init(void)
         if (perm_dac_val != 0xFFFF) {
             bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
         } else {
-            bsp_analog_write(BSP_DAC_INDEX, 0x00, (DAC_DEFF_VAL & 0xff00 >> 8), DAC_DEFF_VAL & 0xff);
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00 >> 8), BSP_DAC_DEFAULT_VAL & 0xff);
         }
     }
 }
@@ -159,7 +159,7 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command)
 
 int8_t lms7002m_periph_id_check(uint8_t periph_id)
 {
-    if (periph_id > MAX_ID_LMS7) {
+    if (periph_id > BSP_MAX_ID_LMS7) {
         return 0; // Invalid ID
     }
     return 1; // Valid ID
@@ -197,7 +197,7 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
     if (channel == 0) {
         uint16_t val     = 0;
         uint8_t *val_ptr = (uint8_t *)&val;
-        litei2c_a8d16_read_register(&I2C0_REGS, I2C_DAC_ADDR, 0x00, &val);
+        litei2c_a8d16_read_register(&I2C0_REGS, BSP_I2C_DAC_ADDR, 0x00, &val);
         *value_lsb = val_ptr[1];
         *value_msb = val_ptr[0];
         return STATUS_COMPLETED_CMD;
@@ -206,7 +206,7 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
         uint16_t buf;
         uint8_t *buf_point = (uint8_t *)&buf;
         *unit              = 0x50; // unit = 0.1C
-        buf                = TMP114_Read_Temp(&I2C0_REGS, I2C_TERMO_ADDR);
+        buf                = TMP114_Read_Temp(&I2C0_REGS, BSP_I2C_TEMP_SENSOR_ADDR);
         buf                = TMP114_Convert_Temp(buf);
         *value_lsb         = buf_point[0];
         *value_msb         = buf_point[1];
@@ -223,7 +223,7 @@ uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8
         uint8_t *val_ptr = (uint8_t *)&val;
         val_ptr[0]       = value_msb;
         val_ptr[1]       = value_lsb;
-        litei2c_a8d16_write_register(&I2C0_REGS, I2C_DAC_ADDR, 0x30, val);
+        litei2c_a8d16_write_register(&I2C0_REGS, BSP_I2C_DAC_ADDR, 0x30, val);
         return STATUS_COMPLETED_CMD;
     }
     return STATUS_ERROR_CMD;
@@ -261,18 +261,18 @@ uint8_t bsp_gpio_get_cached(const uint8_t offset)
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data)
 {
-    FlashQspi_CMD_ReadDataByte(mem_write_offset, &data[0]);
-    FlashQspi_CMD_ReadDataByte(mem_write_offset + 1, &data[1]);
+    FlashQspi_CMD_ReadDataByte(BSP_FLASH_STORAGE_OFFSET, &data[0]);
+    FlashQspi_CMD_ReadDataByte(BSP_FLASH_STORAGE_OFFSET + 1, &data[1]);
 }
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data)
 {
     FlashQspi_CMD_WREN();
-    FlashQspi_CMD_SectorErase(mem_write_offset);
+    FlashQspi_CMD_SectorErase(BSP_FLASH_STORAGE_OFFSET);
     FlashQspi_CMD_WREN();
-    FlashQspi_CMD_PageProgramByte(mem_write_offset, &data[0]);
+    FlashQspi_CMD_PageProgramByte(BSP_FLASH_STORAGE_OFFSET, &data[0]);
     FlashQspi_CMD_WREN();
-    FlashQspi_CMD_PageProgramByte(mem_write_offset + 1, &data[1]);
+    FlashQspi_CMD_PageProgramByte(BSP_FLASH_STORAGE_OFFSET + 1, &data[1]);
 }
 
 uint8_t
@@ -281,7 +281,7 @@ bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targe
     // Check if the operation is going to be performed on EEPROM #1 and
     // that it's specifically being used to read VCTCXO DAC value
     // NOTE: condition for IF is copied from previous implementation, might need review
-    if (data_count == 2 && target == 3 && progmode == 0 && offset == 16) {
+    if (data_count == 2 && target == 3 && progmode == 0 && offset == BSP_EEPROM_DAC_ADDR) {
         bsp_vctcxo_permanent_dac_read(data);
         return STATUS_COMPLETED_CMD;
     }
@@ -294,7 +294,7 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
     // Check if the operation is going to be performed on EEPROM #1 and
     // that it's specifically being used to store VCTCXO DAC value
     // NOTE: condition for IF is copied from previous implementation, might need review
-    if (data_count == 2 && target == 3 && progmode == 0 && offset == 16) {
+    if (data_count == 2 && target == 3 && progmode == 0 && offset == BSP_EEPROM_DAC_ADDR) {
         bsp_vctcxo_permanent_dac_write(data);
         return STATUS_COMPLETED_CMD;
     }
@@ -489,7 +489,7 @@ uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint
 uint8_t bsp_serial_read(uint8_t *data_field)
 {
     uint8_t tmprd_serial[32];
-    FlashQspi_CMD_ReadOTPData(OTP_SERIAL_ADDRESS, 32, tmprd_serial);
+    FlashQspi_CMD_ReadOTPData(BSP_OTP_SERIAL_ADDR, 32, tmprd_serial);
     memcpy(data_field + 24, tmprd_serial, 32);
     data_field[1] = 16;
     data_field[2] = serial_otp_unlock_key;
@@ -505,12 +505,12 @@ uint8_t bsp_serial_write(const uint8_t *data_field)
     if (storage_type != 3)
         return STATUS_ERROR_CMD;
 
-    if (serial_otp_unlock_key == OTP_UNLOCK_KEY) {
+    if (serial_otp_unlock_key == BSP_OTP_UNLOCK_KEY) {
         memcpy(tmp_serial, data_field + 24, 32);
-        FlashQspi_ProgramOTP(OTP_SERIAL_ADDRESS, data_field[1], tmp_serial);
+        FlashQspi_ProgramOTP(BSP_OTP_SERIAL_ADDR, data_field[1], tmp_serial);
         serial_otp_unlock_key = 0;
         return STATUS_COMPLETED_CMD;
-    } else if (provided_key == OTP_UNLOCK_KEY) {
+    } else if (provided_key == BSP_OTP_UNLOCK_KEY) {
         serial_otp_unlock_key = provided_key;
         return STATUS_COMPLETED_CMD;
     }

@@ -24,7 +24,7 @@ void bsp_init(void)
         if (perm_dac_val != 0xFFFF) {
             bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
         } else {
-            bsp_analog_write(BSP_DAC_INDEX, 0x00, (DAC_DEFF_VAL & 0xff00 >> 8), DAC_DEFF_VAL & 0xff);
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00 >> 8), BSP_DAC_DEFAULT_VAL & 0xff);
         }
     }
 }
@@ -105,7 +105,7 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command)
 
 int8_t lms7002m_periph_id_check(uint8_t periph_id)
 {
-    if (periph_id > MAX_ID_LMS7) {
+    if (periph_id > BSP_MAX_ID_LMS7) {
         return 0; // Invalid ID
     }
     return 1; // Valid ID
@@ -169,7 +169,7 @@ uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_
     if (channel == 0 && unit == 0) {
         dac_val_ptr[0]       = value_lsb;
         dac_val_ptr[1]       = value_msb;
-        const uint8_t retval = dacx311_write_value(dac_val, SPI_CS_DAC, DAC_MODEL_5311);
+        const uint8_t retval = dacx311_write_value(dac_val, BSP_SPI_CS_DAC, DAC_MODEL_5311);
         if (retval == 0) {
             return STATUS_COMPLETED_CMD;
         }
@@ -236,7 +236,7 @@ bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targe
             uint8_t retval = 0;
             for (uint8_t i = 0; i < data_count; i++) {
                 // Read a byte at a time
-                retval |= litei2c_a16d8_read_register(&I2C0_REGS, EEPROM_I2C_ADDR, read_addr + i, &data[i]);
+                retval |= litei2c_a16d8_read_register(&I2C0_REGS, BSP_I2C_EEPROM_ADDR, read_addr + i, &data[i]);
             }
             if (retval == 0)
                 return STATUS_COMPLETED_CMD;
@@ -256,8 +256,8 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
             // FW to flash (actually just used to write XO DAC VALUE)
             printf("%08x\n", offset);
 
-            if (offset >= FLASH_USRSEC_START_ADDR) {
-                if (offset % FLASH_BLOCK_SIZE == 0 && data_count > 0) {
+            if (offset >= BSP_FLASH_STORAGE_OFFSET) {
+                if (offset % BSP_FLASH_BLOCK_SIZE == 0 && data_count > 0) {
                     // flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
                     spiflash_erase(offset);
                 }
@@ -286,7 +286,7 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
             uint8_t retval = 0;
             for (uint8_t i = 0; i < data_count; i++) {
                 // Write a byte at a time
-                retval |= litei2c_a16d8_write_register(&I2C0_REGS, EEPROM_I2C_ADDR, write_addr + i, data[i]);
+                retval |= litei2c_a16d8_write_register(&I2C0_REGS, BSP_I2C_EEPROM_ADDR, write_addr + i, data[i]);
             }
             // Return Completed if no errors
             if (retval == 0)
@@ -393,7 +393,7 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
         // Init
         case 10:
             // Set Flash memory addresses
-            address = CFM0StartAddress;
+            address = BSP_CFM0_START_ADDR;
 
             // spiflash_erase_primary(spiflash);
             //  Erase First 64KB block, other blocks are erased later
@@ -431,9 +431,9 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
                 p_spi_wrdata[3] = payload[byte + 3];
 
                 // Command to write into On-Chip Flash IP
-                if (address <= CFM0EndAddress) {
+                if (address <= BSP_CFM0_END_ADDR) {
                     // Erase Block if we reach starting address of 64KB block
-                    if (address % FLASH_BLOCK_SIZE == 0) {
+                    if (address % BSP_FLASH_BLOCK_SIZE == 0) {
                         // flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
                         spiflash_erase(address);
                     }
@@ -534,31 +534,31 @@ uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint
 
     if (current_portion == 0) {
         /* Reset MCU */
-        addr = (0x80 << 8) | MCU_CONTROL_REG;
+        addr = (0x80 << 8) | BSP_MCU_CONTROL_REG;
         val  = 0x0000;
-        lms_spi_write(addr, val, SPI_CS_LMS);
+        lms_spi_write(addr, val, BSP_SPI_CS_LMS);
 
         /* Set mode */
-        addr = (0x80 << 8) | MCU_CONTROL_REG;
+        addr = (0x80 << 8) | BSP_MCU_CONTROL_REG;
 
         switch (prog_mode) {
-        case PROG_EEPROM:
+        case BSP_PROG_EEPROM:
             val = 0x0001;
-            lms_spi_write(addr, val, SPI_CS_LMS);
+            lms_spi_write(addr, val, BSP_SPI_CS_LMS);
             break;
 
-        case PROG_SRAM:
+        case BSP_PROG_SRAM:
             val = 0x0002;
-            lms_spi_write(addr, val, SPI_CS_LMS);
+            lms_spi_write(addr, val, BSP_SPI_CS_LMS);
             break;
 
-        case BOOT_MCU:
+        case BSP_BOOT_MCU:
             val = 0x0003;
-            lms_spi_write(addr, val, SPI_CS_LMS);
+            lms_spi_write(addr, val, BSP_SPI_CS_LMS);
 
             /* Read MCU status (boot path) */
-            addr = (0x00 << 8) | MCU_STATUS_REG;
-            val  = lms_spi_read(addr, SPI_CS_LMS);
+            addr = (0x00 << 8) | BSP_MCU_STATUS_REG;
+            val  = lms_spi_read(addr, BSP_SPI_CS_LMS);
 
             /* Save portion and return immediately for boot */
             last_portion       = current_portion;
@@ -573,9 +573,9 @@ uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint
 
     /* Wait until EMPTY_WRITE_BUFF = 1 */
     MCU_retries = 0;
-    while (MCU_retries < MAX_MCU_RETRIES) {
-        addr = (0x00 << 8) | MCU_STATUS_REG;
-        val  = lms_spi_read(addr, SPI_CS_LMS);
+    while (MCU_retries < BSP_MAX_MCU_RETRIES) {
+        addr = (0x00 << 8) | BSP_MCU_STATUS_REG;
+        val  = lms_spi_read(addr, BSP_SPI_CS_LMS);
         printf("%08x\n", val);
 
         if (val & 0x01)
@@ -587,16 +587,16 @@ uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint
 
     /* Write 32 bytes to MCU FIFO */
     for (uint8_t block = 0; block < 32; block++) {
-        addr = (0x80 << 8) | MCU_FIFO_WR_REG;
+        addr = (0x80 << 8) | BSP_MCU_FIFO_WR_REG;
         val  = (0x00 << 8) | data[block];
-        lms_spi_write(addr, val, SPI_CS_LMS);
+        lms_spi_write(addr, val, BSP_SPI_CS_LMS);
     }
 
     /* Wait until EMPTY_WRITE_BUFF = 1 again */
     MCU_retries = 0;
     while (MCU_retries < 500) {
-        addr = (0x00 << 8) | MCU_STATUS_REG;
-        val  = lms_spi_read(addr, SPI_CS_LMS);
+        addr = (0x00 << 8) | BSP_MCU_STATUS_REG;
+        val  = lms_spi_read(addr, BSP_SPI_CS_LMS);
 
         if (val & 0x01)
             break;
@@ -608,9 +608,9 @@ uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint
     /* Last portion: verify programming completed */
     if (current_portion == 255) {
         MCU_retries = 0;
-        while (MCU_retries < MAX_MCU_RETRIES) {
-            addr = (0x00 << 8) | MCU_STATUS_REG;
-            val  = lms_spi_read(addr, SPI_CS_LMS);
+        while (MCU_retries < BSP_MAX_MCU_RETRIES) {
+            addr = (0x00 << 8) | BSP_MCU_STATUS_REG;
+            val  = lms_spi_read(addr, BSP_SPI_CS_LMS);
 
             if (val & 0x40)
                 break; /* PROGRAMMED = 1 */
@@ -619,7 +619,7 @@ uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint
             cdelay(30000);
         }
 
-        if (MCU_retries == MAX_MCU_RETRIES)
+        if (MCU_retries == BSP_MAX_MCU_RETRIES)
             cmd_errors++;
     }
 
