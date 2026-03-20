@@ -1,6 +1,7 @@
 #ifndef LMK05318B_H
 #define LMK05318B_H
 
+#include "litei2c.h"
 #include <stdbool.h>
 #include <stdint.h>
 

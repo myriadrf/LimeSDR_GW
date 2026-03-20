@@ -8,6 +8,7 @@
 extern "C"
 {
 #endif
+#include <stdbool.h>
 
 #define SPI_FLASH_BLOCK_SIZE 256
 #define CRC32_ERASED_FLASH   0xFEA8A821

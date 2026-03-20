@@ -1,6 +1,7 @@
 #ifndef LP8754_H
 #define LP8754_H
 
+#include "litei2c.h"
 #include <stdbool.h>
 #include <stdint.h>
 
