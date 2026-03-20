@@ -10,6 +10,7 @@
 import os
 import sys
 import argparse
+import math
 
 import litepcie.frontend.dma
 from migen import *
@@ -208,13 +209,21 @@ class BaseSoC(SoCCore):
         if with_bios:
             integrated_rom_size      = 0x6800
             integrated_rom_init      = []
-            integrated_main_ram_size = 0x6800
-            integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+            # Large default for first pass to allow firmware to build, small default for second pass to fail if calculation fails.
+            integrated_main_ram_size = 0x10000 if cpu_firmware is None else 0x6800
+            if cpu_firmware is not None and os.path.exists(cpu_firmware):
+                integrated_main_ram_size = max(integrated_main_ram_size, math.ceil(os.path.getsize(cpu_firmware) / 0x100) * 0x100)
+            integrated_main_ram_init = [] if cpu_firmware is None or not os.path.exists(cpu_firmware) else get_mem_data(cpu_firmware, endianness="little")
+            print(f"[RAM_SIZE_DEBUG] integrated_main_ram_size = 0x{integrated_main_ram_size:X} ({integrated_main_ram_size} bytes)")
         else:
-            integrated_rom_size      = 0x6800
-            integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+            # Large default for first pass to allow firmware to build, small default for second pass to fail if calculation fails.
+            integrated_rom_size      = 0x10000 if cpu_firmware is None else 0x1000
+            if cpu_firmware is not None and os.path.exists(cpu_firmware):
+                integrated_rom_size = max(integrated_rom_size, math.ceil(os.path.getsize(cpu_firmware) / 0x100) * 0x100)
+            integrated_rom_init      = [0] if cpu_firmware is None or not os.path.exists(cpu_firmware) else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
+            print(f"[ROM_SIZE_DEBUG] integrated_rom_size = 0x{integrated_rom_size:X} ({integrated_rom_size} bytes)")
 
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = f"LiteX SoC on {board.capitalize()} XTRX ",
@@ -739,7 +748,9 @@ def main():
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
                 f.write("BSP_PROJECT_DIR=bsp/LimeSDR_XTRX\n")
-            os.system(f"cd firmware && make clean all")
+            ret = os.system(f"cd firmware && make clean all")
+            if ret != 0:
+                raise RuntimeError("Firmware build failed")
             bistream_output_dir = "bitstream/LimeSDR_XTRX"
             if not os.path.exists(bistream_output_dir):
                 os.makedirs(bistream_output_dir)
