@@ -3,9 +3,9 @@
    :hidden:
 
    Introduction <self>
+   docs/quick_start
    docs/project_structure
    docs/gw_description
-   docs/build_project
    docs/litex_basics
    docs/modify_project
    docs/add_new_board
@@ -89,7 +89,7 @@ project. Here's a quick overview of the main parts and when you might want to re
   block diagrams and module breakdowns. Use it when you need to learn about the internal workings or
   troubleshoot specific hardware interactions.
 
-**Building the Project** :doc:`docs/build_project`
+**Building the Project** :doc:`docs/quick_start`
   This is your go-to for instructions on compiling gateware and firmware, including required tools
   and board-specific steps. Turn to it whenever you're setting up a build environment or flashing a
   board.

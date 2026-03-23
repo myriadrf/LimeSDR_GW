@@ -1,9 +1,11 @@
-.. _build_the_project:
+.. _quick_start:
 
-Building the Project
-============================
+Quick Start
+===========
 
 This section explains how to build the gateware and work with the firmware for the supported boards. The build process relies on several mandatory tools (**LiteX, SBT, and GHDL**) as well as board-specific FPGA toolchains.
+
+.. _requirements:
 
 Requirements
 ------------
@@ -22,27 +24,43 @@ Before building the project, you **must install** the following tools:
   **4.1.0** Version is required for VHDL-to-Verilog conversion in some targets.
   See the `GHDL repository <https://github.com/ghdl/ghdl>`_ for installation instructions.
 
-- **openFPGALoader**
+- **openFPGALoader v1.1.1**
   Universal utility for programming FPGAs. 
   See the `openFPGALoader repository <https://github.com/trabucayre/openFPGALoader>`_ for installation instructions.
 
 Additionally, the required FPGA toolchain depends on the target board:
-
-- **For LimeSDR XTRX:**
-   - **Vivado 2022.1** (or later) is required. Download it and install from `Xilinx <http://www.xilinx.com>`_. Free version can be used.
-   - Ensure Vivado’s settings are sourced or its binaries are in your ``$PATH`` before building.
-
-- **For LimeSDR Mini V1:**
-   - **Quartus 23.1** (or later) is required. Download it and install from `Intel <https://www.intel.com>`_. Free version can be used.
-
-- **For LimeSDR Mini V2:**
-   - **Project Trellis (with Yosys and nextpnr)** OpenSource toolchain is required. Clone and install from `GitHub <https://github.com/YosysHQ/prjtrellis>`_.
-   - **Diamond 3.14** (or later) is required for bitstream creation. Download it from `Lattice <https://www.latticesemi.com/>`_. Free version can be used.
-
-- **For HiperSDR 44xx:**
-   - **Vivado 2022.2** exact 2022.2 version is required with `AR000035576 <https://adaptivesupport.amd.com/s/article/000035576?language=en_US>`_ Tactical patch. Download it and install from `Xilinx <http://www.xilinx.com>`_. Free version can be used. 
-   - Ensure Vivado’s settings are sourced or its binaries are in your ``$PATH`` before building.
   
+.. list-table:: Board-specific FPGA toolchain requirements
+   :widths: 20 30 20 30
+   :header-rows: 1
+
+   * - Board
+     - Toolchain
+     - Version
+     - Notes
+   * - LimeSDR XTRX
+     - `Vivado <https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html>`_
+     - 2022.1 or later
+     - Ensure Vivado is in ``$PATH`` or its environment is sourced.
+   * - LimeSDR Mini V1
+     - `Quartus <https://www.altera.com/products/development-tools/quartus>`_ 
+     - 23.1 or later
+     - Free edition can be used.
+   * - LimeSDR Mini V2
+     - `Project Trellis (with Yosys and nextpnr) <https://github.com/YosysHQ/prjtrellis>`_
+
+       `Diamond <https://www.latticesemi.com/latticediamond>`_
+     - Trellis - build latest from source; 
+       
+       Diamond - 3.14 or later;
+     - Diamond is required for bitstream generation.
+   * - HiperSDR 44xx
+     - `Vivado <https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html>`_
+     - 2022.2 (exact version required)
+     - Requires tactical patch `AR000035576 <https://adaptivesupport.amd.com/s/article/000035576?language=en_US>`_.
+  
+       Ensure Vivado is in ``$PATH`` or its environment is sourced.
+
 Consult respective toolchain’s documentation for installation details.
 
 .. note::
@@ -57,6 +75,7 @@ To clone the repository and initialize its submodules, run:
 .. code:: bash
 
    git clone https://github.com/myriadrf/LimeSDR_GW.git
+   cd LimeSDR_GW
    git submodule init
    git submodule update
 
@@ -72,7 +91,7 @@ Gateware for wanted target can be build with folowing command:
 
 .. note::
 
-   - Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
+   - Ensure required toolchain is installed and configured before building. See :ref:`Requirements <requirements>` section for respective board.  
    
    - Make sure to run build command from **project root directory**.
    
