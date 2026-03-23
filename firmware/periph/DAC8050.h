@@ -7,19 +7,19 @@
 
 #include "litei2c.h"
 
-//addresses
+// addresses
 #define DAC8050_ADDR_A0_AGND 0x48
-#define DAC8050_ADDR_A0_VDD 0x49
-#define DAC8050_ADDR_A0_SDA 0x4A
-#define DAC8050_ADDR_A0_SCL 0x4B
-//commands
-#define DAC8050_NOOP 0x0
-#define DAC8050_DEVID 0x1
-#define DAC8050_SYNC 0x2
-#define DAC8050_CONFIG 0x3
-#define DAC8050_GAIN 0x4
-#define DAC8050_TRIGGER 0x5
-#define DAC8050_STATUS 0x7
+#define DAC8050_ADDR_A0_VDD  0x49
+#define DAC8050_ADDR_A0_SDA  0x4A
+#define DAC8050_ADDR_A0_SCL  0x4B
+// commands
+#define DAC8050_NOOP     0x0
+#define DAC8050_DEVID    0x1
+#define DAC8050_SYNC     0x2
+#define DAC8050_CONFIG   0x3
+#define DAC8050_GAIN     0x4
+#define DAC8050_TRIGGER  0x5
+#define DAC8050_STATUS   0x7
 #define DAC8050_DAC_DATA 0x8
 
 // About: DAC8050 is a I2C controlled DAC with 8bit address and 16bit data
@@ -34,7 +34,7 @@
  * @param val The 16-bit value to be written to the specified command.
  * @return Returns 0 on success, or a negative value indicating an error during the I2C communication.
  */
-int8_t DAC8050_Write_Command(const litei2c_regs* regs, uint8_t i2c_addr, uint8_t cmd, uint16_t val);
+int8_t DAC8050_Write_Command(const litei2c_regs *regs, uint8_t i2c_addr, uint8_t cmd, uint16_t val);
 
 /**
  * Reads a 16-bit value from the DAC8050 device by sending a specific command.
@@ -45,7 +45,7 @@ int8_t DAC8050_Write_Command(const litei2c_regs* regs, uint8_t i2c_addr, uint8_t
  * @param val Pointer to a 16-bit variable where the read value will be stored.
  * @return Returns 0 on success, or a negative value indicating an error during the I2C communication.
  */
-int8_t DAC8050_Read_Command(const litei2c_regs* regs, uint8_t i2c_addr, uint8_t cmd, uint16_t* val);
+int8_t DAC8050_Read_Command(const litei2c_regs *regs, uint8_t i2c_addr, uint8_t cmd, uint16_t *val);
 
 /**
  * Writes DAC output value to the DAC8050 device using I2C communication.
@@ -56,7 +56,7 @@ int8_t DAC8050_Read_Command(const litei2c_regs* regs, uint8_t i2c_addr, uint8_t 
  *
  * @return Returns 0 on success, or a negative value indicating an error during the I2C communication.
  */
-int8_t DAC8050_Write_Value(const litei2c_regs* regs, uint8_t i2c_addr, uint16_t val);
+int8_t DAC8050_Write_Value(const litei2c_regs *regs, uint8_t i2c_addr, uint16_t val);
 
 /**
  * Reads the current value from the DAC8050 device.
@@ -69,6 +69,6 @@ int8_t DAC8050_Write_Value(const litei2c_regs* regs, uint8_t i2c_addr, uint16_t 
  *            from the DAC register will be stored.
  * @return Returns 0 on success, or a negative value indicating an error during the I2C communication.
  */
-int8_t DAC8050_Read_Value(const litei2c_regs* regs, uint8_t i2c_addr, uint16_t* val);
+int8_t DAC8050_Read_Value(const litei2c_regs *regs, uint8_t i2c_addr, uint16_t *val);
 
-#endif //DAC8050_H
+#endif // DAC8050_H

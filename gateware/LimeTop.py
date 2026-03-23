@@ -38,7 +38,7 @@ import warnings
 # LimeTop ------------------------------------------------------------------------------------------
 
 class LimeTop(LiteXModule):
-    def __init__(self, soc, platform,
+    def __init__(self, soc, platform, vendor,
         # Configuration.
         double_channels_mode = False,
         LMS_DIQ_WIDTH        = 12,
@@ -81,6 +81,11 @@ class LimeTop(LiteXModule):
         self.wr_active = Signal() # From FT601
 
         self.platform              = platform
+
+        # vendor must be "lattice", "altera", or "xilinx"
+        if vendor not in ["lattice", "altera", "xilinx"]:
+            raise ValueError(f"Unsupported vendor: {vendor}")
+        self.vendor = vendor
 
         self.pps       = Signal()
 
@@ -130,6 +135,7 @@ class LimeTop(LiteXModule):
                 hw_ver = revision_pads.HW_VER
             self.lms7002_top = lms7002_top = LMS7002Top(
                 platform        = platform,
+                vendor          = vendor,
                 pads            = platform.request("LMS"),
                 hw_ver          = hw_ver,
                 add_csr         = True,

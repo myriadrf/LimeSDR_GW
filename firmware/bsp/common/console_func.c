@@ -4,18 +4,19 @@
 
 #include "console_func.h"
 
+#include <generated/csr.h>
 #include <libbase/console.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <generated/csr.h>
 
 #include "bsp.h"
 /*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
 
-  char *readstr(void) {
+char *readstr(void)
+{
     char c[2];
     static char s[64];
     static int ptr = 0;
@@ -24,50 +25,52 @@
         c[0] = getchar();
         c[1] = 0;
         switch (c[0]) {
-            case 0x7f:
-            case 0x08:
-                if (ptr > 0) {
-                    ptr--;
-                    fputs("\x08 \x08", stdout);
-                }
+        case 0x7f:
+        case 0x08:
+            if (ptr > 0) {
+                ptr--;
+                fputs("\x08 \x08", stdout);
+            }
+            break;
+        case 0x07:
+            break;
+        case '\r':
+        case '\n':
+            s[ptr] = 0x00;
+            fputs("\n", stdout);
+            ptr = 0;
+            return s;
+        default:
+            if (ptr >= (sizeof(s) - 1))
                 break;
-            case 0x07:
-                break;
-            case '\r':
-            case '\n':
-                s[ptr] = 0x00;
-                fputs("\n", stdout);
-                ptr = 0;
-                return s;
-            default:
-                if (ptr >= (sizeof(s) - 1))
-                    break;
-                fputs(c, stdout);
-                s[ptr] = c[0];
-                ptr++;
-                break;
+            fputs(c, stdout);
+            s[ptr] = c[0];
+            ptr++;
+            break;
         }
     }
 
     return NULL;
 }
 
-  char *get_token(char **str) {
+char *get_token(char **str)
+{
     char *c, *d;
 
-    c = (char *) strchr(*str, ' ');
+    c = (char *)strchr(*str, ' ');
     if (c == NULL) {
-        d = *str;
+        d    = *str;
         *str = *str + strlen(*str);
         return d;
     }
-    *c = 0;
-    d = *str;
+    *c   = 0;
+    d    = *str;
     *str = c + 1;
     return d;
 }
 
-  void prompt(void) {
+void prompt(void)
+{
     printf("\e[92;1mlimesdr\e[0m> ");
 }
 
@@ -75,8 +78,9 @@
 /* Help                                                                  */
 /*-----------------------------------------------------------------------*/
 
-  void help(void) {
-    puts("\nLimeSDR minimal app built "__DATE__" "__TIME__"\n");
+void help(void)
+{
+    puts("\nLimeSDR minimal app built " __DATE__ " " __TIME__ "\n");
     puts("Available commands:");
     puts("help               - Show this command");
     puts("reboot             - Reboot CPU");
@@ -102,13 +106,15 @@
 /* Commands                                                              */
 /*-----------------------------------------------------------------------*/
 
-  void reboot_cmd(void) {
+void reboot_cmd(void)
+{
     ctrl_reset_write(1);
 }
 
 #ifdef CSR_LEDS_BASE
 
-  void led_cmd(void) {
+void led_cmd(void)
+{
     int i;
     printf("Led demo...\n");
 
@@ -139,15 +145,14 @@
 
 #endif
 
-
-
-  void gpioled_cmd(void) {
+void gpioled_cmd(void)
+{
 #ifdef CSR_GPIO_BASE
     int i, j;
     printf("GPIO Led override demo...\n");
 
-      // Commented out code and added an error
-      // TODO: Implement in the future maybe
+    // Commented out code and added an error
+    // TODO: Implement in the future maybe
     printf("ERROR: NOT IMPLEMENTED");
 
     //
@@ -168,11 +173,12 @@
 #endif
 }
 
-  void mmap_cmd(void) {
+void mmap_cmd(void)
+{
 #ifdef LIME_TOP_MMAP_BASE
     int i;
 
-    volatile uint32_t *mmap_ptr = (volatile uint32_t *) LIME_TOP_MMAP_BASE;
+    volatile uint32_t *mmap_ptr = (volatile uint32_t *)LIME_TOP_MMAP_BASE;
     printf("MMAP demo...\n");
 
     /* Write counter values to SRAM. */
@@ -180,14 +186,14 @@
     printf("Writing values to SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
     for (i = 0; i < 8; i++) {
         mmap_ptr[i] = i;
-        printf("Wrote %d to address 0x%08X\n", i, (unsigned int) (LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
+        printf("Wrote %d to address 0x%08X\n", i, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
     }
 
     /* Read back values from SRAM. */
     printf("Reading values from SRAM at address 0x%08lX...\n", LIME_TOP_MMAP_BASE);
     for (i = 0; i < 8; i++) {
         uint32_t value = mmap_ptr[i];
-        printf("Read %ld from address 0x%08X\n", value, (unsigned int) (LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
+        printf("Read %ld from address 0x%08X\n", value, (unsigned int)(LIME_TOP_MMAP_BASE + i * sizeof(uint32_t)));
     }
     // *mmap_ptr = (volatile uint32_t *)CSR_BASE;
     // printf("Reading values from SRAM at address 0x%08lX...\n", CSR_BASE);
@@ -208,13 +214,12 @@
 #endif
 }
 
-
-
 /*-----------------------------------------------------------------------*/
 /* I2C                                                                   */
 /*-----------------------------------------------------------------------*/
-  void i2c_test(void) {
-      // TODO: Leaving this empty for now, should probably fix later
+void i2c_test(void)
+{
+    // TODO: Leaving this empty for now, should probably fix later
     // printf("I2C0 Scan...\n");
     // i2c0_scan();
     //
@@ -231,26 +236,25 @@
 /* LMS7002m status                                                       */
 /*-----------------------------------------------------------------------*/
 
-
-  void lms7002_status(void)
+void lms7002_status(void)
 {
 #ifdef CSR_LIME_TOP_LMS7002
-	printf("TX PLL Lock status = %x \n", csr_read_simple(pll0_tx_addrs.locked));
-	printf("\n");
-	printf("RX PLL Lock status = %x \n", csr_read_simple(pll1_rx_addrs.locked));
+    printf("TX PLL Lock status = %x \n", csr_read_simple(pll0_tx_addrs.locked));
+    printf("\n");
+    printf("RX PLL Lock status = %x \n", csr_read_simple(pll1_rx_addrs.locked));
 #endif
 }
 
-  /*-----------------------------------------------------------------------*/
-  /* LMK05318B status                                                       */
-  /*-----------------------------------------------------------------------*/
- void lmk_status(void)
+/*-----------------------------------------------------------------------*/
+/* LMK05318B status                                                       */
+/*-----------------------------------------------------------------------*/
+void lmk_status(void)
 {
 #ifdef LMK05318B_H
-   bsp_lmk_check_lock();
+    bsp_lmk_check_lock();
 #else
-      // TODO: Is this a good error message?
-      printf("ERROR: Not implemented for this board\n");
+    // TODO: Is this a good error message?
+    printf("ERROR: Not implemented for this board\n");
 #endif
 }
 
@@ -258,12 +262,14 @@
 /* Console service / Main                                                */
 /*-----------------------------------------------------------------------*/
 
-  void console_service(void) {
+void console_service(void)
+{
     char *str;
     char *token;
 
     str = readstr();
-    if (str == NULL) return;
+    if (str == NULL)
+        return;
     token = get_token(&str);
     if (strcmp(token, "help") == 0)
         help();
@@ -271,10 +277,10 @@
         reboot_cmd();
     else if (strcmp(token, "i2c_test") == 0)
         i2c_test();
-    //else if (strcmp(token, "init_pmic") == 0)
-        //init_pmic();
-    //else if (strcmp(token, "dump_pmic") == 0)
-        //dump_pmic();
+        // else if (strcmp(token, "init_pmic") == 0)
+        // init_pmic();
+        // else if (strcmp(token, "dump_pmic") == 0)
+        // dump_pmic();
 #ifdef CSR_LEDS_BASE
     else if (strcmp(token, "led") == 0)
         led_cmd();
@@ -291,10 +297,10 @@
 #endif
     else if (strcmp(token, "lmk_stat") == 0)
         lmk_status();
-    //else if (strcmp(token, "dac_test") == 0)
-        //dac_test();
-    //else if (strcmp(token, "flash_test") == 0)
-        //flash_test();
+    // else if (strcmp(token, "dac_test") == 0)
+    // dac_test();
+    // else if (strcmp(token, "flash_test") == 0)
+    // flash_test();
 
     prompt();
 }

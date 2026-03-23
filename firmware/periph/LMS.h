@@ -5,9 +5,8 @@
 #ifndef FIRMWARE_LMS7002M_H
 #define FIRMWARE_LMS7002M_H
 
-#include <generated/csr.h>
 #include "stdint.h"
-
+#include <generated/csr.h>
 
 #define SPI_CS_HIGH (0 << 0)
 #define SPI_CS_LOW  (1 << 0)
@@ -19,4 +18,4 @@ void lms_spi_write(uint16_t addr, uint16_t val, uint32_t cs);
 
 uint16_t lms_spi_read(uint16_t addr, uint32_t cs);
 
-#endif //FIRMWARE_LMS7002M_H
+#endif // FIRMWARE_LMS7002M_H

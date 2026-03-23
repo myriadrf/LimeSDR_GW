@@ -10,20 +10,19 @@ void dacx311_spi_write(const uint16_t write_data, const uint32_t spi_cs)
     const uint32_t cmd = ((uint32_t)write_data) << 16;
 
     /* Wait for the master to be ready. */
-    while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
+    while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0)
+        ;
 
     /* Set CS */
     spimaster_cs_write(spi_cs);
 
     /* Do transfer. */
     spimaster_mosi_write(cmd);
-    spimaster_control_write(
-        (1 << CSR_SPIMASTER_CONTROL_START_OFFSET) |
-        (16 << CSR_SPIMASTER_CONTROL_LENGTH_OFFSET)
-    );
+    spimaster_control_write((1 << CSR_SPIMASTER_CONTROL_START_OFFSET) | (16 << CSR_SPIMASTER_CONTROL_LENGTH_OFFSET));
 
     /* Wait for the transfer to complete. */
-    while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0);
+    while ((spimaster_status_read() & (1 << CSR_SPIMASTER_STATUS_DONE_OFFSET)) == 0)
+        ;
 }
 
 uint8_t dacx311_write_value(const uint16_t value, const uint32_t spi_cs, const uint8_t dac_model)
@@ -31,21 +30,20 @@ uint8_t dacx311_write_value(const uint16_t value, const uint32_t spi_cs, const u
     uint8_t data_width;
     uint16_t data_mask;
     uint16_t spi_val = 0;
-    switch (dac_model)
-    {
+    switch (dac_model) {
     case DAC_MODEL_5311:
         data_width = 8;
-        data_mask = 0xFF;
+        data_mask  = 0xFF;
         break;
 
     case DAC_MODEL_6311:
         data_width = 10;
-        data_mask = 0x3FF;
+        data_mask  = 0x3FF;
         break;
 
     case DAC_MODEL_7311:
         data_width = 12;
-        data_mask = 0xFFF;
+        data_mask  = 0xFFF;
         break;
 
     default:

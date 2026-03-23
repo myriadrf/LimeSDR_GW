@@ -4,21 +4,21 @@
  *  Created on: Sep 7, 2022
  *      Author: Lime Microsystems
  */
-#include <stdio.h>
 #include "fpga_flash_qspi.h"
+#include <stdio.h>
 
 #define DEBUG
 /*
 void Init_flash_qspi(u16 DeviceId, XSpi *InstancePtr, u32 Options)
 {
-	int spi_status;
-	XSpi_Config *ConfigPtr;
+        int spi_status;
+        XSpi_Config *ConfigPtr;
 
     //Get default config
-	ConfigPtr = XSpi_LookupConfig(DeviceId);
-	if (ConfigPtr == NULL) {
-		//return XST_DEVICE_NOT_FOUND;
-	}
+        ConfigPtr = XSpi_LookupConfig(DeviceId);
+        if (ConfigPtr == NULL) {
+                //return XST_DEVICE_NOT_FOUND;
+        }
 
     //Temporary mode override for initialization, saving original value
 //    spi_mode = ConfigPtr->SpiMode;
@@ -26,19 +26,19 @@ void Init_flash_qspi(u16 DeviceId, XSpi *InstancePtr, u32 Options)
 
     //Perform IP core config
     spi_status = XSpi_CfgInitialize(InstancePtr, ConfigPtr,
-				  ConfigPtr->BaseAddress);
+                                  ConfigPtr->BaseAddress);
 
     //Set Options
     spi_status = XSpi_SetOptions(InstancePtr, Options);
-	if(spi_status != XST_SUCCESS) {
-		//return XST_FAILURE;
-	}
+        if(spi_status != XST_SUCCESS) {
+                //return XST_FAILURE;
+        }
 
     // Start the SPI driver so that interrupts and the device are enabled
-	spi_status = XSpi_Start(InstancePtr);
+        spi_status = XSpi_Start(InstancePtr);
 
     //disable global interrupts since we will use a polled approach
-	XSpi_IntrGlobalDisable(InstancePtr);
+        XSpi_IntrGlobalDisable(InstancePtr);
     XSpi_SetSlaveSelect(InstancePtr,1);
     FlashQspi_CMD_DisQPI(InstancePtr);
 //	 retval = FlashQspi_CMD_WREN(InstancePtr);
@@ -90,44 +90,48 @@ void Init_flash_qspi(u16 DeviceId, XSpi *InstancePtr, u32 Options)
 }
 */
 
-
-int FlashQspi_CMD(uint8_t cmd) {
+int FlashQspi_CMD(uint8_t cmd)
+{
     uint8_t sendbuf[1] = {0};
-    sendbuf[0] = cmd;
+    sendbuf[0]         = cmd;
 
-    //return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
+    // return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
     Spi_Transfer(sendbuf, NULL, 1);
     return 1;
 }
 
-
-void FlashQspi_CMD_ReadRDSR(uint8_t *Data) {
+void FlashQspi_CMD_ReadRDSR(uint8_t *Data)
+{
     uint8_t sendbuf[5] = {0};
     uint8_t recvbuf[5] = {0};
 
     sendbuf[0] = RDSR;
 
-    while ((flash_spi_status_read() & 0x1) == 0);
-    //retval = XSpi_Transfer(InstancePtr, sendbuf, recvbuf, 3);
+    while ((flash_spi_status_read() & 0x1) == 0)
+        ;
+    // retval = XSpi_Transfer(InstancePtr, sendbuf, recvbuf, 3);
     Spi_Transfer(sendbuf, recvbuf, 3);
-    //Flash memory repeats status register two times
+    // Flash memory repeats status register two times
     *Data = recvbuf[1];
 }
 
-void FlashQspi_CMD_ReadRDCR(uint8_t *Data) {
+void FlashQspi_CMD_ReadRDCR(uint8_t *Data)
+{
     uint8_t sendbuf[5] = {0};
     uint8_t recvbuf[5] = {0};
 
     sendbuf[0] = RDCR;
 
-    while ((spimaster_status_read() & 0x1) == 0);
-    //retval = XSpi_Transfer(InstancePtr, sendbuf, recvbuf, 3);
+    while ((spimaster_status_read() & 0x1) == 0)
+        ;
+    // retval = XSpi_Transfer(InstancePtr, sendbuf, recvbuf, 3);
     Spi_Transfer(sendbuf, recvbuf, 3);
-    //Flash memory repeats status register two times
+    // Flash memory repeats status register two times
     *Data = recvbuf[1];
 }
 
-void Spi_Transfer(uint8_t *sendbuff, uint8_t *recvbuff, unsigned int ByteCount) {
+void Spi_Transfer(uint8_t *sendbuff, uint8_t *recvbuff, unsigned int ByteCount)
+{
     if (ByteCount > SPI_MAX_TRANSFER_SIZE) {
         // Handle error: ByteCount exceeds maximum transfer size
         // printf("FPGA_FLASH_ERROR: 1");
@@ -135,17 +139,18 @@ void Spi_Transfer(uint8_t *sendbuff, uint8_t *recvbuff, unsigned int ByteCount) 
     }
 
     uint64_t send_data = 0;
-    uint64_t rec_data = 0;
+    uint64_t rec_data  = 0;
     // Convert array of uint8_t to uint64_t type variable end also reverse byte order
     for (int i = 0; i < ByteCount; i++) {
-        send_data |= ((uint64_t) sendbuff[i]) << (8 * (SPI_MAX_TRANSFER_SIZE - 1 - i));
+        send_data |= ((uint64_t)sendbuff[i]) << (8 * (SPI_MAX_TRANSFER_SIZE - 1 - i));
     }
 
-    while ((flash_spi_status_read() & 0x1) == 0);
+    while ((flash_spi_status_read() & 0x1) == 0)
+        ;
     flash_spi_mosi_write(send_data);
     flash_spi_control_write(ByteCount * 8 * SPI_LENGTH | SPI_START);
-    while ((flash_spi_status_read() & 0x1) == 0);
-
+    while ((flash_spi_status_read() & 0x1) == 0)
+        ;
 
     if (recvbuff != NULL) {
         rec_data = flash_spi_miso_read();
@@ -157,58 +162,57 @@ void Spi_Transfer(uint8_t *sendbuff, uint8_t *recvbuff, unsigned int ByteCount) 
     }
 }
 
-
-void FlashQspi_CMD_WREN(void) {
+void FlashQspi_CMD_WREN(void)
+{
     uint8_t sendbuf[1] = {0};
-    //Write enable command
+    // Write enable command
     sendbuf[0] = WREN;
-    //return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
+    // return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
     Spi_Transfer(sendbuf, NULL, 1);
 }
 
-
-void FlashQspi_CMD_WRDI(void) {
+void FlashQspi_CMD_WRDI(void)
+{
     uint8_t sendbuf[1] = {0};
-    //Write disable command
+    // Write disable command
     sendbuf[0] = WRDI;
 
-    //return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
+    // return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
     Spi_Transfer(sendbuf, NULL, 1);
 }
-
 
 /*
 int FlashQspi_CMD_EnQPI(XSpi *InstancePtr)
 {
-	u8 sendbuf[1]={0};
-	//Enable quad mode command
-	sendbuf[0] = 0x35;
+        u8 sendbuf[1]={0};
+        //Enable quad mode command
+        sendbuf[0] = 0x35;
 
-	return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
+        return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
 }
 */
 
 /*
 int FlashQspi_CMD_DisQPI(XSpi *InstancePtr)
 {
-	u8 sendbuf[1]={0};
-	//Enable quad mode command
-	sendbuf[0] = 0xF5;
+        u8 sendbuf[1]={0};
+        //Enable quad mode command
+        sendbuf[0] = 0xF5;
 
-	return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
+        return XSpi_Transfer(InstancePtr, sendbuf, NULL, 1);
 }
 */
 
 /*
 int FlashQspi_CMD_WRSR(XSpi *InstancePtr, u8 StatusReg, u8 ConfigReg)
 {
-	u8 sendbuf[3]={0};
-	//set command and output data
-	sendbuf[0] = 0x1;
-	sendbuf[1] = StatusReg;
-	sendbuf[2] = ConfigReg;
+        u8 sendbuf[3]={0};
+        //set command and output data
+        sendbuf[0] = 0x1;
+        sendbuf[1] = StatusReg;
+        sendbuf[2] = ConfigReg;
 
-	return XSpi_Transfer(InstancePtr, sendbuf, NULL, 3);
+        return XSpi_Transfer(InstancePtr, sendbuf, NULL, 3);
 }
 */
 
@@ -248,12 +252,13 @@ int FlashQspi_CMD_ReadDataPage(XSpi *InstancePtr, u32 address, u8* buffer)
     {
         buffer[i-4] = recvbuf[i];
     }
-    
+
     return retval;
 }
 */
 
-void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t *buffer) {
+void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t *buffer)
+{
     uint8_t sendbuf[5] = {0};
     uint8_t recvbuf[5] = {0};
     int retval;
@@ -263,7 +268,7 @@ void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t *buffer) {
     sendbuf[2] = (address >> 8) & 0xff;
     sendbuf[3] = (address) & 0xff;
 
-    //retval = XSpi_Transfer(InstancePtr, recvbuf, recvbuf, 260);
+    // retval = XSpi_Transfer(InstancePtr, recvbuf, recvbuf, 260);
     Spi_Transfer(sendbuf, recvbuf, 5);
 
     *buffer = recvbuf[4];
@@ -275,23 +280,23 @@ void FlashQspi_CMD_ReadDataByte(uint32_t address, uint8_t *buffer) {
     */
 }
 
-
 /******************************************************************************
-*
-* Read One Time Programmable flash memory region
-*
-* @param	InstancePtr
-* @param	address 	- starting address
-* @param	bytes 		- bytes to read, up to 256bytes
-* @param	buffer		- buffer where to store data
-*
-* @return	XST_SUCCESS if Successful else XST_FAILURE.
-*
-* @note		None.
-*
-******************************************************************************/
+ *
+ * Read One Time Programmable flash memory region
+ *
+ * @param	InstancePtr
+ * @param	address 	- starting address
+ * @param	bytes 		- bytes to read, up to 256bytes
+ * @param	buffer		- buffer where to store data
+ *
+ * @return	XST_SUCCESS if Successful else XST_FAILURE.
+ *
+ * @note		None.
+ *
+ ******************************************************************************/
 
-int FlashQspi_CMD_ReadOTPData(uint32_t address, uint8_t bytes, uint8_t *buffer) {
+int FlashQspi_CMD_ReadOTPData(uint32_t address, uint8_t bytes, uint8_t *buffer)
+{
     int retval;
 
     // Enter secured OTP
@@ -315,8 +320,8 @@ int FlashQspi_CMD_ReadOTPData(uint32_t address, uint8_t bytes, uint8_t *buffer) 
     return retval;
 }
 
-
-void FlashQspi_CMD_WriteDataPage(uint32_t address, uint8_t *buffer) {
+void FlashQspi_CMD_WriteDataPage(uint32_t address, uint8_t *buffer)
+{
     // 256 bytes in a page, 1 byte command, 3 byte address
     uint8_t sendbuf[260] = {0};
 
@@ -335,11 +340,10 @@ void FlashQspi_CMD_WriteDataPage(uint32_t address, uint8_t *buffer) {
     // Spi_Transfer(sendbuf, NULL, 260);
 }
 
-
 /*
 int FlashQspi_CMD_PageProgram(XSpi *InstancePtr, u32 address, u8 bytes, u8* buffer)
 {
-	// One to 256 bytes can be sent to the device to be programmed
+        // One to 256 bytes can be sent to the device to be programmed
 
     // sendbuf[260] = 256 bytes in a page, 1 byte command, 3 byte address
     u8 sendbuf[260] = {0};
@@ -365,10 +369,11 @@ int FlashQspi_CMD_PageProgram(XSpi *InstancePtr, u32 address, u8 bytes, u8* buff
 }
 */
 
-void FlashQspi_CMD_PageProgramByte(uint32_t address, uint8_t *byte) {
+void FlashQspi_CMD_PageProgramByte(uint32_t address, uint8_t *byte)
+{
     // One byte can be sent to the device to be programmed
     uint8_t sendbuf[5] = {0};
-    uint8_t status = 0;
+    uint8_t status     = 0;
 
     sendbuf[0] = PP;
     sendbuf[1] = (address >> 16) & 0xff;
@@ -386,10 +391,10 @@ void FlashQspi_CMD_PageProgramByte(uint32_t address, uint8_t *byte) {
     }
 }
 
-
-void FlashQspi_CMD_SectorErase(uint32_t address) {
+void FlashQspi_CMD_SectorErase(uint32_t address)
+{
     uint8_t sendbuf[5] = {0};
-    uint8_t status = 0;
+    uint8_t status     = 0;
 
     sendbuf[0] = 0x20;
     sendbuf[1] = (address >> 16) & 0xff;
@@ -407,59 +412,57 @@ void FlashQspi_CMD_SectorErase(uint32_t address) {
     }
 }
 
-
-void FlashQspi_ProgramPage(uint32_t address, uint8_t *data) {
+void FlashQspi_ProgramPage(uint32_t address, uint8_t *data)
+{
     uint8_t status_reg = 0;
     int retval;
-    //Set Write enable
+    // Set Write enable
     do {
         FlashQspi_CMD_WREN();
         FlashQspi_CMD_ReadRDSR(&status_reg);
-    } while ((status_reg & 2) == 0); //Check write enable
-    //Perform write
+    } while ((status_reg & 2) == 0); // Check write enable
+    // Perform write
     FlashQspi_CMD_WriteDataPage(address, data);
-    //Check if flash is busy
+    // Check if flash is busy
     do {
         FlashQspi_CMD_ReadRDSR(&status_reg);
     } while ((status_reg & 1) == 1);
 }
 
-
-int FlashQspi_ProgramOTP(uint32_t address, uint8_t bytes, uint8_t *data) {
+int FlashQspi_ProgramOTP(uint32_t address, uint8_t bytes, uint8_t *data)
+{
     uint8_t status_reg = 0;
     int retval;
-
 
     // Perform write byte by byte
     for (uint8_t i = 0; i < bytes; i++) {
         // Enter secured OTP
         retval = FlashQspi_CMD(ENSO);
 
-        //Set Write enable
+        // Set Write enable
         do {
             FlashQspi_CMD_WREN();
             FlashQspi_CMD_ReadRDSR(&status_reg);
-        } while ((status_reg & 2) == 0); //Check write enable
+        } while ((status_reg & 2) == 0); // Check write enable
 
         FlashQspi_CMD_PageProgramByte(address + i, &data[i]);
         // Exit secured OTP
         retval = FlashQspi_CMD(EXSO);
     }
 
-
-    //Return success if no problems
+    // Return success if no problems
     return retval;
 }
 
-
-void FlashQspi_EraseSector(uint32_t address) {
+void FlashQspi_EraseSector(uint32_t address)
+{
     uint8_t status_reg = 0;
     int retval;
-    //Set Write enable
+    // Set Write enable
     do {
         FlashQspi_CMD_WREN();
         FlashQspi_CMD_ReadRDSR(&status_reg);
-    } while ((status_reg & 2) == 0); //Check write enable
+    } while ((status_reg & 2) == 0); // Check write enable
     // Perform erase
     FlashQspi_CMD_SectorErase(address);
     // Check if flash is busy
@@ -467,7 +470,6 @@ void FlashQspi_EraseSector(uint32_t address) {
         FlashQspi_CMD_ReadRDSR(&status_reg);
     } while ((status_reg & 1) == 1);
 }
-
 
 /*
 int FlashQspi_ReadPage(XSpi *InstancePtr, u32 address, u8* data)
