@@ -79,6 +79,11 @@ Documentation Overview
 This documentation is organized into several sections to guide you through different aspects of the
 project. Here's a quick overview of the main parts and when you might want to refer to them:
 
+**Quick Start guide** :doc:`docs/quick_start`
+  This is your go-to for instructions on compiling gateware and firmware, including required tools
+  and board-specific steps. Turn to it whenever you're setting up a build environment or flashing a
+  board.
+
 **Project Structure** :doc:`docs/project_structure`
   Check this if you're new to the repository and want to understand how files and directories are
   organized, including how LiteX and LimeDFB fit together. It's helpful for getting oriented before
@@ -88,11 +93,6 @@ project. Here's a quick overview of the main parts and when you might want to re
   Refer here for detailed explanations of the FPGA gateware for each supported board, including
   block diagrams and module breakdowns. Use it when you need to learn about the internal workings or
   troubleshoot specific hardware interactions.
-
-**Building the Project** :doc:`docs/quick_start`
-  This is your go-to for instructions on compiling gateware and firmware, including required tools
-  and board-specific steps. Turn to it whenever you're setting up a build environment or flashing a
-  board.
 
 **LiteX Basics** :doc:`docs/litex_basics`
   Refer here for an introduction to LiteX concepts as used in LimeSDR_GW, including platforms,

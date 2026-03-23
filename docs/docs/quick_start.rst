@@ -40,11 +40,11 @@ Additionally, the required FPGA toolchain depends on the target board:
      - Notes
    * - LimeSDR XTRX
      - `Vivado <https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html>`_
-     - 2022.1 or later
+     - 2022.1
      - Ensure Vivado is in ``$PATH`` or its environment is sourced.
    * - LimeSDR Mini V1
      - `Quartus <https://www.altera.com/products/development-tools/quartus>`_ 
-     - 23.1 or later
+     - 23.1
      - Free edition can be used.
    * - LimeSDR Mini V2
      - `Project Trellis (with Yosys and nextpnr) <https://github.com/YosysHQ/prjtrellis>`_
