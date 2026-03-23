@@ -14,7 +14,7 @@ from litex.build.io import DDROutput
 # LMS7002 DDOUT ------------------------------------------------------------------------------------
 
 class LMS7002DDOUT(LiteXModule):
-    def __init__(self, platform, iq_width=12, pads=None):
+    def __init__(self, platform, vendor, iq_width=12, pads=None):
         # Delay control
         self.data_loadn     = Signal()
         self.data_move      = Signal()
@@ -43,7 +43,7 @@ class LMS7002DDOUT(LiteXModule):
                     o   = oddr_q,
                 ),
             ]
-            if platform.name in ["limesdr_mini_v2"]:
+            if vendor == "lattice":
                 self.specials += [
                     # Delay component.
                     # ----------------

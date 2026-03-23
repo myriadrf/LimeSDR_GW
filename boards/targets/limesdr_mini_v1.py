@@ -258,7 +258,7 @@ class BaseSoC(SoCCore):
         revision_pads = platform.request("revision")
         revision_pads.BOM_VER = Cat(revision_pads.BOM_VER0, revision_pads.BOM_VER1, revision_pads.BOM_VER2)
 
-        limetop  = LimeTop(self, platform,
+        limetop  = LimeTop(self, platform, vendor="altera",
             LMS_DIQ_WIDTH      = LMS_DIQ_WIDTH,
             sink_width         = STRM0_FPGA_RX_RWIDTH,
             sink_clk_domain    = "ft601",

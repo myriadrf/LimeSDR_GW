@@ -530,7 +530,7 @@ class BaseSoC(SoCCore):
         #platform.toolchain.pre_placement_commands.append(f"set_property strategy Performance_Explore [get_runs impl_1]")
 
         # LimeTOP ----------------------------------------------------------------------------------
-        self.limetop = LimeTop(self, platform,
+        self.limetop = LimeTop(self, platform, vendor="xilinx",
            # Configuration.
            double_channels_mode = True,
            LMS_DIQ_WIDTH        = 12,
