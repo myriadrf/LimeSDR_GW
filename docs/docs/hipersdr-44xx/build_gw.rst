@@ -10,7 +10,7 @@ To build the gateware for **hipersdr_44xx** target, use command:
    
 .. note::
 
-   - Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
+   - Ensure required toolchain is installed and configured before building. See :ref:`Requirements <requirements>` section for respective board.  
    
    - Make sure to run build command from **project root directory**.
   
@@ -47,64 +47,54 @@ Programming cables
 JTAG programming (openFPGALoader)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-this section describes how to program the Xilinx FPGA configuration FLASH memory used on the **HiperSDR 44xx** board with JTAG interface and openFGPALoader software.
-
-Used software and hardware
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-List of used software is given in Table 1.
-
-.. table:: Table 1. Required software and tools
-
-  +------------------------------------------------------------------------------+-------------------------------+---------------------------------------------------+
-  | **Tool**                                                                     | **Version**                   | **Comment**                                       |
-  +==============================================================================+===============================+===================================================+
-  | `openFPGALoader - v0.13.1 <https://github.com/trabucayre/openFPGALoader>`__  | v0.13.1                       | Universal utility for programming FPGAs           |
-  +------------------------------------------------------------------------------+-------------------------------+---------------------------------------------------+
+This section describes how to program the Xilinx FPGA configuration flash
+memory on the **HiperSDR 44xx** board using the JTAG interface and
+**openFPGALoader** software.
 
 
-List of tested JTAG programming cables is given in Table 2.
+Tested JTAG programming cables are listed in Table 1.
 
-.. table:: Table 2. Tested JTAG programming cables
+.. list-table:: Table 1. Tested JTAG programming cables
+   :header-rows: 1
+   :widths: 35 15 50
 
-  +------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------------------------------------+
-  | **Hardware**                                                                                                                                   | **Version**                   | **Comment**                                                                        |
-  +================================================================================================================================================+===============================+====================================================================================+
-  | `FT2232H Mini Module <https://ftdichip.com/products/ft2232h-mini-module/>`__                                                                   |                               | Original JTAG programming cable from Xilinx                                        |
-  +------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------------------------------------+
-
+   * - **Hardware**
+     - **Version**
+     - **Comment**
+   * - `FT2232H Mini Module <https://ftdichip.com/products/ft2232h-mini-module/>`_
+     -
+     - Xilinx-compatible JTAG programming cable
 
 FT2232H Mini Module JTAG adapter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Connect JTAG jumper cables as shown in Table 3 between JTAG adapter and HiperSDR 44xx board.
-* Insert board into PCIe slot and power up PC.
+* Connect the JTAG jumper wires between the FT2232H Mini Module and the
+  HiperSDR 44xx board as shown in Table 2.
+* Insert the board into a PCIe slot and power on the PC.
 
+.. list-table:: Table 2. HiperSDR 44xx board and FT2232H Mini Module connections
+   :header-rows: 1
+   :widths: 50 50
 
-.. table:: Table 3. HiperSDR 44xx board and FT2232H Mini module connections
+   * - **FT2232H Mini Module**
+     - **HiperSDR 44xx**
+   * - CN2-12 (AD3)
+     - TMS
+   * - CN2-10 (AD1)
+     - TDI
+   * - CN2-9 (AD2)
+     - TDO
+   * - CN2-7 (AD0)
+     - TCK
+   * - CN2-2 (GND)
+     - GND
+   * - CN2-11 (VIO)
+     - VIO
 
-  +------------------------------------+------------------------------------+
-  | **FT2232H Mini Module**            | **HiperSDR 44xx**                  |
-  +====================================+====================================+
-  | CN2-12 (AD3)                       | TMS                                |
-  +------------------------------------+------------------------------------+
-  | CN2-10 (AD1)                       | TDI                                |
-  +------------------------------------+------------------------------------+
-  | CN2-9 (AD2)                        | TDO                                |
-  +------------------------------------+------------------------------------+
-  | CN2-7 (AD0)                        | TCK                                |
-  +------------------------------------+------------------------------------+
-  | CN2-2 (GND)                        | GND                                |
-  +------------------------------------+------------------------------------+
-  | CN2-11 (VIO)                       | VIO                                |
-  +------------------------------------+------------------------------------+
-
-   
 .. note::
 
-   Make sure that **CN3-1(VBUS)** and **CN3-3(VCC)** pins are connected together with jumper in order to power up FT2232H mini module. 
-
+   Make sure **CN3-1 (VBUS)** and **CN3-3 (VCC)** are connected with a
+   jumper on the FT2232H Mini Module so that the module is powered.
 
 Flashing Instructions
 ---------------------
@@ -123,4 +113,6 @@ Flashing Instructions
      
 .. note::
 
-	User/Gold Bitstreams has to be present/generated first before flashing
+  - Both User and Gold bitstreams must be programmed when programming an empty FLASH memory otherwise the FPGA will not boot.
+  - Once Gold bitstream is programmed into FLASH memory then just User bitstream can be upadated if needed. 
+  - User/Gold Bitstreams has to be present/generated first before flashing

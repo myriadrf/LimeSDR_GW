@@ -1,5 +1,5 @@
 LimeSDR Mini V2 build instructions 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+==================================
 
 To build the gateware for **limesdr_mini_v2** target, use:
 
@@ -10,7 +10,7 @@ To build the gateware for **limesdr_mini_v2** target, use:
 
 .. note::
 
-   - Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
+   - Ensure required toolchain is installed and configured before building. See :ref:`Requirements <requirements>` section for respective board.  
    
    - Make sure to run build command from **project root directory**.
 
@@ -34,7 +34,7 @@ Available build options
 
 
 User/Golden Bitstreams
------------------------------
+----------------------
 
 - The **User bitstream** is built using the commands above.
 - The **Golden bitstream** is provided at: ``bitstream/LimeSDR_Mini_V2/``

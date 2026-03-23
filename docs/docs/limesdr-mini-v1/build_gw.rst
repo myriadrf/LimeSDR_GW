@@ -1,5 +1,5 @@
 LimeSDR Mini V1 build instructions 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+==================================
 
 To build the gateware for **limesdr_mini_v1** target, use:
 
@@ -9,7 +9,7 @@ To build the gateware for **limesdr_mini_v1** target, use:
    
 .. note::
 
-   - Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
+   - Ensure required toolchain is installed and configured before building. See :ref:`Requirements <requirements>`  section for respective board.  
    
    - Make sure to run build command from **project root directory**.
 
