@@ -549,40 +549,41 @@ int main(void)
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
             } break;
 
-            // COMMAND ANALOG VALUE READ
-            case CMD_ANALOG_VAL_RD:
-                for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                    cmd_errors +=
-                        bsp_analog_read(LMS_Ctrl_Packet_Rx->Data_field[0 + (block)],      // Channel (8bit)
-                                        &LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)], // Units (8bit)
-                                        &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)], // Value MSB (8bit/16bit)
-                                        &LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)]  // Value LSB (8bit/16bit)
-                        );
-                }
-
-                if (cmd_errors)
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                else
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                break;
-
-            // COMMAND ANALOG VALUE WRITE
-            case CMD_ANALOG_VAL_WR:
-                if (Check_many_blocks(4))
+                // COMMAND ANALOG VALUE READ
+                case CMD_ANALOG_VAL_RD:
+                    spirez = 0;
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        spirez |=
+                                bsp_analog_read(LMS_Ctrl_Packet_Rx->Data_field[0 + (block)], // Channel (8bit)
+                                                &LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)], // Units (8bit)
+                                                &LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)],
+                                                // Value MSB (8bit/16bit)
+                                                &LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)]
+                                                // Value LSB (8bit/16bit)
+                                );
+                    }
+                    // bsp_analog_read can only return STATUS_COMPLETED_CMD (0x01) or STATUS_ERROR_CMD (0x05)
+                    // so the return value should always be valid and one failed block should set the status to error
+                    LMS_Ctrl_Packet_Tx->Header.Status = spirez;
                     break;
 
-                for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
-                    cmd_errors += bsp_analog_write(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], // Channel (8bit)
+                // COMMAND ANALOG VALUE WRITE
+                case CMD_ANALOG_VAL_WR:
+                    spirez = 0;
+                    if (Check_many_blocks(4))
+                        break;
+
+                    for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+                        spirez |= bsp_analog_write(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], // Channel (8bit)
                                                    LMS_Ctrl_Packet_Rx->Data_field[1 + (block * 4)], // Units (8bit)
                                                    LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)], // Value MSB (8bit)
-                                                   LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)]  // Value LSB (8bit)
-                    );
-                }
-                if (cmd_errors)
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_ERROR_CMD;
-                else
-                    LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
-                break;
+                                                   LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)] // Value LSB (8bit)
+                        );
+                    }
+                    // bsp_analog_write can only return STATUS_COMPLETED_CMD (0x01) or STATUS_ERROR_CMD (0x05)
+                    // so the return value should always be valid and one failed block should set the status to error
+                    LMS_Ctrl_Packet_Tx->Header.Status = spirez;
+                    break;
 
             case CMD_LMS_MCU_FW_WR:
                 // bsp_lms_mcu_fw_wr directly returns status
