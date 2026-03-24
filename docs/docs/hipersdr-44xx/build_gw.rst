@@ -2,6 +2,17 @@ HiperSDR 44xx build instructions
 ================================
 
 
+To build gateware for the **hipersdr_44xx** target, initialize the private
+**AFE79xx** submodule:
+
+.. code:: bash
+
+   git submodule update --init --checkout gateware/AFE79xx
+
+.. note::
+
+   Run this command once after cloning the project repository.
+
 To build the gateware for **hipersdr_44xx** target, use command:
 
 .. code:: bash

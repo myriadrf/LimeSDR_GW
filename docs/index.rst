@@ -116,17 +116,35 @@ GitHub—contributions and feedback are always welcome!
 
 Supported Boards
 ----------------
-.. table:: Table 1. Supported Boards
 
-   +-----------------+----------------+--------------------------+---------------------------------------------------------------+
-   | **Board**       | **HW Version** | **Description**          | **Toolchain**                                                 |
-   +=================+================+==========================+===============================================================+
-   | LimeSDR XTRX    | v1.2+          | Mini PCIe SDR board.     | Xilinx Vivado. Potential future OpenXC7 support.              |
-   +-----------------+----------------+--------------------------+---------------------------------------------------------------+
-   | LimeSDR Mini V1 | v1.x           | USB SDR board.           | Altera Quartus.                                               |
-   +-----------------+----------------+--------------------------+---------------------------------------------------------------+
-   | LimeSDR Mini V2 | v2.x           | USB SDR board.           | Open source flow with GHDL, Yosys, nextpnr.                   |
-   +-----------------+----------------+--------------------------+---------------------------------------------------------------+
+.. list-table:: Table 1. Supported Boards
+   :header-rows: 1
+   :widths: 20 15 25 40
+
+   * - **Board**
+     - **HW Version**
+     - **Description**
+     - **Toolchain**
+   * - LimeSDR XTRX
+     - v1.2+
+     - Mini PCIe SDR board.
+     - Xilinx Vivado. Potential future OpenXC7 support.
+   * - LimeSDR Mini V1
+     - v1.x
+     - USB SDR board.
+     - Altera Quartus.
+   * - LimeSDR Mini V2
+     - v2.x
+     - USB SDR board.
+     - Open source flow with GHDL, Yosys, nextpnr.
+   * - HiperSDR-44xx
+     - v2
+     - PCIe SDR board.
+     - Xilinx Vivado.
+   * - sSDR 
+     - rev 2
+     - PCIe SDR board.
+     - Xilinx Vivado.
 
 Open Source Tools
 -----------------

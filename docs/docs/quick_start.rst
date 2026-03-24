@@ -58,8 +58,11 @@ Additionally, the required FPGA toolchain depends on the target board:
      - `Vivado <https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html>`_
      - 2022.2 (exact version required)
      - Requires tactical patch `AR000035576 <https://adaptivesupport.amd.com/s/article/000035576?language=en_US>`_.
+   * - sSDR rev2
+     - `Vivado <https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html>`_
+     - 2022.1
+     - Ensure Vivado is in ``$PATH`` or its environment is sourced.
   
-       Ensure Vivado is in ``$PATH`` or its environment is sourced.
 
 Consult respective toolchain’s documentation for installation details.
 
@@ -106,4 +109,4 @@ Detailed **build/load/flash** instructions and available options for each board 
    LimeSDR Mini V1 <./limesdr-mini-v1/build_gw>
    LimeSDR Mini V2 <./limesdr-mini-v2/build_gw>
    HiperSDR 44xx <./hipersdr-44xx/build_gw>
-
+   sSDR rev2 <./ssdr_rev2/build_gw>
