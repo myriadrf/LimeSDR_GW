@@ -646,6 +646,14 @@ class BaseSoC(SoCCore):
         """
         write_module_hierarchy_json(self, outfile="soc_structure.json", name="SoC")
 
+    def generate_documentation(self, build_name, build_html, **kwargs):
+        from litex.soc.doc import generate_docs
+        generate_docs(self, "docs/docs/{}/litex_doc".format(build_name),
+            project_name = "{}".format(build_name),
+            author       = "Lime Microsystems")
+        if build_html:
+            os.system("sphinx-build -M html docs/docs/{}/litex_doc docs/docs/{}/litex_doc/_build".format(build_name, build_name))
+
 
 # Build --------------------------------------------------------------------------------------------
 
@@ -676,6 +684,8 @@ def main():
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
+
+    parser.add_argument("--doc",    action="store_true", help="Generate SOC ducumentation")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -759,6 +769,10 @@ def main():
         insert_crc("firmware/firmware.bin", fbi_mode=True, o_filename="firmware/firmware.fbi", little_endian=True)
         prog = soc.platform.create_programmer(cable=args.cable)
         prog.flash(args.firmware_flash_offset, "firmware/firmware.fbi")
+
+    # Generate Litex Documentation files and if --doc option is used build also
+    build_name = soc.build_name.replace("_", "-")
+    soc.generate_documentation(build_name + "_rev2", build_html=args.doc)
 
 
 if __name__ == "__main__":

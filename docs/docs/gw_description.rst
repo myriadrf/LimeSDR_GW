@@ -14,12 +14,14 @@ generic information applicable to all supported boards or jump to the specific b
    limesdr_mini_v1
    limesdr_mini_v2
    HiperSDR_44xx
+   ssdr_rev2
 
 
 - :doc:`limesdr_xtrx`
 - :doc:`limesdr_mini_v1`
 - :doc:`limesdr_mini_v2`
 - :doc:`HiperSDR_44xx`
+- :doc:`ssdr_rev2`
 
 .. toctree::
    :maxdepth: 3

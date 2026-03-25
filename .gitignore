@@ -17,6 +17,8 @@ vivado_*
 
 docs/_build/
 docs/docs/limesdr-xtrx/litex_doc/_build/
+docs/docs/ssdr_rev2/litex_doc/_build/
+docs/docs/hipersdr-44xx/litex_doc/_build/
 
 docs/venv/
 node_modules/
