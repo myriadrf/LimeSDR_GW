@@ -446,6 +446,18 @@ void periphcfg_read(uint16_t addr, uint8_t *rdata)
 	case 0x09:
 		value = limetop_general_periph_periph_input_RD_1_read();
 		break;
+	case 0x0C:
+		value = limetop_general_periph_periph_output_OVRD_0_read();
+		break;
+	case 0x0D:
+		value = limetop_general_periph_periph_output_VAL_0_read();
+		break;
+	case 0x0E:
+		value = limetop_general_periph_periph_output_OVRD_1_read();
+		break;
+	case 0x0F:
+		value = limetop_general_periph_periph_output_VAL_1_read();
+		break;
 	default:
 		printf("PeriphCfg Read error: unhandled register %d\n", addr);
 	}
