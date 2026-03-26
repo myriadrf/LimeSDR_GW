@@ -14,105 +14,93 @@
 Introduction
 ============
 
-LimeSDR GW Project Overview
----------------------------
-This project provides **gateware** and **firmware** for the LimeSDR family of boards, which are
-popular for their versatility in Software Defined Radio (SDR) applications. The gateware runs on
-the FPGA to handle tasks like data pipelining/processing and hardware integration, while the
-firmware supports the embedded CPU for control and configuration. We tried our best to make it easy
-to maintain, customize, and expand the functionality of these SDR boards.
+Project Overview
+----------------
+LimeSDR_GW provides gateware and firmware for the LimeSDR family of Software Defined Radio (SDR)
+boards. The gateware implements FPGA-side data movement, processing, and hardware integration,
+while the firmware runs on the embedded CPU for control, configuration, and board management.
 
-The LimeSDR_GW repository (available on GitHub at myriadrf/LimeSDR_GW) brings LiteX and LimeDFB
-together into a unified gateware ecosystem for LimeSDR variants (e.g., Mini V1/V2, XTRX). It
-replaces scattered, board-specific HDL projects with a systematic, sustainable framework that
-simplifies maintenance and adaptation across diverse FPGA architectures. The structure emphasizes
-modularity, with board-specific configurations in platforms/targets, custom logic in gateware, and
-firmware in its dedicated directory. This setup supports easy expansion, such as adding new boards
-or RF features, while promoting collaboration through standardized designs.
+The repository combines LiteX and LimeDFB into a unified development framework for multiple
+LimeSDR platforms, including boards such as LimeSDR Mini V1/V2 and LimeSDR XTRX. It replaces
+separate board-specific HDL projects with a more structured and maintainable architecture that
+emphasizes reuse, portability, and long-term sustainability.
+
+The repository is organized around a modular structure: board-specific definitions are placed in
+``platforms/`` and ``targets/``, reusable FPGA logic is implemented in ``gateware/``, and CPU-side
+software is located in ``firmware/``. This organization makes it easier to maintain existing
+designs, add support for new boards, and extend the system with additional RF or DSP features.
 
 .. figure:: docs/images/limesdr_family.png
    :width: 600
    :align: center
-   :alt: LimeSDR Boards Family
+   :alt: LimeSDR board family
 
 Core Framework: LiteX
 ---------------------
-At its core, the project is built on the **LiteX framework**, an open-source toolkit that uses
-Python to describe and build System-on-Chip (SoC) designs for FPGAs. LiteX automates many of the
-repetitive aspects of FPGA development, such as connecting buses, managing clocks and resets,
-integrating memory, integrating CPUs, and compiling firmware. This allows developers to spend more
-time on the unique parts of SDR systems, like RF signal handling, rather than getting bogged down
-in low-level details.
+The project is built around the **LiteX** framework, an open-source Python-based toolkit for
+building FPGA SoC designs. LiteX automates common integration tasks such as interconnect creation,
+clock/reset management, memory integration, CPU integration, and firmware build support. This lets
+developers focus on SDR-specific functionality instead of repetitive SoC infrastructure work.
 
-Some key advantages include:
+Key LiteX advantages in this project include:
 
-- Its **vendor-neutral approach**, which works across different FPGA makers like Xilinx, Altera,
-  and Lattice.
-- Support for various **soft-core processors** like VexRiscv.
-- The ability to easily wrap and integrate existing Verilog or VHDL code.
+- Support for multiple FPGA families and toolchains, improving portability across hardware targets.
+- Integration with soft-core CPUs such as **VexRiscv**.
+- Straightforward wrapping and reuse of existing Verilog and VHDL modules.
 
-Overall, it promotes reusability, makes designs more portable to new hardware, and fosters
-collaboration through cleaner, more modular code.
+Overall, LiteX helps improve code reuse, portability, and maintainability across supported boards.
 
 .. figure:: docs/images/limesdr_litex_logos.png
    :width: 800
    :align: center
-   :alt: LimeSDR + LiteX
+   :alt: LimeSDR and LiteX
 
 RF Processing: LimeDFB
 ----------------------
-Complementing LiteX is the **LimeDFB library**, which supplies modular VHDL components specifically
-designed for RF data processing, such as receive (RX) and transmit (TX) paths tailored to the
-LMS7002M transceiver found in LimeSDR boards. LimeDFB focuses on reusability (These components can
-be adapted for other RF transceivers without starting from scratch) and its emphasis on
-sustainability. By separating RF logic into standalone modules, it simplifies maintenance across
-multiple board variants and reduces duplication.
+The **LimeDFB** library complements LiteX by providing modular VHDL blocks for RF data processing,
+including receive (RX) and transmit (TX) paths for transceivers such as the LMS7002M used on
+LimeSDR boards. By separating RF processing logic into reusable standalone components, LimeDFB
+reduces code duplication and simplifies maintenance across multiple board variants.
 
-The advantages here include:
+Its main benefits include:
 
-- Easier expansion for new features or hardware changes.
-- Better organization of complex RF workflows.
-- A foundation that encourages community contributions to evolve SDR capabilities.
+- Easier integration of new RF or DSP features.
+- Better organization of complex signal-processing chains.
+- Reusable building blocks that can be adapted to other platforms and transceivers.
 
 Documentation Overview
 ----------------------
-This documentation is organized into several sections to guide you through different aspects of the
-project. Here's a quick overview of the main parts and when you might want to refer to them:
+This documentation is organized into several sections:
 
-**Quick Start guide** :doc:`docs/quick_start`
-  This is your go-to for instructions on compiling gateware and firmware, including required tools
-  and board-specific steps. Turn to it whenever you're setting up a build environment or flashing a
-  board.
+**Quick Start Guide** :doc:`docs/quick_start`
+  Use this section to set up the build environment, compile gateware and firmware, and program a
+  supported board.
 
 **Project Structure** :doc:`docs/project_structure`
-  Check this if you're new to the repository and want to understand how files and directories are
-  organized, including how LiteX and LimeDFB fit together. It's helpful for getting oriented before
-  diving into code or builds.
+  Use this section to understand how the repository is organized and how LiteX and LimeDFB fit
+  together.
 
 **Gateware Description** :doc:`docs/gw_description`
-  Refer here for detailed explanations of the FPGA gateware for each supported board, including
-  block diagrams and module breakdowns. Use it when you need to learn about the internal workings or
-  troubleshoot specific hardware interactions.
+  Refer to this section for board-specific gateware descriptions, block diagrams, and module-level
+  explanations.
 
 **LiteX Basics** :doc:`docs/litex_basics`
-  Refer here for an introduction to LiteX concepts as used in LimeSDR_GW, including platforms,
-  targets, wrappers, naming conventions, and portability tips. Useful if you're new to LiteX or
-  need a refresher on integration.
+  Refer to this section for an introduction to the LiteX concepts used in LimeSDR_GW, including
+  platforms, targets, wrappers, naming conventions, and portability guidelines.
 
 **Modifying the Project** :doc:`docs/modify_project`
-  If you plan to customize gateware or firmware—such as adding modules like an FFT— this section
-  provides examples and guidance on where to find sources and how to make changes safely.
+  Use this section when customizing the design, for example by adding new gateware modules or
+  modifying firmware components.
 
 **Adding a New Board** :doc:`docs/add_new_board`
-  Consult this if you're extending the project to support custom SDR platforms or new hardware
-  variants. It walks through the process step-by-step, from repository setup to verification.
+  Refer to this section for step-by-step guidance on adding support for a new hardware platform.
 
 **Best Practices** :doc:`docs/best_practices`
-    Refer here for guidelines on naming conventions, portability, and CPU options in LiteX. Helpful
-    for maintaining consistency and optimizing designs.
+  Use this section for naming conventions, portability recommendations, and general development
+  guidelines.
 
-If anything remains unclear after exploring these sections, feel free to submit an issue on
-GitHub—contributions and feedback are always welcome!
+If you find gaps or inaccuracies in the documentation, please open an issue or contribute
+improvements through GitHub.
 
 Supported Boards
 ----------------
@@ -127,32 +115,34 @@ Supported Boards
      - **Toolchain**
    * - LimeSDR XTRX
      - v1.2+
-     - Mini PCIe SDR board.
-     - Xilinx Vivado. Potential future OpenXC7 support.
+     - Mini PCIe SDR board
+     - Xilinx Vivado
    * - LimeSDR Mini V1
      - v1.x
-     - USB SDR board.
-     - Altera Quartus.
+     - USB SDR board
+     - Intel Quartus
    * - LimeSDR Mini V2
      - v2.x
-     - USB SDR board.
-     - Open source flow with GHDL, Yosys, nextpnr.
+     - USB SDR board
+     - Open-source flow with GHDL, Yosys, and nextpnr
    * - HiperSDR-44xx
      - v2
-     - PCIe SDR board.
-     - Xilinx Vivado.
-   * - sSDR 
+     - PCIe SDR board
+     - Xilinx Vivado
+   * - sSDR
      - rev 2
-     - PCIe SDR board.
-     - Xilinx Vivado.
+     - PCIe SDR board
+     - Xilinx Vivado
 
-Open Source Tools
------------------
-The project uses open source tools for flexibility and community input. Development has been done
-on **Linux**, where the tools and workflows integrate smoothly, but with some adaptations it could
-potentially run on other platforms.
+Tooling
+-------
+The project prefers **open-source** tools where practical, especially for simulation, synthesis,
+place-and-route, and programming flows on supported open toolchain targets. Some boards currently
+rely on vendor toolchains such as Vivado or Quartus.
 
-.. table:: Table 2. Open Source Tools
+Development is primarily performed on **Linux**, where the supported tools integrate most smoothly.
+
+.. table:: Table 2. Common Open-Source Tools
 
    +----------------------+------------------------------------------------------------+
    | **Tool**             | **Link**                                                   |
@@ -174,6 +164,5 @@ potentially run on other platforms.
    | Yosys                | https://github.com/YosysHQ/yosys                           |
    +----------------------+------------------------------------------------------------+
 
-These tools handle tasks from synthesis and simulation to debugging and programming. The project
-sticks to open source where it can and should provide a good example in general of what open source
-FPGA development can be done with various open source tools available!
+These tools cover tasks such as simulation, synthesis, place-and-route, device programming, and
+debugging.
