@@ -1,8 +1,7 @@
-HiperSDR 44xx build instructions 
+HiperSDR 44xx Build Instructions
 ================================
 
-
-To build gateware for the **hipersdr_44xx** target, initialize the private
+Before building gateware for the **hipersdr_44xx** target, initialize the private
 **AFE79xx** submodule:
 
 .. code:: bash
@@ -13,22 +12,23 @@ To build gateware for the **hipersdr_44xx** target, initialize the private
 
    Run this command once after cloning the project repository.
 
-To build the gateware for **hipersdr_44xx** target, use command:
+To build gateware for the **hipersdr_44xx** target, run:
 
 .. code:: bash
 
    python3 -m boards.targets.hipersdr_44xx --build
-   
+
 .. note::
 
-   - Ensure required toolchain is installed and configured before building. See :ref:`Requirements <requirements>` section for respective board.  
-   
-   - Make sure to run build command from **project root directory**.
-  
-Available build options
+   - Ensure that the required toolchain is installed and configured before building. See
+     :ref:`Requirements <requirements>` for the board-specific requirements.
+
+   - Run the build command from the **project root directory**.
+
+Available Build Options
 -----------------------
 
-**Comand:**
+**Command:**
 
 .. code:: bash
 
@@ -36,36 +36,34 @@ Available build options
 
 **Options:**
 
-- ``--load``: Loads the bitstream into SRAM (volatile memory).
-- ``--flash``: Programs the bitstream into SPI FLASH memory.
-- ``--gold``: Build/Flash golden image instead of user.
-- ``--cable``: Specifies the JTAG cable (default: *ft2232*). Use ``openFPGALoader --list-cables`` for options.
- 
+- ``--load``: Load the bitstream into SRAM (volatile memory).
+- ``--flash``: Program the bitstream into SPI flash memory.
+- ``--gold``: Build or flash the golden image instead of the user image.
+- ``--cable <cable>``: Specify the JTAG cable. The default is ``ft2232``.
+  Use ``openFPGALoader --list-cables`` to list supported cable names.
 
-User/Golden Bitstreams
-----------------------
+User and Golden Bitstreams
+--------------------------
 
-- The **User bitstream** is built using the default command above.
-- The **Golden bitstream** is built using the ``--gold`` option:
+- The **user bitstream** is built using the default command shown above.
+- The **golden bitstream** is built using the ``--gold`` option:
+
 .. code:: bash
 
-   python3 -m boards.targets.hipersdr_44xx --build  --gold
+   python3 -m boards.targets.hipersdr_44xx --build --gold
 
-
-Programming cables
+Programming Cables
 ------------------
 
-JTAG programming (openFPGALoader)
+JTAG Programming (openFPGALoader)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This section describes how to program the Xilinx FPGA configuration flash
-memory on the **HiperSDR 44xx** board using the JTAG interface and
-**openFPGALoader** software.
-
+This section describes how to program the Xilinx FPGA configuration flash memory on the
+**HiperSDR 44xx** board through the JTAG interface using **openFPGALoader**.
 
 Tested JTAG programming cables are listed in Table 1.
 
-.. list-table:: Table 1. Tested JTAG programming cables
+.. list-table:: Table 1. Tested JTAG Programming Cables
    :header-rows: 1
    :widths: 35 15 50
 
@@ -76,14 +74,14 @@ Tested JTAG programming cables are listed in Table 1.
      -
      - Xilinx-compatible JTAG programming cable
 
-FT2232H Mini Module JTAG adapter
+FT2232H Mini Module JTAG Adapter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Connect the JTAG jumper wires between the FT2232H Mini Module and the
-  HiperSDR 44xx board as shown in Table 2.
-* Insert the board into a PCIe slot and power on the PC.
+* Connect the JTAG jumper wires between the FT2232H Mini Module and the HiperSDR 44xx board as
+  shown in Table 2.
+* Insert the board into a PCIe slot and power on the host PC.
 
-.. list-table:: Table 2. HiperSDR 44xx board and FT2232H Mini Module connections
+.. list-table:: Table 2. HiperSDR 44xx Board and FT2232H Mini Module Connections
    :header-rows: 1
    :widths: 50 50
 
@@ -104,26 +102,28 @@ FT2232H Mini Module JTAG adapter
 
 .. note::
 
-   Make sure **CN3-1 (VBUS)** and **CN3-3 (VCC)** are connected with a
-   jumper on the FT2232H Mini Module so that the module is powered.
+   Ensure that **CN3-1 (VBUS)** and **CN3-3 (VCC)** are connected with a jumper on the
+   FT2232H Mini Module so that the module is powered.
 
 Flashing Instructions
 ---------------------
-- **User Bitstream Only:**
+
+- **User bitstream only:**
 
   .. code:: bash
-     
+
      python3 -m boards.targets.hipersdr_44xx --flash
 
-- **Golden Bitstream Only:**
+- **Golden bitstream only:**
 
   .. code:: bash
-     
+
      python3 -m boards.targets.hipersdr_44xx --flash --gold
-     
-     
+
 .. note::
 
-  - Both User and Gold bitstreams must be programmed when programming an empty FLASH memory otherwise the FPGA will not boot.
-  - Once Gold bitstream is programmed into FLASH memory then just User bitstream can be upadated if needed. 
-  - User/Gold Bitstreams has to be present/generated first before flashing
+   - When programming an empty SPI flash device, both the golden and user bitstreams must be
+     written; otherwise, the FPGA will not boot.
+   - After the golden bitstream has been programmed, the user bitstream can be updated
+     independently.
+   - The required bitstream must be generated before flashing.
