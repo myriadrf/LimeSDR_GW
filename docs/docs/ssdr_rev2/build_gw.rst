@@ -1,23 +1,23 @@
-sSDR rev2 build instructions 
+sSDR rev2 Build Instructions
 ============================
 
-
-To build the gateware for **ssdr** target, use command:
+To build gateware for the **ssdr** target, run:
 
 .. code:: bash
 
    python3 -m boards.targets.ssdr --build
-   
+
 .. note::
 
-   - Ensure required toolchain is installed and configured before building. See :ref:`Requirements <requirements>` section for respective board.  
-   
-   - Make sure to run build command from **project root directory**.
-  
-Available build options
+   - Ensure that the required toolchain is installed and configured before building. See
+     :ref:`Requirements <requirements>` for the board-specific requirements.
+
+   - Run the build command from the **project root directory**.
+
+Available Build Options
 -----------------------
 
-**Comand:**
+**Command:**
 
 .. code:: bash
 
@@ -25,36 +25,35 @@ Available build options
 
 **Options:**
 
-- ``--load``: Loads the bitstream into SRAM (volatile memory).
-- ``--flash``: Programs the bitstream into SPI FLASH memory.
-- ``--gold``: Build/Flash golden image instead of user.
-- ``--cable``: Specifies the JTAG cable (default: *ft2232*). Use ``openFPGALoader --list-cables`` for options.
- 
+- ``--load``: Load the bitstream into SRAM (volatile memory).
+- ``--flash``: Program the bitstream into SPI flash memory.
+- ``--gold``: Build or flash the golden image instead of the user image.
+- ``--cable <cable>``: Specify the JTAG cable. The default is ``ft2232``.
+  Use ``openFPGALoader --list-cables`` to list supported cable names.
 
-User/Golden Bitstreams
-----------------------
+User and Golden Bitstreams
+--------------------------
 
-- The **User bitstream** is built using the default command above.
-- The **Golden bitstream** is built using the ``--gold`` option:
+- The **user bitstream** is built using the default command shown above.
+- The **golden bitstream** is built using the ``--gold`` option:
 
 .. code:: bash
 
-   python3 -m boards.targets.ssdr --build  --gold
+   python3 -m boards.targets.ssdr --build --gold
 
-
-Programming cables
+Programming Cables
 ------------------
 
-FT2232H Mini Module JTAG adapter
+FT2232H Mini Module JTAG Adapter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Insert sSDR rev2 into m2m_pcie addapter card. 
-* Connect JTAG jumper cables as shown in Table 1 between JTAG cable and m2m_pcie adapter JTAG header.
-* Connect USB cable to FT2232H Mini Module.
-* Insert m2m_pcie adapter into PCIe slot and power up PC.
+* Insert the sSDR rev2 board into the ``m2m_pcie`` adapter card.
+* Connect the JTAG jumper wires between the FT2232H Mini Module and the ``m2m_pcie`` adapter
+  JTAG header as shown in Table 1.
+* Connect the USB cable to the FT2232H Mini Module.
+* Insert the ``m2m_pcie`` adapter into a PCIe slot and power on the host PC.
 
-
-.. table:: Table 1. sSDR board (m2m_pcie adapter) and FT2232H Mini module connections
+.. table:: Table 1. sSDR Board (m2m_pcie Adapter) and FT2232H Mini Module Connections
 
   +------------------------------------+------------------------------------+
   | **FT2232H Mini Module**            | **sSDR + m2m_pcie adapter**        |
@@ -71,19 +70,20 @@ FT2232H Mini Module JTAG adapter
   +------------------------------------+------------------------------------+
   | CN2-11 (VIO)                       | VIO                                |
   +------------------------------------+------------------------------------+
-   
-Digilent Hs2 JTAG adapter
+
+Digilent HS2 JTAG Adapter
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Insert sSDR rev2 into m2m_pcie addapter card. 
-* Connect JTAG jumper cables as shown in Table 2 between JTAG cable and m2m_pcie adapter JTAG header.
-* Connect USB cable to Digilent Hs2 .
-* Insert m2m_pcie adapter into PCIe slot and power up PC.
+* Insert the sSDR rev2 board into the ``m2m_pcie`` adapter card.
+* Connect the JTAG jumper wires between the Digilent HS2 and the ``m2m_pcie`` adapter JTAG header
+  as shown in Table 2.
+* Connect the USB cable to the Digilent HS2.
+* Insert the ``m2m_pcie`` adapter into a PCIe slot and power on the host PC.
 
-.. table:: Table 2. sSDR board (m2m_pcie adapter) and Digilent Hs2 connections
+.. table:: Table 2. sSDR Board (m2m_pcie Adapter) and Digilent HS2 Connections
 
   +------------------------------------+------------------------------------+
-  | **Digilent Hs2**                   | **sSDR + m2m_pcie adapter**        |
+  | **Digilent HS2**                   | **sSDR + m2m_pcie adapter**        |
   +====================================+====================================+
   | TMS                                | TMS                                |
   +------------------------------------+------------------------------------+
@@ -100,21 +100,23 @@ Digilent Hs2 JTAG adapter
 
 Flashing Instructions
 ---------------------
-- **User Bitstream Only:**
+
+- **User bitstream only:**
 
   .. code:: bash
-     
+
      python3 -m boards.targets.ssdr --flash
 
-- **Golden Bitstream Only:**
+- **Golden bitstream only:**
 
   .. code:: bash
-     
+
      python3 -m boards.targets.ssdr --flash --gold
-     
-     
+
 .. note::
-   
-  - Both User and Gold bitstreams must be programmed when programming an empty flash otherwise the FPGA will not boot.
-  - Once Gold bitstream is programmed into FLASH memory then just User bitstream can be upadated if needed. 
-  - User/Gold Bitstreams has to be present/generated first before flashing.
+
+   - When programming an empty SPI flash device, both the golden and user bitstreams must be
+     written; otherwise, the FPGA will not boot.
+   - After the golden bitstream has been programmed, the user bitstream can be updated
+     independently.
+   - The required bitstream must be generated before flashing.
