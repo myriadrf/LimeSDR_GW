@@ -1,19 +1,20 @@
-LimeSDR Mini V1 build instructions 
+LimeSDR Mini V1 Build Instructions
 ==================================
 
-To build the gateware for **limesdr_mini_v1** target, use:
+To build gateware for the **limesdr_mini_v1** target, run:
 
 .. code:: bash
 
    python3 -m boards.targets.limesdr_mini_v1 --build
-   
+
 .. note::
 
-   - Ensure required toolchain is installed and configured before building. See :ref:`Requirements <requirements>`  section for respective board.  
-   
-   - Make sure to run build command from **project root directory**.
+   - Ensure that the required toolchain is installed and configured before building. See
+     :ref:`Requirements <requirements>` for the board-specific requirements.
 
-Available build options
+   - Run the build command from the **project root directory**.
+
+Available Build Options
 -----------------------
 
 .. code:: bash
@@ -22,53 +23,56 @@ Available build options
 
 **Options:**
 
-- ``--golden``: to create the Golden bitstream (without RX/TX Path nor LMS7002 Modules to reduces size since it uses ROM)
-- ``--flash``: to write Golden and User Bitstreams (requires to have both bitstreams build).
-- ``--with-uartbone``: to enable uartbone in design.
+- ``--golden``: Build the golden bitstream. This image excludes the RX/TX path and LMS7002-related
+  modules to reduce size.
+- ``--flash``: Program both the golden and user bitstreams. Both bitstreams must be built first.
+- ``--with-uartbone``: Enable UARTBone in the design.
+- ``--cable <cable>``: Specify the programming cable, if required by the selected flash flow.
 
 .. note::
 
-   As of the latest release (3.0)
+   As of release 3.0:
 
-   - Golden image must be built at least once before building user image.
-   - ``--flash`` only works when ``--golden`` option is not used.
+   - The golden image must be built at least once before building the user image.
+   - The ``--flash`` option works only when ``--golden`` is not used.
 
+User and Golden Bitstreams
+--------------------------
 
-User/Golden Bitstreams
-----------------------
+The ``--load`` option is not supported, because the user bitstream executes firmware from internal
+flash.
 
-Since the Operational bitstream executes firmware from internal flash, the --load option is not supported.
+To update the LimeSDR Mini V1, use the following sequence:
 
-To update the LimeSDR Mini v1, follow this sequence:
+1. Build the golden bitstream, if it has not already been generated, using the ``--golden`` option.
+2. Build the user bitstream.
+3. After the build completes, the generated output files include ``.rpd``, ``.pof``, and ``.svf``.
 
-    1. Build the Golden bitstream (if not already done) using the ``--golden`` option.
-    2. Build the Operational bitstream.
-    3. After the previous step, the .rpd, .pof, and .svf files will be available.
-    
-Programming cables
+Programming Cables
 ------------------
 
-For information about supported programming cables and required hardware connections, refer to the specific linked chapter in hardware documentation:
+For supported programming cables and hardware connection details, refer to the following hardware
+documentation section:
 
-   - `Connecting LimeSDR Mini V2 board to FT2232H Mini Module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
+- `Connecting LimeSDR Mini V2 board to FT2232H Mini Module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
 
 .. note::
-   - Guidelines for available programming cables for **LimeSDR Mini V1** and **LimeSDR Mini V2** are the same. 
-   - Only the specified chapter related to the FT2232H Mini Module and hardware connections is applicable to board programming with this project. Other parts of the documentation are not relevant.
 
-
+   - The programming-cable guidance is the same for **LimeSDR Mini V1** and **LimeSDR Mini V2**.
+   - For this project, only the FT2232H Mini Module connection information from the linked hardware
+     documentation is relevant.
 
 Flashing Instructions
 ---------------------
-- **Full Flash Image (User + Golden):**
+
+- **Full flash image (user + golden):**
 
   .. code:: bash
-     
-     python -m boards.targets.limesdr_mini_v1 --flash
-     # Or
-     openFPGALoader -c [cable] LimeSDR-Mini_lms7_trx_HW_1.2.svf
 
+     python3 -m boards.targets.limesdr_mini_v1 --flash
 
+  Or:
 
+  .. code:: bash
 
-
+     openFPGALoader -c <cable> LimeSDR-Mini_lms7_trx_HW_1.2.svf
