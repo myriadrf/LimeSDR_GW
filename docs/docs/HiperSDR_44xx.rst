@@ -112,12 +112,16 @@ HiperSDR_44xx board utilises over a hundred GPIO signals to all of the RF elemen
 
 Gateware Register Reference
 ---------------------------
-The following documentation is automatically generated from the LiteX SoC definitions. It includes the complete **Control and Status Register (CSR)** map, interrupt vector table, and memory regions for the modules described above (PCIe, I2C, SPI, etc.).
+HiperSDR 44xx exposes registers through two access paths:
+
+- :doc:`Host remapped registers <hipersdr-44xx/reg_remap/hipersdr_44xx_regremap_from_csv>`: a compatibility register map used by existing host software and older gateware integrations.
+- :doc:`Native LiteX CSR map <hipersdr-44xx/litex_doc/index>`: the SoC's dedicated CSR register space generated from LiteX modules.
+
+The remapped host register set is kept to maintain backward compatibility with legacy gateware/software stacks, while the LiteX CSR map documents the native SoC register layout.
 
 .. toctree::
    :maxdepth: 3
    :hidden:
 
+   Host remapped register reference <hipersdr-44xx/reg_remap/hipersdr_44xx_regremap_from_csv>
    Register reference <hipersdr-44xx/litex_doc/index>
-
-:doc:`hipersdr-44xx/litex_doc/index`

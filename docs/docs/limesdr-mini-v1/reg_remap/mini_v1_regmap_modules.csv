@@ -1,5 +1,0 @@
-module,address_start,address_end,typical_use
-FPGACFG,0x0000,0x001F,"Board ID, gateware revision, interface and LMS control"
-PLLCFG,0x0020,0x003F,"PLL status/control, divider and counter configuration"
-TSTCFG,0x0060,0x007F,"Built-in test control, status, and counters"
-PERIPHCFG,0x00C0,0x00DF,GPIO and peripheral override/readback control

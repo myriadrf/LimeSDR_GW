@@ -1,0 +1,6 @@
+module,address_start,address_end,typical_use,op
+MEMCFG,0xFFE0,0xFFFF,Reserved memory-mapped window,delete
+FPGACFG,0x0000,0x001F,"Board ID, gateware revision, interface and LMS control",upsert
+PERIPHCFG,0x00C0,0x00DF,GPIO and peripheral override/readback control,upsert
+PLLCFG,0x0020,0x003F,"PLL status/control, divider and counter configuration",upsert
+TSTCFG,0x0060,0x007F,"Built-in test control, status, and counters",upsert

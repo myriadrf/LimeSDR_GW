@@ -109,7 +109,5 @@ The remapped host register set is kept to maintain backward compatibility with l
    :maxdepth: 3
    :hidden:
 
-   Host Remaper Register reference <limesdr-xtrx/litex_doc/index>
+   Host remapped register reference <limesdr-xtrx/reg_remap/xtrx_regremap_from_csv>
    Register reference <limesdr-xtrx/litex_doc/index>
-   
-

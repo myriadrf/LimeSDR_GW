@@ -1,6 +1,6 @@
-# Register Map CSV Workflow (LimeSDR Mini v2)
+# Register Map CSV Workflow (sSDR rev2)
 
-This board uses shared Mini-family base host-register CSVs from:
+This board uses shared base host-register CSVs from:
 
 - `docs/common_host_regs/modules.csv`
 - `docs/common_host_regs/registers.csv`
@@ -15,15 +15,15 @@ Board-specific differences go to:
 Generate merged CSVs and RST:
 
 ```bash
-make regmap-mini-v2
+make regmap-ssdr-rev2
 ```
 
 Output kept in repo:
 
-- `mini_v2_regremap_from_csv.rst`
+- `ssdr_rev2_regremap_from_csv.rst`
 
 Temporary merged CSVs (auto-generated, not kept):
 
-- `/tmp/regmap/mini_v2_regmap_modules.csv`
-- `/tmp/regmap/mini_v2_regmap_registers.csv`
-- `/tmp/regmap/mini_v2_regmap_bitfields.csv`
+- `/tmp/regmap/ssdr_rev2_regmap_modules.csv`
+- `/tmp/regmap/ssdr_rev2_regmap_registers.csv`
+- `/tmp/regmap/ssdr_rev2_regmap_bitfields.csv`

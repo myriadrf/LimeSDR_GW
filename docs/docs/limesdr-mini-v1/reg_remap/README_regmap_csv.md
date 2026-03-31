@@ -1,25 +1,29 @@
 # Register Map CSV Workflow (LimeSDR Mini v1)
 
-Use these CSV files as the source of truth, then generate RST:
+This board uses shared Mini-family base host-register CSVs from:
 
-- `mini_v1_regmap_modules.csv`
-- `mini_v1_regmap_registers.csv`
-- `mini_v1_regmap_bitfields.csv`
+- `docs/common_host_regs/modules.csv`
+- `docs/common_host_regs/registers.csv`
+- `docs/common_host_regs/bitfields.csv`
 
-Generate:
+Board-specific differences go to:
 
-```bash
-python3 tools/regmap_csv_to_rst.py \
-  --modules-csv docs/limesdr-mini-v1/reg_remap/mini_v1_regmap_modules.csv \
-  --registers-csv docs/limesdr-mini-v1/reg_remap/mini_v1_regmap_registers.csv \
-  --bitfields-csv docs/limesdr-mini-v1/reg_remap/mini_v1_regmap_bitfields.csv \
-  --output docs/limesdr-mini-v1/reg_remap/mini_v1_regremap_from_csv.rst \
-  --title "LimeSDR Mini V1 Host Register Reference" \
-  --label-prefix mini_v1
-```
+- `modules_override.csv`
+- `registers_override.csv`
+- `bitfields_override.csv`
 
-Or use:
+Generate merged CSVs and RST:
 
 ```bash
 make regmap-mini-v1
 ```
+
+Output kept in repo:
+
+- `mini_v1_regremap_from_csv.rst`
+
+Temporary merged CSVs (auto-generated, not kept):
+
+- `/tmp/regmap/mini_v1_regmap_modules.csv`
+- `/tmp/regmap/mini_v1_regmap_registers.csv`
+- `/tmp/regmap/mini_v1_regmap_bitfields.csv`
