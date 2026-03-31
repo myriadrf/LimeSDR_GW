@@ -12,27 +12,26 @@ void lms_spi_write(uint16_t addr, uint16_t val, uint32_t cs)
     uint16_t cmd;
     uint16_t dat;
 
-    /* set cs */
-    spimaster_cs_write(cs);
-
     cmd = (1 << 15) | (addr & 0x7fff);
     dat = val & 0xffff;
     while ((spimaster_status_read() & 0x1) == 0)
         ;
+    spimaster_cs_write(cs);
     spimaster_mosi_write(cmd << 16 | dat);
     spimaster_control_write(32 * SPI_LENGTH | SPI_START);
+    while ((spimaster_status_read() & 0x1) == 0)
+        ;
 }
 
 uint16_t lms_spi_read(uint16_t addr, uint32_t cs)
 {
     uint16_t recv_val;
-
-    /* set cs */
-    spimaster_cs_write(cs);
-
     uint16_t cmd;
-    cmd = (0 << 15) | (addr & 0x7fff);
 
+    cmd = (0 << 15) | (addr & 0x7fff);
+    while ((spimaster_status_read() & 0x1) == 0)
+        ;
+    spimaster_cs_write(cs);
     spimaster_mosi_write(cmd << 16);
     spimaster_control_write(32 * SPI_LENGTH | SPI_START);
     while ((spimaster_status_read() & 0x1) == 0)
