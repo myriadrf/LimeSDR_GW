@@ -5,7 +5,7 @@
    Introduction <self>
    docs/quick_start
    docs/project_structure
-   docs/gw_description
+   docs/gateware_overview
    docs/litex_basics
    docs/modify_project
    docs/add_new_board
@@ -80,9 +80,9 @@ This documentation is organized into several sections:
   Use this section to understand how the repository is organized and how LiteX and LimeDFB fit
   together.
 
-**Gateware Description** :doc:`docs/gw_description`
-  Refer to this section for board-specific gateware descriptions, block diagrams, and module-level
-  explanations.
+**Gateware Overview** :doc:`docs/gateware_overview`
+  Refer to this section for architecture, interfaces, toolchains, update/recovery flow, and
+  links to board-specific gateware documentation.
 
 **LiteX Basics** :doc:`docs/litex_basics`
   Refer to this section for an introduction to the LiteX concepts used in LimeSDR_GW, including

@@ -1,0 +1,78 @@
+module,address,address_end,default,name,description
+FPGACFG,0x0000,,0x001B,board_id,"Board ID, read only."
+FPGACFG,0x0001,,,major_rev,"Major revision, read only."
+FPGACFG,0x0002,,,compile_rev,"Compile revision, read only."
+FPGACFG,0x0003,,,Reserved,Reserved.
+FPGACFG,0x0004,,0x0000,Reserved,Reserved.
+FPGACFG,0x0005,,0x0000,Reserved,Reserved.
+FPGACFG,0x0006,,0x0000,Reserved,Reserved.
+FPGACFG,0x0007,,0x0003,ch_en,"Channel enable: 01 = A, 10 = B, 11 = A and B."
+FPGACFG,0x0008,,0x0102,"synch_dis, mimo_int_en, trxiq_pulse, ddr_en, smpl_width",Sample width and interface mode control.
+FPGACFG,0x0009,,0x0003,"txpct_loss_clr, smpl_nr_clr",TX packet-loss flag clear and timestamp reset control.
+FPGACFG,0x000A,,0x0000,"rf_sw_auto_en, tx_cnt_en, tx_ptrn_en, rx_ptrn_en, tdd_invert, tdd_auto_en, tdd_manual, tx_rf_sw, rx_rf_sw, rx_en","RF switch, TDD, pattern generation, and unified RX/TX enable control."
+FPGACFG,0x000B,,0x0000,Reserved,Reserved.
+FPGACFG,0x000C,,0x0003,Reserved,Reserved.
+FPGACFG,0x000D,,0x0000,Reserved,Reserved.
+FPGACFG,0x000E,,0x0000,RX_PACKET_SAMPLES,RX packet size in samples.
+FPGACFG,0x000F,,0x03FC,Reserved,Reserved.
+FPGACFG,0x0010,,0x0001,txant_pre,Number of samples to delay turning on the internal TDD signal.
+FPGACFG,0x0011,,0x0001,txant_post,Number of samples to delay turning off the internal TDD signal.
+FPGACFG,0x0012,,0xFFFF,Reserved,Reserved.
+FPGACFG,0x0013,,0x6F6B,"LMS_TXRXEN_MUX_SEL, LMS1_RXEN, LMS1_TXEN, LMS1_TXNRX2, LMS1_TXNRX1, LMS1_CORE_LDO_EN, LMS1_RESET",LMS7002 digital-interface and hard-enable control.
+FPGACFG,0x0014,,0x0003,Reserved,Reserved.
+FPGACFG,0x0015,,0x0000,Reserved,Reserved.
+FPGACFG,0x0016,,0x0000,Reserved,Reserved.
+FPGACFG,0x0017,,0x2340,Reserved,Reserved.
+FPGACFG,0x0018,,0x0003,"CORE_LDO_EN, EXT_CLK, TCXO_EN, LMS_RST","LMS power, clock-source, and reset control."
+FPGACFG,0x0019,,0x1000,RX_PACKET_SIZE,RX packet size in bytes.
+FPGACFG,0x001A,,0x0000,Reserved,Reserved.
+FPGACFG,0x001B,,0x0000,Reserved,Reserved.
+FPGACFG,0x001C,,0x0000,Reserved,Reserved.
+FPGACFG,0x001D,,0x00FF,Reserved,Reserved.
+FPGACFG,0x001E,,0x0003,Reserved,Reserved.
+FPGACFG,0x001F,,0xD090,Reserved,Reserved.
+PLLCFG,0x0020,,0x0000,C1 Phase,Phase value for PLL output clock 1.
+PLLCFG,0x0021,,0x0001,"phcfg_error, phcfg_done, pllcfg_busy, pllcfg_done",PLL and phase-configuration status.
+PLLCFG,0x0022,,0x0000,"pllcfg_err, pll_lock",PLL error and TX/RX PLL lock status.
+PLLCFG,0x0023,,0x0000,"phcfg_mode, pll_ind, phcfg_start",PLL reconfiguration control.
+PLLCFG,0x0024,,0x0000,Reserved,Reserved.
+PLLCFG,0x0025,,0x01F0,Reserved,Reserved.
+PLLCFG,0x0026,,0x000A,"m_byp, n_byp",PLL multiplier/divider bypass.
+PLLCFG,0x0027,,0x0AAA,"c1_byp, c0_byp",PLL output-divider bypass.
+PLLCFG,0x0028,,0xAAAA,Reserved,Reserved.
+PLLCFG,0x0029,,0xAAAA,Reserved,Reserved.
+PLLCFG,0x002A,,0x0000,n_cnt,PLL divider value.
+PLLCFG,0x002B,,0x0000,m_cnt,PLL multiplier value.
+PLLCFG,0x002C,,0x0000,m_frac(LSB),"PLL multiplier fractional value, LSB."
+PLLCFG,0x002D,,0x0000,m_frac(MSB),"PLL multiplier fractional value, MSB."
+PLLCFG,0x002E,,0x0000,c0_cnt,PLL output 0 divider value.
+PLLCFG,0x002F,,0x0000,c1_cnt,PLL output 1 divider value.
+PLLCFG,0x0030,,0xEFFF,auto_phcfg_smpls,Number of samples used during auto phase configuration.
+PLLCFG,0x0031,0x003F,0x0000,Reserved,Reserved. 0x0038 - 0x003F are also reserved.
+TSTCFG,0x0060,,0x0000,Reserved,Reserved.
+TSTCFG,0x0061,,0x0000,test_en,"Test start bits for sys_clk, LMS_TX_CLK, and GNSS."
+TSTCFG,0x0062,0x0064,0x0000,Reserved,Reserved.
+TSTCFG,0x0065,,0x0000,test_cmplt,"Test-complete bits for sys_clk, LMS_TX_CLK, and GNSS."
+TSTCFG,0x0066,,0x0000,Reserved,Reserved.
+TSTCFG,0x0067,,0x0000,test_rez,Test result bits; documented as not implemented.
+TSTCFG,0x0068,,0x0000,Reserved,Reserved.
+TSTCFG,0x0069,,0x0000,sys_clk_cnt,Count of sys_clk cycles; changing values indicate an active clock.
+TSTCFG,0x006A,0x006D,0x0000,Reserved,Reserved.
+TSTCFG,0x006E,0x0071,0x0000,Reserved,Reserved.
+TSTCFG,0x0072,,0x0000,lms_tx_clk_cnt,Low 16 bits of LMS TX clock test counter.
+TSTCFG,0x0073,,0x0000,lms_tx_clk_cnt,Bits 23:16 of LMS TX clock test counter.
+TSTCFG,0x0074,0x007C,0x0000,Reserved,Reserved.
+TSTCFG,0x007D,,0xAAAA,tx_tst_i,TX test value for I channel.
+TSTCFG,0x007E,,0x5555,tx_tst_q,TX test value for Q channel.
+TSTCFG,0x007F,,0x0000,Reserved,Reserved.
+PERIPHCFG,0x00C0,,0x0002,board_gpio_ovrd,"GPIO override control. 0 = dedicated function, 1 = user override."
+PERIPHCFG,0x00C1,0x00C3,0x0000,Reserved,Reserved.
+PERIPHCFG,0x00C4,,0x0000,board_gpio_dir,"Onboard GPIO direction. 0 = input, 1 = output."
+PERIPHCFG,0x00C5,,0x0000,Reserved,Reserved.
+PERIPHCFG,0x00C6,,0x0000,board_gpio_val,"GPIO output value. 0 = low, 1 = high."
+PERIPHCFG,0x00C7,0x00C9,0x0000,Reserved,Reserved.
+PERIPHCFG,0x00CA,,0x0000,periph_input_sel,"PPS input source select. 0 = GNSS_1PPS, 1 = 1PPSI_GPIO1."
+PERIPHCFG,0x00CB,0x00D1,0x0000,Reserved,Reserved.
+PERIPHCFG,0x00D2,,0x0003,PERIPH_EN,"Peripheral enables: clock-out routing, GNSS reset, GNSS standby."
+PERIPHCFG,0x00D3,,0x0000,Reserved,Reserved.
+MEMCFG,0xFFE0,0xFFFF,0x0000,Reserved,All MEMCFG addresses in this documented range are reserved.

@@ -17,6 +17,7 @@ Before building the project, install the following required tools:
 - **LiteX**
   Tag **2025.08** is required. Follow the installation instructions in the
   `LiteX repository <https://github.com/enjoy-digital/litex>`_.
+  Ensure **RISC-V toolchain support** is installed together with LiteX.
 
 - **SBT (Scala Build Tool)**  
   Installation instructions are available in the official

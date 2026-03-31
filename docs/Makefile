@@ -12,6 +12,15 @@ BUILDDIR      = _build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
+.PHONY: regmap-xtrx
+regmap-xtrx:
+	@python3 tools/regmap_csv_to_rst.py \
+		--modules-csv docs/limesdr-xtrx/reg_remap/xtrx_regmap_modules.csv \
+		--registers-csv docs/limesdr-xtrx/reg_remap/xtrx_regmap_registers.csv \
+		--bitfields-csv docs/limesdr-xtrx/reg_remap/xtrx_regmap_bitfields.csv \
+		--output docs/limesdr-xtrx/reg_remap/xtrx_regremap_from_csv.rst \
+		--title "LimeSDR XTRX Host Register Reference"
+
 .PHONY: help Makefile
 
 # Catch-all target: route all unknown targets to Sphinx using the new

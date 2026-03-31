@@ -1,0 +1,6 @@
+module,address_start,address_end,typical_use
+FPGACFG,0x0000,0x001F,"Board ID/revision, stream mode, RF/TDD controls, LMS enable/reset"
+PLLCFG,0x0020,0x003F,"PLL status, divider/multiplier values, phase configuration"
+TSTCFG,0x0060,0x007F,"Clock/test control and status counters"
+PERIPHCFG,0x00C0,0x00D3,"GPIO and peripheral routing/enable controls"
+MEMCFG,0xFFE0,0xFFFF,"Reserved memory-mapped window"

@@ -98,12 +98,18 @@ Source code:
 
 Gateware Register Reference
 ---------------------------
-The following documentation is automatically generated from the LiteX SoC definitions. It includes the complete **Control and Status Register (CSR)** map, interrupt vector table, and memory regions for the modules described above (PCIe, I2C, SPI, etc.).
+LimeSDR XTRX exposes registers through two access paths:
+
+- :doc:`Host remapped registers <limesdr-xtrx/reg_remap/xtrx_regremap_from_csv>`: a compatibility register map used by existing host software and older gateware integrations.
+- :doc:`Native LiteX CSR map <limesdr-xtrx/litex_doc/index>`: the SoC's dedicated CSR register space generated from LiteX modules.
+
+The remapped host register set is kept to maintain backward compatibility with legacy gateware/software stacks, while the LiteX CSR map documents the native SoC register layout.
 
 .. toctree::
    :maxdepth: 3
    :hidden:
 
+   Host Remaper Register reference <limesdr-xtrx/litex_doc/index>
    Register reference <limesdr-xtrx/litex_doc/index>
+   
 
-:doc:`limesdr-xtrx/litex_doc/index`

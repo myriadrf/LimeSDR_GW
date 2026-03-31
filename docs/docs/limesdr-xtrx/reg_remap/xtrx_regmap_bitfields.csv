@@ -1,0 +1,94 @@
+address,title,access,default,field,msb,lsb,values,description
+0x0000,board_id,R,0x001B,board_id,15,0,,"Board ID, read only."
+0x0001,major_rev,R,,major_rev,15,0,,"Major revision, read only."
+0x0002,compile_rev,R,,compile_rev,15,0,,"Compile revision, read only."
+0x0003,reserved,R/W,,reserved,15,0,,Reserved.
+0x0004,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x0005,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x0006,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x0007,ch_en,R/W,0x0003,ch_en,1,0,"01 = A, 10 = B, 11 = A+B",Channel selection.
+0x0008,interface and synchronization control,R/W,0x0102,synch_dis,9,9,"0 = enabled, 1 = disabled",Packet synchronization using timestamps.
+0x0008,,,,mimo_int_en,8,8,"0 = disabled, 1 = enabled",MIMO mode.
+0x0008,,,,trxiq_pulse,7,7,"0 = off, 1 = on",TRXIQ pulse mode.
+0x0008,,,,ddr_en,6,6,"0 = SDR, 1 = DDR",DIQ interface mode.
+0x0008,,,,smpl_width,1,0,"10 = 12-bit, 00 = 16-bit",Sample width selection.
+0x0009,"txpct_loss_clr, smpl_nr_clr",R/W,0x0003,value,15,0,,TX packet-loss flag clear and timestamp reset control.
+0x000A,RF and TDD control,R/W,0x0000,rf_sw_auto_en,11,11,0/1,Control RF switches by internal TDD signal.
+0x000A,,,,tx_cnt_en,10,10,0/1,Counter test pattern on TX.
+0x000A,,,,tx_ptrn_en,9,9,0/1,Test pattern on TX.
+0x000A,,,,rx_ptrn_en,8,8,0/1,Test pattern on RX.
+0x000A,,,,tdd_invert,7,7,0/1,Invert external TDD signal.
+0x000A,,,,tdd_auto_en,6,6,0/1,Control external TDD signal by internal TDD signal.
+0x000A,,,,tdd_manual,5,5,0/1,Manual value of external TDD signal.
+0x000A,,,,tx_rf_sw,4,4,"0 = TX2, 1 = TX1",TX RF switch select.
+0x000A,,,,rx_rf_sw,3,2,"00 = RX_W, 01 = RX_L, 10 = RX_H, 11 = NC",RX RF switch select.
+0x000A,,,,rx_en,0,0,0/1,Unified RX/TX enable.
+0x000B,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x000C,reserved,R/W,0x0003,Reserved,15,0,,Reserved.
+0x000D,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x000E,RX_PACKET_SAMPLES,R/W,0x0000,RX_PACKET_SAMPLES,15,0,,RX packet size in samples.
+0x000F,reserved,R/W,0x03FC,Reserved,15,0,,Reserved.
+0x0010,txant_pre,R/W,0x0001,txant_pre,15,0,,Number of samples to delay turning on the internal TDD signal.
+0x0011,txant_post,R/W,0x0001,txant_post,15,0,,Number of samples to delay turning off the internal TDD signal.
+0x0012,reserved,R/W,0xFFFF,Reserved,15,0,,Reserved.
+0x0013,"LMS_TXRXEN_MUX_SEL, LMS1_RXEN, LMS1_TXEN, LMS1_TXNRX2, LMS1_TXNRX1, LMS1_CORE_LDO_EN, LMS1_RESET",R/W,0x6F6B,value,15,0,,LMS7002 digital-interface and hard-enable control.
+0x0014,reserved,R/W,0x0003,Reserved,15,0,,Reserved.
+0x0015,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x0016,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x0017,reserved,R/W,0x2340,Reserved,15,0,,Reserved.
+0x0018,LMS and clock control,R/W,0x0003,CORE_LDO_EN,3,3,0/1,LMS internal LDO control.
+0x0018,,,,EXT_CLK,2,2,"0 = onboard, 1 = external",Clock source selection.
+0x0018,,,,TCXO_EN,1,1,0/1,Onboard clock enable.
+0x0018,,,,LMS_RST,0,0,"0 = reset active, 1 = reset inactive",LMS hardware reset.
+0x0019,RX_PACKET_SIZE,R/W,0x1000,RX_PACKET_SIZE,15,0,,RX packet size in bytes.
+0x001A,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x001B,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x001C,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x001D,reserved,R/W,0x00FF,Reserved,15,0,,Reserved.
+0x001E,reserved,R/W,0x0003,Reserved,15,0,,Reserved.
+0x001F,reserved,R/W,0xD090,Reserved,15,0,,Reserved.
+0x0020,C1 Phase,R/W,0x0000,value,15,0,,Phase value for PLL output clock 1.
+0x0021,PLL status,R,0x0001,phcfg_error,3,3,status,"Phase configuration error, documented as unused."
+0x0021,,,,phcfg_done,2,2,status,"Phase configuration done, read only."
+0x0021,,,,pllcfg_busy,1,1,status,"PLL configuration busy, read only."
+0x0021,,,,pllcfg_done,0,0,status,"PLL configuration done, read only."
+0x0022,"pllcfg_err, pll_lock",R/W,0x0000,value,15,0,,PLL error and TX/RX PLL lock status.
+0x0023,PLL control,R/W,0x0000,phcfg_mode,14,14,"0 = manual, 1 = auto",Phase configuration mode.
+0x0023,,,,pll_ind,7,3,"0000 = TX PLL, 0001 = RX PLL",PLL index.
+0x0023,,,,phcfg_start,1,1,0->1 edge,Start phase configuration on transition.
+0x0024,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x0025,reserved,R/W,0x01F0,Reserved,15,0,,Reserved.
+0x0026,"m_byp, n_byp",R/W,0x000A,value,15,0,,PLL multiplier/divider bypass.
+0x0027,"c1_byp, c0_byp",R/W,0x0AAA,value,15,0,,PLL output-divider bypass.
+0x0028,reserved,R/W,0xAAAA,Reserved,15,0,,Reserved.
+0x0029,reserved,R/W,0xAAAA,Reserved,15,0,,Reserved.
+0x002A,n_cnt,R/W,0x0000,n_cnt,15,0,,PLL divider value.
+0x002B,m_cnt,R/W,0x0000,m_cnt,15,0,,PLL multiplier value.
+0x002C,m_frac(LSB),R/W,0x0000,value,15,0,,"PLL multiplier fractional value, LSB."
+0x002D,m_frac(MSB),R/W,0x0000,value,15,0,,"PLL multiplier fractional value, MSB."
+0x002E,c0_cnt,R/W,0x0000,c0_cnt,15,0,,PLL output 0 divider value.
+0x002F,c1_cnt,R/W,0x0000,c1_cnt,15,0,,PLL output 1 divider value.
+0x0030,auto_phcfg_smpls,R/W,0xEFFF,auto_phcfg_smpls,15,0,,Number of samples used during auto phase configuration.
+0x0060,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x0061,test enable,R/W,0x0000,test_en[2],2,2,0/1,GNSS test start.
+0x0061,,,,test_en[1],1,1,0/1,LMS TX clock test start.
+0x0061,,,,test_en[0],0,0,0/1,System clock test start.
+0x0065,test complete,R,0x0000,test_cmplt[2],2,2,status,GNSS test complete.
+0x0065,,,,test_cmplt[1],1,1,status,LMS TX clock test complete.
+0x0065,,,,sys_clk_test,0,0,status,System clock test complete.
+0x0066,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x0067,test_rez,R/W,0x0000,test_rez,15,0,,Test result bits; documented as not implemented.
+0x0068,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x0069,sys_clk_cnt,R/W,0x0000,sys_clk_cnt,15,0,,Count of sys_clk cycles; changing values indicate an active clock.
+0x0072,lms_tx_clk_cnt,R/W,0x0000,lms_tx_clk_cnt,15,0,,Low 16 bits of LMS TX clock test counter.
+0x0073,lms_tx_clk_cnt,R/W,0x0000,lms_tx_clk_cnt,15,0,,Bits 23:16 of LMS TX clock test counter.
+0x007D,tx_tst_i,R/W,0xAAAA,tx_tst_i,15,0,,TX test value for I channel.
+0x007E,tx_tst_q,R/W,0x5555,tx_tst_q,15,0,,TX test value for Q channel.
+0x007F,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x00C0,board_gpio_ovrd,R/W,0x0002,board_gpio_ovrd,0,0,"0 = dedicated function, 1 = user override",GPIO override control.
+0x00C4,board_gpio_dir,R/W,0x0000,board_gpio_dir,15,0,,"Onboard GPIO direction. 0 = input, 1 = output."
+0x00C5,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
+0x00C6,board_gpio_val,R/W,0x0000,board_gpio_val,15,0,,"GPIO output value. 0 = low, 1 = high."
+0x00CA,periph_input_sel,R/W,0x0000,periph_input_sel,15,0,,"PPS input source select. 0 = GNSS_1PPS, 1 = 1PPSI_GPIO1."
+0x00D2,PERIPH_EN,R/W,0x0003,PERIPH_EN,2,0,,"Peripheral enables: clock-out routing, GNSS reset, GNSS standby."
+0x00D3,reserved,R/W,0x0000,Reserved,15,0,,Reserved.
