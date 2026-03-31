@@ -401,6 +401,14 @@ class BaseSoC(SoCCore):
         """
         write_module_hierarchy_json(self, outfile="soc_structure.json", name="SoC")
 
+    def generate_documentation(self, build_name, build_html, **kwargs):
+        from litex.soc.doc import generate_docs
+        generate_docs(self, "docs/docs/{}/litex_doc".format(build_name),
+            project_name = "{}".format(build_name),
+            author       = "Lime Microsystems")
+        if build_html:
+            os.system("sphinx-build -M html docs/docs/{}/litex_doc docs/docs/{}/litex_doc/_build".format(build_name, build_name))
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -425,6 +433,8 @@ def main():
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
+
+    parser.add_argument("--doc", action="store_true", help="Generate SOC ducumentation")
 
     args = parser.parse_args()
 
@@ -507,6 +517,10 @@ def main():
 
         if args.flash:
             print("Can't flash bitstream: Please build golden before.")
+
+    # Generate Litex Documentation files and if --doc option is used build also
+    build_name = soc.build_name.replace("_", "-")
+    soc.generate_documentation(build_name, build_html=args.doc)
 
 if __name__ == "__main__":
     main()

@@ -97,3 +97,20 @@ The **Flash Module** is implemented using the ``S7SPIFlash`` class provided by L
 
 Source code:
 `S7SPIFlash in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi_flash.py>`_
+
+
+Gateware Register Reference
+---------------------------
+LimeSDR Mini V1 exposes registers through two access paths:
+
+- :doc:`Host remapped registers <limesdr-mini-v1/reg_remap/mini_v1_regremap_from_csv>`: a compatibility register map used by existing host software and older gateware integrations.
+- :doc:`Native LiteX CSR map <limesdr-mini-v1/litex_doc/index>`: the SoC's dedicated CSR register space generated from LiteX modules.
+
+The remapped host register set is kept to maintain backward compatibility with legacy gateware/software stacks, while the LiteX CSR map documents the native SoC register layout.
+
+.. toctree::
+   :maxdepth: 3
+   :hidden:
+
+   Host remapped register reference <limesdr-mini-v1/reg_remap/mini_v1_regremap_from_csv>
+   Register reference <limesdr-mini-v1/litex_doc/index>

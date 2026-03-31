@@ -190,6 +190,7 @@ def render(
     modules: List[ModuleRow],
     registers: List[RegisterRow],
     bitfields: List[BitfieldRow],
+    label_prefix: str,
 ) -> str:
     mod_regs: Dict[str, List[RegisterRow]] = {m.module: [] for m in modules}
     for r in registers:
@@ -253,14 +254,14 @@ def render(
     out.append("     - Address range")
     out.append("     - Typical use")
     for m in modules:
-        anchor = f"xtrx_regmap_{m.module.lower()}"
+        anchor = f"{label_prefix}_regmap_{m.module.lower()}"
         out.append(f"   * - :ref:`{m.module} <{anchor}>`")
         out.append(f"     - ``{as_hex(m.address_start)}`` - ``{as_hex(m.address_end)}``")
         out.append(f"     - {m.typical_use}")
     out.append("")
 
     for m in modules:
-        anchor = f"xtrx_regmap_{m.module.lower()}"
+        anchor = f"{label_prefix}_regmap_{m.module.lower()}"
         sec = f"{m.module} Registers (``{as_hex(m.address_start)}`` - ``{as_hex(m.address_end)}``)"
         out.append(f".. _{anchor}:")
         out.append("")
@@ -276,10 +277,10 @@ def render(
         out.append("     - Name")
         out.append("     - Description")
         for r in mod_regs.get(m.module, []):
-            module_anchor = f"xtrx_regmap_{r.module.lower()}"
+            module_anchor = f"{label_prefix}_regmap_{r.module.lower()}"
             if r.address == r.address_end:
                 if r.address in bf_by_addr:
-                    anchor = f"xtrx_reg_{r.address:04X}".lower()
+                    anchor = f"{label_prefix}_reg_{r.address:04X}".lower()
                     addr = f":ref:`{as_hex(r.address)} <{anchor}>`"
                 else:
                     addr = f":ref:`{as_hex(r.address)} <{module_anchor}>`"
@@ -303,7 +304,7 @@ def render(
     for addr in sorted(bf_by_addr):
         rows = bf_by_addr[addr]
         first = rows[0]
-        anchor = f"xtrx_reg_{addr:04X}".lower()
+        anchor = f"{label_prefix}_reg_{addr:04X}".lower()
         title_text = first.title or first.field
         access = first.access or "R/W"
         default = first.default or "not specified"
@@ -341,6 +342,7 @@ def main() -> None:
     p.add_argument("--bitfields-csv", required=True, type=Path)
     p.add_argument("--output", required=True, type=Path)
     p.add_argument("--title", default="LimeSDR XTRX Register Map")
+    p.add_argument("--label-prefix", default="xtrx")
     args = p.parse_args()
 
     text = render(
@@ -348,6 +350,7 @@ def main() -> None:
         modules=read_modules(args.modules_csv),
         registers=read_registers(args.registers_csv),
         bitfields=read_bitfields(args.bitfields_csv),
+        label_prefix=args.label_prefix.strip(),
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(text, encoding="utf-8")

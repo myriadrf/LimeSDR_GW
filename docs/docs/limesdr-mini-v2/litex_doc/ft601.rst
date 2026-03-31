@@ -1,0 +1,111 @@
+FT601
+=====
+
+Register Listing for FT601
+--------------------------
+
++------------------------------------------------+----------------------------------------+
+| Register                                       | Address                                |
++================================================+========================================+
+| :ref:`FT601_FIFO_WDATA <FT601_FIFO_WDATA>`     | :ref:`0xf0000800 <FT601_FIFO_WDATA>`   |
++------------------------------------------------+----------------------------------------+
+| :ref:`FT601_FIFO_RDATA <FT601_FIFO_RDATA>`     | :ref:`0xf0000804 <FT601_FIFO_RDATA>`   |
++------------------------------------------------+----------------------------------------+
+| :ref:`FT601_FIFO_STATUS <FT601_FIFO_STATUS>`   | :ref:`0xf0000808 <FT601_FIFO_STATUS>`  |
++------------------------------------------------+----------------------------------------+
+| :ref:`FT601_FIFO_CONTROL <FT601_FIFO_CONTROL>` | :ref:`0xf000080c <FT601_FIFO_CONTROL>` |
++------------------------------------------------+----------------------------------------+
+
+FT601_FIFO_WDATA
+^^^^^^^^^^^^^^^^
+
+`Address: 0xf0000800 + 0x0 = 0xf0000800`
+
+    FIFO Write Register.
+
+    .. wavedrom::
+        :caption: FT601_FIFO_WDATA
+
+        {
+            "reg": [
+                {"name": "fifo_wdata[31:0]", "bits": 32}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+        }
+
+
+FT601_FIFO_RDATA
+^^^^^^^^^^^^^^^^
+
+`Address: 0xf0000800 + 0x4 = 0xf0000804`
+
+    FIFO Read Register.
+
+    .. wavedrom::
+        :caption: FT601_FIFO_RDATA
+
+        {
+            "reg": [
+                {"name": "fifo_rdata[31:0]", "bits": 32}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+        }
+
+
+FT601_FIFO_STATUS
+^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0000800 + 0x8 = 0xf0000808`
+
+    FIFO Status Register.
+
+    .. wavedrom::
+        :caption: FT601_FIFO_STATUS
+
+        {
+            "reg": [
+                {"name": "is_rdempty",  "bits": 1},
+                {"name": "is_wrfull",  "bits": 1},
+                {"bits": 30}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+        }
+
+
++-------+------------+---------------------+
+| Field | Name       | Description         |
++=======+============+=====================+
+| [0]   | IS_RDEMPTY | Read FIFO is empty. |
++-------+------------+---------------------+
+| [1]   | IS_WRFULL  | Write FIFO is full. |
++-------+------------+---------------------+
+
+FT601_FIFO_CONTROL
+^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0000800 + 0xc = 0xf000080c`
+
+    FIFO Control Register.
+
+    .. wavedrom::
+        :caption: FT601_FIFO_CONTROL
+
+        {
+            "reg": [
+                {"name": "reset",  "bits": 1},
+                {"bits": 31}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+        }
+
+
++-------+-------+------------------------------+
+| Field | Name  | Description                  |
++=======+=======+==============================+
+| [0]   | RESET | Reset Control (Active High). |
+|       |       |                              |
+|       |       | +---------+--------------+   |
+|       |       | | Value   | Description  |   |
+|       |       | +=========+==============+   |
+|       |       | | ``0b0`` | Normal Mode. |   |
+|       |       | +---------+--------------+   |
+|       |       | | ``0b1`` | Reset Mode.  |   |
+|       |       | +---------+--------------+   |
++-------+-------+------------------------------+
+
