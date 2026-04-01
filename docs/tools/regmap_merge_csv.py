@@ -95,6 +95,52 @@ def merge_rows(
     return [r for r in result if r is not None]
 
 
+def merge_bitfield_rows(
+    base_rows: List[Dict[str, str]],
+    override_rows: List[Dict[str, str]],
+) -> List[Dict[str, str]]:
+    """Merge bitfields with address-level replacement semantics.
+
+    If an override contains any upsert rows for address A, all base bitfield rows
+    for address A are dropped first, then override rows are applied. This keeps
+    board overrides stable even when common bitfield splitting changes over time.
+    """
+    result: List[Dict[str, str]] = [sanitize_row(r, BITFIELD_FIELDS) for r in base_rows]
+
+    replace_addrs = set()
+    for raw in override_rows:
+        op = (raw.get("op", "") or "upsert").strip().lower()
+        if op in ("", "upsert"):
+            addr = normalize_int_text(raw.get("address", ""))
+            if addr:
+                replace_addrs.add(addr)
+
+    if replace_addrs:
+        result = [
+            r for r in result if normalize_int_text(r.get("address", "")) not in replace_addrs
+        ]
+
+    index: Dict[Tuple, int] = {bitfield_key(r): i for i, r in enumerate(result)}
+    for raw in override_rows:
+        op = (raw.get("op", "") or "upsert").strip().lower()
+        row = sanitize_row(raw, BITFIELD_FIELDS)
+        key = bitfield_key(row)
+        if op == "delete":
+            if key in index:
+                idx = index.pop(key)
+                result[idx] = None  # type: ignore[assignment]
+            continue
+        if op not in ("", "upsert"):
+            raise ValueError(f"Unsupported op '{op}' for key {key}")
+        if key in index:
+            result[index[key]] = row
+        else:
+            index[key] = len(result)
+            result.append(row)
+
+    return [r for r in result if r is not None]
+
+
 def write_rows(path: Path, fields: Sequence[str], rows: List[Dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as f:
@@ -128,7 +174,7 @@ def main() -> None:
 
     merged_modules = merge_rows(common_modules, ov_modules, MODULE_FIELDS, module_key)
     merged_registers = merge_rows(common_registers, ov_registers, REGISTER_FIELDS, register_key)
-    merged_bitfields = merge_rows(common_bitfields, ov_bitfields, BITFIELD_FIELDS, bitfield_key)
+    merged_bitfields = merge_bitfield_rows(common_bitfields, ov_bitfields)
 
     write_rows(args.out_modules, MODULE_FIELDS, merged_modules)
     write_rows(args.out_registers, REGISTER_FIELDS, merged_registers)

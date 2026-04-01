@@ -150,8 +150,26 @@ address,title,access,default,field,msb,lsb,values,description,op
 0x0025,,,,pllcfg_vcodiv,7,7,"0=2,1=1",PLL VCO division value.,upsert
 0x0025,,,,chp_curr,10,8,,PLL charge pump current.,upsert
 0x0025,pllcfg_settings,R/W,0x01F0,pllcfg_bs,14,11,,Bandwidth setting (not used).,upsert
-0x0026,"m_odddiv, m_byp, n_odddiv, n_byp",R/W,0x0001,"m_odddiv, m_byp, n_odddiv, n_byp",15,0,,M/N counter bypass and odd-division control.,upsert
-0x0027,c0..c7_byp_odddiv,R/W,0x555A,c0..c7_byp_odddiv,15,0,,Counter bypass and odd-division control bits for C0..C7.,upsert
+0x0026,mn_bypass_ctrl,R/W,0x0001,m_odddiv,2,2,"0=even,1=odd",M counter odd-division enable.,upsert
+0x0026,,,,m_byp,3,3,"0=normal,1=bypass",M counter bypass control.,upsert
+0x0026,,,,n_odddiv,0,0,"0=even,1=odd",N counter odd-division enable.,upsert
+0x0026,,,,n_byp,1,1,"0=normal,1=bypass",N counter bypass control.,upsert
+0x0027,c0..c7_byp_odddiv,R/W,0x555A,c0_odddiv,0,0,"0=even,1=odd",C0 odd-division enable.,upsert
+0x0027,,,,c0_byp,1,1,"0=normal,1=bypass",C0 bypass control.,upsert
+0x0027,,,,c1_odddiv,2,2,"0=even,1=odd",C1 odd-division enable.,upsert
+0x0027,,,,c1_byp,3,3,"0=normal,1=bypass",C1 bypass control.,upsert
+0x0027,,,,c2_odddiv,4,4,"0=even,1=odd",C2 odd-division enable.,upsert
+0x0027,,,,c2_byp,5,5,"0=normal,1=bypass",C2 bypass control.,upsert
+0x0027,,,,c3_odddiv,6,6,"0=even,1=odd",C3 odd-division enable.,upsert
+0x0027,,,,c3_byp,7,7,"0=normal,1=bypass",C3 bypass control.,upsert
+0x0027,,,,c4_odddiv,8,8,"0=even,1=odd",C4 odd-division enable.,upsert
+0x0027,,,,c4_byp,9,9,"0=normal,1=bypass",C4 bypass control.,upsert
+0x0027,,,,c5_odddiv,10,10,"0=even,1=odd",C5 odd-division enable.,upsert
+0x0027,,,,c5_byp,11,11,"0=normal,1=bypass",C5 bypass control.,upsert
+0x0027,,,,c6_odddiv,12,12,"0=even,1=odd",C6 odd-division enable.,upsert
+0x0027,,,,c6_byp,13,13,"0=normal,1=bypass",C6 bypass control.,upsert
+0x0027,,,,c7_odddiv,14,14,"0=even,1=odd",C7 odd-division enable.,upsert
+0x0027,,,,c7_byp,15,15,"0=normal,1=bypass",C7 bypass control.,upsert
 0x0028,c8..c15_byp_odddiv,R/W,0x5555,c8..c15_byp_odddiv,15,0,,Counter bypass and odd-division control bits for C8..C15.,upsert
 0x002A,,,,n_lcnt,7,0,,N_CNT low counter bits.,upsert
 0x002A,n_cnt,R/W,0x0000,n_hcnt,15,8,,N_CNT high counter bits.,upsert

@@ -181,7 +181,7 @@ def make_wavedrom(fields: List[BitfieldRow], reg_width: int = 16) -> str:
         ".. wavedrom::\n\n"
         "   { \"reg\": [\n"
         "     " + ",\n     ".join(parts) + "\n"
-        f"   ], \"config\": {{ \"bits\": {reg_width}, \"lanes\": 2, \"hspace\": 900 }} }}\n"
+        f"   ], \"config\": {{ \"bits\": {reg_width}, \"lanes\": 2, \"hspace\": 1150 }} }}\n"
     )
 
 
@@ -203,6 +203,12 @@ def render(
         bf_by_addr.setdefault(b.address, []).append(b)
     for addr in bf_by_addr:
         bf_by_addr[addr].sort(key=lambda x: (-x.msb, -x.lsb))
+
+    # Prefer register-table names for per-address bitfield section headings.
+    reg_name_by_addr: Dict[int, str] = {}
+    for r in registers:
+        if r.address == r.address_end:
+            reg_name_by_addr[r.address] = r.name
 
     # Ensure every single-address register has bitfield coverage.
     # - Reserved registers get an auto-generated full-width reserved field if missing.
@@ -304,10 +310,13 @@ def render(
     for addr in sorted(bf_by_addr):
         rows = bf_by_addr[addr]
         first = rows[0]
+        meta_title = next((r.title for r in rows if r.title), "")
+        meta_access = next((r.access for r in rows if r.access), "")
+        meta_default = next((r.default for r in rows if r.default), "")
         anchor = f"{label_prefix}_reg_{addr:04X}".lower()
-        title_text = first.title or first.field
-        access = first.access or "R/W"
-        default = first.default or "not specified"
+        title_text = reg_name_by_addr.get(addr, "") or meta_title or first.field
+        access = meta_access or "R/W"
+        default = meta_default or "not specified"
         heading = f"``{as_hex(addr)}`` - {title_text}"
         out.append(f".. _{anchor}:")
         out.append("")

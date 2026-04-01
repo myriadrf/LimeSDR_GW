@@ -45,17 +45,17 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
    * - :ref:`0x0000 <hipersdr_44xx_reg_0000>`
      - ``0x001B``
      - ``board_id``
-     - Board ID, read only.
+     - Board ID
    * - :ref:`0x0001 <hipersdr_44xx_reg_0001>`
      -  
      - ``major_rev``
-     - Major revision, read only.
+     - Major revision
    * - :ref:`0x0002 <hipersdr_44xx_reg_0002>`
      -  
      - ``compile_rev``
-     - Compile revision, read only.
+     - Compile revision
    * - :ref:`0x0003 <hipersdr_44xx_reg_0003>`
-     -  
+     - ``0x0000``
      - \-
      - Reserved.
    * - :ref:`0x0004 <hipersdr_44xx_reg_0004>`
@@ -73,18 +73,18 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
    * - :ref:`0x0007 <hipersdr_44xx_reg_0007>`
      - ``0x0003``
      - ``ch_en``
-     - Channel enable: 01 = A, 10 = B, 11 = A and B.
+     - Channel enable
    * - :ref:`0x0008 <hipersdr_44xx_reg_0008>`
      - ``0x0102``
-     - ``synch_dis, mimo_int_en, trxiq_pulse, ddr_en, smpl_width``
+     - ``stream_ctrl``
      - Sample width and interface mode control.
    * - :ref:`0x0009 <hipersdr_44xx_reg_0009>`
      - ``0x0003``
-     - ``txpct_loss_clr, smpl_nr_clr``
+     - ``txpct_ctrl``
      - TX packet-loss flag clear and timestamp reset control.
    * - :ref:`0x000A <hipersdr_44xx_reg_000a>`
      - ``0x0000``
-     - ``rf_sw_auto_en, tx_cnt_en, tx_ptrn_en, rx_ptrn_en, tdd_invert, tdd_auto_en, tdd_manual, tx_rf_sw, rx_rf_sw, rx_en``
+     - ``rf_tdd_ctrl``
      - RF switch, TDD, pattern generation, and unified RX/TX enable control.
    * - :ref:`0x000B <hipersdr_44xx_reg_000b>`
      - ``0x0000``
@@ -100,7 +100,7 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - Reserved.
    * - :ref:`0x000E <hipersdr_44xx_reg_000e>`
      - ``0x0000``
-     - ``RX_PACKET_SAMPLES``
+     - ``rx_packet_samples``
      - RX packet size in samples.
    * - :ref:`0x000F <hipersdr_44xx_reg_000f>`
      - ``0x03FC``
@@ -120,7 +120,7 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - Reserved.
    * - :ref:`0x0013 <hipersdr_44xx_reg_0013>`
      - ``0x6F6B``
-     - ``LMS_TXRXEN_MUX_SEL, LMS1_RXEN, LMS1_TXEN, LMS1_TXNRX2, LMS1_TXNRX1, LMS1_CORE_LDO_EN, LMS1_RESET``
+     - ``lms_misc_ctrl``
      - LMS7002 digital-interface and hard-enable control.
    * - :ref:`0x0014 <hipersdr_44xx_reg_0014>`
      - ``0x0003``
@@ -140,11 +140,11 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - Reserved.
    * - :ref:`0x0018 <hipersdr_44xx_reg_0018>`
      - ``0x0003``
-     - ``CORE_LDO_EN, EXT_CLK, TCXO_EN, LMS_RST``
+     - ``lms_clk_ctrl``
      - LMS power, clock-source, and reset control.
    * - :ref:`0x0019 <hipersdr_44xx_reg_0019>`
      - ``0x1000``
-     - ``RX_PACKET_SIZE``
+     - ``rx_packet_size``
      - RX packet size in bytes.
    * - :ref:`0x001A <hipersdr_44xx_reg_001a>`
      - ``0x0000``
@@ -186,19 +186,19 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - Description
    * - :ref:`0x0020 <hipersdr_44xx_reg_0020>`
      - ``0x0000``
-     - ``C1 Phase``
+     - ``c1 phase``
      - Phase value for PLL output clock 1.
    * - :ref:`0x0021 <hipersdr_44xx_reg_0021>`
      - ``0x0001``
-     - ``phcfg_error, phcfg_done, pllcfg_busy, pllcfg_done``
+     - ``pll_status``
      - PLL and phase-configuration status.
    * - :ref:`0x0022 <hipersdr_44xx_reg_0022>`
      - ``0x0000``
-     - ``pllcfg_err, pll_lock``
+     - ``pll_lock_status``
      - PLL error and TX/RX PLL lock status.
    * - :ref:`0x0023 <hipersdr_44xx_reg_0023>`
      - ``0x0000``
-     - ``phcfg_mode, pll_ind, phcfg_start``
+     - ``pll_ctrl``
      - PLL reconfiguration control.
    * - :ref:`0x0024 <hipersdr_44xx_reg_0024>`
      - ``0x0000``
@@ -210,11 +210,11 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - Reserved.
    * - :ref:`0x0026 <hipersdr_44xx_reg_0026>`
      - ``0x000A``
-     - ``m_byp, n_byp``
+     - ``mn_bypass_ctrl``
      - PLL multiplier/divider bypass.
    * - :ref:`0x0027 <hipersdr_44xx_reg_0027>`
      - ``0x0AAA``
-     - ``c1_byp, c0_byp``
+     - ``c01_bypass_ctrl``
      - PLL output-divider bypass.
    * - :ref:`0x0028 <hipersdr_44xx_reg_0028>`
      - ``0xAAAA``
@@ -234,11 +234,11 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - PLL multiplier value.
    * - :ref:`0x002C <hipersdr_44xx_reg_002c>`
      - ``0x0000``
-     - ``m_frac(LSB)``
+     - ``m_frac(lsb)``
      - PLL multiplier fractional value, LSB.
    * - :ref:`0x002D <hipersdr_44xx_reg_002d>`
      - ``0x0000``
-     - ``m_frac(MSB)``
+     - ``m_frac(msb)``
      - PLL multiplier fractional value, MSB.
    * - :ref:`0x002E <hipersdr_44xx_reg_002e>`
      - ``0x0000``
@@ -255,7 +255,7 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
    * - :ref:`0x0031 <hipersdr_44xx_regmap_pllcfg>` - :ref:`0x003F <hipersdr_44xx_regmap_pllcfg>`
      - ``0x0000``
      - \-
-     - Reserved. 0x0038 - 0x003F are also reserved.
+     - Reserved.
 
 .. _hipersdr_44xx_regmap_tstcfg:
 
@@ -293,7 +293,7 @@ TSTCFG Registers (``0x0060`` - ``0x007F``)
    * - :ref:`0x0067 <hipersdr_44xx_reg_0067>`
      - ``0x0000``
      - ``test_rez``
-     - Test result bits; documented as not implemented.
+     - Test result bits
    * - :ref:`0x0068 <hipersdr_44xx_reg_0068>`
      - ``0x0000``
      - \-
@@ -301,7 +301,7 @@ TSTCFG Registers (``0x0060`` - ``0x007F``)
    * - :ref:`0x0069 <hipersdr_44xx_reg_0069>`
      - ``0x0000``
      - ``sys_clk_cnt``
-     - Count of sys_clk cycles; changing values indicate an active clock.
+     - Count of sys_clk cycles
    * - :ref:`0x006A <hipersdr_44xx_regmap_tstcfg>` - :ref:`0x006D <hipersdr_44xx_regmap_tstcfg>`
      - ``0x0000``
      - \-
@@ -382,7 +382,7 @@ PERIPHCFG Registers (``0x00C0`` - ``0x00D3``)
      - Reserved.
    * - :ref:`0x00D2 <hipersdr_44xx_reg_00d2>`
      - ``0x0003``
-     - ``PERIPH_EN``
+     - ``periph_en``
      - Peripheral enables: clock-out routing, GNSS reset, GNSS standby.
    * - :ref:`0x00D3 <hipersdr_44xx_reg_00d3>`
      - ``0x0000``
@@ -424,7 +424,7 @@ Address: ``0x0000`` | Default: ``0x001B`` | Access: R
    { "reg": [
      {"bits": 8, "name": "board_id [7:0]"},
      {"bits": 8, "name": "board_id [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -451,7 +451,7 @@ Address: ``0x0001`` | Default: ``not specified`` | Access: R
    { "reg": [
      {"bits": 8, "name": "major_rev [7:0]"},
      {"bits": 8, "name": "major_rev [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -478,7 +478,7 @@ Address: ``0x0002`` | Default: ``not specified`` | Access: R
    { "reg": [
      {"bits": 8, "name": "compile_rev [7:0]"},
      {"bits": 8, "name": "compile_rev [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -505,7 +505,7 @@ Address: ``0x0003`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -532,7 +532,7 @@ Address: ``0x0004`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -559,7 +559,7 @@ Address: ``0x0005`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -586,7 +586,7 @@ Address: ``0x0006`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -614,7 +614,7 @@ Address: ``0x0007`` | Default: ``0x0003`` | Access: R/W
      {"bits": 2, "name": "ch_en [1:0]"},
      {"bits": 6, "name": "Reserved [7:2]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -631,8 +631,8 @@ Address: ``0x0007`` | Default: ``0x0003`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0008:
 
-``0x0008`` - interface and synchronization control
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0008`` - stream_ctrl
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0008`` | Default: ``0x0102`` | Access: R/W
 
@@ -646,7 +646,7 @@ Address: ``0x0008`` | Default: ``0x0102`` | Access: R/W
      {"bits": 1, "name": "mimo_int_en"},
      {"bits": 1, "name": "synch_dis"},
      {"bits": 6, "name": "Reserved [15:10]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -679,17 +679,19 @@ Address: ``0x0008`` | Default: ``0x0102`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0009:
 
-``0x0009`` - txpct_loss_clr, smpl_nr_clr
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0009`` - txpct_ctrl
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0009`` | Default: ``0x0003`` | Access: R/W
 
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "value [7:0]"},
-     {"bits": 8, "name": "value [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 1, "name": "smpl_nr_clr"},
+     {"bits": 1, "name": "txpct_loss_clr"},
+     {"bits": 6, "name": "Reserved [7:2]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -699,15 +701,19 @@ Address: ``0x0009`` | Default: ``0x0003`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
-     - ``value``
-     -  
-     - TX packet-loss flag clear and timestamp reset control.
+   * - ``[1]``
+     - ``txpct_loss_clr``
+     - 0 - Normal operation (Default) 1 - Rising edge clears flag
+     - TX packets dropping flag clear
+   * - ``[0]``
+     - ``smpl_nr_clr``
+     - 0 - Normal operation (Default) 1 - Timestamp is cleared
+     - Reset_timestamp
 
 .. _hipersdr_44xx_reg_000a:
 
-``0x000A`` - RF and TDD control
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x000A`` - rf_tdd_ctrl
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x000A`` | Default: ``0x0000`` | Access: R/W
 
@@ -726,7 +732,7 @@ Address: ``0x000A`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "tx_cnt_en"},
      {"bits": 1, "name": "rf_sw_auto_en"},
      {"bits": 4, "name": "Reserved [15:12]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -789,7 +795,7 @@ Address: ``0x000B`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -816,7 +822,7 @@ Address: ``0x000C`` | Default: ``0x0003`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -843,7 +849,7 @@ Address: ``0x000D`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -860,7 +866,7 @@ Address: ``0x000D`` | Default: ``0x0000`` | Access: R/W
 
 .. _hipersdr_44xx_reg_000e:
 
-``0x000E`` - RX_PACKET_SAMPLES
+``0x000E`` - rx_packet_samples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x000E`` | Default: ``0x0000`` | Access: R/W
@@ -870,7 +876,7 @@ Address: ``0x000E`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "RX_PACKET_SAMPLES [7:0]"},
      {"bits": 8, "name": "RX_PACKET_SAMPLES [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -897,7 +903,7 @@ Address: ``0x000F`` | Default: ``0x03FC`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -924,7 +930,7 @@ Address: ``0x0010`` | Default: ``0x0001`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "txant_pre [7:0]"},
      {"bits": 8, "name": "txant_pre [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -951,7 +957,7 @@ Address: ``0x0011`` | Default: ``0x0001`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "txant_post [7:0]"},
      {"bits": 8, "name": "txant_post [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -978,7 +984,7 @@ Address: ``0x0012`` | Default: ``0xFFFF`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -995,17 +1001,24 @@ Address: ``0x0012`` | Default: ``0xFFFF`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0013:
 
-``0x0013`` - LMS_TXRXEN_MUX_SEL, LMS1_RXEN, LMS1_TXEN, LMS1_TXNRX2, LMS1_TXNRX1, LMS1_CORE_LDO_EN, LMS1_RESET
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0013`` - lms_misc_ctrl
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0013`` | Default: ``0x6F6B`` | Access: R/W
 
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "value [7:0]"},
-     {"bits": 8, "name": "value [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 1, "name": "Reserved"},
+     {"bits": 1, "name": "LMS1_RESET"},
+     {"bits": 1, "name": "LMS1_CORE_LDO_EN"},
+     {"bits": 1, "name": "LMS1_TXNRX1"},
+     {"bits": 1, "name": "LMS1_TXNRX2"},
+     {"bits": 1, "name": "LMS1_TXEN"},
+     {"bits": 1, "name": "LMS1_RXEN"},
+     {"bits": 1, "name": "Reserved"},
+     {"bits": 8, "name": "LMS_TXRXEN_MUX_SEL [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1015,10 +1028,34 @@ Address: ``0x0013`` | Default: ``0x6F6B`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
-     - ``value``
+   * - ``[15:8]``
+     - ``LMS_TXRXEN_MUX_SEL``
      -  
-     - LMS7002 digital-interface and hard-enable control.
+     - LMS TX/RX hard-enable source mux selection.
+   * - ``[6]``
+     - ``LMS1_RXEN``
+     - 0=Disabled,1=Enabled
+     - LMS1 RX hard enable.
+   * - ``[5]``
+     - ``LMS1_TXEN``
+     - 0=Disabled,1=Enabled
+     - LMS1 TX hard enable.
+   * - ``[4]``
+     - ``LMS1_TXNRX2``
+     - 0=TXIQ,1=RXIQ
+     - LMS1 port 2 mode selection.
+   * - ``[3]``
+     - ``LMS1_TXNRX1``
+     - 0=TXIQ,1=RXIQ
+     - LMS1 port 1 mode selection.
+   * - ``[2]``
+     - ``LMS1_CORE_LDO_EN``
+     - 0=Disabled,1=Enabled
+     - LMS1 internal LDO enable.
+   * - ``[1]``
+     - ``LMS1_RESET``
+     - 0=Reset active,1=Inactive
+     - LMS1 hardware reset.
 
 .. _hipersdr_44xx_reg_0014:
 
@@ -1032,7 +1069,7 @@ Address: ``0x0014`` | Default: ``0x0003`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1059,7 +1096,7 @@ Address: ``0x0015`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1086,7 +1123,7 @@ Address: ``0x0016`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1113,7 +1150,7 @@ Address: ``0x0017`` | Default: ``0x2340`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1130,8 +1167,8 @@ Address: ``0x0017`` | Default: ``0x2340`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0018:
 
-``0x0018`` - LMS and clock control
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0018`` - lms_clk_ctrl
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0018`` | Default: ``0x0003`` | Access: R/W
 
@@ -1144,7 +1181,7 @@ Address: ``0x0018`` | Default: ``0x0003`` | Access: R/W
      {"bits": 1, "name": "CORE_LDO_EN"},
      {"bits": 4, "name": "Reserved [7:4]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1173,7 +1210,7 @@ Address: ``0x0018`` | Default: ``0x0003`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0019:
 
-``0x0019`` - RX_PACKET_SIZE
+``0x0019`` - rx_packet_size
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0019`` | Default: ``0x1000`` | Access: R/W
@@ -1183,7 +1220,7 @@ Address: ``0x0019`` | Default: ``0x1000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "RX_PACKET_SIZE [7:0]"},
      {"bits": 8, "name": "RX_PACKET_SIZE [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1210,7 +1247,7 @@ Address: ``0x001A`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1237,7 +1274,7 @@ Address: ``0x001B`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1264,7 +1301,7 @@ Address: ``0x001C`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1291,7 +1328,7 @@ Address: ``0x001D`` | Default: ``0x00FF`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1318,7 +1355,7 @@ Address: ``0x001E`` | Default: ``0x0003`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1345,7 +1382,7 @@ Address: ``0x001F`` | Default: ``0xD090`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1362,7 +1399,7 @@ Address: ``0x001F`` | Default: ``0xD090`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0020:
 
-``0x0020`` - C1 Phase
+``0x0020`` - c1 phase
 ^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0020`` | Default: ``0x0000`` | Access: R/W
@@ -1372,7 +1409,7 @@ Address: ``0x0020`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "value [7:0]"},
      {"bits": 8, "name": "value [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1389,7 +1426,7 @@ Address: ``0x0020`` | Default: ``0x0000`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0021:
 
-``0x0021`` - PLL status
+``0x0021`` - pll_status
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0021`` | Default: ``0x0001`` | Access: R
@@ -1403,7 +1440,7 @@ Address: ``0x0021`` | Default: ``0x0001`` | Access: R
      {"bits": 1, "name": "phcfg_error"},
      {"bits": 4, "name": "Reserved [7:4]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1432,17 +1469,19 @@ Address: ``0x0021`` | Default: ``0x0001`` | Access: R
 
 .. _hipersdr_44xx_reg_0022:
 
-``0x0022`` - pllcfg_err, pll_lock
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0022`` - pll_lock_status
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Address: ``0x0022`` | Default: ``0x0000`` | Access: R/W
+Address: ``0x0022`` | Default: ``0x0000`` | Access: R
 
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "value [7:0]"},
-     {"bits": 8, "name": "value [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 1, "name": "pll_lock_tx"},
+     {"bits": 1, "name": "pll_lock_rx"},
+     {"bits": 6, "name": "Reserved [7:2]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1452,15 +1491,19 @@ Address: ``0x0022`` | Default: ``0x0000`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
-     - ``value``
-     -  
-     - PLL error and TX/RX PLL lock status.
+   * - ``[1]``
+     - ``pll_lock_rx``
+     - 0=No lock,1=Locked
+     - RX PLL lock status.
+   * - ``[0]``
+     - ``pll_lock_tx``
+     - 0=No lock,1=Locked
+     - TX PLL lock status.
 
 .. _hipersdr_44xx_reg_0023:
 
-``0x0023`` - PLL control
-^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0023`` - pll_ctrl
+^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0023`` | Default: ``0x0000`` | Access: R/W
 
@@ -1474,7 +1517,7 @@ Address: ``0x0023`` | Default: ``0x0000`` | Access: R/W
      {"bits": 6, "name": "Reserved [13:8]"},
      {"bits": 1, "name": "phcfg_mode"},
      {"bits": 1, "name": "Reserved"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1509,7 +1552,7 @@ Address: ``0x0024`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1536,7 +1579,7 @@ Address: ``0x0025`` | Default: ``0x01F0`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1553,17 +1596,21 @@ Address: ``0x0025`` | Default: ``0x01F0`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0026:
 
-``0x0026`` - m_byp, n_byp
-^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0026`` - mn_bypass_ctrl
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0026`` | Default: ``0x000A`` | Access: R/W
 
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "value [7:0]"},
-     {"bits": 8, "name": "value [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 1, "name": "Reserved"},
+     {"bits": 1, "name": "n_byp"},
+     {"bits": 1, "name": "Reserved"},
+     {"bits": 1, "name": "m_byp"},
+     {"bits": 4, "name": "Reserved [7:4]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1573,24 +1620,32 @@ Address: ``0x0026`` | Default: ``0x000A`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
-     - ``value``
-     -  
-     - PLL multiplier/divider bypass.
+   * - ``[3]``
+     - ``m_byp``
+     - 0=normal,1=bypass
+     - M counter bypass control.
+   * - ``[1]``
+     - ``n_byp``
+     - 0=normal,1=bypass
+     - N counter bypass control.
 
 .. _hipersdr_44xx_reg_0027:
 
-``0x0027`` - c1_byp, c0_byp
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0027`` - c01_bypass_ctrl
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0027`` | Default: ``0x0AAA`` | Access: R/W
 
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "value [7:0]"},
-     {"bits": 8, "name": "value [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 1, "name": "Reserved"},
+     {"bits": 1, "name": "c0_byp"},
+     {"bits": 1, "name": "Reserved"},
+     {"bits": 1, "name": "c1_byp"},
+     {"bits": 4, "name": "Reserved [7:4]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1600,10 +1655,14 @@ Address: ``0x0027`` | Default: ``0x0AAA`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
-     - ``value``
-     -  
-     - PLL output-divider bypass.
+   * - ``[3]``
+     - ``c1_byp``
+     - 0=normal,1=bypass
+     - C1 output-divider bypass control.
+   * - ``[1]``
+     - ``c0_byp``
+     - 0=normal,1=bypass
+     - C0 output-divider bypass control.
 
 .. _hipersdr_44xx_reg_0028:
 
@@ -1617,7 +1676,7 @@ Address: ``0x0028`` | Default: ``0xAAAA`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1644,7 +1703,7 @@ Address: ``0x0029`` | Default: ``0xAAAA`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1671,7 +1730,7 @@ Address: ``0x002A`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "n_cnt [7:0]"},
      {"bits": 8, "name": "n_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1698,7 +1757,7 @@ Address: ``0x002B`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "m_cnt [7:0]"},
      {"bits": 8, "name": "m_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1715,7 +1774,7 @@ Address: ``0x002B`` | Default: ``0x0000`` | Access: R/W
 
 .. _hipersdr_44xx_reg_002c:
 
-``0x002C`` - m_frac(LSB)
+``0x002C`` - m_frac(lsb)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x002C`` | Default: ``0x0000`` | Access: R/W
@@ -1723,9 +1782,9 @@ Address: ``0x002C`` | Default: ``0x0000`` | Access: R/W
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "value [7:0]"},
-     {"bits": 8, "name": "value [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 8, "name": "m_frac_l [7:0]"},
+     {"bits": 8, "name": "m_frac_l [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1736,13 +1795,13 @@ Address: ``0x002C`` | Default: ``0x0000`` | Access: R/W
      - Values
      - Description
    * - ``[15:0]``
-     - ``value``
+     - ``m_frac_l``
      -  
      - PLL multiplier fractional value, LSB.
 
 .. _hipersdr_44xx_reg_002d:
 
-``0x002D`` - m_frac(MSB)
+``0x002D`` - m_frac(msb)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x002D`` | Default: ``0x0000`` | Access: R/W
@@ -1750,9 +1809,9 @@ Address: ``0x002D`` | Default: ``0x0000`` | Access: R/W
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "value [7:0]"},
-     {"bits": 8, "name": "value [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 8, "name": "m_frac_h [7:0]"},
+     {"bits": 8, "name": "m_frac_h [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1763,7 +1822,7 @@ Address: ``0x002D`` | Default: ``0x0000`` | Access: R/W
      - Values
      - Description
    * - ``[15:0]``
-     - ``value``
+     - ``m_frac_h``
      -  
      - PLL multiplier fractional value, MSB.
 
@@ -1779,7 +1838,7 @@ Address: ``0x002E`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c0_cnt [7:0]"},
      {"bits": 8, "name": "c0_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1806,7 +1865,7 @@ Address: ``0x002F`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c1_cnt [7:0]"},
      {"bits": 8, "name": "c1_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1833,7 +1892,7 @@ Address: ``0x0030`` | Default: ``0xEFFF`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "auto_phcfg_smpls [7:0]"},
      {"bits": 8, "name": "auto_phcfg_smpls [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1860,7 +1919,7 @@ Address: ``0x0060`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1877,8 +1936,8 @@ Address: ``0x0060`` | Default: ``0x0000`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0061:
 
-``0x0061`` - test enable
-^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0061`` - test_en
+^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0061`` | Default: ``0x0000`` | Access: R/W
 
@@ -1890,7 +1949,7 @@ Address: ``0x0061`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "test_en[2]"},
      {"bits": 5, "name": "Reserved [7:3]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1915,20 +1974,20 @@ Address: ``0x0061`` | Default: ``0x0000`` | Access: R/W
 
 .. _hipersdr_44xx_reg_0065:
 
-``0x0065`` - test complete
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0065`` - test_cmplt
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0065`` | Default: ``0x0000`` | Access: R
 
 .. wavedrom::
 
    { "reg": [
-     {"bits": 1, "name": "sys_clk_test"},
+     {"bits": 1, "name": "test_cmplt[0]"},
      {"bits": 1, "name": "test_cmplt[1]"},
      {"bits": 1, "name": "test_cmplt[2]"},
      {"bits": 5, "name": "Reserved [7:3]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1947,7 +2006,7 @@ Address: ``0x0065`` | Default: ``0x0000`` | Access: R
      - status
      - LMS TX clock test complete.
    * - ``[0]``
-     - ``sys_clk_test``
+     - ``test_cmplt[0]``
      - status
      - System clock test complete.
 
@@ -1963,7 +2022,7 @@ Address: ``0x0066`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1988,9 +2047,12 @@ Address: ``0x0067`` | Default: ``0x0000`` | Access: R/W
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "test_rez [7:0]"},
-     {"bits": 8, "name": "test_rez [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 1, "name": "test_rez[0]"},
+     {"bits": 1, "name": "test_rez[1]"},
+     {"bits": 1, "name": "test_rez[2]"},
+     {"bits": 5, "name": "Reserved [7:3]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2000,10 +2062,18 @@ Address: ``0x0067`` | Default: ``0x0000`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
-     - ``test_rez``
+   * - ``[2]``
+     - ``test_rez[2]``
      -  
-     - Test result bits; documented as not implemented.
+     - GNSS test result.
+   * - ``[1]``
+     - ``test_rez[1]``
+     -  
+     - LMS TX clock test result.
+   * - ``[0]``
+     - ``test_rez[0]``
+     -  
+     - System clock test result.
 
 .. _hipersdr_44xx_reg_0068:
 
@@ -2017,7 +2087,7 @@ Address: ``0x0068`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2044,7 +2114,7 @@ Address: ``0x0069`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "sys_clk_cnt [7:0]"},
      {"bits": 8, "name": "sys_clk_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2057,7 +2127,7 @@ Address: ``0x0069`` | Default: ``0x0000`` | Access: R/W
    * - ``[15:0]``
      - ``sys_clk_cnt``
      -  
-     - Count of sys_clk cycles; changing values indicate an active clock.
+     - Count of sys_clk cycles
 
 .. _hipersdr_44xx_reg_0072:
 
@@ -2071,7 +2141,7 @@ Address: ``0x0072`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "lms_tx_clk_cnt [7:0]"},
      {"bits": 8, "name": "lms_tx_clk_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2097,8 +2167,8 @@ Address: ``0x0073`` | Default: ``0x0000`` | Access: R/W
 
    { "reg": [
      {"bits": 8, "name": "lms_tx_clk_cnt [7:0]"},
-     {"bits": 8, "name": "lms_tx_clk_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2108,7 +2178,11 @@ Address: ``0x0073`` | Default: ``0x0000`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
+   * - ``[15:8]``
+     - \-
+     -  
+     -  
+   * - ``[7:0]``
      - ``lms_tx_clk_cnt``
      -  
      - Bits 23:16 of LMS TX clock test counter.
@@ -2125,7 +2199,7 @@ Address: ``0x007D`` | Default: ``0xAAAA`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "tx_tst_i [7:0]"},
      {"bits": 8, "name": "tx_tst_i [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2152,7 +2226,7 @@ Address: ``0x007E`` | Default: ``0x5555`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "tx_tst_q [7:0]"},
      {"bits": 8, "name": "tx_tst_q [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2179,7 +2253,7 @@ Address: ``0x007F`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2204,10 +2278,9 @@ Address: ``0x00C0`` | Default: ``0x0002`` | Access: R/W
 .. wavedrom::
 
    { "reg": [
-     {"bits": 1, "name": "board_gpio_ovrd"},
-     {"bits": 7, "name": "Reserved [7:1]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 8, "name": "board_gpio_ovrd [7:0]"},
+     {"bits": 8, "name": "board_gpio_ovrd [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2217,10 +2290,10 @@ Address: ``0x00C0`` | Default: ``0x0002`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[0]``
+   * - ``[15:0]``
      - ``board_gpio_ovrd``
      - 0 = dedicated function, 1 = user override
-     - GPIO override control.
+     - GPIO override control. Separate bits controls corresponding GPIO
 
 .. _hipersdr_44xx_reg_00c4:
 
@@ -2234,7 +2307,7 @@ Address: ``0x00C4`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "board_gpio_dir [7:0]"},
      {"bits": 8, "name": "board_gpio_dir [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2246,8 +2319,8 @@ Address: ``0x00C4`` | Default: ``0x0000`` | Access: R/W
      - Description
    * - ``[15:0]``
      - ``board_gpio_dir``
-     -  
-     - Onboard GPIO direction. 0 = input, 1 = output.
+     - 0 = input, 1 = output.
+     - Onboard GPIO direction.
 
 .. _hipersdr_44xx_reg_00c5:
 
@@ -2261,7 +2334,7 @@ Address: ``0x00C5`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2288,7 +2361,7 @@ Address: ``0x00C6`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "board_gpio_val [7:0]"},
      {"bits": 8, "name": "board_gpio_val [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2300,8 +2373,8 @@ Address: ``0x00C6`` | Default: ``0x0000`` | Access: R/W
      - Description
    * - ``[15:0]``
      - ``board_gpio_val``
-     -  
-     - GPIO output value. 0 = low, 1 = high.
+     - 0 = low, 1 = high.
+     - GPIO output value.
 
 .. _hipersdr_44xx_reg_00ca:
 
@@ -2315,7 +2388,7 @@ Address: ``0x00CA`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "periph_input_sel [7:0]"},
      {"bits": 8, "name": "periph_input_sel [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2327,12 +2400,12 @@ Address: ``0x00CA`` | Default: ``0x0000`` | Access: R/W
      - Description
    * - ``[15:0]``
      - ``periph_input_sel``
-     -  
-     - PPS input source select. 0 = GNSS_1PPS, 1 = 1PPSI_GPIO1.
+     - 0 = GNSS_1PPS, 1 = 1PPSI_GPIO1.
+     - PPS input source select.
 
 .. _hipersdr_44xx_reg_00d2:
 
-``0x00D2`` - PERIPH_EN
+``0x00D2`` - periph_en
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x00D2`` | Default: ``0x0003`` | Access: R/W
@@ -2343,7 +2416,7 @@ Address: ``0x00D2`` | Default: ``0x0003`` | Access: R/W
      {"bits": 3, "name": "PERIPH_EN [2:0]"},
      {"bits": 5, "name": "Reserved [7:3]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2370,7 +2443,7 @@ Address: ``0x00D3`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "Reserved [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1

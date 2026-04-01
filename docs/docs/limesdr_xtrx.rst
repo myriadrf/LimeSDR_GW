@@ -100,14 +100,14 @@ Gateware Register Reference
 ---------------------------
 LimeSDR XTRX exposes registers through two access paths:
 
-- :doc:`Host remapped registers <limesdr-xtrx/reg_remap/xtrx_regremap_from_csv>`: a compatibility register map used by existing host software and older gateware integrations.
+- :doc:`Legacy FPGA SPI registers <limesdr-xtrx/reg_remap/xtrx_regremap_from_csv>`: legacy host registers used by existing software and previous gateware; planned to be replaced by LiteX CSR.
 - :doc:`Native LiteX CSR map <limesdr-xtrx/litex_doc/index>`: the SoC's dedicated CSR register space generated from LiteX modules.
 
-The remapped host register set is kept to maintain backward compatibility with legacy gateware/software stacks, while the LiteX CSR map documents the native SoC register layout.
+During the migration phase, the host can continue accessing legacy FPGA SPI register addresses; firmware remaps these FPGA SPI register accesses to native LiteX CSR registers internally. The LiteX CSR map is the forward path for native SoC register access.
 
 .. toctree::
    :maxdepth: 3
    :hidden:
 
-   Host remapped register reference <limesdr-xtrx/reg_remap/xtrx_regremap_from_csv>
+   Legacy FPGA SPI register reference <limesdr-xtrx/reg_remap/xtrx_regremap_from_csv>
    Register reference <limesdr-xtrx/litex_doc/index>

@@ -53,7 +53,7 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - Gateware revision number.
    * - :ref:`0x0003 <mini_v2_reg_0003>`
      -  
-     - ``bom_ver, hw_ver``
+     - ``board_ver_ctrl``
      - Board BOM version and hardware version.
    * - :ref:`0x0004 <mini_v2_reg_0004>`
      - ``0x0000``
@@ -73,15 +73,15 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - RX/TX MIMO channel enable control.
    * - :ref:`0x0008 <mini_v2_reg_0008>`
      - ``0x0102``
-     - ``dlb_en, synch_dis, mimo_int_en, triq_pulse, ddr_en, mode, smpl_width``
+     - ``diq_ctrl``
      - DIQ interface control.
    * - :ref:`0x0009 <mini_v2_reg_0009>`
      - ``0x0003``
-     - ``txpct_loss_clr, smpl_nr_clr``
+     - ``packet_ctrl``
      - Packet control: TX packet-loss clear and timestamp reset.
    * - :ref:`0x000A <mini_v2_reg_000a>`
      - ``0x0000``
-     - ``tx_ptrn_en, rx_ptrn_en, tx_en, rx_en``
+     - ``rxtx_ctrl``
      - RX/TX module control.
    * - :ref:`0x000B <mini_v2_reg_000b>`
      - ``0x0000``
@@ -93,7 +93,7 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - WFM player channel enable control.
    * - :ref:`0x000D <mini_v2_reg_000d>`
      - ``0x0001``
-     - ``wfm_load, wfm_play``
+     - ``wfm_ctrl2``
      - WFM player load/play control.
    * - :ref:`0x000E <mini_v2_reg_000e>`
      - ``0x0002``
@@ -187,7 +187,7 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - Reserved.
    * - :ref:`0x0021 <mini_v2_reg_0021>`
      - ``0x0001``
-     - ``auto_phcfg_err, auto_phcfg_done, busy, done``
+     - ``pll_status``
      - PLL configuration status.
    * - :ref:`0x0022 <mini_v2_reg_0022>`
      - ``0x0000``
@@ -195,7 +195,7 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - RX/TX PLL lock status.
    * - :ref:`0x0023 <mini_v2_reg_0023>`
      - ``0x0000``
-     - ``phcfg_mode, phcfg_updn, cnt_ind, pll_ind, pllrst_start, phcfg_start, pllcfg_start``
+     - ``pll_ctrl``
      - PLL control.
    * - :ref:`0x0024 <mini_v2_reg_0024>`
      - ``0x0000``
@@ -203,11 +203,11 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - Counter phase value.
    * - :ref:`0x0025 <mini_v2_reg_0025>`
      - ``0x01F0``
-     - ``pllcfg_bs, chp_curr, pllcfg_vcodiv, pllcfg_lf_res, pllcfg_lf_cap``
+     - ``pllcfg_settings``
      - PLL reconfiguration settings.
    * - :ref:`0x0026 <mini_v2_reg_0026>`
      - ``0x0001``
-     - ``m_odddiv, m_byp, n_odddiv, n_byp``
+     - ``mn_bypass_ctrl``
      - M/N counter bypass and odd-division control.
    * - :ref:`0x0027 <mini_v2_reg_0027>`
      - ``0x555A``
@@ -223,11 +223,11 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - Reserved.
    * - :ref:`0x002A <mini_v2_reg_002a>`
      - ``0x0000``
-     - ``n_hcnt, n_lcnt``
+     - ``n_cnt``
      - N counter values.
    * - :ref:`0x002B <mini_v2_reg_002b>`
      - ``0x0000``
-     - ``m_hcnt, m_lcnt``
+     - ``m_cnt``
      - M counter values.
    * - :ref:`0x002C <mini_v2_reg_002c>`
      - ``0x0000``
@@ -239,43 +239,43 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - M fractional counter values [31:16].
    * - :ref:`0x002E <mini_v2_reg_002e>`
      - ``0x0000``
-     - ``c0_hcnt, c0_lcnt``
+     - ``c0_cnt``
      - C0 counter values.
    * - :ref:`0x002F <mini_v2_reg_002f>`
      - ``0x0000``
-     - ``c1_hcnt, c1_lcnt``
+     - ``c1_cnt``
      - C1 counter values.
    * - :ref:`0x0030 <mini_v2_reg_0030>`
      - ``0x0000``
-     - ``c2_hcnt, c2_lcnt``
+     - ``c2_cnt``
      - C2 counter values.
    * - :ref:`0x0031 <mini_v2_reg_0031>`
      - ``0x0000``
-     - ``c3_hcnt, c3_lcnt``
+     - ``c3_cnt``
      - C3 counter values.
    * - :ref:`0x0032 <mini_v2_reg_0032>`
      - ``0x0000``
-     - ``c4_hcnt, c4_lcnt``
+     - ``c4_cnt``
      - C4 counter values.
    * - :ref:`0x0033 <mini_v2_reg_0033>`
      - ``0x0000``
-     - ``c5_hcnt, c5_lcnt``
+     - ``c5_cnt``
      - C5 counter values.
    * - :ref:`0x0034 <mini_v2_reg_0034>`
      - ``0x0000``
-     - ``c6_hcnt, c6_lcnt``
+     - ``c6_cnt``
      - C6 counter values.
    * - :ref:`0x0035 <mini_v2_reg_0035>`
      - ``0x0000``
-     - ``c7_hcnt, c7_lcnt``
+     - ``c7_cnt``
      - C7 counter values.
    * - :ref:`0x0036 <mini_v2_reg_0036>`
      - ``0x0000``
-     - ``c8_hcnt, c8_lcnt``
+     - ``c8_cnt``
      - C8 counter values.
    * - :ref:`0x0037 <mini_v2_reg_0037>`
      - ``0x0000``
-     - ``c9_hcnt, c9_lcnt``
+     - ``c9_cnt``
      - C9 counter values.
    * - :ref:`0x0038 <mini_v2_reg_0038>`
      -  
@@ -325,7 +325,7 @@ TSTCFG Registers (``0x0060`` - ``0x007F``)
      - Description
    * - :ref:`0x0060 <mini_v2_reg_0060>`
      - ``0x00F0``
-     - ``spi_sign_rezult, spi_sign``
+     - ``spi_sign``
      - SPI signature and test register.
    * - :ref:`0x0061 <mini_v2_reg_0061>`
      - ``0x0000``
@@ -611,7 +611,7 @@ Address: ``0x0000`` | Default: ``0x0011`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "board_id [7:0]"},
      {"bits": 8, "name": "board_id [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -638,7 +638,7 @@ Address: ``0x0001`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "gw_ver [7:0]"},
      {"bits": 8, "name": "gw_ver [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -665,7 +665,7 @@ Address: ``0x0002`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "gw_rev [7:0]"},
      {"bits": 8, "name": "gw_rev [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -682,8 +682,8 @@ Address: ``0x0002`` | Default: ``not specified`` | Access: R/W
 
 .. _mini_v2_reg_0003:
 
-``0x0003`` - hw_ver and bom_ver
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0003`` - board_ver_ctrl
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0003`` | Default: ``not specified`` | Access: R
 
@@ -694,7 +694,7 @@ Address: ``0x0003`` | Default: ``not specified`` | Access: R
      {"bits": 3, "name": "bom_ver [6:4]"},
      {"bits": 1, "name": "Reserved [7:7]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -725,7 +725,7 @@ Address: ``0x0004`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -754,7 +754,7 @@ Address: ``0x0005`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "drct_clk_en_rx"},
      {"bits": 6, "name": "Reserved [7:2]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -785,7 +785,7 @@ Address: ``0x0006`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -816,7 +816,7 @@ Address: ``0x0007`` | Default: ``0x0303`` | Access: R/W
      {"bits": 1, "name": "ch_en_tx0"},
      {"bits": 1, "name": "ch_en_tx1"},
      {"bits": 6, "name": "Reserved [15:10]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -862,7 +862,7 @@ Address: ``0x0008`` | Default: ``0x0102`` | Access: R/W
      {"bits": 1, "name": "synch_dis"},
      {"bits": 1, "name": "dlb_en"},
      {"bits": 5, "name": "Reserved [15:11]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -915,7 +915,7 @@ Address: ``0x0009`` | Default: ``0x0003`` | Access: R/W
      {"bits": 1, "name": "txpct_loss_clr"},
      {"bits": 6, "name": "Reserved [7:2]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -936,8 +936,8 @@ Address: ``0x0009`` | Default: ``0x0003`` | Access: R/W
 
 .. _mini_v2_reg_000a:
 
-``0x000A`` - rx_tx_ctrl
-^^^^^^^^^^^^^^^^^^^^^^^
+``0x000A`` - rxtx_ctrl
+^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x000A`` | Default: ``0x0000`` | Access: R/W
 
@@ -950,7 +950,7 @@ Address: ``0x000A`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "rx_ptrn_en"},
      {"bits": 1, "name": "tx_ptrn_en"},
      {"bits": 6, "name": "Reserved [15:10]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -989,7 +989,7 @@ Address: ``0x000B`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1018,7 +1018,7 @@ Address: ``0x000C`` | Default: ``0x0003`` | Access: R/W
      {"bits": 1, "name": "wfm_ch1_en"},
      {"bits": 6, "name": "Reserved [7:2]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1052,7 +1052,7 @@ Address: ``0x000D`` | Default: ``0x0001`` | Access: R/W
      {"bits": 1, "name": "wfm_load"},
      {"bits": 5, "name": "Reserved [7:3]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1084,7 +1084,7 @@ Address: ``0x000E`` | Default: ``0x0002`` | Access: R/W
      {"bits": 2, "name": "wfm_smpl_width [1:0]"},
      {"bits": 6, "name": "Reserved [7:2]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1111,7 +1111,7 @@ Address: ``0x000F`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1138,7 +1138,7 @@ Address: ``0x0010`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1165,7 +1165,7 @@ Address: ``0x0011`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1192,7 +1192,7 @@ Address: ``0x0012`` | Default: ``0xFFFF`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "spi_ss [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1226,7 +1226,7 @@ Address: ``0x0013`` | Default: ``0x6F6F`` | Access: R/W
      {"bits": 1, "name": "lms1_rxen"},
      {"bits": 1, "name": "Reserved [7:7]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1273,7 +1273,7 @@ Address: ``0x0014`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1300,7 +1300,7 @@ Address: ``0x0015`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1327,7 +1327,7 @@ Address: ``0x0016`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1361,7 +1361,7 @@ Address: ``0x0017`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "gpio6"},
      {"bits": 1, "name": "Reserved [7:7]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1409,7 +1409,7 @@ Address: ``0x0018`` | Default: ``0x0001`` | Access: R/W
      {"bits": 1, "name": "dev_ctrl0"},
      {"bits": 7, "name": "Reserved [7:1]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1436,7 +1436,7 @@ Address: ``0x0019`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1470,7 +1470,7 @@ Address: ``0x001A`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "fpga_led2_g"},
      {"bits": 1, "name": "Reserved [7:7]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1517,7 +1517,7 @@ Address: ``0x001B`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1547,7 +1547,7 @@ Address: ``0x001C`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "fx3_led_g"},
      {"bits": 5, "name": "Reserved [7:3]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1582,7 +1582,7 @@ Address: ``0x001D`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1609,7 +1609,7 @@ Address: ``0x001E`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1636,7 +1636,7 @@ Address: ``0x001F`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1663,7 +1663,7 @@ Address: ``0x0020`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1694,7 +1694,7 @@ Address: ``0x0021`` | Default: ``0x0001`` | Access: R
      {"bits": 1, "name": "auto_phcfg_err"},
      {"bits": 4, "name": "Reserved [7:4]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1735,7 +1735,7 @@ Address: ``0x0022`` | Default: ``0x0000`` | Access: R
      {"bits": 1, "name": "pll_lock_rx"},
      {"bits": 6, "name": "Reserved [7:2]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1772,7 +1772,7 @@ Address: ``0x0023`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "phcfg_updn"},
      {"bits": 1, "name": "phcfg_mode"},
      {"bits": 1, "name": "Reserved"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1823,7 +1823,7 @@ Address: ``0x0024`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "cnt_phase [7:0]"},
      {"bits": 8, "name": "cnt_phase [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1854,7 +1854,7 @@ Address: ``0x0025`` | Default: ``0x01F0`` | Access: R/W
      {"bits": 3, "name": "chp_curr [10:8]"},
      {"bits": 4, "name": "pllcfg_bs [14:11]"},
      {"bits": 1, "name": "Reserved"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1887,17 +1887,21 @@ Address: ``0x0025`` | Default: ``0x01F0`` | Access: R/W
 
 .. _mini_v2_reg_0026:
 
-``0x0026`` - m_odddiv, m_byp, n_odddiv, n_byp
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0026`` - mn_bypass_ctrl
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0026`` | Default: ``0x0001`` | Access: R/W
 
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "m_odddiv, m_byp, n_odddiv, n_byp [7:0]"},
-     {"bits": 8, "name": "m_odddiv, m_byp, n_odddiv, n_byp [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 1, "name": "n_odddiv"},
+     {"bits": 1, "name": "n_byp"},
+     {"bits": 1, "name": "m_odddiv"},
+     {"bits": 1, "name": "m_byp"},
+     {"bits": 4, "name": "Reserved [7:4]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1907,10 +1911,22 @@ Address: ``0x0026`` | Default: ``0x0001`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
-     - ``m_odddiv, m_byp, n_odddiv, n_byp``
-     -  
-     - M/N counter bypass and odd-division control.
+   * - ``[3]``
+     - ``m_byp``
+     - 0=normal,1=bypass
+     - M counter bypass control.
+   * - ``[2]``
+     - ``m_odddiv``
+     - 0=even,1=odd
+     - M counter odd-division enable.
+   * - ``[1]``
+     - ``n_byp``
+     - 0=normal,1=bypass
+     - N counter bypass control.
+   * - ``[0]``
+     - ``n_odddiv``
+     - 0=even,1=odd
+     - N counter odd-division enable.
 
 .. _mini_v2_reg_0027:
 
@@ -1922,9 +1938,23 @@ Address: ``0x0027`` | Default: ``0x555A`` | Access: R/W
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "c0..c7_byp_odddiv [7:0]"},
-     {"bits": 8, "name": "c0..c7_byp_odddiv [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+     {"bits": 1, "name": "c0_odddiv"},
+     {"bits": 1, "name": "c0_byp"},
+     {"bits": 1, "name": "c1_odddiv"},
+     {"bits": 1, "name": "c1_byp"},
+     {"bits": 1, "name": "c2_odddiv"},
+     {"bits": 1, "name": "c2_byp"},
+     {"bits": 1, "name": "c3_odddiv"},
+     {"bits": 1, "name": "c3_byp"},
+     {"bits": 1, "name": "c4_odddiv"},
+     {"bits": 1, "name": "c4_byp"},
+     {"bits": 1, "name": "c5_odddiv"},
+     {"bits": 1, "name": "c5_byp"},
+     {"bits": 1, "name": "c6_odddiv"},
+     {"bits": 1, "name": "c6_byp"},
+     {"bits": 1, "name": "c7_odddiv"},
+     {"bits": 1, "name": "c7_byp"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1934,10 +1964,70 @@ Address: ``0x0027`` | Default: ``0x555A`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
-     - ``c0..c7_byp_odddiv``
-     -  
-     - Counter bypass and odd-division control bits for C0..C7.
+   * - ``[15]``
+     - ``c7_byp``
+     - 0=normal,1=bypass
+     - C7 bypass control.
+   * - ``[14]``
+     - ``c7_odddiv``
+     - 0=even,1=odd
+     - C7 odd-division enable.
+   * - ``[13]``
+     - ``c6_byp``
+     - 0=normal,1=bypass
+     - C6 bypass control.
+   * - ``[12]``
+     - ``c6_odddiv``
+     - 0=even,1=odd
+     - C6 odd-division enable.
+   * - ``[11]``
+     - ``c5_byp``
+     - 0=normal,1=bypass
+     - C5 bypass control.
+   * - ``[10]``
+     - ``c5_odddiv``
+     - 0=even,1=odd
+     - C5 odd-division enable.
+   * - ``[9]``
+     - ``c4_byp``
+     - 0=normal,1=bypass
+     - C4 bypass control.
+   * - ``[8]``
+     - ``c4_odddiv``
+     - 0=even,1=odd
+     - C4 odd-division enable.
+   * - ``[7]``
+     - ``c3_byp``
+     - 0=normal,1=bypass
+     - C3 bypass control.
+   * - ``[6]``
+     - ``c3_odddiv``
+     - 0=even,1=odd
+     - C3 odd-division enable.
+   * - ``[5]``
+     - ``c2_byp``
+     - 0=normal,1=bypass
+     - C2 bypass control.
+   * - ``[4]``
+     - ``c2_odddiv``
+     - 0=even,1=odd
+     - C2 odd-division enable.
+   * - ``[3]``
+     - ``c1_byp``
+     - 0=normal,1=bypass
+     - C1 bypass control.
+   * - ``[2]``
+     - ``c1_odddiv``
+     - 0=even,1=odd
+     - C1 odd-division enable.
+   * - ``[1]``
+     - ``c0_byp``
+     - 0=normal,1=bypass
+     - C0 bypass control.
+   * - ``[0]``
+     - ``c0_odddiv``
+     - 0=even,1=odd
+     - C0 odd-division enable.
 
 .. _mini_v2_reg_0028:
 
@@ -1951,7 +2041,7 @@ Address: ``0x0028`` | Default: ``0x5555`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c8..c15_byp_odddiv [7:0]"},
      {"bits": 8, "name": "c8..c15_byp_odddiv [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -1978,7 +2068,7 @@ Address: ``0x0029`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2005,7 +2095,7 @@ Address: ``0x002A`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "n_lcnt [7:0]"},
      {"bits": 8, "name": "n_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2036,7 +2126,7 @@ Address: ``0x002B`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "m_lcnt [7:0]"},
      {"bits": 8, "name": "m_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2067,7 +2157,7 @@ Address: ``0x002C`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "m_frac_l [7:0]"},
      {"bits": 8, "name": "m_frac_l [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2094,7 +2184,7 @@ Address: ``0x002D`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "m_frac_h [7:0]"},
      {"bits": 8, "name": "m_frac_h [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2121,7 +2211,7 @@ Address: ``0x002E`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c0_lcnt [7:0]"},
      {"bits": 8, "name": "c0_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2152,7 +2242,7 @@ Address: ``0x002F`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c1_lcnt [7:0]"},
      {"bits": 8, "name": "c1_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2183,7 +2273,7 @@ Address: ``0x0030`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c2_lcnt [7:0]"},
      {"bits": 8, "name": "c2_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2214,7 +2304,7 @@ Address: ``0x0031`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c3_lcnt [7:0]"},
      {"bits": 8, "name": "c3_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2245,7 +2335,7 @@ Address: ``0x0032`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c4_lcnt [7:0]"},
      {"bits": 8, "name": "c4_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2276,7 +2366,7 @@ Address: ``0x0033`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c5_lcnt [7:0]"},
      {"bits": 8, "name": "c5_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2307,7 +2397,7 @@ Address: ``0x0034`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c6_lcnt [7:0]"},
      {"bits": 8, "name": "c6_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2338,7 +2428,7 @@ Address: ``0x0035`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c7_lcnt [7:0]"},
      {"bits": 8, "name": "c7_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2369,7 +2459,7 @@ Address: ``0x0036`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c8_lcnt [7:0]"},
      {"bits": 8, "name": "c8_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2400,7 +2490,7 @@ Address: ``0x0037`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "c9_lcnt [7:0]"},
      {"bits": 8, "name": "c9_hcnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2431,7 +2521,7 @@ Address: ``0x0038`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2458,7 +2548,7 @@ Address: ``0x0039`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2485,7 +2575,7 @@ Address: ``0x003A`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2512,7 +2602,7 @@ Address: ``0x003B`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2539,7 +2629,7 @@ Address: ``0x003C`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2566,7 +2656,7 @@ Address: ``0x003D`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2593,7 +2683,7 @@ Address: ``0x003E`` | Default: ``0x0FFF`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "auto_phcfg_smpls [7:0]"},
      {"bits": 8, "name": "auto_phcfg_smpls [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2620,7 +2710,7 @@ Address: ``0x003F`` | Default: ``0x0002`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "auto_phcfg_step [7:0]"},
      {"bits": 8, "name": "auto_phcfg_step [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2648,7 +2738,7 @@ Address: ``0x0060`` | Default: ``0x00F0`` | Access: R/W
      {"bits": 4, "name": "spi_sign [3:0]"},
      {"bits": 4, "name": "spi_sign_rezult [7:4]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2685,7 +2775,7 @@ Address: ``0x0061`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "ddr2_2_tst_en"},
      {"bits": 2, "name": "Reserved [7:6]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2732,7 +2822,7 @@ Address: ``0x0062`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2749,8 +2839,8 @@ Address: ``0x0062`` | Default: ``not specified`` | Access: R/W
 
 .. _mini_v2_reg_0063:
 
-``0x0063`` - test_force_err
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``0x0063`` - test_frc_err
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Address: ``0x0063`` | Default: ``0x0000`` | Access: R/W
 
@@ -2765,7 +2855,7 @@ Address: ``0x0063`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "ddr2_2_tst_frc_err"},
      {"bits": 2, "name": "Reserved [7:6]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2812,7 +2902,7 @@ Address: ``0x0064`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2845,7 +2935,7 @@ Address: ``0x0065`` | Default: ``0x0000`` | Access: R
      {"bits": 1, "name": "ddr2_2_tst_cmplt"},
      {"bits": 2, "name": "Reserved [7:6]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2892,7 +2982,7 @@ Address: ``0x0066`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2925,7 +3015,7 @@ Address: ``0x0067`` | Default: ``0x0000`` | Access: R
      {"bits": 1, "name": "ddr2_2_tst_rez"},
      {"bits": 2, "name": "Reserved [7:6]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2972,7 +3062,7 @@ Address: ``0x0068`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -2999,7 +3089,7 @@ Address: ``0x0069`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "fx3_clk_cnt [7:0]"},
      {"bits": 8, "name": "fx3_clk_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3026,7 +3116,7 @@ Address: ``0x006A`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "si5351c_clk0_cnt [7:0]"},
      {"bits": 8, "name": "si5351c_clk0_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3053,7 +3143,7 @@ Address: ``0x006B`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "si5351c_clk1_cnt [7:0]"},
      {"bits": 8, "name": "si5351c_clk1_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3080,7 +3170,7 @@ Address: ``0x006C`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "si5351c_clk2_cnt [7:0]"},
      {"bits": 8, "name": "si5351c_clk2_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3107,7 +3197,7 @@ Address: ``0x006D`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "si5351c_clk3_cnt [7:0]"},
      {"bits": 8, "name": "si5351c_clk3_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3134,7 +3224,7 @@ Address: ``0x006E`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3161,7 +3251,7 @@ Address: ``0x006F`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "si5351c_clk5_cnt [7:0]"},
      {"bits": 8, "name": "si5351c_clk5_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3188,7 +3278,7 @@ Address: ``0x0070`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "si5351c_clk6_cnt [7:0]"},
      {"bits": 8, "name": "si5351c_clk6_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3215,7 +3305,7 @@ Address: ``0x0071`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "si5351c_clk7_cnt [7:0]"},
      {"bits": 8, "name": "si5351c_clk7_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3242,7 +3332,7 @@ Address: ``0x0072`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "lmk_clk_cnt_l [7:0]"},
      {"bits": 8, "name": "lmk_clk_cnt_l [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3269,7 +3359,7 @@ Address: ``0x0073`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "lmk_clk_cnt_h [7:0]"},
      {"bits": 8, "name": "lmk_clk_cnt_h [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3296,7 +3386,7 @@ Address: ``0x0074`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "adf_cnt [7:0]"},
      {"bits": 8, "name": "adf_cnt [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3323,7 +3413,7 @@ Address: ``0x0075`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3353,7 +3443,7 @@ Address: ``0x0076`` | Default: ``not specified`` | Access: R
      {"bits": 1, "name": "ddr2_1_tst_fail"},
      {"bits": 5, "name": "Reserved [7:3]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3388,7 +3478,7 @@ Address: ``0x0077`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "ddr2_1_pnf_per_bit_l [7:0]"},
      {"bits": 8, "name": "ddr2_1_pnf_per_bit_l [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3415,7 +3505,7 @@ Address: ``0x0078`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "ddr2_1_pnf_per_bit_h [7:0]"},
      {"bits": 8, "name": "ddr2_1_pnf_per_bit_h [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3442,7 +3532,7 @@ Address: ``0x0079`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3472,7 +3562,7 @@ Address: ``0x007A`` | Default: ``not specified`` | Access: R
      {"bits": 1, "name": "ddr2_2_tst_fail"},
      {"bits": 5, "name": "Reserved [7:3]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3507,7 +3597,7 @@ Address: ``0x007B`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "ddr2_2_pnf_per_bit_l [7:0]"},
      {"bits": 8, "name": "ddr2_2_pnf_per_bit_l [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3534,7 +3624,7 @@ Address: ``0x007C`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "ddr2_2_pnf_per_bit_h [7:0]"},
      {"bits": 8, "name": "ddr2_2_pnf_per_bit_h [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3561,7 +3651,7 @@ Address: ``0x007D`` | Default: ``0xAAAA`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "tx_tst_i [7:0]"},
      {"bits": 8, "name": "tx_tst_i [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3588,7 +3678,7 @@ Address: ``0x007E`` | Default: ``0x5555`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "tx_tst_q [7:0]"},
      {"bits": 8, "name": "tx_tst_q [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3615,7 +3705,7 @@ Address: ``0x007F`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3642,7 +3732,7 @@ Address: ``0x00C0`` | Default: ``0xFFFF`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "board_gpio_ovrd [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3669,7 +3759,7 @@ Address: ``0x00C1`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3696,7 +3786,7 @@ Address: ``0x00C2`` | Default: ``0x0000`` | Access: R
    { "reg": [
      {"bits": 8, "name": "board_gpio_rd [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3723,7 +3813,7 @@ Address: ``0x00C3`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3750,7 +3840,7 @@ Address: ``0x00C4`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "board_gpio_dir [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3777,7 +3867,7 @@ Address: ``0x00C5`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3804,7 +3894,7 @@ Address: ``0x00C6`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "board_gpio_val [7:0]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3831,7 +3921,7 @@ Address: ``0x00C7`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3858,7 +3948,7 @@ Address: ``0x00C8`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "periph_input_rd_0 [7:0]"},
      {"bits": 8, "name": "periph_input_rd_0 [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3885,7 +3975,7 @@ Address: ``0x00C9`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "periph_input_rd_1 [7:0]"},
      {"bits": 8, "name": "periph_input_rd_1 [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3912,7 +4002,7 @@ Address: ``0x00CA`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3939,7 +4029,7 @@ Address: ``0x00CB`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3967,7 +4057,7 @@ Address: ``0x00CC`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "periph_output_ovrd_0"},
      {"bits": 7, "name": "Reserved [7:1]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -3995,7 +4085,7 @@ Address: ``0x00CD`` | Default: ``0x0000`` | Access: R/W
      {"bits": 1, "name": "periph_output_val_0"},
      {"bits": 7, "name": "Reserved [7:1]"},
      {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4022,7 +4112,7 @@ Address: ``0x00CE`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "periph_output_ovrd_1 [7:0]"},
      {"bits": 8, "name": "periph_output_ovrd_1 [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4049,7 +4139,7 @@ Address: ``0x00CF`` | Default: ``0x0000`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "periph_output_val_1 [7:0]"},
      {"bits": 8, "name": "periph_output_val_1 [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4076,7 +4166,7 @@ Address: ``0x00D0`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4103,7 +4193,7 @@ Address: ``0x00D1`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4130,7 +4220,7 @@ Address: ``0x00D2`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4157,7 +4247,7 @@ Address: ``0x00D3`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4184,7 +4274,7 @@ Address: ``0x00D4`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4211,7 +4301,7 @@ Address: ``0x00D5`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4238,7 +4328,7 @@ Address: ``0x00D6`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4265,7 +4355,7 @@ Address: ``0x00D7`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4292,7 +4382,7 @@ Address: ``0x00D8`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4319,7 +4409,7 @@ Address: ``0x00D9`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4346,7 +4436,7 @@ Address: ``0x00DA`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4373,7 +4463,7 @@ Address: ``0x00DB`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4400,7 +4490,7 @@ Address: ``0x00DC`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4427,7 +4517,7 @@ Address: ``0x00DD`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4454,7 +4544,7 @@ Address: ``0x00DE`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
@@ -4481,7 +4571,7 @@ Address: ``0x00DF`` | Default: ``not specified`` | Access: R/W
    { "reg": [
      {"bits": 8, "name": "reserved [7:0]"},
      {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 900 } }
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
    :header-rows: 1
