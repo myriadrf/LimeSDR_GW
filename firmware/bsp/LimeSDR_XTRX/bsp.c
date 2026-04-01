@@ -271,6 +271,7 @@ uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id)
 
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb)
 {
+    //TODO: Create drivers for both devices, do not use direct litei2c functions
     if (channel == 0) {
         uint16_t val     = 0;
         uint8_t *val_ptr = (uint8_t *)&val;
@@ -282,19 +283,14 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
     if (channel == 1) {
         uint16_t converted_value;
         uint8_t *val_ptr = (uint8_t *)&converted_value;
-        uint8_t buf;
-        litei2c_a8d16_read_register(&I2C0_REGS, BSP_I2C_DAC_ADDR, 0x30, &converted_value);
-        // flip bytes
-        buf        = val_ptr[0];
-        val_ptr[0] = val_ptr[1];
-        val_ptr[1] = buf;
-
+        litei2c_a8d16_read_register(&I2C0_REGS, BSP_I2C_TEMP_SENSOR_ADDR, 0x00, &converted_value);
         converted_value = converted_value >> 4;
         converted_value = converted_value * 10;
         converted_value = converted_value >> 4;
 
-        *value_lsb = val_ptr[1];
-        *value_msb = val_ptr[0];
+        *value_lsb = val_ptr[0];
+        *value_msb = val_ptr[1];
+        *unit = 0x50;
         return STATUS_COMPLETED_CMD;
     }
     return STATUS_ERROR_CMD;
