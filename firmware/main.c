@@ -284,7 +284,7 @@ int main(void)
                         val = LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)];
                         val = (val << 8) | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
                         // Write
-                        lms7002m_spi_write(addr, val, LMS_Ctrl_Packet_Rx->Header.Periph_ID);
+                        lms7002m_spi_write(addr, val, (1 << LMS_Ctrl_Packet_Rx->Header.Periph_ID));
                     }
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
@@ -359,6 +359,8 @@ int main(void)
                         val = (val << 8) | LMS_Ctrl_Packet_Rx->Data_field[3 + (block * 4)];
                         // Write
                         lms8001_spi_write(addr, val, LMS_Ctrl_Packet_Rx->Header.Periph_ID);
+                        //TODO:: Replace by this maybe?
+                        // lms8001_spi_write(addr, val, (1 << LMS_Ctrl_Packet_Rx->Header.Periph_ID));
                     }
 
                     LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
