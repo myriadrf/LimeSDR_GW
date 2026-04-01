@@ -27,7 +27,7 @@ void bsp_init(void)
         if (perm_dac_val != 0xFFFF) {
             bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
         } else {
-            bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00 >> 8), BSP_DAC_DEFAULT_VAL & 0xff);
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00) >> 8, BSP_DAC_DEFAULT_VAL & 0xff);
         }
     }
 }
