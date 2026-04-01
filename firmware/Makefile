@@ -20,7 +20,7 @@ PERIPH_DIR = periph
 
 # Add debugging symbol and zero optimization level flags
 ifeq ($(DEBUG),1)
-CFLAGS := $(filter-out -Os, $(CFLAGS)) -g -O0
+CFLAGS := $(filter-out -Os, $(CFLAGS)) -g -Og
 endif
 
 # Add the common BSP directory to the compiler's include path
