@@ -41,7 +41,7 @@ FPGACFG_BOARD_ID
             "reg": [
                 {"name": "board_id[15:0]", "attr": 'reset: 27', "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -58,7 +58,7 @@ FPGACFG_RESERVED_03
             "reg": [
                 {"name": "reserved_03[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -75,7 +75,7 @@ FPGACFG_RESERVED_04
             "reg": [
                 {"name": "reserved_04[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -92,7 +92,7 @@ FPGACFG_RESERVED_05
             "reg": [
                 {"name": "reserved_05[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -109,7 +109,7 @@ FPGACFG_RESERVED_06
             "reg": [
                 {"name": "reserved_06[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -124,9 +124,9 @@ FPGACFG_MAJOR_REV
 
         {
             "reg": [
-                {"name": "major_rev[15:0]", "attr": 'reset: 2', "bits": 16},
+                {"name": "major_rev[15:0]", "attr": 'reset: 3', "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -141,9 +141,9 @@ FPGACFG_COMPILE_REV
 
         {
             "reg": [
-                {"name": "compile_rev[15:0]", "attr": 'reset: 26', "bits": 16},
+                {"name": "compile_rev[15:0]", "attr": 'reset: 6', "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -160,7 +160,7 @@ FPGACFG_CHANNEL_CNTRL
             "reg": [
                 {"name": "ch_en",  "bits": 2},
                 {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -194,7 +194,7 @@ FPGACFG_TCXO_EN
             "reg": [
                 {"name": "tcxo_en", "attr": 'reset: 1', "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -212,7 +212,7 @@ FPGACFG_EXT_CLK
             "reg": [
                 {"name": "ext_clk", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 

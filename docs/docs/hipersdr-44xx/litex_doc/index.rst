@@ -21,7 +21,7 @@ Register Groups
     uart
     pcie_phy
     pcie_msi
-    afe
+    bsp
     pcie_dma0
     ctrl
     fpgacfg
@@ -29,7 +29,8 @@ Register Groups
     i2c3
     identifier_mem
     leds
-    lime_top
+    limetop
+    PCIE_UART0
     flash
     i2c0
     i2c1
@@ -40,8 +41,10 @@ Register Groups
     periphcfg
     pwr_control
     CNTRL
+    afe
     spimaster_adf
     timer0
+    ppsdo
 
 Indices and tables
 ==================

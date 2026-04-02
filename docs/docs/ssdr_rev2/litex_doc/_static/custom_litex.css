@@ -1,0 +1,42 @@
+
+    /* Let the main content use more horizontal space */
+    div.document,
+    div.documentwrapper,
+    div.bodywrapper,
+    div.body,
+    section,
+    main {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Tables */
+    table.docutils {
+        width: 100% !important;
+    }
+
+    /* WaveDrom wrapper */
+    .wavedrom {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+    }
+
+    /* Force the generated SVG to stretch with the page */
+    .wavedrom svg,
+    svg[id^="svgcontent_"] {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Improve readability of labels after scaling */
+    .wavedrom svg text,
+    .wavedrom svg tspan,
+    svg[id^="svgcontent_"] text,
+    svg[id^="svgcontent_"] tspan {
+        font-size: 11px !important;
+    }
+    

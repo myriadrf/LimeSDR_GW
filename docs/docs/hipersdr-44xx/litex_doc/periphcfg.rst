@@ -47,7 +47,7 @@ PERIPHCFG_BOARD_GPIO_OVRD
             "reg": [
                 {"name": "board_gpio_ovrd[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -64,7 +64,7 @@ PERIPHCFG_BOARD_GPIO_RD
             "reg": [
                 {"name": "board_gpio_rd[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -81,7 +81,7 @@ PERIPHCFG_BOARD_GPIO_DIR
             "reg": [
                 {"name": "board_gpio_dir[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -98,7 +98,7 @@ PERIPHCFG_BOARD_GPIO_VAL
             "reg": [
                 {"name": "board_gpio_val[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -115,7 +115,7 @@ PERIPHCFG_PERIPH_INPUT_SEL_0
             "reg": [
                 {"name": "periph_input_sel_0[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -132,7 +132,7 @@ PERIPHCFG_PERIPH_INPUT_RD_0
             "reg": [
                 {"name": "periph_input_rd_0[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -149,7 +149,7 @@ PERIPHCFG_PERIPH_INPUT_RD_1
             "reg": [
                 {"name": "periph_input_rd_1[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -166,7 +166,7 @@ PERIPHCFG_PERIPH_OUTPUT_OVRD_0
             "reg": [
                 {"name": "periph_output_ovrd_0[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -183,7 +183,7 @@ PERIPHCFG_PERIPH_OUTPUT_VAL_0
             "reg": [
                 {"name": "periph_output_val_0[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -200,7 +200,7 @@ PERIPHCFG_PERIPH_OUTPUT_OVRD_1
             "reg": [
                 {"name": "periph_output_ovrd_1[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -217,7 +217,7 @@ PERIPHCFG_PERIPH_OUTPUT_VAL_1
             "reg": [
                 {"name": "periph_output_val_1[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -234,7 +234,7 @@ PERIPHCFG_PERIPH_EN
             "reg": [
                 {"name": "periph_en[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -251,7 +251,7 @@ PERIPHCFG_PERIPH_SEL
             "reg": [
                 {"name": "periph_sel[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 

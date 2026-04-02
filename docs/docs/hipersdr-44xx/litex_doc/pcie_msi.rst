@@ -29,7 +29,7 @@ PCIE_MSI_ENABLE
         {
             "reg": [
                 {"name": "enable[31:0]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -48,7 +48,7 @@ PCIE_MSI_CLEAR
         {
             "reg": [
                 {"name": "clear[31:0]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -67,7 +67,7 @@ PCIE_MSI_VECTOR
         {
             "reg": [
                 {"name": "vector[31:0]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 

@@ -37,7 +37,7 @@ UART_RXTX
             "reg": [
                 {"name": "rxtx[7:0]", "bits": 8},
                 {"bits": 24},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -55,7 +55,7 @@ UART_TXFULL
             "reg": [
                 {"name": "txfull", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -73,7 +73,7 @@ UART_RXEMPTY
             "reg": [
                 {"name": "rxempty", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -93,7 +93,7 @@ UART_EV_STATUS
                 {"name": "tx",  "bits": 1},
                 {"name": "rx",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -121,7 +121,7 @@ UART_EV_PENDING
                 {"name": "tx",  "bits": 1},
                 {"name": "rx",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -151,7 +151,7 @@ UART_EV_ENABLE
                 {"name": "tx",  "bits": 1},
                 {"name": "rx",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -177,7 +177,7 @@ UART_TXEMPTY
             "reg": [
                 {"name": "txempty", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -195,7 +195,7 @@ UART_RXFULL
             "reg": [
                 {"name": "rxfull", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 

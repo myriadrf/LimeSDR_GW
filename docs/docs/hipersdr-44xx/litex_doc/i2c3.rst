@@ -33,7 +33,7 @@ I2C3_PHY_SPEED_MODE
             "reg": [
                 {"name": "phy_speed_mode[1:0]", "bits": 2},
                 {"bits": 30},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -50,7 +50,7 @@ I2C3_MASTER_ACTIVE
             "reg": [
                 {"name": "master_active", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -72,7 +72,7 @@ I2C3_MASTER_SETTINGS
                 {"bits": 5},
                 {"name": "recover",  "bits": 1},
                 {"bits": 15}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -101,7 +101,7 @@ I2C3_MASTER_ADDR
             "reg": [
                 {"name": "master_addr[6:0]", "bits": 7},
                 {"bits": 25},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -117,7 +117,7 @@ I2C3_MASTER_RXTX
         {
             "reg": [
                 {"name": "master_rxtx[31:0]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -140,7 +140,7 @@ I2C3_MASTER_STATUS
                 {"name": "tx_unfinished",  "bits": 1},
                 {"name": "rx_unfinished",  "bits": 1},
                 {"bits": 14}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 

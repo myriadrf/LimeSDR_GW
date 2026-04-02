@@ -62,7 +62,7 @@ PCIE_DMA0_WRITER_ENABLE
             "reg": [
                 {"name": "writer_enable[1:0]", "bits": 2},
                 {"bits": 30},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -83,7 +83,7 @@ PCIE_DMA0_WRITER_TABLE_VALUE1
                 {"name": "irq_disable",  "bits": 1},
                 {"name": "last_disable",  "bits": 1},
                 {"bits": 6}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -110,7 +110,7 @@ PCIE_DMA0_WRITER_TABLE_VALUE0
         {
             "reg": [
                 {"name": "address_lsb",  "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -133,7 +133,7 @@ PCIE_DMA0_WRITER_TABLE_WE
         {
             "reg": [
                 {"name": "address_msb",  "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -168,7 +168,7 @@ PCIE_DMA0_WRITER_TABLE_LOOP_PROG_N
             "reg": [
                 {"name": "writer_table_loop_prog_n", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -186,7 +186,7 @@ PCIE_DMA0_WRITER_TABLE_LOOP_STATUS
             "reg": [
                 {"name": "index",  "bits": 16},
                 {"name": "count",  "bits": 16}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -212,7 +212,7 @@ PCIE_DMA0_WRITER_TABLE_LEVEL
             "reg": [
                 {"name": "writer_table_level[8:0]", "bits": 9},
                 {"bits": 23},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -230,7 +230,7 @@ PCIE_DMA0_WRITER_TABLE_RESET
             "reg": [
                 {"name": "writer_table_reset", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -248,7 +248,7 @@ PCIE_DMA0_READER_ENABLE
             "reg": [
                 {"name": "reader_enable[1:0]", "bits": 2},
                 {"bits": 30},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -269,7 +269,7 @@ PCIE_DMA0_READER_TABLE_VALUE1
                 {"name": "irq_disable",  "bits": 1},
                 {"name": "last_disable",  "bits": 1},
                 {"bits": 6}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -296,7 +296,7 @@ PCIE_DMA0_READER_TABLE_VALUE0
         {
             "reg": [
                 {"name": "address_lsb",  "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -319,7 +319,7 @@ PCIE_DMA0_READER_TABLE_WE
         {
             "reg": [
                 {"name": "address_msb",  "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -354,7 +354,7 @@ PCIE_DMA0_READER_TABLE_LOOP_PROG_N
             "reg": [
                 {"name": "reader_table_loop_prog_n", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -372,7 +372,7 @@ PCIE_DMA0_READER_TABLE_LOOP_STATUS
             "reg": [
                 {"name": "index",  "bits": 16},
                 {"name": "count",  "bits": 16}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -398,7 +398,7 @@ PCIE_DMA0_READER_TABLE_LEVEL
             "reg": [
                 {"name": "reader_table_level[8:0]", "bits": 9},
                 {"bits": 23},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -416,7 +416,7 @@ PCIE_DMA0_READER_TABLE_RESET
             "reg": [
                 {"name": "reader_table_reset", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -431,11 +431,11 @@ PCIE_DMA0_BUFFERING_READER_FIFO_CONTROL
 
         {
             "reg": [
-                {"name": "depth",  "attr": '8192', "bits": 24},
+                {"name": "depth",  "attr": '16384', "bits": 24},
                 {"name": "scratch",  "bits": 4},
                 {"bits": 3},
                 {"name": "level_mode",  "bits": 1}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -470,7 +470,7 @@ PCIE_DMA0_BUFFERING_READER_FIFO_STATUS
             "reg": [
                 {"name": "level",  "bits": 24},
                 {"bits": 8}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -491,11 +491,11 @@ PCIE_DMA0_BUFFERING_WRITER_FIFO_CONTROL
 
         {
             "reg": [
-                {"name": "depth",  "attr": '8192', "bits": 24},
+                {"name": "depth",  "attr": '16384', "bits": 24},
                 {"name": "scratch",  "bits": 4},
                 {"bits": 3},
                 {"name": "level_mode",  "bits": 1}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -530,7 +530,7 @@ PCIE_DMA0_BUFFERING_WRITER_FIFO_STATUS
             "reg": [
                 {"name": "level",  "bits": 24},
                 {"bits": 8}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 

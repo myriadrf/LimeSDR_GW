@@ -1,157 +1,177 @@
 Project Structure
 =================
 
-Overview
---------
-This page provides a detailed overview of the two main repositories at the heart of the unified
-LimeSDR gateware project:
+This page explains how the unified LimeSDR gateware project is organized across its two main repositories:
 
-- **LimeSDR_GW** – the primary LiteX-based SoC framework, covering board/platform/target
-  definitions, SoC integration, bitstream generation, and firmware compilation.
-- **LimeDFB** – the modular VHDL-focused signal processing library (Data Flow Blocks), designed for
-  reusability and integration with LiteX via the `LimeDFB_LiteX` wrapper layer.
+- **LimeSDR_GW** – the top-level LiteX-based SoC project
+- **LimeDFB** – the reusable VHDL signal-processing library
 
-The structure is designed to promote modularity, reusability, and portability across diverse FPGA
-architectures and SDR boards. By leveraging **LiteX**'s Python-based SoC builder toolkit, the
-project automates complex hardware integration tasks (e.g., bus connections, clock management, CPU
-and firmware support), allowing a focus on RF-specific functionalities. **LimeDFB** complements
-this by providing modular VHDL components for RF data processing, ensuring a clear separation of
-concerns: **LiteX** handles SoC assembly and vendor-neutral abstractions, **LimeSDR_GW** unifies
-board-specific configurations, and **LimeDFB** manages reusable RF logic.
+Together, these repositories separate **system integration** from **signal-processing logic**. This keeps the design modular, reusable, and portable across multiple FPGA families and SDR platforms.
 
-This organization replaces isolated, board-specific HDL projects with a consolidated, sustainable
-ecosystem. It simplifies maintenance by sharing components (e.g., streaming engines, LMS7002M
-controllers) across boards, enables easy expansion for new variants without logic duplication, and
-supports migration to different FPGA families. For a high-level project overview, refer to the
-:ref:`Introduction` page. When preparing to add or modify boards, fork/clone the repository
-and use existing platform/target files as templates (e.g., copy from LimeSDR Mini V2 for similar
-setups). For details on extending the project (e.g., adding boards or features), see
-:doc:`add_new_board`.
+At a Glance
+-----------
 
-LimeSDR_GW Repository Layout
-----------------------------
-The `LimeSDR_GW` repository (hosted on GitHub at `myriadrf/LimeSDR_GW
-<https://github.com/myriadrf/LimeSDR_GW>`_) is built around the LiteX design flow and includes the
-following core components:
+.. list-table::
+   :widths: 20 35 45
+   :header-rows: 1
 
-.. code-block:: bash
+   * - Repository
+     - Primary role
+     - Main contents
+   * - ``LimeSDR_GW``
+     - System integration and build flow
+     - Board definitions, LiteX targets, SoC integration, firmware, bitstream generation, documentation
+   * - ``LimeDFB``
+     - Reusable signal-processing library
+     - VHDL DSP blocks, LMS7002M-related modules, AXI-Stream utilities, architecture documentation
+
+In practical terms:
+
+- **LiteX** provides the SoC construction framework
+- **LimeSDR_GW** defines how a specific board is built and assembled
+- **LimeDFB** provides reusable RF and DSP building blocks
+
+This organization replaces isolated board-specific HDL projects with a shared and maintainable development model.
+
+LimeSDR_GW Repository
+---------------------
+
+The `LimeSDR_GW <https://github.com/myriadrf/LimeSDR_GW>`_ repository is the main integration layer of the project. It is responsible for board support, SoC construction, firmware integration, and FPGA build flow management.
+
+Repository layout
+^^^^^^^^^^^^^^^^^
+
+.. code-block:: text
 
    / (root)
    ├── boards/
-   │   ├── platforms/      <-- Board-specific I/O constraints and configuration files (e.g., pin assignments, timing constraints, FPGA device definitions, programming setups).
-   │   └── targets/        <-- Integration scripts that define the build process (instantiating LiteX cores, peripherals, CPU, and firmware). These act as the "top-level" for SoC wiring and flow control, including clock/reset domains, memory layouts, and optional features like debugging.
-   ├── docs/               <-- Documentation (design descriptions, build instructions, modification guidelines, etc.).
-   ├── firmware/           <-- Firmware source code for the softcore CPU (drivers and application-specific logic).
-   ├── gateware/           <-- FPGA hardware description files (Verilog/VHDL/LiteX) for custom logic and interconnects, including wrappers for integrating LimeDFB modules.
-   ├── riscv_jtag_tunneled.tcl  <-- TCL script for automating JTAG debugging.
-   ├── README.md           <-- Project overview and documentation links.
-   └── .gitignore          <-- Files and directories ignored by version control.
+   │   ├── platforms/
+   │   └── targets/
+   ├── docs/
+   ├── firmware/
+   ├── gateware/
+   ├── riscv_jtag_tunneled.tcl
+   ├── README.md
+   └── .gitignore
 
-Key directories include:
+Important directories
+^^^^^^^^^^^^^^^^^^^^^
 
-- ``boards/platforms/``
-  Physical hardware board definitions (with I/O assignments and constraints). Each board (e.g.,
-  `limesdr_mini_v2_platform.py`) defines a Platform that combines IOs with timing constraints.
-  LiteX uses this to automatically generate toolchain-specific constraint files (for Vivado,
-  Quartus, Diamond, and others).
+``boards/platforms/``
+  Board-specific platform definitions, including FPGA device selection, pin assignments, and timing or toolchain constraints.
 
-- ``boards/targets/``
-  Main SoC entry points (e.g., `limesdr_mini_v2.py`), which instantiate a board-customized
-  `LimeTop` SoC. This acts as the central point for CPU integration, peripheral connections, and
-  combining LiteX with DFB modules.
+``boards/targets/``
+  Top-level build targets that assemble the LiteX SoC for a specific board. These files define clocking, CPU integration, memory layout, peripherals, and optional features.
 
-- ``gateware/``
-  Contains LiteX integration logic and wrappers for external HDL. Notable items include:
+``gateware/``
+  Custom FPGA logic and integration wrappers. This includes LiteX-facing wrappers for external HDL modules and project-specific hardware components.
 
-  - ``LimeTop.py`` – core SoC management
-  - ``LimeDFB/`` – submodule or link to the LimeDFB repository (with raw VHDL)
-  - ``LimeDFB_LiteX/`` – LiteX-compatible VHDL wrappers for DFB modules
-  - ``examples/fft/`` – simple examples (e.g., FFT-based loopback tests)
-  - ``constraints/`` – additional static timing constraints (e.g., `.sdc` files)
+``firmware/``
+  Firmware for the softcore CPU, including low-level drivers and board-independent application code.
 
-- ``firmware/``
-  C-based firmware for RISC-V softcores (e.g., VexRiscv, PicoRV32). Includes:
+``docs/``
+  Sphinx documentation, including build instructions, architecture notes, and developer guides.
 
-  - `main.c`, peripheral drivers, and build setup (`Makefile`)
-  - Standard interfaces (for I2C, SPIFlash, LMS7002M configuration, etc.)
-  - Shared across all boards and CPU types
+Typical role in the build flow
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- ``bitstream/``
-  Pre-built FPGA bitstreams for supported boards, created through LiteX's toolchain abstraction.
+``LimeSDR_GW`` is the repository you work in when you:
 
-- ``tools/``
-  GNU Radio Companion (GRC) and Python scripts for validation (e.g., testing TX/RX paths on Mini V2
-  or XTRX boards).
+- build gateware for a supported board
+- modify SoC integration
+- add or configure peripherals
+- compile firmware
+- add support for a new platform or target
 
-- ``docs/``
-  Sphinx-based documentation, with board-specific build instructions and diagrams.
+LimeDFB Repository
+------------------
 
-LimeDFB Repository Layout
--------------------------
-The `LimeDFB` repository (hosted on GitHub at `myriadrf/LimeDFB
-<https://github.com/myriadrf/LimeDFB>`_) contains reusable VHDL signal processing blocks, organized
-by function and supported by detailed documentation. For full details, see `LimeDFB documentation
-<https://limedfb.myriadrf.org>`_. It is designed for reusability and integration with LiteX via the
-*LimeDFB_LiteX* wrapper layer.
+The `LimeDFB <https://github.com/myriadrf/LimeDFB>`_ repository contains reusable VHDL signal-processing modules used by the unified gateware project. It is designed to remain modular and largely vendor-neutral.
 
-.. code-block:: bash
+For complete module-level documentation, see the `LimeDFB documentation <https://limedfb.myriadrf.org>`_.
+
+Repository layout
+^^^^^^^^^^^^^^^^^
+
+.. code-block:: text
 
    / (root)
-   ├── axis/               <-- Shared utilities (e.g., AXI-Stream converters).
-   ├── axis_fifo/          <-- FIFO buffers for data streams.
-   ├── cdc/                <-- Clock domain crossing modules.
-   ├── docs/               <-- Architecture overviews, WaveDrom waveforms, and in-depth module explanations.
-   ├── gt_channel/         <-- Gigabit transceiver channel modules.
-   ├── lms7002/            <-- LMS7002M transceiver controllers.
-   ├── rx_path_top/        <-- Receive path top modules.
-   ├── tx_path_top/        <-- Transmit path top modules.
-   ├── README.md           <-- Repository overview and links.
-   └── .gitignore          <-- Files ignored by version control.
+   ├── axis/
+   ├── axis_fifo/
+   ├── cdc/
+   ├── docs/
+   ├── gt_channel/
+   ├── lms7002/
+   ├── rx_path_top/
+   ├── tx_path_top/
+   ├── README.md
+   └── .gitignore
 
-Key directories include:
+Important directories
+^^^^^^^^^^^^^^^^^^^^^
 
-- ``rx_path_top/``, ``tx_path_top/``, ``lms7002/``, ``gt_channel/``
-  Specific signal paths and controllers, each with `src/` for code, testbenches for verification,
-  and block diagrams for clarity.
+``rx_path_top/`` and ``tx_path_top/``
+  Top-level receive and transmit processing chains.
 
-- ``docs/``
-  Architecture overviews, WaveDrom waveforms, and in-depth module explanations.
+``lms7002/``
+  LMS7002M-related digital interface and control modules.
 
-- ``axis/``, ``axis_fifo/``, ``cdc/``
-  Shared utilities (e.g., clock domain crossing, FIFO buffers, AXIS converters).
+``axis/``, ``axis_fifo/``, ``cdc/``
+  Shared infrastructure modules such as AXI-Stream helpers, FIFOs, and clock-domain-crossing components.
 
-- ``LimeTop wrappers`` in ``tx_path_top.py``, ``rx_path_top.py``, etc.
-  These wrap DFB logic as LiteX modules, reused in `LimeSDR_GW/gateware/LimeDFB_LiteX`.
+``docs/``
+  Architecture overviews, diagrams, timing illustrations, and module documentation.
 
-Integration Between Repos
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Typical role in the build flow
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-LiteX manages the build process and incorporates LimeDFB modules through the `LimeDFB_LiteX` wrapper layer. This separation keeps DSP logic vendor-neutral and purely VHDL-based, while allowing smooth interaction with LiteX's Python-driven SoC and firmware environment.
+``LimeDFB`` is the repository you work in when you:
 
-Examples include:
+- develop or modify reusable DSP blocks
+- update RF data-path modules
+- improve shared VHDL infrastructure
+- verify signal-processing building blocks independently of board-specific integration
 
-- The `LimeTop` SoC instantiates `RxPathTop`, `TxPathTop`, and `LMS7002Top` from `LimeDFB_LiteX`.
-- Firmware uses a consistent memory map to access DFB control and status registers.
-- The same logic can be synthesized for Intel (via Quartus), Xilinx (via Vivado), or Lattice (via Diamond/Yosys) without changes to the VHDL or Python code.
+How the Repositories Work Together
+----------------------------------
+
+The two repositories are connected through a wrapper-based integration model:
+
+- **LimeDFB** contains the reusable VHDL modules and LiteX wrappers
+- **LimeSDR_GW** contains the LiteX-based SoC and board integration
+
+This allows the same signal-processing logic to be reused across different FPGA vendors and boards, while keeping the SoC assembly flow consistent.
+
+Typical examples include:
+
+- ``LimeTop`` instantiating receive, transmit, and LMS7002M-related blocks through LiteX-compatible wrappers
+- firmware accessing control and status registers through a consistent memory map
+- the same hardware design being built with Vivado, Quartus, or Lattice-based flows without redesigning the DSP modules
 
 .. figure:: images/limedfb_and_litex_wrapper_example.png
    :align: center
-   :alt: LimeTop Block Diagram
+   :alt: LimeTop block diagram
 
+   Example of LiteX and LimeDFB integration inside ``LimeTop``. LimeDFB cores implement the RF processing logic, while LiteX wrappers connect them to the SoC infrastructure and control path.
 
-The `LimeTop` block diagram illustrates the integration of LimeDFB cores (in green) with LiteX wrappes (in blue). AXI-Stream interfaces connect the RX and TX Path Top blocks to the LMS7002 Top, which interfaces with the LMS7002 digital interface. This modular setup allows RF data processing in LimeDFB while LiteX handles SoC-level connectivity and control.
+Other Important Files
+---------------------
 
-Additional Files
-----------------
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
 
-**riscv_jtag_tunneled.tcl** (in LimeSDR_GW)
-  - A TCL script used for automating JTAG debugging with the RISC-V softcore. It streamlines tasks
-    such as setting breakpoints and managing JTAG connections.
+   * - File
+     - Purpose
+   * - ``riscv_jtag_tunneled.tcl``
+     - Helper script for JTAG-based debugging of the RISC-V softcore.
+   * - ``README.md``
+     - High-level project introduction and links to the main documentation.
+   * - ``.gitignore``
+     - Defines generated files and build outputs that should not be tracked by version control.
 
-**README.md** (in both repositories)
-  - Provides an introduction to the project, build instructions, and links to additional
-    documentation.
+See Also
+--------
 
-**.gitignore** (in both repositories)
-  - Lists files and directories that should be ignored by version control (e.g., temporary files and
-    build outputs).
+- :doc:`quick_start`
+- :doc:`add_new_board`

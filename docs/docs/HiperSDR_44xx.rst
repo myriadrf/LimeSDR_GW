@@ -36,7 +36,7 @@ The source code for the CPU can be found at:
 AFE79xx
 ^^^^^^^
 
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`afe79xx <docs/afe79xx/readme:afe79xx>` description. It interfaces with TI JESD IP to exchange sample data with the AFE7901 chip. It also performs resampling, clock
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`afe79xx <docs/afe79xx/readme:afe79xx>` description. It interfaces with TI JESD IP to exchange sample data with the AFE7901 chip. It also performs resampling, clock
 domain crossing and aligns the data for proper integration with other LimeDFB modules.
 
 
@@ -57,13 +57,13 @@ The **LimeTop Module** serves as a wrapper for the RF transceiver control and da
 
 RX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`rx_path_top_litex <docs/rx_path_top_litex/readme:rx_path_top (LiteX)>` description. It handles the receive path from the RF Transceiver to the FPGA and host, including IQ sample packetization and timestamp generation.
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`rx_path_top_litex <docs/rx_path_top_litex/readme:rx_path_top (LiteX)>` description. It handles the receive path from the RF Transceiver to the FPGA and host, including IQ sample packetization and timestamp generation.
 
 .. _tx_path_top_module:
 
 TX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`tx_path_top <docs/tx_path_top/readme:tx_path_top>` description. This module manages the transmit path from the host through the FPGA to the RF Transceiver, including unpacking of IQ samples and stream synchronization.
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`tx_path_top_litex <docs/tx_path_top_litex/readme:tx_path_top (LiteX)>` description. This module manages the transmit path from the host through the FPGA to the RF Transceiver, including unpacking of IQ samples and stream synchronization.
 
 .. _pcie_phy_module:
 
@@ -112,12 +112,16 @@ HiperSDR_44xx board utilises over a hundred GPIO signals to all of the RF elemen
 
 Gateware Register Reference
 ---------------------------
-The following documentation is automatically generated from the LiteX SoC definitions. It includes the complete **Control and Status Register (CSR)** map, interrupt vector table, and memory regions for the modules described above (PCIe, I2C, SPI, etc.).
+HiperSDR 44xx exposes registers through two access paths:
+
+- :doc:`Legacy FPGA SPI registers <hipersdr-44xx/reg_remap/hipersdr_44xx_regremap_from_csv>`: legacy host registers used by existing software and previous gateware; planned to be replaced by LiteX CSR.
+- :doc:`Native LiteX CSR map <hipersdr-44xx/litex_doc/index>`: the SoC's dedicated CSR register space generated from LiteX modules.
+
+During the migration phase, the host can continue accessing legacy FPGA SPI register addresses; firmware remaps these FPGA SPI register accesses to native LiteX CSR registers internally. The LiteX CSR map is the forward path for native SoC register access.
 
 .. toctree::
    :maxdepth: 3
    :hidden:
 
+   Legacy FPGA SPI register reference <hipersdr-44xx/reg_remap/hipersdr_44xx_regremap_from_csv>
    Register reference <hipersdr-44xx/litex_doc/index>
-
-:doc:`hipersdr-44xx/litex_doc/index`

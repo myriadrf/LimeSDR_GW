@@ -15,7 +15,7 @@ IDENTIFIER_MEM
 
 `Address: 0xf0005000 + 0x0 = 0xf0005000`
 
-    8 x 53-bit memory
+    8 x 56-bit memory
 
     .. wavedrom::
         :caption: IDENTIFIER_MEM
@@ -24,7 +24,7 @@ IDENTIFIER_MEM
             "reg": [
                 {"name": "identifier_mem[7:0]", "bits": 8},
                 {"bits": 24},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 

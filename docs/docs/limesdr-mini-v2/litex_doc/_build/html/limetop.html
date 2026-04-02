@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>LIMETOP &#8212; limesdr-mini-v2  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/default.js?v=0004674d"></script>
+    <script src="_static/WaveDrom.js?v=12e62515"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="PPSDO" href="ppsdo.html" />
+    <link rel="prev" title="IDENTIFIER_MEM" href="identifier_mem.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="limetop">
+<h1>LIMETOP<a class="headerlink" href="#limetop" title="Link to this heading">¶</a></h1>
+<section id="register-listing-for-limetop">
+<h2>Register Listing for LIMETOP<a class="headerlink" href="#register-listing-for-limetop" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Register</p></th>
+<th class="head"><p>Address</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-gpo"><span class="std std-ref">LIMETOP_GPO</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-gpo"><span class="std std-ref">0xf0002000</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-board-id"><span class="std std-ref">LIMETOP_FPGACFG_BOARD_ID</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-board-id"><span class="std std-ref">0xf0002004</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-major-rev"><span class="std std-ref">LIMETOP_FPGACFG_MAJOR_REV</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-major-rev"><span class="std std-ref">0xf0002008</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-compile-rev"><span class="std std-ref">LIMETOP_FPGACFG_COMPILE_REV</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-compile-rev"><span class="std std-ref">0xf000200c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-bom-hw-ver"><span class="std std-ref">LIMETOP_FPGACFG_BOM_HW_VER</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-bom-hw-ver"><span class="std std-ref">0xf0002010</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-phase-reg-sel"><span class="std std-ref">LIMETOP_FPGACFG_PHASE_REG_SEL</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-phase-reg-sel"><span class="std std-ref">0xf0002014</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-drct-clk-en"><span class="std std-ref">LIMETOP_FPGACFG_DRCT_CLK_EN</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-drct-clk-en"><span class="std std-ref">0xf0002018</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-load-phase"><span class="std std-ref">LIMETOP_FPGACFG_LOAD_PHASE</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-load-phase"><span class="std std-ref">0xf000201c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-ch-en"><span class="std std-ref">LIMETOP_FPGACFG_CH_EN</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-ch-en"><span class="std std-ref">0xf0002020</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-reg08"><span class="std std-ref">LIMETOP_FPGACFG_REG08</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-reg08"><span class="std std-ref">0xf0002024</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-reg09"><span class="std std-ref">LIMETOP_FPGACFG_REG09</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-reg09"><span class="std std-ref">0xf0002028</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-reg10"><span class="std std-ref">LIMETOP_FPGACFG_REG10</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-reg10"><span class="std std-ref">0xf000202c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-wfm-ch-en"><span class="std std-ref">LIMETOP_FPGACFG_WFM_CH_EN</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-wfm-ch-en"><span class="std std-ref">0xf0002030</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-reg13"><span class="std std-ref">LIMETOP_FPGACFG_REG13</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-reg13"><span class="std std-ref">0xf0002034</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-wfm-smpl-width"><span class="std std-ref">LIMETOP_FPGACFG_WFM_SMPL_WIDTH</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-wfm-smpl-width"><span class="std std-ref">0xf0002038</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-sync-size"><span class="std std-ref">LIMETOP_FPGACFG_SYNC_SIZE</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-sync-size"><span class="std std-ref">0xf000203c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-txant-pre"><span class="std std-ref">LIMETOP_FPGACFG_TXANT_PRE</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-txant-pre"><span class="std std-ref">0xf0002040</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-txant-post"><span class="std std-ref">LIMETOP_FPGACFG_TXANT_POST</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-txant-post"><span class="std std-ref">0xf0002044</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-spi-ss"><span class="std std-ref">LIMETOP_FPGACFG_SPI_SS</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-spi-ss"><span class="std std-ref">0xf0002048</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-fpgacfg-clk-ena"><span class="std std-ref">LIMETOP_FPGACFG_CLK_ENA</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-clk-ena"><span class="std std-ref">0xf000204c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-fpgacfg-sync-pulse-period"><span class="std std-ref">LIMETOP_FPGACFG_SYNC_PULSE_PERIOD</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-fpgacfg-sync-pulse-period"><span class="std std-ref">0xf0002050</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-pllcfg-reg01"><span class="std std-ref">LIMETOP_PLLCFG_REG01</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-reg01"><span class="std std-ref">0xf0002054</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-pllcfg-pll-lock"><span class="std std-ref">LIMETOP_PLLCFG_PLL_LOCK</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-pll-lock"><span class="std std-ref">0xf0002058</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-pllcfg-reg03"><span class="std std-ref">LIMETOP_PLLCFG_REG03</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-reg03"><span class="std std-ref">0xf000205c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-pllcfg-cnt-phase"><span class="std std-ref">LIMETOP_PLLCFG_CNT_PHASE</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-cnt-phase"><span class="std std-ref">0xf0002060</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-pllcfg-reg05"><span class="std std-ref">LIMETOP_PLLCFG_REG05</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-reg05"><span class="std std-ref">0xf0002064</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-pllcfg-reg06"><span class="std std-ref">LIMETOP_PLLCFG_REG06</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-reg06"><span class="std std-ref">0xf0002068</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-pllcfg-reg07"><span class="std std-ref">LIMETOP_PLLCFG_REG07</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-reg07"><span class="std std-ref">0xf000206c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-pllcfg-n-cnt"><span class="std std-ref">LIMETOP_PLLCFG_N_CNT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-n-cnt"><span class="std std-ref">0xf0002070</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-pllcfg-m-cnt"><span class="std std-ref">LIMETOP_PLLCFG_M_CNT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-m-cnt"><span class="std std-ref">0xf0002074</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-pllcfg-c0-cnt"><span class="std std-ref">LIMETOP_PLLCFG_C0_CNT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-c0-cnt"><span class="std std-ref">0xf0002078</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-pllcfg-c1-cnt"><span class="std std-ref">LIMETOP_PLLCFG_C1_CNT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-c1-cnt"><span class="std std-ref">0xf000207c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-pllcfg-c2-cnt"><span class="std std-ref">LIMETOP_PLLCFG_C2_CNT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-c2-cnt"><span class="std std-ref">0xf0002080</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-pllcfg-c3-cnt"><span class="std std-ref">LIMETOP_PLLCFG_C3_CNT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-c3-cnt"><span class="std std-ref">0xf0002084</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-pllcfg-c4-cnt"><span class="std std-ref">LIMETOP_PLLCFG_C4_CNT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-c4-cnt"><span class="std std-ref">0xf0002088</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-pllcfg-auto-phcfg-smpls"><span class="std std-ref">LIMETOP_PLLCFG_AUTO_PHCFG_SMPLS</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-auto-phcfg-smpls"><span class="std std-ref">0xf000208c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-pllcfg-auto-phcfg-step"><span class="std std-ref">LIMETOP_PLLCFG_AUTO_PHCFG_STEP</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-pllcfg-auto-phcfg-step"><span class="std std-ref">0xf0002090</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-lms7002-top-lms-ctr-gpio"><span class="std std-ref">LIMETOP_LMS7002_TOP_LMS_CTR_GPIO</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-lms7002-top-lms-ctr-gpio"><span class="std std-ref">0xf0002094</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-lms7002-top-lms1"><span class="std std-ref">LIMETOP_LMS7002_TOP_LMS1</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-lms7002-top-lms1"><span class="std std-ref">0xf0002098</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-lms7002-top-reg01"><span class="std std-ref">LIMETOP_LMS7002_TOP_REG01</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-lms7002-top-reg01"><span class="std std-ref">0xf000209c</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-lms7002-top-reg03"><span class="std std-ref">LIMETOP_LMS7002_TOP_REG03</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-lms7002-top-reg03"><span class="std std-ref">0xf00020a0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-tst-top-test-en"><span class="std std-ref">LIMETOP_TST_TOP_TEST_EN</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-test-en"><span class="std std-ref">0xf00020a4</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-tst-top-test-frc-err"><span class="std std-ref">LIMETOP_TST_TOP_TEST_FRC_ERR</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-test-frc-err"><span class="std std-ref">0xf00020a8</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-tst-top-test-cmplt"><span class="std std-ref">LIMETOP_TST_TOP_TEST_CMPLT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-test-cmplt"><span class="std std-ref">0xf00020ac</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-tst-top-test-rez"><span class="std std-ref">LIMETOP_TST_TOP_TEST_REZ</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-test-rez"><span class="std std-ref">0xf00020b0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-tst-top-fx3-clk-cnt"><span class="std std-ref">LIMETOP_TST_TOP_FX3_CLK_CNT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-fx3-clk-cnt"><span class="std std-ref">0xf00020b4</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-tst-top-lmk-clk-cnt0"><span class="std std-ref">LIMETOP_TST_TOP_LMK_CLK_CNT0</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-lmk-clk-cnt0"><span class="std std-ref">0xf00020b8</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-tst-top-lmk-clk-cnt1"><span class="std std-ref">LIMETOP_TST_TOP_LMK_CLK_CNT1</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-lmk-clk-cnt1"><span class="std std-ref">0xf00020bc</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-tst-top-adf-cnt"><span class="std std-ref">LIMETOP_TST_TOP_ADF_CNT</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-adf-cnt"><span class="std std-ref">0xf00020c0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-tst-top-tx-tst-i"><span class="std std-ref">LIMETOP_TST_TOP_TX_TST_I</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-tx-tst-i"><span class="std std-ref">0xf00020c4</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-tst-top-tx-tst-q"><span class="std std-ref">LIMETOP_TST_TOP_TX_TST_Q</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-tst-top-tx-tst-q"><span class="std std-ref">0xf00020c8</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-general-periph-board-gpio-ovrd"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_BOARD_GPIO_OVRD</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-board-gpio-ovrd"><span class="std std-ref">0xf00020cc</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-general-periph-board-gpio-rd"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_BOARD_GPIO_RD</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-board-gpio-rd"><span class="std std-ref">0xf00020d0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-general-periph-board-gpio-dir"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_BOARD_GPIO_DIR</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-board-gpio-dir"><span class="std std-ref">0xf00020d4</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-general-periph-board-gpio-val"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_BOARD_GPIO_VAL</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-board-gpio-val"><span class="std std-ref">0xf00020d8</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-general-periph-periph-input-rd-0"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_PERIPH_INPUT_RD_0</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-periph-input-rd-0"><span class="std std-ref">0xf00020dc</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-general-periph-periph-input-rd-1"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_PERIPH_INPUT_RD_1</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-periph-input-rd-1"><span class="std std-ref">0xf00020e0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-general-periph-periph-output-ovrd-0"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_PERIPH_OUTPUT_OVRD_0</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-periph-output-ovrd-0"><span class="std std-ref">0xf00020e4</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-general-periph-periph-output-val-0"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_PERIPH_OUTPUT_VAL_0</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-periph-output-val-0"><span class="std std-ref">0xf00020e8</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-general-periph-periph-output-ovrd-1"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_PERIPH_OUTPUT_OVRD_1</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-periph-output-ovrd-1"><span class="std std-ref">0xf00020ec</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-general-periph-periph-output-val-1"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_PERIPH_OUTPUT_VAL_1</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-periph-output-val-1"><span class="std std-ref">0xf00020f0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-general-periph-fpga-led-ctrl"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_FPGA_LED_CTRL</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-fpga-led-ctrl"><span class="std std-ref">0xf00020f4</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-general-periph-fx3-led-ctrl"><span class="std std-ref">LIMETOP_GENERAL_PERIPH_FX3_LED_CTRL</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-general-periph-fx3-led-ctrl"><span class="std std-ref">0xf00020f8</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-rxtx-top-ddr2-1-status"><span class="std std-ref">LIMETOP_RXTX_TOP_DDR2_1_STATUS</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-rxtx-top-ddr2-1-status"><span class="std std-ref">0xf00020fc</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-rxtx-top-ddr2-1-pnf-per-bit-l"><span class="std std-ref">LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_L</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-rxtx-top-ddr2-1-pnf-per-bit-l"><span class="std std-ref">0xf0002100</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-rxtx-top-ddr2-1-pnf-per-bit-h"><span class="std std-ref">LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_H</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-rxtx-top-ddr2-1-pnf-per-bit-h"><span class="std std-ref">0xf0002104</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#limetop-rxtx-top-rx-path-pkt-size"><span class="std std-ref">LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-rxtx-top-rx-path-pkt-size"><span class="std std-ref">0xf0002108</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#limetop-gpio"><span class="std std-ref">LIMETOP_GPIO</span></a></p></td>
+<td><p><a class="reference internal" href="#limetop-gpio"><span class="std std-ref">0xf000210c</span></a></p></td>
+</tr>
+</tbody>
+</table>
+<section id="limetop-gpo">
+<h3>LIMETOP_GPO<a class="headerlink" href="#limetop-gpo" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x0 = 0xf0002000</cite></p>
+<blockquote>
+<div><p>GPO interface</p>
+
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "cpu_busy",  "bits": 1},
+        {"bits": 31}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>[0]</p></td>
+<td><p>CPU_BUSY</p></td>
+<td><p>CPU state.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">0b0</span></code></p></td>
+<td><p>IDLE.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">0b1</span></code></p></td>
+<td><p>BUSY.</p></td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-fpgacfg-board-id">
+<h3>LIMETOP_FPGACFG_BOARD_ID<a class="headerlink" href="#limetop-fpgacfg-board-id" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x4 = 0xf0002004</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_board_id[15:0]", "attr": 'reset: 17', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-major-rev">
+<h3>LIMETOP_FPGACFG_MAJOR_REV<a class="headerlink" href="#limetop-fpgacfg-major-rev" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x8 = 0xf0002008</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_major_rev[15:0]", "attr": 'reset: 3', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-compile-rev">
+<h3>LIMETOP_FPGACFG_COMPILE_REV<a class="headerlink" href="#limetop-fpgacfg-compile-rev" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xc = 0xf000200c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_compile_rev[15:0]", "attr": 'reset: 5', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-bom-hw-ver">
+<h3>LIMETOP_FPGACFG_BOM_HW_VER<a class="headerlink" href="#limetop-fpgacfg-bom-hw-ver" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x10 = 0xf0002010</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_bom_hw_ver[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-phase-reg-sel">
+<h3>LIMETOP_FPGACFG_PHASE_REG_SEL<a class="headerlink" href="#limetop-fpgacfg-phase-reg-sel" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x14 = 0xf0002014</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_phase_reg_sel[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-drct-clk-en">
+<h3>LIMETOP_FPGACFG_DRCT_CLK_EN<a class="headerlink" href="#limetop-fpgacfg-drct-clk-en" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x18 = 0xf0002018</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_drct_clk_en[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-load-phase">
+<h3>LIMETOP_FPGACFG_LOAD_PHASE<a class="headerlink" href="#limetop-fpgacfg-load-phase" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x1c = 0xf000201c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "clk_int",  "bits": 5},
+        {"name": "cnt_int",  "bits": 5},
+        {"name": "load_phase_reg",  "bits": 1},
+        {"bits": 21}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-fpgacfg-ch-en">
+<h3>LIMETOP_FPGACFG_CH_EN<a class="headerlink" href="#limetop-fpgacfg-ch-en" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x20 = 0xf0002020</cite></p>
+<blockquote>
+<div><p>4b0001 - Channel A, 4b0010 - Channel B enabled, 4b0100 - Channel C enabled,
+4b1000 - Channel D enabled,2b1111 - Channels A, B, C, D Enabled</p>
+
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_ch_en[3:0]", "attr": 'reset: 15', "bits": 4},
+        {"bits": 28},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-reg08">
+<h3>LIMETOP_FPGACFG_REG08<a class="headerlink" href="#limetop-fpgacfg-reg08" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x24 = 0xf0002024</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "smpl_width",  "attr": '2', "bits": 2},
+        {"bits": 3},
+        {"name": "mode",  "bits": 1},
+        {"name": "ddr_en",  "bits": 1},
+        {"name": "trxiq_pulse",  "bits": 1},
+        {"name": "mimo_int_en",  "attr": '1', "bits": 1},
+        {"name": "synch_dis",  "bits": 1},
+        {"name": "synch_mode",  "bits": 1},
+        {"bits": 21}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-fpgacfg-reg09">
+<h3>LIMETOP_FPGACFG_REG09<a class="headerlink" href="#limetop-fpgacfg-reg09" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x28 = 0xf0002028</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "smpl_nr_clr",  "attr": '1', "bits": 1},
+        {"name": "txpct_loss_clr",  "attr": '1', "bits": 1},
+        {"bits": 30}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-fpgacfg-reg10">
+<h3>LIMETOP_FPGACFG_REG10<a class="headerlink" href="#limetop-fpgacfg-reg10" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x2c = 0xf000202c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "rx_en",  "bits": 1},
+        {"name": "tx_en",  "bits": 1},
+        {"bits": 6},
+        {"name": "rx_ptrn_en",  "bits": 1},
+        {"name": "tx_ptrn_en",  "bits": 1},
+        {"name": "tx_cnt_en",  "bits": 1},
+        {"bits": 21}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-fpgacfg-wfm-ch-en">
+<h3>LIMETOP_FPGACFG_WFM_CH_EN<a class="headerlink" href="#limetop-fpgacfg-wfm-ch-en" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x30 = 0xf0002030</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_wfm_ch_en[15:0]", "attr": 'reset: 3', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-reg13">
+<h3>LIMETOP_FPGACFG_REG13<a class="headerlink" href="#limetop-fpgacfg-reg13" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x34 = 0xf0002034</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"bits": 1},
+        {"name": "wfm_play",  "bits": 1},
+        {"name": "wfm_load",  "bits": 1},
+        {"bits": 29}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-fpgacfg-wfm-smpl-width">
+<h3>LIMETOP_FPGACFG_WFM_SMPL_WIDTH<a class="headerlink" href="#limetop-fpgacfg-wfm-smpl-width" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x38 = 0xf0002038</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_wfm_smpl_width[1:0]", "attr": 'reset: 2', "bits": 2},
+        {"bits": 30},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-sync-size">
+<h3>LIMETOP_FPGACFG_SYNC_SIZE<a class="headerlink" href="#limetop-fpgacfg-sync-size" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x3c = 0xf000203c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_sync_size[15:0]", "attr": 'reset: 1020', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-txant-pre">
+<h3>LIMETOP_FPGACFG_TXANT_PRE<a class="headerlink" href="#limetop-fpgacfg-txant-pre" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x40 = 0xf0002040</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_txant_pre[15:0]", "attr": 'reset: 1', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-txant-post">
+<h3>LIMETOP_FPGACFG_TXANT_POST<a class="headerlink" href="#limetop-fpgacfg-txant-post" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x44 = 0xf0002044</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_txant_post[15:0]", "attr": 'reset: 1', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-spi-ss">
+<h3>LIMETOP_FPGACFG_SPI_SS<a class="headerlink" href="#limetop-fpgacfg-spi-ss" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x48 = 0xf0002048</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_spi_ss[15:0]", "attr": 'reset: 65535', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-clk-ena">
+<h3>LIMETOP_FPGACFG_CLK_ENA<a class="headerlink" href="#limetop-fpgacfg-clk-ena" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x4c = 0xf000204c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_clk_ena[3:0]", "attr": 'reset: 15', "bits": 4},
+        {"bits": 28},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-fpgacfg-sync-pulse-period">
+<h3>LIMETOP_FPGACFG_SYNC_PULSE_PERIOD<a class="headerlink" href="#limetop-fpgacfg-sync-pulse-period" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x50 = 0xf0002050</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fpgacfg_sync_pulse_period[31:0]", "attr": 'reset: 250000', "bits": 32}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-reg01">
+<h3>LIMETOP_PLLCFG_REG01<a class="headerlink" href="#limetop-pllcfg-reg01" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x54 = 0xf0002054</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_reg01[3:0]", "attr": 'reset: 1', "bits": 4},
+        {"bits": 28},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-pll-lock">
+<h3>LIMETOP_PLLCFG_PLL_LOCK<a class="headerlink" href="#limetop-pllcfg-pll-lock" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x58 = 0xf0002058</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_pll_lock[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-reg03">
+<h3>LIMETOP_PLLCFG_REG03<a class="headerlink" href="#limetop-pllcfg-reg03" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x5c = 0xf000205c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_start",  "bits": 1},
+        {"name": "phcfg_start",  "bits": 1},
+        {"name": "pllrst_start",  "bits": 1},
+        {"name": "pll_ind",  "bits": 5},
+        {"name": "cnt_ind",  "bits": 5},
+        {"name": "phcfg_updn",  "bits": 1},
+        {"name": "phcfg_mode",  "bits": 1},
+        {"name": "phcfg_tst",  "bits": 1},
+        {"bits": 16}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-pllcfg-cnt-phase">
+<h3>LIMETOP_PLLCFG_CNT_PHASE<a class="headerlink" href="#limetop-pllcfg-cnt-phase" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x60 = 0xf0002060</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_cnt_phase[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-reg05">
+<h3>LIMETOP_PLLCFG_REG05<a class="headerlink" href="#limetop-pllcfg-reg05" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x64 = 0xf0002064</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_lf_cap",  "bits": 2},
+        {"name": "pllcfg_lf_res",  "attr": '28', "bits": 5},
+        {"name": "pllcfg_vcodiv",  "attr": '3', "bits": 1},
+        {"name": "chp_curr",  "attr": '1', "bits": 3},
+        {"bits": 21}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-pllcfg-reg06">
+<h3>LIMETOP_PLLCFG_REG06<a class="headerlink" href="#limetop-pllcfg-reg06" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x68 = 0xf0002068</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "n_byp",  "bits": 1},
+        {"name": "n_odddiv",  "attr": '1', "bits": 1},
+        {"name": "m_byp",  "bits": 1},
+        {"name": "m_odddiv",  "attr": '1', "bits": 1},
+        {"bits": 28}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-pllcfg-reg07">
+<h3>LIMETOP_PLLCFG_REG07<a class="headerlink" href="#limetop-pllcfg-reg07" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x6c = 0xf000206c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "c0_byp",  "bits": 1},
+        {"name": "c0_odddiv",  "attr": '1', "bits": 1},
+        {"name": "c1_byp",  "bits": 1},
+        {"name": "c1_odddiv",  "attr": '1', "bits": 1},
+        {"name": "c2_byp",  "bits": 1},
+        {"name": "c2_odddiv",  "attr": '1', "bits": 1},
+        {"name": "c3_byp",  "bits": 1},
+        {"name": "c3_odddiv",  "attr": '1', "bits": 1},
+        {"name": "c4_byp",  "bits": 1},
+        {"name": "c4_odddiv",  "attr": '1', "bits": 1},
+        {"bits": 22}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-pllcfg-n-cnt">
+<h3>LIMETOP_PLLCFG_N_CNT<a class="headerlink" href="#limetop-pllcfg-n-cnt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x70 = 0xf0002070</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_n_cnt[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-m-cnt">
+<h3>LIMETOP_PLLCFG_M_CNT<a class="headerlink" href="#limetop-pllcfg-m-cnt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x74 = 0xf0002074</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_m_cnt[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-c0-cnt">
+<h3>LIMETOP_PLLCFG_C0_CNT<a class="headerlink" href="#limetop-pllcfg-c0-cnt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x78 = 0xf0002078</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_c0_cnt[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-c1-cnt">
+<h3>LIMETOP_PLLCFG_C1_CNT<a class="headerlink" href="#limetop-pllcfg-c1-cnt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x7c = 0xf000207c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_c1_cnt[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-c2-cnt">
+<h3>LIMETOP_PLLCFG_C2_CNT<a class="headerlink" href="#limetop-pllcfg-c2-cnt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x80 = 0xf0002080</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_c2_cnt[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-c3-cnt">
+<h3>LIMETOP_PLLCFG_C3_CNT<a class="headerlink" href="#limetop-pllcfg-c3-cnt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x84 = 0xf0002084</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_c3_cnt[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-c4-cnt">
+<h3>LIMETOP_PLLCFG_C4_CNT<a class="headerlink" href="#limetop-pllcfg-c4-cnt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x88 = 0xf0002088</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_c4_cnt[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-auto-phcfg-smpls">
+<h3>LIMETOP_PLLCFG_AUTO_PHCFG_SMPLS<a class="headerlink" href="#limetop-pllcfg-auto-phcfg-smpls" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x8c = 0xf000208c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_auto_phcfg_smpls[15:0]", "attr": 'reset: 4095', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-pllcfg-auto-phcfg-step">
+<h3>LIMETOP_PLLCFG_AUTO_PHCFG_STEP<a class="headerlink" href="#limetop-pllcfg-auto-phcfg-step" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x90 = 0xf0002090</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_auto_phcfg_step[15:0]", "attr": 'reset: 2', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-lms7002-top-lms-ctr-gpio">
+<h3>LIMETOP_LMS7002_TOP_LMS_CTR_GPIO<a class="headerlink" href="#limetop-lms7002-top-lms-ctr-gpio" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x94 = 0xf0002094</cite></p>
+<blockquote>
+<div><p>LMS Control GPIOs.</p>
+
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "lms7002_top_lms_ctr_gpio[3:0]", "bits": 4},
+        {"bits": 28},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-lms7002-top-lms1">
+<h3>LIMETOP_LMS7002_TOP_LMS1<a class="headerlink" href="#limetop-lms7002-top-lms1" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x98 = 0xf0002098</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "ss",  "attr": '1', "bits": 1},
+        {"name": "reset",  "attr": '1', "bits": 1},
+        {"name": "core_ldo_en",  "bits": 1},
+        {"name": "txnrx1",  "attr": '1', "bits": 1},
+        {"name": "txnrx2",  "bits": 1},
+        {"name": "txen",  "attr": '1', "bits": 1},
+        {"name": "rxen",  "attr": '1', "bits": 1},
+        {"name": "txrxen_mux_sel",  "bits": 1},
+        {"name": "txrxen_inv",  "bits": 1},
+        {"bits": 23}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-lms7002-top-reg01">
+<h3>LIMETOP_LMS7002_TOP_REG01<a class="headerlink" href="#limetop-lms7002-top-reg01" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x9c = 0xf000209c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "lms7002_top_reg01[15:0]", "attr": 'reset: 1', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-lms7002-top-reg03">
+<h3>LIMETOP_LMS7002_TOP_REG03<a class="headerlink" href="#limetop-lms7002-top-reg03" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xa0 = 0xf00020a0</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "pllcfg_start",  "bits": 1},
+        {"name": "phcfg_start",  "bits": 1},
+        {"name": "pllrst_start",  "bits": 1},
+        {"name": "pll_ind",  "bits": 5},
+        {"name": "cnt_ind",  "bits": 5},
+        {"name": "phcfg_updn",  "bits": 1},
+        {"name": "phcfg_mode",  "bits": 1},
+        {"name": "phcfg_tst",  "bits": 1},
+        {"bits": 16}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-tst-top-test-en">
+<h3>LIMETOP_TST_TOP_TEST_EN<a class="headerlink" href="#limetop-tst-top-test-en" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xa4 = 0xf00020a4</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fx3_pclk_tst_en",  "bits": 1},
+        {"bits": 1},
+        {"name": "vctcxo_tst_en",  "bits": 1},
+        {"name": "adf_tst_en",  "bits": 1},
+        {"name": "ddr2_1_tst_en",  "bits": 1},
+        {"name": "ddr2_2_tst_en",  "bits": 1},
+        {"bits": 26}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-tst-top-test-frc-err">
+<h3>LIMETOP_TST_TOP_TEST_FRC_ERR<a class="headerlink" href="#limetop-tst-top-test-frc-err" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xa8 = 0xf00020a8</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "fx3_pclk_tst_frc_err",  "bits": 1},
+        {"bits": 1},
+        {"name": "vctco_tst_frc_err",  "bits": 1},
+        {"name": "adf_tst_frc_err",  "bits": 1},
+        {"name": "ddr2_1_tst_frc_err",  "bits": 1},
+        {"name": "ddr2_2_tst_frc_err",  "bits": 1},
+        {"bits": 26}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-tst-top-test-cmplt">
+<h3>LIMETOP_TST_TOP_TEST_CMPLT<a class="headerlink" href="#limetop-tst-top-test-cmplt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xac = 0xf00020ac</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "tst_top_test_cmplt[5:0]", "bits": 6},
+        {"bits": 26},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-tst-top-test-rez">
+<h3>LIMETOP_TST_TOP_TEST_REZ<a class="headerlink" href="#limetop-tst-top-test-rez" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xb0 = 0xf00020b0</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "tst_top_test_rez[5:0]", "bits": 6},
+        {"bits": 26},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-tst-top-fx3-clk-cnt">
+<h3>LIMETOP_TST_TOP_FX3_CLK_CNT<a class="headerlink" href="#limetop-tst-top-fx3-clk-cnt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xb4 = 0xf00020b4</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "tst_top_fx3_clk_cnt[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-tst-top-lmk-clk-cnt0">
+<h3>LIMETOP_TST_TOP_LMK_CLK_CNT0<a class="headerlink" href="#limetop-tst-top-lmk-clk-cnt0" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xb8 = 0xf00020b8</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "tst_top_lmk_clk_cnt0[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-tst-top-lmk-clk-cnt1">
+<h3>LIMETOP_TST_TOP_LMK_CLK_CNT1<a class="headerlink" href="#limetop-tst-top-lmk-clk-cnt1" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xbc = 0xf00020bc</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "tst_top_lmk_clk_cnt1[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-tst-top-adf-cnt">
+<h3>LIMETOP_TST_TOP_ADF_CNT<a class="headerlink" href="#limetop-tst-top-adf-cnt" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xc0 = 0xf00020c0</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "tst_top_adf_cnt[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-tst-top-tx-tst-i">
+<h3>LIMETOP_TST_TOP_TX_TST_I<a class="headerlink" href="#limetop-tst-top-tx-tst-i" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xc4 = 0xf00020c4</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "tst_top_tx_tst_i[15:0]", "attr": 'reset: 43690', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-tst-top-tx-tst-q">
+<h3>LIMETOP_TST_TOP_TX_TST_Q<a class="headerlink" href="#limetop-tst-top-tx-tst-q" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xc8 = 0xf00020c8</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "tst_top_tx_tst_q[15:0]", "attr": 'reset: 21845', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-board-gpio-ovrd">
+<h3>LIMETOP_GENERAL_PERIPH_BOARD_GPIO_OVRD<a class="headerlink" href="#limetop-general-periph-board-gpio-ovrd" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xcc = 0xf00020cc</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_board_gpio_ovrd[15:0]", "attr": 'reset: 15', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-board-gpio-rd">
+<h3>LIMETOP_GENERAL_PERIPH_BOARD_GPIO_RD<a class="headerlink" href="#limetop-general-periph-board-gpio-rd" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xd0 = 0xf00020d0</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_board_gpio_rd[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-board-gpio-dir">
+<h3>LIMETOP_GENERAL_PERIPH_BOARD_GPIO_DIR<a class="headerlink" href="#limetop-general-periph-board-gpio-dir" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xd4 = 0xf00020d4</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_board_gpio_dir[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-board-gpio-val">
+<h3>LIMETOP_GENERAL_PERIPH_BOARD_GPIO_VAL<a class="headerlink" href="#limetop-general-periph-board-gpio-val" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xd8 = 0xf00020d8</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_board_gpio_val[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-periph-input-rd-0">
+<h3>LIMETOP_GENERAL_PERIPH_PERIPH_INPUT_RD_0<a class="headerlink" href="#limetop-general-periph-periph-input-rd-0" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xdc = 0xf00020dc</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_periph_input_rd_0[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-periph-input-rd-1">
+<h3>LIMETOP_GENERAL_PERIPH_PERIPH_INPUT_RD_1<a class="headerlink" href="#limetop-general-periph-periph-input-rd-1" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xe0 = 0xf00020e0</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_periph_input_rd_1[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-periph-output-ovrd-0">
+<h3>LIMETOP_GENERAL_PERIPH_PERIPH_OUTPUT_OVRD_0<a class="headerlink" href="#limetop-general-periph-periph-output-ovrd-0" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xe4 = 0xf00020e4</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_periph_output_ovrd_0[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-periph-output-val-0">
+<h3>LIMETOP_GENERAL_PERIPH_PERIPH_OUTPUT_VAL_0<a class="headerlink" href="#limetop-general-periph-periph-output-val-0" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xe8 = 0xf00020e8</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_periph_output_val_0[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-periph-output-ovrd-1">
+<h3>LIMETOP_GENERAL_PERIPH_PERIPH_OUTPUT_OVRD_1<a class="headerlink" href="#limetop-general-periph-periph-output-ovrd-1" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xec = 0xf00020ec</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_periph_output_ovrd_1[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-periph-output-val-1">
+<h3>LIMETOP_GENERAL_PERIPH_PERIPH_OUTPUT_VAL_1<a class="headerlink" href="#limetop-general-periph-periph-output-val-1" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xf0 = 0xf00020f0</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_periph_output_val_1[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-general-periph-fpga-led-ctrl">
+<h3>LIMETOP_GENERAL_PERIPH_FPGA_LED_CTRL<a class="headerlink" href="#limetop-general-periph-fpga-led-ctrl" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xf4 = 0xf00020f4</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "LED1_CTRL",  "bits": 3},
+        {"bits": 1},
+        {"name": "LED2_CTRL",  "bits": 3},
+        {"bits": 25}
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limetop-general-periph-fx3-led-ctrl">
+<h3>LIMETOP_GENERAL_PERIPH_FX3_LED_CTRL<a class="headerlink" href="#limetop-general-periph-fx3-led-ctrl" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xf8 = 0xf00020f8</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "general_periph_fx3_led_ctrl[2:0]", "bits": 3},
+        {"bits": 29},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-rxtx-top-ddr2-1-status">
+<h3>LIMETOP_RXTX_TOP_DDR2_1_STATUS<a class="headerlink" href="#limetop-rxtx-top-ddr2-1-status" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0xfc = 0xf00020fc</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "rxtx_top_ddr2_1_status[2:0]", "bits": 3},
+        {"bits": 29},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-rxtx-top-ddr2-1-pnf-per-bit-l">
+<h3>LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_L<a class="headerlink" href="#limetop-rxtx-top-ddr2-1-pnf-per-bit-l" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x100 = 0xf0002100</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "rxtx_top_ddr2_1_pnf_per_bit_l[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-rxtx-top-ddr2-1-pnf-per-bit-h">
+<h3>LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_H<a class="headerlink" href="#limetop-rxtx-top-ddr2-1-pnf-per-bit-h" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x104 = 0xf0002104</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "rxtx_top_ddr2_1_pnf_per_bit_h[15:0]", "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-rxtx-top-rx-path-pkt-size">
+<h3>LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE<a class="headerlink" href="#limetop-rxtx-top-rx-path-pkt-size" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x108 = 0xf0002108</cite></p>
+<blockquote>
+<div><p>Packet Size in bytes,</p>
+
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "rxtx_top_rx_path_pkt_size[15:0]", "attr": 'reset: 253', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+<section id="limetop-gpio">
+<h3>LIMETOP_GPIO<a class="headerlink" href="#limetop-gpio" title="Link to this heading">¶</a></h3>
+<p><cite>Address: 0xf0002000 + 0x10c = 0xf000210c</cite></p>
+<blockquote>
+<div>
+<div style="overflow-x:auto">
+<script type="WaveDrom">
+{
+    "reg": [
+        {"name": "gpio[15:0]", "attr": 'reset: 4420', "bits": 16},
+        {"bits": 16},
+    ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+}
+</script>
+</div>
+</div></blockquote>
+</section>
+</section>
+</section>
+
+    <script type="text/javascript">
+        function init() {
+            WaveDrom.ProcessAll();
+        }
+        window.onload = init;
+    </script>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">limesdr-mini-v2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="interrupts.html">Interrupt Controller</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ctrl.html">CTRL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ft601.html">FT601</a></li>
+<li class="toctree-l1"><a class="reference internal" href="i2c0.html">I2C0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="identifier_mem.html">IDENTIFIER_MEM</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">LIMETOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ppsdo.html">PPSDO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spiflash.html">SPIFLASH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spimaster.html">SPIMASTER</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timer0.html">TIMER0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="uart.html">UART</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="identifier_mem.html" title="previous chapter">IDENTIFIER_MEM</a></li>
+      <li>Next: <a href="ppsdo.html" title="next chapter">PPSDO</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2026, Lime Microsystems.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/limetop.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -45,19 +45,19 @@ The **Lime_top Module** serves as a wrapper for the LMS7002M transceiver control
 
 LMS7002 Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`lms7002_top <docs/lms7002_top/readme:lms7002_top>` description. This module implements the LMS7002M PHY for transmitting and receiving digital IQ samples.
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`lms7002_top <docs/lms7002_top/readme:lms7002_top>` description. This module implements the LMS7002M PHY for transmitting and receiving digital IQ samples.
 
 .. _rx_path_top_module:
 
 RX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`rx_path_top <docs/rx_path_top/readme:rx_path_top>` description. It handles the receive path from the LMS7002M to the FPGA and host, including IQ sample packetization and timestamp generation.
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`rx_path_top <docs/rx_path_top/readme:rx_path_top>` description. It handles the receive path from the LMS7002M to the FPGA and host, including IQ sample packetization and timestamp generation.
 
 .. _tx_path_top_module:
 
 TX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+limedfb:ref:`tx_path_top <docs/tx_path_top/readme:tx_path_top>` description. This module manages the transmit path from the host through the FPGA to the LMS7002M, including unpacking of IQ samples and stream synchronization.
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`tx_path_top <docs/tx_path_top/readme:tx_path_top>` description. This module manages the transmit path from the host through the FPGA to the LMS7002M, including unpacking of IQ samples and stream synchronization.
 
 .. _pcie_phy_module:
 
@@ -98,12 +98,16 @@ Source code:
 
 Gateware Register Reference
 ---------------------------
-The following documentation is automatically generated from the LiteX SoC definitions. It includes the complete **Control and Status Register (CSR)** map, interrupt vector table, and memory regions for the modules described above (PCIe, I2C, SPI, etc.).
+LimeSDR XTRX exposes registers through two access paths:
+
+- :doc:`Legacy FPGA SPI registers <limesdr-xtrx/reg_remap/xtrx_regremap_from_csv>`: legacy host registers used by existing software and previous gateware; planned to be replaced by LiteX CSR.
+- :doc:`Native LiteX CSR map <limesdr-xtrx/litex_doc/index>`: the SoC's dedicated CSR register space generated from LiteX modules.
+
+During the migration phase, the host can continue accessing legacy FPGA SPI register addresses; firmware remaps these FPGA SPI register accesses to native LiteX CSR registers internally. The LiteX CSR map is the forward path for native SoC register access.
 
 .. toctree::
    :maxdepth: 3
    :hidden:
 
+   Legacy FPGA SPI register reference <limesdr-xtrx/reg_remap/xtrx_regremap_from_csv>
    Register reference <limesdr-xtrx/litex_doc/index>
-
-:doc:`limesdr-xtrx/litex_doc/index`

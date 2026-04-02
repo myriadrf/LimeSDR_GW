@@ -7,25 +7,25 @@ Register Listing for SPIMASTER_ADF
 +--------------------------------------------------------------+-----------------------------------------------+
 | Register                                                     | Address                                       |
 +==============================================================+===============================================+
-| :ref:`SPIMASTER_ADF_CONTROL <SPIMASTER_ADF_CONTROL>`         | :ref:`0xf000d800 <SPIMASTER_ADF_CONTROL>`     |
+| :ref:`SPIMASTER_ADF_CONTROL <SPIMASTER_ADF_CONTROL>`         | :ref:`0xf000e000 <SPIMASTER_ADF_CONTROL>`     |
 +--------------------------------------------------------------+-----------------------------------------------+
-| :ref:`SPIMASTER_ADF_STATUS <SPIMASTER_ADF_STATUS>`           | :ref:`0xf000d804 <SPIMASTER_ADF_STATUS>`      |
+| :ref:`SPIMASTER_ADF_STATUS <SPIMASTER_ADF_STATUS>`           | :ref:`0xf000e004 <SPIMASTER_ADF_STATUS>`      |
 +--------------------------------------------------------------+-----------------------------------------------+
-| :ref:`SPIMASTER_ADF_MOSI <SPIMASTER_ADF_MOSI>`               | :ref:`0xf000d808 <SPIMASTER_ADF_MOSI>`        |
+| :ref:`SPIMASTER_ADF_MOSI <SPIMASTER_ADF_MOSI>`               | :ref:`0xf000e008 <SPIMASTER_ADF_MOSI>`        |
 +--------------------------------------------------------------+-----------------------------------------------+
-| :ref:`SPIMASTER_ADF_MISO <SPIMASTER_ADF_MISO>`               | :ref:`0xf000d80c <SPIMASTER_ADF_MISO>`        |
+| :ref:`SPIMASTER_ADF_MISO <SPIMASTER_ADF_MISO>`               | :ref:`0xf000e00c <SPIMASTER_ADF_MISO>`        |
 +--------------------------------------------------------------+-----------------------------------------------+
-| :ref:`SPIMASTER_ADF_CS <SPIMASTER_ADF_CS>`                   | :ref:`0xf000d810 <SPIMASTER_ADF_CS>`          |
+| :ref:`SPIMASTER_ADF_CS <SPIMASTER_ADF_CS>`                   | :ref:`0xf000e010 <SPIMASTER_ADF_CS>`          |
 +--------------------------------------------------------------+-----------------------------------------------+
-| :ref:`SPIMASTER_ADF_LOOPBACK <SPIMASTER_ADF_LOOPBACK>`       | :ref:`0xf000d814 <SPIMASTER_ADF_LOOPBACK>`    |
+| :ref:`SPIMASTER_ADF_LOOPBACK <SPIMASTER_ADF_LOOPBACK>`       | :ref:`0xf000e014 <SPIMASTER_ADF_LOOPBACK>`    |
 +--------------------------------------------------------------+-----------------------------------------------+
-| :ref:`SPIMASTER_ADF_CLK_DIVIDER <SPIMASTER_ADF_CLK_DIVIDER>` | :ref:`0xf000d818 <SPIMASTER_ADF_CLK_DIVIDER>` |
+| :ref:`SPIMASTER_ADF_CLK_DIVIDER <SPIMASTER_ADF_CLK_DIVIDER>` | :ref:`0xf000e018 <SPIMASTER_ADF_CLK_DIVIDER>` |
 +--------------------------------------------------------------+-----------------------------------------------+
 
 SPIMASTER_ADF_CONTROL
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000d800 + 0x0 = 0xf000d800`
+`Address: 0xf000e000 + 0x0 = 0xf000e000`
 
     SPI Control.
 
@@ -38,7 +38,7 @@ SPIMASTER_ADF_CONTROL
                 {"bits": 7},
                 {"name": "length",  "bits": 8},
                 {"bits": 16}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -53,7 +53,7 @@ SPIMASTER_ADF_CONTROL
 SPIMASTER_ADF_STATUS
 ^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000d800 + 0x4 = 0xf000d804`
+`Address: 0xf000e000 + 0x4 = 0xf000e004`
 
     SPI Status.
 
@@ -65,7 +65,7 @@ SPIMASTER_ADF_STATUS
                 {"name": "done",  "bits": 1},
                 {"name": "mode",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -88,7 +88,7 @@ SPIMASTER_ADF_STATUS
 SPIMASTER_ADF_MOSI
 ^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000d800 + 0x8 = 0xf000d808`
+`Address: 0xf000e000 + 0x8 = 0xf000e008`
 
     SPI MOSI data (MSB-first serialization).
 
@@ -99,14 +99,14 @@ SPIMASTER_ADF_MOSI
             "reg": [
                 {"name": "mosi[23:0]", "bits": 24},
                 {"bits": 8},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
 SPIMASTER_ADF_MISO
 ^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000d800 + 0xc = 0xf000d80c`
+`Address: 0xf000e000 + 0xc = 0xf000e00c`
 
     SPI MISO data (MSB-first de-serialization).
 
@@ -117,14 +117,14 @@ SPIMASTER_ADF_MISO
             "reg": [
                 {"name": "miso[23:0]", "bits": 24},
                 {"bits": 8},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
 SPIMASTER_ADF_CS
 ^^^^^^^^^^^^^^^^
 
-`Address: 0xf000d800 + 0x10 = 0xf000d810`
+`Address: 0xf000e000 + 0x10 = 0xf000e010`
 
     SPI CS Chip-Select and Mode.
 
@@ -137,7 +137,7 @@ SPIMASTER_ADF_CS
                 {"bits": 15},
                 {"name": "mode",  "bits": 1},
                 {"bits": 15}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -168,7 +168,7 @@ SPIMASTER_ADF_CS
 SPIMASTER_ADF_LOOPBACK
 ^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000d800 + 0x14 = 0xf000d814`
+`Address: 0xf000e000 + 0x14 = 0xf000e014`
 
     SPI Loopback Mode.
 
@@ -179,7 +179,7 @@ SPIMASTER_ADF_LOOPBACK
             "reg": [
                 {"name": "mode",  "bits": 1},
                 {"bits": 31}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -200,7 +200,7 @@ SPIMASTER_ADF_LOOPBACK
 SPIMASTER_ADF_CLK_DIVIDER
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000d800 + 0x18 = 0xf000d818`
+`Address: 0xf000e000 + 0x18 = 0xf000e018`
 
     SPI Clk Divider.
 
@@ -209,9 +209,9 @@ SPIMASTER_ADF_CLK_DIVIDER
 
         {
             "reg": [
-                {"name": "clk_divider[15:0]", "attr": 'reset: 25', "bits": 16},
+                {"name": "clk_divider[15:0]", "attr": 'reset: 30', "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 

@@ -1,6 +1,6 @@
 
 project = 'limesdr-xtrx'
-copyright = '2025, Lime Microsystems'
+copyright = '2026, Lime Microsystems'
 author = 'Lime Microsystems'
 extensions = [
     'sphinx.ext.autosectionlabel',

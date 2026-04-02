@@ -1,0 +1,260 @@
+address,title,access,default,field,msb,lsb,values,description,op
+0x0001,major_rev,R,,major_rev,15,0,,"Major revision, read only.",delete
+0x0002,compile_rev,R,,compile_rev,15,0,,"Compile revision, read only.",delete
+0x0003,reserved,R/W,,reserved,15,0,,Reserved.,delete
+0x0004,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0005,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0006,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0007,ch_en,R/W,0x0003,ch_en,1,0,"01 = A, 10 = B, 11 = A+B",Channel selection.,delete
+0x0008,,,,trxiq_pulse,7,7,"0 = off, 1 = on",TRXIQ pulse mode.,delete
+0x0009,"txpct_loss_clr, smpl_nr_clr",R/W,0x0003,value,15,0,,TX packet-loss flag clear and timestamp reset control.,delete
+0x000A,,,,rx_rf_sw,3,2,"00 = RX_W, 01 = RX_L, 10 = RX_H, 11 = NC",RX RF switch select.,delete
+0x000A,,,,tx_rf_sw,4,4,"0 = TX2, 1 = TX1",TX RF switch select.,delete
+0x000A,,,,tdd_manual,5,5,0/1,Manual value of external TDD signal.,delete
+0x000A,,,,tdd_auto_en,6,6,0/1,Control external TDD signal by internal TDD signal.,delete
+0x000A,,,,tdd_invert,7,7,0/1,Invert external TDD signal.,delete
+0x000A,,,,tx_cnt_en,10,10,0/1,Counter test pattern on TX.,delete
+0x000A,RF and TDD control,R/W,0x0000,rf_sw_auto_en,11,11,0/1,Control RF switches by internal TDD signal.,delete
+0x000B,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x000C,reserved,R/W,0x0003,Reserved,15,0,,Reserved.,delete
+0x000D,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x000E,RX_PACKET_SAMPLES,R/W,0x0000,RX_PACKET_SAMPLES,15,0,,RX packet size in samples.,delete
+0x000F,reserved,R/W,0x03FC,Reserved,15,0,,Reserved.,delete
+0x0010,txant_pre,R/W,0x0001,txant_pre,15,0,,Number of samples to delay turning on the internal TDD signal.,delete
+0x0011,txant_post,R/W,0x0001,txant_post,15,0,,Number of samples to delay turning off the internal TDD signal.,delete
+0x0012,reserved,R/W,0xFFFF,Reserved,15,0,,Reserved.,delete
+0x0013,"LMS_TXRXEN_MUX_SEL, LMS1_RXEN, LMS1_TXEN, LMS1_TXNRX2, LMS1_TXNRX1, LMS1_CORE_LDO_EN, LMS1_RESET",R/W,0x6F6B,value,15,0,,LMS7002 digital-interface and hard-enable control.,delete
+0x0014,reserved,R/W,0x0003,Reserved,15,0,,Reserved.,delete
+0x0015,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0016,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0017,reserved,R/W,0x2340,Reserved,15,0,,Reserved.,delete
+0x0018,,,,LMS_RST,0,0,"0 = reset active, 1 = reset inactive",LMS hardware reset.,delete
+0x0018,,,,TCXO_EN,1,1,0/1,Onboard clock enable.,delete
+0x0018,,,,EXT_CLK,2,2,"0 = onboard, 1 = external",Clock source selection.,delete
+0x0018,LMS and clock control,R/W,0x0003,CORE_LDO_EN,3,3,0/1,LMS internal LDO control.,delete
+0x0019,RX_PACKET_SIZE,R/W,0x1000,RX_PACKET_SIZE,15,0,,RX packet size in bytes.,delete
+0x001A,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x001B,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x001C,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x001D,reserved,R/W,0x00FF,Reserved,15,0,,Reserved.,delete
+0x001E,reserved,R/W,0x0003,Reserved,15,0,,Reserved.,delete
+0x001F,reserved,R/W,0xD090,Reserved,15,0,,Reserved.,delete
+0x0020,C1 Phase,R/W,0x0000,value,15,0,,Phase value for PLL output clock 1.,delete
+0x0021,,,,pllcfg_done,0,0,status,"PLL configuration done, read only.",delete
+0x0021,,,,pllcfg_busy,1,1,status,"PLL configuration busy, read only.",delete
+0x0021,,,,phcfg_done,2,2,status,"Phase configuration done, read only.",delete
+0x0021,PLL status,R,0x0001,phcfg_error,3,3,status,"Phase configuration error, documented as unused.",delete
+0x0022,"pllcfg_err, pll_lock",R/W,0x0000,value,15,0,,PLL error and TX/RX PLL lock status.,delete
+0x0024,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0025,reserved,R/W,0x01F0,Reserved,15,0,,Reserved.,delete
+0x0026,"m_byp, n_byp",R/W,0x000A,value,15,0,,PLL multiplier/divider bypass.,delete
+0x0027,"c1_byp, c0_byp",R/W,0x0AAA,value,15,0,,PLL output-divider bypass.,delete
+0x0028,reserved,R/W,0xAAAA,Reserved,15,0,,Reserved.,delete
+0x0029,reserved,R/W,0xAAAA,Reserved,15,0,,Reserved.,delete
+0x002A,n_cnt,R/W,0x0000,n_cnt,15,0,,PLL divider value.,delete
+0x002B,m_cnt,R/W,0x0000,m_cnt,15,0,,PLL multiplier value.,delete
+0x002C,m_frac(LSB),R/W,0x0000,value,15,0,,"PLL multiplier fractional value, LSB.",delete
+0x002D,m_frac(MSB),R/W,0x0000,value,15,0,,"PLL multiplier fractional value, MSB.",delete
+0x002E,c0_cnt,R/W,0x0000,c0_cnt,15,0,,PLL output 0 divider value.,delete
+0x002F,c1_cnt,R/W,0x0000,c1_cnt,15,0,,PLL output 1 divider value.,delete
+0x0030,auto_phcfg_smpls,R/W,0xEFFF,auto_phcfg_smpls,15,0,,Number of samples used during auto phase configuration.,delete
+0x0060,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0061,,,,test_en[0],0,0,0/1,System clock test start.,delete
+0x0061,,,,test_en[1],1,1,0/1,LMS TX clock test start.,delete
+0x0061,test enable,R/W,0x0000,test_en[2],2,2,0/1,GNSS test start.,delete
+0x0065,,,,sys_clk_test,0,0,status,System clock test complete.,delete
+0x0065,,,,test_cmplt[1],1,1,status,LMS TX clock test complete.,delete
+0x0065,test complete,R,0x0000,test_cmplt[2],2,2,status,GNSS test complete.,delete
+0x0066,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0067,test_rez,R/W,0x0000,test_rez,15,0,,Test result bits; documented as not implemented.,delete
+0x0068,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0069,sys_clk_cnt,R/W,0x0000,sys_clk_cnt,15,0,,Count of sys_clk cycles; changing values indicate an active clock.,delete
+0x0072,lms_tx_clk_cnt,R/W,0x0000,lms_tx_clk_cnt,15,0,,Low 16 bits of LMS TX clock test counter.,delete
+0x0073,lms_tx_clk_cnt,R/W,0x0000,lms_tx_clk_cnt,15,0,,Bits 23:16 of LMS TX clock test counter.,delete
+0x007F,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x00C0,board_gpio_ovrd,R/W,0x0002,board_gpio_ovrd,0,0,"0 = dedicated function, 1 = user override",GPIO override control.,delete
+0x00C4,board_gpio_dir,R/W,0x0000,board_gpio_dir,15,0,,"Onboard GPIO direction. 0 = input, 1 = output.",delete
+0x00C5,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x00C6,board_gpio_val,R/W,0x0000,board_gpio_val,15,0,,"GPIO output value. 0 = low, 1 = high.",delete
+0x00CA,periph_input_sel,R/W,0x0000,periph_input_sel,15,0,,"PPS input source select. 0 = GNSS_1PPS, 1 = 1PPSI_GPIO1.",delete
+0x00D2,PERIPH_EN,R/W,0x0003,PERIPH_EN,2,0,,"Peripheral enables: clock-out routing, GNSS reset, GNSS standby.",delete
+0x00D3,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x0000,board_id,R/W,0x0011,board_id,15,0,,Board identification number (LimeSDR Mini default 0x0011).,upsert
+0x0001,gw_ver,R/W,,gw_ver,15,0,,Gateware version number.,upsert
+0x0002,gw_rev,R/W,,gw_rev,15,0,,Gateware revision number.,upsert
+0x0003,,,,hw_ver,3,0,,Hardware version.,upsert
+0x0003,hw_ver and bom_ver,R,,bom_ver,6,4,,Bill of material version.,upsert
+0x0005,,,,drct_clk_en_tx,0,0,"0=PLL,1=Direct",TX clock source selection.,upsert
+0x0005,drct_clk_en,R/W,0x0000,drct_clk_en_rx,1,1,"0=PLL,1=Direct",RX clock source selection.,upsert
+0x0007,,,,ch_en_rx0,0,0,"0=Disabled,1=Enabled",RX channel 0 enable.,upsert
+0x0007,,,,ch_en_rx1,1,1,"0=Disabled,1=Enabled",RX channel 1 enable.,upsert
+0x0007,,,,ch_en_tx0,8,8,"0=Disabled,1=Enabled",TX channel 0 enable.,upsert
+0x0007,ch_en,R/W,0x0303,ch_en_tx1,9,9,"0=Disabled,1=Enabled",TX channel 1 enable.,upsert
+0x0008,,,,smpl_width,1,0,"10=12-bit,00=16-bit",Interface sample width selection.,upsert
+0x0008,,,,mode,5,5,"0=TRXIQ,1=JESD207",Limelight port mode (JESD207 not implemented).,upsert
+0x0008,,,,ddr_en,6,6,"0=SDR,1=DDR",DIQ interface mode.,upsert
+0x0008,,,,triq_pulse,7,7,"0=OFF,1=ON",TRXIQ pulse mode.,upsert
+0x0008,,,,mimo_int_en,8,8,"0=Disabled,1=Enabled",MIMO mode control.,upsert
+0x0008,,,,synch_dis,9,9,"0=Enabled,1=Disabled",Packet synchronization using timestamps.,upsert
+0x0008,diq_ctrl,R/W,0x0102,dlb_en,10,10,"0=Disabled,1=Enabled",Loopback enable (not used).,upsert
+0x0009,,,,smpl_nr_clr,0,0,"0=Normal,1=Clear",Timestamp reset control.,upsert
+0x0009,packet_ctrl,R/W,0x0003,txpct_loss_clr,1,1,"0=Normal,1=Rising edge clears",TX packet dropping flag clear.,upsert
+0x000A,,,,rx_en,0,0,"0=Disabled,1=Enabled",RX chain enable.,upsert
+0x000A,,,,tx_en,1,1,"0=Disabled,1=Enabled",TX chain enable.,upsert
+0x000A,,,,rx_ptrn_en,8,8,"0=Disabled,1=Enabled",RX test pattern enable.,upsert
+0x000A,rx_tx_ctrl,R/W,0x0000,tx_ptrn_en,9,9,"0=Disabled,1=Enabled",TX test pattern enable.,upsert
+0x000C,,,,wfm_ch0_en,0,0,"0=Disabled,1=Enabled",WFM channel 0 enable.,upsert
+0x000C,wfm_ch_en,R/W,0x0003,wfm_ch1_en,1,1,"0=Disabled,1=Enabled",WFM channel 1 enable.,upsert
+0x000D,,,,wfm_play,1,1,"0=Disabled,1=Enabled",WFM loaded-file play enable.,upsert
+0x000D,wfm_ctrl2,R/W,0x0001,wfm_load,2,2,0->1 transition,Starts WFM file loading.,upsert
+0x000E,wfm_smpl_width,R/W,0x0002,wfm_smpl_width,1,0,"10=12-bit,00=16-bit",WFM sample width selection.,upsert
+0x0012,spi_ss,R/W,0xFFFF,spi_ss,7,0,,Controlled SPI slave-select bits.,upsert
+0x0013,,,,lms1_reset,1,1,"0=Reset active,1=Inactive",LMS1 hardware reset.,upsert
+0x0013,,,,lms1_core_ldo_en,2,2,"0=Disabled,1=Enabled",LMS1 internal LDO control.,upsert
+0x0013,,,,lms1_txnrx1,3,3,"0=TXIQ,1=RXIQ",LMS1 port 1 mode.,upsert
+0x0013,,,,lms1_txnrx2,4,4,"0=TXIQ,1=RXIQ",LMS1 port 2 mode.,upsert
+0x0013,,,,lms1_txen,5,5,"0=Disabled,1=Enabled",LMS1 TX hard enable.,upsert
+0x0013,lms_misc,R/W,0x6F6F,lms1_rxen,6,6,"0=Disabled,1=Enabled",LMS1 RX hard enable.,upsert
+0x0017,,,,gpio0,0,0,"0=Disabled,1=Enabled",RF loopback channel A.,upsert
+0x0017,,,,gpio1,1,1,"0=Disabled,1=Enabled",Channel A attenuator.,upsert
+0x0017,,,,gpio2,2,2,"0=Disabled,1=Enabled",Channel A shunt.,upsert
+0x0017,,,,gpio4,4,4,"0=Disabled,1=Enabled",RF loopback channel B.,upsert
+0x0017,,,,gpio5,5,5,"0=Disabled,1=Enabled",Channel B attenuator.,upsert
+0x0017,gpio,R/W,0x0000,gpio6,6,6,"0=Disabled,1=Enabled",Channel B shunt.,upsert
+0x0018,dev_ctrl0,R/W,0x0001,dev_ctrl0,0,0,,Device control bit (not used).,upsert
+0x001A,,,,fpga_led1_ovrd,0,0,"0=OFF,1=ON",LED1 control override.,upsert
+0x001A,,,,fpga_led1_r,1,1,"0=OFF,1=ON",Red LED1 control.,upsert
+0x001A,,,,fpga_led1_g,2,2,"0=OFF,1=ON",Green LED1 control.,upsert
+0x001A,,,,fpga_led2_ovrd,4,4,"0=OFF,1=ON",LED2 control override.,upsert
+0x001A,,,,fpga_led2_r,5,5,"0=OFF,1=ON",Red LED2 control.,upsert
+0x001A,fpga_led_ctrl,R/W,0x0000,fpga_led2_g,6,6,"0=OFF,1=ON",Green LED2 control.,upsert
+0x001C,,,,fx3_led_ovrd,0,0,"0=OFF,1=ON",FX3 LED override.,upsert
+0x001C,,,,fx3_led_r,1,1,"0=OFF,1=ON",Red FX3 LED control.,upsert
+0x001C,fx3_led_ctrl,R/W,0x0000,fx3_led_g,2,2,"0=OFF,1=ON",Green FX3 LED control.,upsert
+0x0021,,,,done,0,0,"0=Not done,1=Done",PLL configuration done status.,upsert
+0x0021,,,,busy,1,1,"0=Idle,1=Busy",PLL reconfiguration busy status.,upsert
+0x0021,,,,auto_phcfg_done,2,2,"0=Not done,1=Done",Auto phase configuration done status.,upsert
+0x0021,pll_status,R,0x0001,auto_phcfg_err,3,3,"0=No error,1=Error",Auto phase configuration error status.,upsert
+0x0022,,,,pll_lock_tx,0,0,"0=No lock,1=Locked",TX PLL lock.,upsert
+0x0022,pll_lock,R,0x0000,pll_lock_rx,1,1,"0=No lock,1=Locked",RX PLL lock.,upsert
+0x0023,,,,pllcfg_start,0,0,0->1 transition,PLL reconfiguration start trigger.,upsert
+0x0023,,,,phcfg_start,1,1,0->1 transition,Phase shift start trigger.,upsert
+0x0023,,,,pllrst_start,2,2,0->1 transition,PLL reset trigger.,upsert
+0x0023,,,,pll_ind,7,3,"0000=TX PLL,0001=RX PLL",PLL index for reconfiguration.,upsert
+0x0023,,,,cnt_ind,12,8,"0000=all,0001=M,0010=C0,0011=C1",Counter index for phase shift.,upsert
+0x0023,,,,phcfg_updn,13,13,"0=Down,1=Up",Phase shift direction.,upsert
+0x0023,pll_ctrl,R/W,0x0000,phcfg_mode,14,14,"0=Manual,1=AUTO",PLL phase configuration mode.,upsert
+0x0024,cnt_phase,R/W,0x0000,cnt_phase,15,0,,Counter phase value.,upsert
+0x0025,,,,pllcfg_lf_cap,1,0,,PLL loop filter capacitance.,upsert
+0x0025,,,,pllcfg_lf_res,6,2,,PLL loop filter resistance.,upsert
+0x0025,,,,pllcfg_vcodiv,7,7,"0=2,1=1",PLL VCO division value.,upsert
+0x0025,,,,chp_curr,10,8,,PLL charge pump current.,upsert
+0x0025,pllcfg_settings,R/W,0x01F0,pllcfg_bs,14,11,,Bandwidth setting (not used).,upsert
+0x0026,mn_bypass_ctrl,R/W,0x0001,m_odddiv,2,2,"0=even,1=odd",M counter odd-division enable.,upsert
+0x0026,,,,m_byp,3,3,"0=normal,1=bypass",M counter bypass control.,upsert
+0x0026,,,,n_odddiv,0,0,"0=even,1=odd",N counter odd-division enable.,upsert
+0x0026,,,,n_byp,1,1,"0=normal,1=bypass",N counter bypass control.,upsert
+0x0027,c0..c7_byp_odddiv,R/W,0x555A,c0_odddiv,0,0,"0=even,1=odd",C0 odd-division enable.,upsert
+0x0027,,,,c0_byp,1,1,"0=normal,1=bypass",C0 bypass control.,upsert
+0x0027,,,,c1_odddiv,2,2,"0=even,1=odd",C1 odd-division enable.,upsert
+0x0027,,,,c1_byp,3,3,"0=normal,1=bypass",C1 bypass control.,upsert
+0x0027,,,,c2_odddiv,4,4,"0=even,1=odd",C2 odd-division enable.,upsert
+0x0027,,,,c2_byp,5,5,"0=normal,1=bypass",C2 bypass control.,upsert
+0x0027,,,,c3_odddiv,6,6,"0=even,1=odd",C3 odd-division enable.,upsert
+0x0027,,,,c3_byp,7,7,"0=normal,1=bypass",C3 bypass control.,upsert
+0x0027,,,,c4_odddiv,8,8,"0=even,1=odd",C4 odd-division enable.,upsert
+0x0027,,,,c4_byp,9,9,"0=normal,1=bypass",C4 bypass control.,upsert
+0x0027,,,,c5_odddiv,10,10,"0=even,1=odd",C5 odd-division enable.,upsert
+0x0027,,,,c5_byp,11,11,"0=normal,1=bypass",C5 bypass control.,upsert
+0x0027,,,,c6_odddiv,12,12,"0=even,1=odd",C6 odd-division enable.,upsert
+0x0027,,,,c6_byp,13,13,"0=normal,1=bypass",C6 bypass control.,upsert
+0x0027,,,,c7_odddiv,14,14,"0=even,1=odd",C7 odd-division enable.,upsert
+0x0027,,,,c7_byp,15,15,"0=normal,1=bypass",C7 bypass control.,upsert
+0x0028,c8..c15_byp_odddiv,R/W,0x5555,c8..c15_byp_odddiv,15,0,,Counter bypass and odd-division control bits for C8..C15.,upsert
+0x002A,,,,n_lcnt,7,0,,N_CNT low counter bits.,upsert
+0x002A,n_cnt,R/W,0x0000,n_hcnt,15,8,,N_CNT high counter bits.,upsert
+0x002B,,,,m_lcnt,7,0,,M_CNT low counter bits.,upsert
+0x002B,m_cnt,R/W,0x0000,m_hcnt,15,8,,M_CNT high counter bits.,upsert
+0x002C,m_frac_l,R/W,0x0000,m_frac_l,15,0,,M fractional counter values [15:0].,upsert
+0x002D,m_frac_h,R/W,0x0000,m_frac_h,15,0,,M fractional counter values [31:16].,upsert
+0x002E,,,,c0_lcnt,7,0,,C0_CNT low counter bits.,upsert
+0x002E,c0_cnt,R/W,0x0000,c0_hcnt,15,8,,C0_CNT high counter bits.,upsert
+0x002F,,,,c1_lcnt,7,0,,C1_CNT low counter bits.,upsert
+0x002F,c1_cnt,R/W,0x0000,c1_hcnt,15,8,,C1_CNT high counter bits.,upsert
+0x0030,,,,c2_lcnt,7,0,,C2_CNT low counter bits.,upsert
+0x0030,c2_cnt,R/W,0x0000,c2_hcnt,15,8,,C2_CNT high counter bits.,upsert
+0x0031,,,,c3_lcnt,7,0,,C3_CNT low counter bits.,upsert
+0x0031,c3_cnt,R/W,0x0000,c3_hcnt,15,8,,C3_CNT high counter bits.,upsert
+0x0032,,,,c4_lcnt,7,0,,C4_CNT low counter bits.,upsert
+0x0032,c4_cnt,R/W,0x0000,c4_hcnt,15,8,,C4_CNT high counter bits.,upsert
+0x0033,,,,c5_lcnt,7,0,,C5_CNT low counter bits.,upsert
+0x0033,c5_cnt,R/W,0x0000,c5_hcnt,15,8,,C5_CNT high counter bits.,upsert
+0x0034,,,,c6_lcnt,7,0,,C6_CNT low counter bits.,upsert
+0x0034,c6_cnt,R/W,0x0000,c6_hcnt,15,8,,C6_CNT high counter bits.,upsert
+0x0035,,,,c7_lcnt,7,0,,C7_CNT low counter bits.,upsert
+0x0035,c7_cnt,R/W,0x0000,c7_hcnt,15,8,,C7_CNT high counter bits.,upsert
+0x0036,,,,c8_lcnt,7,0,,C8_CNT low counter bits.,upsert
+0x0036,c8_cnt,R/W,0x0000,c8_hcnt,15,8,,C8_CNT high counter bits.,upsert
+0x0037,,,,c9_lcnt,7,0,,C9_CNT low counter bits.,upsert
+0x0037,c9_cnt,R/W,0x0000,c9_hcnt,15,8,,C9_CNT high counter bits.,upsert
+0x003E,auto_phcfg_smpls,R/W,0x0FFF,auto_phcfg_smpls,15,0,,Samples to compare in auto phase-shift mode.,upsert
+0x003F,auto_phcfg_step,R/W,0x0002,auto_phcfg_step,15,0,,Step size for auto phase.,upsert
+0x0060,,,,spi_sign,3,0,,SPI module test register.,upsert
+0x0060,spi_sign,R/W,0x00F0,spi_sign_rezult,7,4,,Inverted bits from SPI_SIGN register.,upsert
+0x0061,,,,fx3_pclk_tst_en,0,0,"0=Disabled,1=Enabled",FX3 PCLK test enable.,upsert
+0x0061,,,,si5351c_tst_en,1,1,"0=Disabled,1=Enabled",Si5351C clock test enable.,upsert
+0x0061,,,,vctcxo_tst_en,2,2,"0=Disabled,1=Enabled",VCTCXO test enable.,upsert
+0x0061,,,,adf_tst_en,3,3,"0=Disabled,1=Enabled",Phase detector test enable.,upsert
+0x0061,,,,ddr2_1_tst_en,4,4,"0=Disabled,1=Enabled",DDR2_1 memory test enable.,upsert
+0x0061,test_en,R/W,0x0000,ddr2_2_tst_en,5,5,"0=Disabled,1=Enabled",DDR2_2 memory test enable.,upsert
+0x0063,,,,fx3_pclk_tst_frc_err,0,0,"0=Disabled,1=Enabled",Insert error to FX3 PCLK test.,upsert
+0x0063,,,,si5351c_tst_frc_err,1,1,"0=Disabled,1=Enabled",Insert error to Si5351C test.,upsert
+0x0063,,,,vctcxo_tst_frc_err,2,2,"0=Disabled,1=Enabled",Insert error to VCTCXO test.,upsert
+0x0063,,,,adf_tst_frc_err,3,3,"0=Disabled,1=Enabled",Insert error to phase detector test.,upsert
+0x0063,,,,ddr2_1_tst_frc_err,4,4,"0=Disabled,1=Enabled",Insert error to DDR2_1 memory test.,upsert
+0x0063,test_force_err,R/W,0x0000,ddr2_2_tst_frc_err,5,5,"0=Disabled,1=Enabled",Insert error to DDR2_2 memory test.,upsert
+0x0065,,,,fx3_pclk_tst_cmplt,0,0,"0=Not completed,1=Completed",FX3 PCLK test complete status.,upsert
+0x0065,,,,si5351c_tst_cmplt,1,1,"0=Not completed,1=Completed",Si5351C test complete status.,upsert
+0x0065,,,,vctcxo_tst_cmplt,2,2,"0=Not completed,1=Completed",VCTCXO test complete status.,upsert
+0x0065,,,,adf_tst_cmplt,3,3,"0=Not completed,1=Completed",Phase detector test complete status.,upsert
+0x0065,,,,ddr2_1_tst_cmplt,4,4,"0=Not completed,1=Completed",DDR2_1 test complete status.,upsert
+0x0065,test_cmplt,R,0x0000,ddr2_2_tst_cmplt,5,5,"0=Not completed,1=Completed",DDR2_2 test complete status.,upsert
+0x0067,,,,fx3_pclk_tst_rez,0,0,,Not used.,upsert
+0x0067,,,,si5351c_tst_rez,1,1,,Not used.,upsert
+0x0067,,,,vctcxo_tst_rez,2,2,,Not used.,upsert
+0x0067,,,,adf_tst_rez,3,3,,Not used.,upsert
+0x0067,,,,ddr2_1_tst_rez,4,4,,DDR2_1 test result.,upsert
+0x0067,test_rez,R,0x0000,ddr2_2_tst_rez,5,5,,DDR2_2 test result.,upsert
+0x0069,fx3_clk_cnt,R/W,,fx3_clk_cnt,15,0,,FX3 PCLK counter value.,upsert
+0x006A,si5351c_clk0_cnt,R/W,,si5351c_clk0_cnt,15,0,,Si5351C CLK0 counter value.,upsert
+0x006B,si5351c_clk1_cnt,R/W,,si5351c_clk1_cnt,15,0,,Si5351C CLK1 counter value.,upsert
+0x006C,si5351c_clk2_cnt,R/W,,si5351c_clk2_cnt,15,0,,Si5351C CLK2 counter value.,upsert
+0x006D,si5351c_clk3_cnt,R/W,,si5351c_clk3_cnt,15,0,,Si5351C CLK3 counter value.,upsert
+0x006F,si5351c_clk5_cnt,R/W,,si5351c_clk5_cnt,15,0,,Si5351C CLK5 counter value.,upsert
+0x0070,si5351c_clk6_cnt,R/W,,si5351c_clk6_cnt,15,0,,Si5351C CLK6 counter value.,upsert
+0x0071,si5351c_clk7_cnt,R/W,,si5351c_clk7_cnt,15,0,,Si5351C CLK7 counter value.,upsert
+0x0072,lmk_clk_cnt_l,R/W,,lmk_clk_cnt_l,15,0,,LMK clock counter low word.,upsert
+0x0073,lmk_clk_cnt_h,R/W,,lmk_clk_cnt_h,15,0,,LMK clock counter high word.,upsert
+0x0074,adf_cnt,R/W,,adf_cnt,15,0,,ADF transition count value.,upsert
+0x0076,,,,ddr2_1_tst_cmplt,0,0,"0=Not completed,1=Complete",DDR2_1 complete flag.,upsert
+0x0076,,,,ddr2_1_tst_pass,1,1,"0=Not completed,1=Pass",DDR2_1 pass flag.,upsert
+0x0076,ddr2_1_tst_detail1,R,,ddr2_1_tst_fail,2,2,"0=Not completed,1=Fail",DDR2_1 fail flag.,upsert
+0x0077,ddr2_1_pnf_per_bit_l,R/W,,ddr2_1_pnf_per_bit_l,15,0,,DDR2_1 data [15:0] pass/fail per bit.,upsert
+0x0078,ddr2_1_pnf_per_bit_h,R/W,,ddr2_1_pnf_per_bit_h,15,0,,DDR2_1 data [31:16] pass/fail per bit.,upsert
+0x007A,,,,ddr2_2_tst_cmplt,0,0,"0=Not completed,1=Complete",DDR2_2 complete flag.,upsert
+0x007A,,,,ddr2_2_tst_pass,1,1,"0=Not completed,1=Pass",DDR2_2 pass flag.,upsert
+0x007A,ddr2_2_tst_detail1,R,,ddr2_2_tst_fail,2,2,"0=Not completed,1=Fail",DDR2_2 fail flag.,upsert
+0x007B,ddr2_2_pnf_per_bit_l,R/W,,ddr2_2_pnf_per_bit_l,15,0,,DDR2_2 data [15:0] pass/fail per bit.,upsert
+0x007C,ddr2_2_pnf_per_bit_h,R/W,,ddr2_2_pnf_per_bit_h,15,0,,DDR2_2 data [31:16] pass/fail per bit.,upsert
+0x007D,tx_tst_i,R/W,0xAAAA,tx_tst_i,15,0,,TX test pattern I sample value.,upsert
+0x007E,tx_tst_q,R/W,0x5555,tx_tst_q,15,0,,TX test pattern Q sample value.,upsert
+0x00C0,board_gpio_ovrd,R/W,0xFFFF,board_gpio_ovrd,7,0,"0=Dedicated function,1=Overridden by user",GPIO override bits.,upsert
+0x00C2,board_gpio_rd,R,0x0000,board_gpio_rd,7,0,"0=Low,1=High",GPIO readback bits.,upsert
+0x00C4,board_gpio_dir,R/W,0x0000,board_gpio_dir,7,0,"0=Input,1=Output",GPIO direction bits.,upsert
+0x00C6,board_gpio_val,R/W,0x0000,board_gpio_val,7,0,"0=Low,1=High",GPIO output value bits.,upsert
+0x00C8,periph_input_rd_0,R/W,0x0000,periph_input_rd_0,15,0,,Peripheral input readback 0 (not used).,upsert
+0x00C9,periph_input_rd_1,R/W,0x0000,periph_input_rd_1,15,0,,Peripheral input readback 1 (not used).,upsert
+0x00CC,periph_output_ovrd_0,R/W,0x0000,periph_output_ovrd_0,0,0,"0=Dedicated,1=User controlled",Fan control override.,upsert
+0x00CD,periph_output_val_0,R/W,0x0000,periph_output_val_0,0,0,"0=OFF,1=ON",Fan control pin value.,upsert
+0x00CE,periph_output_ovrd_1,R/W,0x0000,periph_output_ovrd_1,15,0,,Peripheral output override 1 (not used).,upsert
+0x00CF,periph_output_val_1,R/W,0x0000,periph_output_val_1,15,0,,Peripheral output value 1 (not used).,upsert

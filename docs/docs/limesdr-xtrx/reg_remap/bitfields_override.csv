@@ -1,0 +1,7 @@
+address,title,access,default,field,msb,lsb,values,description,op
+0x00CA,periph_input_sel,R/W,0x0000,Reserved,15,2,,,delete
+0x00CA,periph_input_sel,R/W,0x0000,periph_input_sel,1,0,"0 = GNSS_1PPS, 1 = 1PPSI_GPIO1.",PPS input source select. ,upsert
+0x00D2,,,,Reserved,15,3,,,delete
+0x00D2,PERIPH_EN,R/W,0x0003,PERIPH_EN[2],2,2,0 – CLK OUT → NC (Default) 1 – CLK OUT → mPCIe SMB_CLK (pin 30),EN_GPIO (mPCIe),upsert
+0x00D2,PERIPH_EN,R/W,0x0003,PERIPH_EN[1],1,1,0 – Reset 1 – Normal operation (Default),GNSS_HW_R,upsert
+0x00D2,PERIPH_EN,R/W,0x0003,PERIPH_EN[0],0,0,0 – Standby mode 1 – Normal mode (Default),GNSS_HW_S,upsert

@@ -1,23 +1,23 @@
-LimeSDR Mini V2 build instructions 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+LimeSDR Mini V2 Build Instructions
+==================================
 
-To build the gateware for **limesdr_mini_v2** target, use:
+To build gateware for the **limesdr_mini_v2** target, run:
 
 .. code:: bash
 
    python3 -m boards.targets.limesdr_mini_v2 --build
-   
 
 .. note::
 
-   - Ensure required toolchain is installed and configured before building. See `Requirements <https://limesdrgw.myriadrf.org/docs/build_project#requirements>`_ section for respective board.  
-   
-   - Make sure to run build command from **project root directory**.
+   - Ensure that the required toolchain is installed and configured before building. See
+     :ref:`Requirements <requirements>` for the board-specific requirements.
 
-Available build options
+   - Run the build command from the **project root directory**.
+
+Available Build Options
 -----------------------
 
-**Comand:**
+**Command:**
 
 .. code:: bash
 
@@ -25,63 +25,62 @@ Available build options
 
 **Options:**
 
-- ``--load``: Loads the bitstream into SRAM.
-- ``--flash``: Writes MCS combo bitstream (User + Golden) to SPI Flash.
-- ``--flash-user``: Writes the User bitstream to ``0x00000000``.
-- ``--flash-golden``: Writes the Golden bitstream to ``0x00140000``.
-- ``--toolchain=TOOLCHAIN``: Specify **trellis** or **diamond**  (default: **trellis**).
-- ``--cable``: Specifies the JTAG cable (default: *ft2232*). Use ``openFPGALoader --list-cables`` for options.
+- ``--load``: Load the bitstream into SRAM.
+- ``--flash``: Program the combined user and golden image into SPI flash.
+- ``--flash-user``: Program the user bitstream at address ``0x00000000``.
+- ``--flash-golden``: Program the golden bitstream at address ``0x00140000``.
+- ``--toolchain=TOOLCHAIN``: Select ``trellis`` or ``diamond``. The default is ``trellis``.
+- ``--cable <cable>``: Specify the JTAG cable. The default is ``ft2232``.
+  Use ``openFPGALoader --list-cables`` to list supported cable names.
 
+User and Golden Bitstreams
+--------------------------
 
-User/Golden Bitstreams
------------------------------
+- The **user bitstream** is built using the commands above.
+- The **golden bitstream** is located in ``bitstream/LimeSDR_Mini_V2/``.
 
-- The **User bitstream** is built using the commands above.
-- The **Golden bitstream** is provided at: ``bitstream/LimeSDR_Mini_V2/``
+After generating the user bitstream, the following files are available:
 
-
-After generating the User bitstream, the root directory contains:
-
-- **limesdr_mini_v2.bin**: Composite image with both Golden and User bitstreams.
-- **tools/limesdr_mini_v2.mcs**: Equivalent to ``limesdr_mini_v2.bin``, but in Intel Hex (iHex) format.
+- **limesdr_mini_v2.bin**: Combined image containing both the golden and user bitstreams.
+- **tools/limesdr_mini_v2.mcs**: The same image in Intel Hex (iHex) format.
 
 .. note::
 
-	Due to limitations in **prjtrellis**, Lattice Diamond must be installed and in ``$PATH`` to generate ``tools/limesdr_mini_v2.mcs``.
+   Due to limitations in **prjtrellis**, Lattice Diamond must be installed and available in
+   ``$PATH`` to generate ``tools/limesdr_mini_v2.mcs``.
 
-Programming cables
+Programming Cables
 ------------------
 
-For information about supported programming cables and required hardware connections, refer to the specific linked chapter in hardware documentation:
+For supported programming cables and required hardware connections, refer to the following hardware
+documentation section:
 
-   - `Connecting LimeSDR Mini V2 board to FT2232H Mini Module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
+- `Connecting LimeSDR Mini V2 board to FT2232H Mini Module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
 
 .. note::
-   Only the specified chapter related to the FT2232H Mini Module and hardware connections is applicable to board programming with this project. Other parts of the documentation are not relevant.
 
-  
+   Only the section covering the FT2232H Mini Module and the required hardware connections is
+   relevant for board programming with this project.
 
 Flashing Instructions
 ---------------------
 
-To write bitstreams to SPI Flash:
+To write bitstreams to SPI flash:
 
-- **Full Flash Image (User + Golden):**
-
-  .. code:: bash
-     
-     python -m boards.targets.limesdr_mini_v2 --flash
-
-- **User Bitstream Only:**
+- **Full flash image (user + golden):**
 
   .. code:: bash
-     
-     python -m boards.targets.limesdr_mini_v2 --flash-user
 
-- **Golden Bitstream Only:**
+     python3 -m boards.targets.limesdr_mini_v2 --flash
+
+- **User bitstream only:**
 
   .. code:: bash
-     
-     python -m boards.targets.limesdr_mini_v2 --flash-golden
 
+     python3 -m boards.targets.limesdr_mini_v2 --flash-user
 
+- **Golden bitstream only:**
+
+  .. code:: bash
+
+     python3 -m boards.targets.limesdr_mini_v2 --flash-golden
