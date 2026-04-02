@@ -3,10 +3,10 @@ Gateware Architecture
 
 The LimeSDR_GW architecture is organized into four top-level subsystems:
 
-- :ref:`HIF <gw_arch_hif>` - host connectivity over PCIe or USB
+- :ref:`HIF (Host Interface) <gw_arch_hif>` - host connectivity over PCIe or USB
 - :ref:`CPU <gw_arch_cpu>` - embedded control and firmware execution
 - :ref:`LimeTOP <gw_arch_limetop>` - RF data path and LMS7002 interface
-- :ref:`PSS <gw_arch_pss>` - board peripherals and support logic
+- :ref:`PSS (Periphery Support Subsytem) <gw_arch_pss>` - board peripherals and support logic
 
 Additional topics:
 
