@@ -21,7 +21,7 @@ void bsp_init(void)
         if (perm_dac_val != 0xFFFF) {
             bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
         } else {
-            bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00 >> 8), BSP_DAC_DEFAULT_VAL & 0xff);
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00) >> 8, BSP_DAC_DEFAULT_VAL & 0xff);
         }
     }
 }
@@ -431,7 +431,7 @@ uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint
             // printf("DEBUG: Gold Image write to flash\n");
         } else {
             // User image must be written at offset
-            address = 0x00310000;
+            address = 0x220000;
             // printf("DEBUG: User Image write to flash\n");
         }
 

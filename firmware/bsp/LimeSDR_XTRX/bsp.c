@@ -27,7 +27,7 @@ void bsp_init(void)
         if (perm_dac_val != 0xFFFF) {
             bsp_analog_write(BSP_DAC_INDEX, 0x00, perm_dac_ptr[1], perm_dac_ptr[0]);
         } else {
-            bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00 >> 8), BSP_DAC_DEFAULT_VAL & 0xff);
+            bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00) >> 8, BSP_DAC_DEFAULT_VAL & 0xff);
         }
     }
 }
@@ -271,6 +271,7 @@ uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id)
 
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb)
 {
+    //TODO: Create drivers for both devices, do not use direct litei2c functions
     if (channel == 0) {
         uint16_t val     = 0;
         uint8_t *val_ptr = (uint8_t *)&val;
@@ -282,19 +283,14 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
     if (channel == 1) {
         uint16_t converted_value;
         uint8_t *val_ptr = (uint8_t *)&converted_value;
-        uint8_t buf;
-        litei2c_a8d16_read_register(&I2C0_REGS, BSP_I2C_DAC_ADDR, 0x30, &converted_value);
-        // flip bytes
-        buf        = val_ptr[0];
-        val_ptr[0] = val_ptr[1];
-        val_ptr[1] = buf;
-
+        litei2c_a8d16_read_register(&I2C0_REGS, BSP_I2C_TEMP_SENSOR_ADDR, 0x00, &converted_value);
         converted_value = converted_value >> 4;
         converted_value = converted_value * 10;
         converted_value = converted_value >> 4;
 
-        *value_lsb = val_ptr[1];
-        *value_msb = val_ptr[0];
+        *value_lsb = val_ptr[0];
+        *value_msb = val_ptr[1];
+        *unit = 0x50;
         return STATUS_COMPLETED_CMD;
     }
     return STATUS_ERROR_CMD;
@@ -518,7 +514,7 @@ uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint
             // printf("DEBUG: Gold Image write to flash\n");
         } else {
             // User image must be written at offset
-            address = 0x00310000;
+            address = 0x220000;
             // printf("DEBUG: User Image write to flash\n");
         }
 
