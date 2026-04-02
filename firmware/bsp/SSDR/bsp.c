@@ -431,7 +431,7 @@ uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint
             // printf("DEBUG: Gold Image write to flash\n");
         } else {
             // User image must be written at offset
-            address = 0x00310000;
+            address = 0x220000;
             // printf("DEBUG: User Image write to flash\n");
         }
 
