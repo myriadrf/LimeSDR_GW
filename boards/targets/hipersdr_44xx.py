@@ -65,6 +65,7 @@ from gateware.aux import AUX
 from gateware.helpers import write_module_hierarchy_json
 from gateware.xtrx_rfsw import xtrx_rfsw
 from gateware.LimeTop  import LimeTop
+from gateware.Revision import *
 
 
 # Constants ----------------------------------------------------------------------------------------
@@ -553,9 +554,9 @@ class BaseSoC(SoCCore):
            # FPGACFG.
            #  TODO : change board ID?
            board_id             = 31,
-           # GOLD image can be recognized by 0xDEAD in major and compile revisions
-           major_rev            =  3 if not gold_img else 0xDEAD,
-           compile_rev          =  0 if not gold_img else 0xDEAD,
+            # GOLD image can be recocgnized by 0xDEAD in major and compile revisions
+            major_rev           =  MajorRevision if not gold_img else 0xDEAD,
+            compile_rev         =  CompileRevision if not gold_img else 0xDEAD,
            revision_pads        = None,
            # TODO: maybe it's possible to implement check automatically?
            soc_has_timesource   = False,
