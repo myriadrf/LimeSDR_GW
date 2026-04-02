@@ -31,7 +31,7 @@ PWR_CONTROL_REG00
                 {"name": "pafe_en_a1p8_1",  "bits": 1},
                 {"name": "afe_dcdc_1p0_nrst",  "bits": 1},
                 {"bits": 25}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -60,7 +60,7 @@ PWR_CONTROL_REG01
                 {"name": "pg_en_2p05",  "bits": 1},
                 {"name": "pg_afe_avdd_1p2",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 

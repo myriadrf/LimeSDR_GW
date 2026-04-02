@@ -69,7 +69,7 @@ CNTRL_CNTRL15
         {
             "reg": [
                 {"name": "cntrl[511:480]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -86,7 +86,7 @@ CNTRL_CNTRL14
         {
             "reg": [
                 {"name": "cntrl[479:448]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -103,7 +103,7 @@ CNTRL_CNTRL13
         {
             "reg": [
                 {"name": "cntrl[447:416]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -120,7 +120,7 @@ CNTRL_CNTRL12
         {
             "reg": [
                 {"name": "cntrl[415:384]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -137,7 +137,7 @@ CNTRL_CNTRL11
         {
             "reg": [
                 {"name": "cntrl[383:352]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -154,7 +154,7 @@ CNTRL_CNTRL10
         {
             "reg": [
                 {"name": "cntrl[351:320]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -171,7 +171,7 @@ CNTRL_CNTRL9
         {
             "reg": [
                 {"name": "cntrl[319:288]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -188,7 +188,7 @@ CNTRL_CNTRL8
         {
             "reg": [
                 {"name": "cntrl[287:256]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -205,7 +205,7 @@ CNTRL_CNTRL7
         {
             "reg": [
                 {"name": "cntrl[255:224]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -222,7 +222,7 @@ CNTRL_CNTRL6
         {
             "reg": [
                 {"name": "cntrl[223:192]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -239,7 +239,7 @@ CNTRL_CNTRL5
         {
             "reg": [
                 {"name": "cntrl[191:160]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -256,7 +256,7 @@ CNTRL_CNTRL4
         {
             "reg": [
                 {"name": "cntrl[159:128]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -273,7 +273,7 @@ CNTRL_CNTRL3
         {
             "reg": [
                 {"name": "cntrl[127:96]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -290,7 +290,7 @@ CNTRL_CNTRL2
         {
             "reg": [
                 {"name": "cntrl[95:64]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -307,7 +307,7 @@ CNTRL_CNTRL1
         {
             "reg": [
                 {"name": "cntrl[63:32]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -324,7 +324,7 @@ CNTRL_CNTRL0
         {
             "reg": [
                 {"name": "cntrl[31:0]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -341,7 +341,7 @@ CNTRL_ENABLE
             "reg": [
                 {"name": "enable", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -357,7 +357,7 @@ CNTRL_TEST
         {
             "reg": [
                 {"name": "test[31:0]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -374,7 +374,7 @@ CNTRL_NDMA
             "reg": [
                 {"name": "ndma[3:0]", "attr": 'reset: 1', "bits": 4},
                 {"bits": 28},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -391,7 +391,7 @@ CNTRL_ENABLE_BOTH
             "reg": [
                 {"name": "enable_both", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -408,7 +408,7 @@ CNTRL_NUART
             "reg": [
                 {"name": "nuart[3:0]", "attr": 'reset: 2', "bits": 4},
                 {"bits": 28},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -427,7 +427,7 @@ CNTRL_EV_STATUS
             "reg": [
                 {"name": "cntrl_isr",  "bits": 1},
                 {"bits": 31}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -452,7 +452,7 @@ CNTRL_EV_PENDING
             "reg": [
                 {"name": "cntrl_isr",  "bits": 1},
                 {"bits": 31}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -478,7 +478,7 @@ CNTRL_EV_ENABLE
             "reg": [
                 {"name": "cntrl_isr",  "bits": 1},
                 {"bits": 31}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 

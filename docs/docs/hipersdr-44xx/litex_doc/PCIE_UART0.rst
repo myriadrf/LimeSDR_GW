@@ -1,37 +1,37 @@
-UART
-====
+PCIE_UART0
+==========
 
-Register Listing for UART
--------------------------
+Register Listing for PCIE_UART0
+-------------------------------
 
-+------------------------------------------+-------------------------------------+
-| Register                                 | Address                             |
-+==========================================+=====================================+
-| :ref:`UART_RXTX <UART_RXTX>`             | :ref:`0xf0000000 <UART_RXTX>`       |
-+------------------------------------------+-------------------------------------+
-| :ref:`UART_TXFULL <UART_TXFULL>`         | :ref:`0xf0000004 <UART_TXFULL>`     |
-+------------------------------------------+-------------------------------------+
-| :ref:`UART_RXEMPTY <UART_RXEMPTY>`       | :ref:`0xf0000008 <UART_RXEMPTY>`    |
-+------------------------------------------+-------------------------------------+
-| :ref:`UART_EV_STATUS <UART_EV_STATUS>`   | :ref:`0xf000000c <UART_EV_STATUS>`  |
-+------------------------------------------+-------------------------------------+
-| :ref:`UART_EV_PENDING <UART_EV_PENDING>` | :ref:`0xf0000010 <UART_EV_PENDING>` |
-+------------------------------------------+-------------------------------------+
-| :ref:`UART_EV_ENABLE <UART_EV_ENABLE>`   | :ref:`0xf0000014 <UART_EV_ENABLE>`  |
-+------------------------------------------+-------------------------------------+
-| :ref:`UART_TXEMPTY <UART_TXEMPTY>`       | :ref:`0xf0000018 <UART_TXEMPTY>`    |
-+------------------------------------------+-------------------------------------+
-| :ref:`UART_RXFULL <UART_RXFULL>`         | :ref:`0xf000001c <UART_RXFULL>`     |
-+------------------------------------------+-------------------------------------+
++------------------------------------------------------+-------------------------------------------+
+| Register                                             | Address                                   |
++======================================================+===========================================+
+| :ref:`PCIE_UART0_RXTX <PCIE_UART0_RXTX>`             | :ref:`0xf0006800 <PCIE_UART0_RXTX>`       |
++------------------------------------------------------+-------------------------------------------+
+| :ref:`PCIE_UART0_TXFULL <PCIE_UART0_TXFULL>`         | :ref:`0xf0006804 <PCIE_UART0_TXFULL>`     |
++------------------------------------------------------+-------------------------------------------+
+| :ref:`PCIE_UART0_RXEMPTY <PCIE_UART0_RXEMPTY>`       | :ref:`0xf0006808 <PCIE_UART0_RXEMPTY>`    |
++------------------------------------------------------+-------------------------------------------+
+| :ref:`PCIE_UART0_EV_STATUS <PCIE_UART0_EV_STATUS>`   | :ref:`0xf000680c <PCIE_UART0_EV_STATUS>`  |
++------------------------------------------------------+-------------------------------------------+
+| :ref:`PCIE_UART0_EV_PENDING <PCIE_UART0_EV_PENDING>` | :ref:`0xf0006810 <PCIE_UART0_EV_PENDING>` |
++------------------------------------------------------+-------------------------------------------+
+| :ref:`PCIE_UART0_EV_ENABLE <PCIE_UART0_EV_ENABLE>`   | :ref:`0xf0006814 <PCIE_UART0_EV_ENABLE>`  |
++------------------------------------------------------+-------------------------------------------+
+| :ref:`PCIE_UART0_TXEMPTY <PCIE_UART0_TXEMPTY>`       | :ref:`0xf0006818 <PCIE_UART0_TXEMPTY>`    |
++------------------------------------------------------+-------------------------------------------+
+| :ref:`PCIE_UART0_RXFULL <PCIE_UART0_RXFULL>`         | :ref:`0xf000681c <PCIE_UART0_RXFULL>`     |
++------------------------------------------------------+-------------------------------------------+
 
-UART_RXTX
-^^^^^^^^^
+PCIE_UART0_RXTX
+^^^^^^^^^^^^^^^
 
-`Address: 0xf0000000 + 0x0 = 0xf0000000`
+`Address: 0xf0006800 + 0x0 = 0xf0006800`
 
 
     .. wavedrom::
-        :caption: UART_RXTX
+        :caption: PCIE_UART0_RXTX
 
         {
             "reg": [
@@ -41,15 +41,15 @@ UART_RXTX
         }
 
 
-UART_TXFULL
-^^^^^^^^^^^
+PCIE_UART0_TXFULL
+^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0000000 + 0x4 = 0xf0000004`
+`Address: 0xf0006800 + 0x4 = 0xf0006804`
 
     TX FIFO Full.
 
     .. wavedrom::
-        :caption: UART_TXFULL
+        :caption: PCIE_UART0_TXFULL
 
         {
             "reg": [
@@ -59,15 +59,15 @@ UART_TXFULL
         }
 
 
-UART_RXEMPTY
-^^^^^^^^^^^^
+PCIE_UART0_RXEMPTY
+^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0000000 + 0x8 = 0xf0000008`
+`Address: 0xf0006800 + 0x8 = 0xf0006808`
 
     RX FIFO Empty.
 
     .. wavedrom::
-        :caption: UART_RXEMPTY
+        :caption: PCIE_UART0_RXEMPTY
 
         {
             "reg": [
@@ -77,16 +77,16 @@ UART_RXEMPTY
         }
 
 
-UART_EV_STATUS
-^^^^^^^^^^^^^^
+PCIE_UART0_EV_STATUS
+^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0000000 + 0xc = 0xf000000c`
+`Address: 0xf0006800 + 0xc = 0xf000680c`
 
     This register contains the current raw level of the rx event trigger.  Writes to
     this register have no effect.
 
     .. wavedrom::
-        :caption: UART_EV_STATUS
+        :caption: PCIE_UART0_EV_STATUS
 
         {
             "reg": [
@@ -105,16 +105,16 @@ UART_EV_STATUS
 | [1]   | RX   | Level of the ``rx`` event |
 +-------+------+---------------------------+
 
-UART_EV_PENDING
-^^^^^^^^^^^^^^^
+PCIE_UART0_EV_PENDING
+^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0000000 + 0x10 = 0xf0000010`
+`Address: 0xf0006800 + 0x10 = 0xf0006810`
 
     When a  rx event occurs, the corresponding bit will be set in this register.  To
     clear the Event, set the corresponding bit in this register.
 
     .. wavedrom::
-        :caption: UART_EV_PENDING
+        :caption: PCIE_UART0_EV_PENDING
 
         {
             "reg": [
@@ -135,16 +135,16 @@ UART_EV_PENDING
 |       |      | is **high**.                                                                    |
 +-------+------+---------------------------------------------------------------------------------+
 
-UART_EV_ENABLE
-^^^^^^^^^^^^^^
+PCIE_UART0_EV_ENABLE
+^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0000000 + 0x14 = 0xf0000014`
+`Address: 0xf0006800 + 0x14 = 0xf0006814`
 
     This register enables the corresponding rx events.  Write a ``0`` to this
     register to disable individual events.
 
     .. wavedrom::
-        :caption: UART_EV_ENABLE
+        :caption: PCIE_UART0_EV_ENABLE
 
         {
             "reg": [
@@ -163,15 +163,15 @@ UART_EV_ENABLE
 | [1]   | RX   | Write a ``1`` to enable the ``rx`` Event |
 +-------+------+------------------------------------------+
 
-UART_TXEMPTY
-^^^^^^^^^^^^
+PCIE_UART0_TXEMPTY
+^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0000000 + 0x18 = 0xf0000018`
+`Address: 0xf0006800 + 0x18 = 0xf0006818`
 
     TX FIFO Empty.
 
     .. wavedrom::
-        :caption: UART_TXEMPTY
+        :caption: PCIE_UART0_TXEMPTY
 
         {
             "reg": [
@@ -181,15 +181,15 @@ UART_TXEMPTY
         }
 
 
-UART_RXFULL
-^^^^^^^^^^^
+PCIE_UART0_RXFULL
+^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0000000 + 0x1c = 0xf000001c`
+`Address: 0xf0006800 + 0x1c = 0xf000681c`
 
     RX FIFO Full.
 
     .. wavedrom::
-        :caption: UART_RXFULL
+        :caption: PCIE_UART0_RXFULL
 
         {
             "reg": [

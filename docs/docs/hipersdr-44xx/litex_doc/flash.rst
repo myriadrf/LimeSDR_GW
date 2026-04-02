@@ -40,7 +40,7 @@ FLASH_SPI_CONTROL
                 {"bits": 7},
                 {"name": "length",  "bits": 8},
                 {"bits": 16}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -67,7 +67,7 @@ FLASH_SPI_STATUS
                 {"name": "done",  "bits": 1},
                 {"name": "mode",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -100,7 +100,7 @@ FLASH_SPI_MOSI1
         {
             "reg": [
                 {"name": "spi_mosi[63:32]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -117,7 +117,7 @@ FLASH_SPI_MOSI0
         {
             "reg": [
                 {"name": "spi_mosi[31:0]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -134,7 +134,7 @@ FLASH_SPI_MISO1
         {
             "reg": [
                 {"name": "spi_miso[63:32]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -151,7 +151,7 @@ FLASH_SPI_MISO0
         {
             "reg": [
                 {"name": "spi_miso[31:0]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -171,7 +171,7 @@ FLASH_SPI_CS
                 {"bits": 15},
                 {"name": "mode",  "bits": 1},
                 {"bits": 15}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -213,7 +213,7 @@ FLASH_SPI_LOOPBACK
             "reg": [
                 {"name": "mode",  "bits": 1},
                 {"bits": 31}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 

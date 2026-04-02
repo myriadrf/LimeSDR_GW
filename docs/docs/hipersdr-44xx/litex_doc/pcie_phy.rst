@@ -36,7 +36,7 @@ PCIE_PHY_PHY_LINK_STATUS
                 {"name": "width",  "bits": 3},
                 {"name": "ltssm",  "bits": 6},
                 {"bits": 17}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -122,7 +122,7 @@ PCIE_PHY_PHY_MSI_ENABLE
             "reg": [
                 {"name": "phy_msi_enable", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -140,7 +140,7 @@ PCIE_PHY_PHY_BUS_MASTER_ENABLE
             "reg": [
                 {"name": "phy_bus_master_enable", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -158,7 +158,7 @@ PCIE_PHY_PHY_MAX_REQUEST_SIZE
             "reg": [
                 {"name": "phy_max_request_size[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -176,7 +176,7 @@ PCIE_PHY_PHY_MAX_PAYLOAD_SIZE
             "reg": [
                 {"name": "phy_max_payload_size[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 

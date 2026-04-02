@@ -29,7 +29,7 @@ Register Groups
     i2c3
     identifier_mem
     leds
-    lime_top
+    limetop
     PCIE_UART0
     flash
     i2c0

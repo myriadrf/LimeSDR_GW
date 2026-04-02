@@ -38,7 +38,7 @@ SPIMASTER_ADF_CONTROL
                 {"bits": 7},
                 {"name": "length",  "bits": 8},
                 {"bits": 16}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -65,7 +65,7 @@ SPIMASTER_ADF_STATUS
                 {"name": "done",  "bits": 1},
                 {"name": "mode",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -99,7 +99,7 @@ SPIMASTER_ADF_MOSI
             "reg": [
                 {"name": "mosi[23:0]", "bits": 24},
                 {"bits": 8},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -117,7 +117,7 @@ SPIMASTER_ADF_MISO
             "reg": [
                 {"name": "miso[23:0]", "bits": 24},
                 {"bits": 8},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 
@@ -137,7 +137,7 @@ SPIMASTER_ADF_CS
                 {"bits": 15},
                 {"name": "mode",  "bits": 1},
                 {"bits": 15}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -179,7 +179,7 @@ SPIMASTER_ADF_LOOPBACK
             "reg": [
                 {"name": "mode",  "bits": 1},
                 {"bits": 31}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -211,7 +211,7 @@ SPIMASTER_ADF_CLK_DIVIDER
             "reg": [
                 {"name": "clk_divider[15:0]", "attr": 'reset: 30', "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
         }
 
 

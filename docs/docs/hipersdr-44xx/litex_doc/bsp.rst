@@ -30,7 +30,7 @@ BSP_SW_TRIGGER
             "reg": [
                 {"name": "start",  "type": 4, "bits": 1},
                 {"bits": 31}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -57,7 +57,7 @@ BSP_EV_STATUS
                 {"name": "event1",  "bits": 1},
                 {"name": "sw",  "bits": 1},
                 {"bits": 29}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -88,7 +88,7 @@ BSP_EV_PENDING
                 {"name": "event1",  "bits": 1},
                 {"name": "sw",  "bits": 1},
                 {"bits": 29}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
@@ -121,7 +121,7 @@ BSP_EV_ENABLE
                 {"name": "event1",  "bits": 1},
                 {"name": "sw",  "bits": 1},
                 {"bits": 29}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
         }
 
 
