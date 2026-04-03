@@ -25,33 +25,33 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = 0x2;
         break;
     case 0x5:
-#ifdef CSR_LIME_TOP_LMS7002
-        value = lime_top_lms7002_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
-        value = value | ((lime_top_lms7002_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
+#ifdef CSR_LIMETOP_LMS7002
+        value = limetop_lms7002_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
+        value = value | ((limetop_lms7002_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
 #endif
         break;
     case 0x7:
-#ifdef CSR_LIME_TOP_BASE
-        value = lime_top_fpgacfg_ch_en_read();
+#ifdef CSR_LIMETOP_BASE
+        value = limetop_fpgacfg_ch_en_read();
 #endif
         break;
     case 0x8:
-#ifdef CSR_LIME_TOP_BASE
-        value = lime_top_fpgacfg_reg08_read() & (0x3 | (1 << 7) | (1 << 8) | (1 << 9));
+#ifdef CSR_LIMETOP_BASE
+        value = limetop_fpgacfg_reg08_read() & (0x3 | (1 << 7) | (1 << 8) | (1 << 9));
 #endif
         break;
     case 0xA:
-#ifdef CSR_LIME_TOP_BASE
-        tmp   = lime_top_fpgacfg_reg10_read();
+#ifdef CSR_LIMETOP_BASE
+        tmp   = limetop_fpgacfg_reg10_read();
         value = tmp & 0x03; //(tmp >> 1) & 0x01;
                             // rfsw registers are only present in LimeSDR-XTRX. Commenting only for now
-                            // value |= lime_top_rfsw_control_rfsw_rx_read() << 2;
-                            // value |= lime_top_rfsw_control_rfsw_tx_read() << 4;
-                            // value |= lime_top_rfsw_control_tdd_manual_val_read() << 5;
-                            // value |= lime_top_rfsw_control_tdd_auto_en_read() << 6;
-                            // value |= lime_top_rfsw_control_tdd_invert_read() << 7;
+                            // value |= limetop_rfsw_control_rfsw_rx_read() << 2;
+                            // value |= limetop_rfsw_control_rfsw_tx_read() << 4;
+                            // value |= limetop_rfsw_control_tdd_manual_val_read() << 5;
+                            // value |= limetop_rfsw_control_tdd_auto_en_read() << 6;
+                            // value |= limetop_rfsw_control_tdd_invert_read() << 7;
                             // value |= (tmp & 0x200);
-                            // value |= lime_top_rfsw_control_rfsw_auto_en_read() << 11;
+                            // value |= limetop_rfsw_control_rfsw_auto_en_read() << 11;
 #endif
         break;
     case 0xF:
@@ -70,17 +70,17 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value |= value | ((fpgacfg_EXT_CLK_read() & 0x1) << 2);
         break;
     case 0x19:
-#ifdef CSR_LIME_TOP_BASE
-        value = lime_top_rxtx_top_rx_path_pkt_size_read();
+#ifdef CSR_LIMETOP_BASE
+        value = limetop_rxtx_top_rx_path_pkt_size_read();
 #endif
         break;
     case 0x20:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(clk_ctrl_addrs.c1_phase);
 #endif
         break;
     case 0x21:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(clk_ctrl_addrs.pllcfg_done);
         value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
         value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
@@ -89,7 +89,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
 #endif
         break;
     case 0x23:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
         value |= csr_read_simple(clk_ctrl_addrs.phcfg_start) << 1;
         value |= csr_read_simple(clk_ctrl_addrs.pllrst_start) << 2;
@@ -98,39 +98,39 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
 #endif
         break;
     case 0x26:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(clk_ctrl_addrs.vco_div_byp);
         value |= csr_read_simple(clk_ctrl_addrs.vco_mult_byp) << 2;
 #endif
         break;
     case 0x27:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(clk_ctrl_addrs.c0_div_byp);
         value |= csr_read_simple(clk_ctrl_addrs.c1_div_byp) << 2;
 #endif
         break;
     case 0x2A:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(clk_ctrl_addrs.vco_div_cnt);
 #endif
         break;
     case 0x2B:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(clk_ctrl_addrs.vco_mult_cnt);
 #endif
         break;
     case 0x2E:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(clk_ctrl_addrs.c0_div_cnt);
 #endif
         break;
     case 0x2F:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(clk_ctrl_addrs.c1_div_cnt);
 #endif
         break;
     case 0x3E:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         value = csr_read_simple(smpl_cmp_addrs.cmp_length);
 #endif
         break;
@@ -205,27 +205,27 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         fpgacfg_reserved_03_write(value);
         break;
     case 0x05:
-#ifdef CSR_LIME_TOP_LMS7002
-        lime_top_lms7002_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
-        lime_top_lms7002_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
+#ifdef CSR_LIMETOP_LMS7002
+        limetop_lms7002_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
+        limetop_lms7002_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
 #endif
         break;
     case 0x7:
-#ifdef CSR_LIME_TOP_BASE
-        lime_top_fpgacfg_ch_en_write(value);
+#ifdef CSR_LIMETOP_BASE
+        limetop_fpgacfg_ch_en_write(value);
 #endif
         break;
     case 0x8:
-#ifdef CSR_LIME_TOP_BASE
-        reg = lime_top_fpgacfg_reg08_read();
-        reg &= ~((1 << CSR_LIME_TOP_FPGACFG_REG08_SYNCH_DIS_OFFSET) |
-                 (1 << CSR_LIME_TOP_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
-                 (1 << CSR_LIME_TOP_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
+#ifdef CSR_LIMETOP_BASE
+        reg = limetop_fpgacfg_reg08_read();
+        reg &= ~((1 << CSR_LIMETOP_FPGACFG_REG08_SYNCH_DIS_OFFSET) |
+                 (1 << CSR_LIMETOP_FPGACFG_REG08_MIMO_INT_EN_OFFSET) |
+                 (1 << CSR_LIMETOP_FPGACFG_REG08_TRXIQ_PULSE_OFFSET) | (0x3));
         reg |= (value & 0x03);  // smpl_width
         reg |= (value & 0x80);  // trxiq_pulse
         reg |= (value & 0x100); // mimo_int_en
         reg |= (value & 0x200); // sync_dis
-        lime_top_fpgacfg_reg08_write(reg);
+        limetop_fpgacfg_reg08_write(reg);
 #endif
         break;
     case 0xF:
@@ -239,21 +239,21 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         gpio_control_TDDSignalInvert_write((value & 0xf0) >> 4);
         break;
     case 0xA:
-#ifdef CSR_LIME_TOP_BASE
+#ifdef CSR_LIMETOP_BASE
         reg = (value & 0x003) << 0; // rx_en + tx_en
         // reg |= (value & 0x002) << 1; // tx_en
         reg |= (value & 0x200) << 0; // test_ptrn_en
-        lime_top_fpgacfg_reg10_write(reg);
-        // lime_top_lms7002_tx_en_write(value);
-        // lime_top_lms7002_rx_en_write(value);
+        limetop_fpgacfg_reg10_write(reg);
+        // limetop_lms7002_tx_en_write(value);
+        // limetop_lms7002_rx_en_write(value);
         //  rfsw registers are only present in LimeSDR-XTRX. Commenting only for now
-        //  lime_top_rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
-        //  lime_top_rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
-        //  lime_top_rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
-        //  lime_top_rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
-        //  lime_top_rfsw_control_tdd_invert_write((value & 0x80) >> 7);
-        //  //lime_top_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
-        //  lime_top_rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
+        //  limetop_rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
+        //  limetop_rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
+        //  limetop_rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
+        //  limetop_rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
+        //  limetop_rfsw_control_tdd_invert_write((value & 0x80) >> 7);
+        //  //limetop_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
+        //  limetop_rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
 #endif
         break;
     case 0x13:
@@ -264,17 +264,17 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         fpgacfg_EXT_CLK_write((value & 0x4) >> 2);
         break;
     case 0x19:
-#ifdef CSR_LIME_TOP_BASE
-        lime_top_rxtx_top_rx_path_pkt_size_write(value);
+#ifdef CSR_LIMETOP_BASE
+        limetop_rxtx_top_rx_path_pkt_size_write(value);
 #endif
         break;
     case 0x20:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         csr_write_simple(value & 0x1FF, clk_ctrl_addrs.c1_phase);
 #endif
         break;
     case 0x23:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         csr_write_simple((value & 1), clk_ctrl_addrs.pllcfg_start);
         csr_write_simple((value & 2) >> 1, clk_ctrl_addrs.phcfg_start);
         csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.pllrst_start);
@@ -283,19 +283,19 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 #endif
         break;
     case 0x26:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         csr_write_simple((value & 1), clk_ctrl_addrs.vco_div_byp);
         csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.vco_mult_byp);
 #endif
         break;
     case 0x27:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         csr_write_simple((value & 1), clk_ctrl_addrs.c0_div_byp);
         csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.c1_div_byp);
 #endif
         break;
     case 0x2A:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         // Check if either of the bytes are over 32. This is to prevent divider values larger than 64
         value_byte_ptr[0] = (value_byte_ptr[0] > 32) ? 32 : value_byte_ptr[0];
         value_byte_ptr[1] = (value_byte_ptr[1] > 32) ? 32 : value_byte_ptr[1];
@@ -303,7 +303,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 #endif
         break;
     case 0x2B:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         // Check if either of the bytes are over 32. This is to prevent divider values larger than 64
         value_byte_ptr[0] = (value_byte_ptr[0] > 32) ? 32 : value_byte_ptr[0];
         value_byte_ptr[1] = (value_byte_ptr[1] > 32) ? 32 : value_byte_ptr[1];
@@ -311,7 +311,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 #endif
         break;
     case 0x2E:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         // Check if either of the bytes are over 32. This is to prevent divider values larger than 64
         value_byte_ptr[0] = (value_byte_ptr[0] > 32) ? 32 : value_byte_ptr[0];
         value_byte_ptr[1] = (value_byte_ptr[1] > 32) ? 32 : value_byte_ptr[1];
@@ -319,7 +319,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 #endif
         break;
     case 0x2F:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         // Check if either of the bytes are over 32. This is to prevent divider values larger than 64
         value_byte_ptr[0] = (value_byte_ptr[0] > 32) ? 32 : value_byte_ptr[0];
         value_byte_ptr[1] = (value_byte_ptr[1] > 32) ? 32 : value_byte_ptr[1];
@@ -327,7 +327,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 #endif
         break;
     case 0x3E:
-#ifdef CSR_LIME_TOP_LMS7002
+#ifdef CSR_LIMETOP_LMS7002
         csr_write_simple(value, smpl_cmp_addrs.cmp_length);
 #endif
         break;

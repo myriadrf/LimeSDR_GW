@@ -612,6 +612,7 @@ uint8_t bsp_analog_read(const uint8_t channel, uint8_t *unit, uint8_t *value_msb
 {
     uint16_t buf;
     uint8_t *buf_point = (uint8_t *)&buf;
+    uint8_t status;
     switch (channel) {
     // Assume Continuous conversion is enabled for all temperature sensors
     case 0:
@@ -637,39 +638,46 @@ uint8_t bsp_analog_read(const uint8_t channel, uint8_t *unit, uint8_t *value_msb
         break;
     case 3:
         *unit = 0x00; // RAW unit
-        DAC8050_Read_Value(&I2C3_REGS, I2C3_VCTCXO_DAC_ADDR, &buf);
-        *value_lsb = buf_point[0];
-        *value_msb = buf_point[1];
+        status = DAC8050_Read_Value(&I2C3_REGS, I2C3_VCTCXO_DAC_ADDR, &buf);
+        if (status != 0) {
+            return STATUS_ERROR_CMD;
+        }
+        *value_msb = (uint8_t)((buf >> 8) & 0xFF);
+        *value_lsb = (uint8_t)(buf & 0xFF);
         break;
     default:
         // Error
-        return 1;
+        return STATUS_ERROR_CMD;
     }
-    return 0;
+    return STATUS_COMPLETED_CMD;
 }
 
 uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_t value_msb, const uint8_t value_lsb)
 {
     uint16_t buf;
     uint8_t *buf_point = (uint8_t *)&buf;
+    uint8_t status;
     switch (channel) {
     // No write options for temp sensors (case 0,1,2)
     case 3:
         if (unit == 0x00) {
             buf_point[0] = value_lsb;
             buf_point[1] = value_msb;
-            DAC8050_Write_Value(&I2C3_REGS, I2C3_VCTCXO_DAC_ADDR, buf);
+            status = DAC8050_Write_Value(&I2C3_REGS, I2C3_VCTCXO_DAC_ADDR, buf);
+            if (status != 0) {
+                return STATUS_ERROR_CMD;
+            }
             break;
         } else {
             // Wrong unit, return error
-            return 1;
+            return STATUS_ERROR_CMD;
         }
     // No devices to write to are defined. Auto fail.
     default:
         // Error
-        return 1;
+        return STATUS_ERROR_CMD;
     }
-    return 0;
+    return STATUS_COMPLETED_CMD;
 }
 
 uint8_t bsp_gpio_dir_read(uint8_t *data, const uint8_t offset)
