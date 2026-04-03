@@ -492,27 +492,27 @@ class ChannelCombiner(LiteXModule):
         self.s_clk_rst_n            = s_clk_rst_n
         self.s_clk_ch_en            = s_clk_ch_en
 
-        self.axis_chnl_combiner = Instance("AXIS_CHNL_COMBINER",
+        self.axis_chnl_combiner = Instance("axis_chnl_combiner",
                                            # Clk/Reset.
-                                           i_ACLK           = ClockSignal(),     # S_AXIS_IQSMPLS_ACLK
-                                           i_ARESETN        = self.s_clk_rst_n,  # S_AXIS_IQSMPLS_ARESETN
+                                           i_aclk                  =ClockSignal(),  # S_AXIS_IQSMPLS_ACLK
+                                           i_aresetn               =self.s_clk_rst_n,  # S_AXIS_IQSMPLS_ARESETN
                                            # AXI Stream Slave
-                                           i_S_AXIS_TVALID  = self.sink.valid,
-                                           o_S_AXIS_TREADY  = self.sink.ready,
-                                           i_S_AXIS_TDATA   = self.sink.data,
-                                           i_S_AXIS_TKEEP   = self.sink.keep,
-                                           i_S_AXIS_TUSER   = self.s_clk_ch_en,
-                                           i_S_AXIS_TLAST   = self.sink.last,
+                                           i_s_axis_tvalid         =self.sink.valid,
+                                           o_s_axis_tready         =self.sink.ready,
+                                           i_s_axis_tdata          =self.sink.data,
+                                           i_s_axis_tkeep          =self.sink.keep,
+                                           i_s_axis_tuser          =self.s_clk_ch_en,
+                                           i_s_axis_tlast          =self.sink.last,
                                            # AXI Stream Master
-                                           o_M_AXIS_TVALID  = self.source.valid,
-                                           i_M_AXIS_TREADY  = self.source.ready,
-                                           o_M_AXIS_TDATA   = self.source.data,
-                                           o_M_AXIS_TKEEP   = self.source.keep,
-                                           o_M_AXIS_TLAST   = self.source.last,
-                                           o_debug_write_pointer    = self.debug_write_pointer,
-                                           o_debug_read_pointer     = self.debug_read_pointer,
-                                           o_debug_wrusedw          = self.debug_wrusedw,
-                                           o_debug_pipeline_en      = self.debug_pipeline_en,
+                                           o_m_axis_tvalid         =self.source.valid,
+                                           i_m_axis_tready         =self.source.ready,
+                                           o_m_axis_tdata          =self.source.data,
+                                           o_m_axis_tkeep          =self.source.keep,
+                                           o_m_axis_tlast          =self.source.last,
+                                           o_debug_write_pointer   =self.debug_write_pointer,
+                                           o_debug_read_pointer    =self.debug_read_pointer,
+                                           o_debug_wrusedw         =self.debug_wrusedw,
+                                           o_debug_pipeline_en     =self.debug_pipeline_en,
                                            )
 
         self.axis_chnl_combiner_conv = add_vhd2v_converter(self.platform,

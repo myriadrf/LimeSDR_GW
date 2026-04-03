@@ -169,7 +169,7 @@ uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_
     if (channel == 0 && unit == 0) {
         dac_val_ptr[0]       = value_lsb;
         dac_val_ptr[1]       = value_msb;
-        const uint8_t retval = dacx311_write_value(dac_val, BSP_SPI_CS_DAC, DAC_MODEL_5311);
+        const uint8_t retval = dacx311_write_value(dac_val, BSP_SPI_CS_DAC, DAC_MODEL_6311);
         if (retval == 0) {
             return STATUS_COMPLETED_CMD;
         }

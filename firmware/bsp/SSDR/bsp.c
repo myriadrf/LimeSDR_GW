@@ -198,8 +198,8 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
         uint16_t val     = 0;
         uint8_t *val_ptr = (uint8_t *)&val;
         litei2c_a8d16_read_register(&I2C0_REGS, BSP_I2C_DAC_ADDR, 0x00, &val);
-        *value_lsb = val_ptr[1];
-        *value_msb = val_ptr[0];
+        *value_lsb = val_ptr[0];
+        *value_msb = val_ptr[1];
         return STATUS_COMPLETED_CMD;
     }
     if (channel == 1) {
@@ -221,8 +221,8 @@ uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8
         // TCXO DAC, RAW units
         uint16_t val     = 0;
         uint8_t *val_ptr = (uint8_t *)&val;
-        val_ptr[0]       = value_msb;
-        val_ptr[1]       = value_lsb;
+        val_ptr[0]       = value_lsb;
+        val_ptr[1]       = value_msb;
         litei2c_a8d16_write_register(&I2C0_REGS, BSP_I2C_DAC_ADDR, 0x30, val);
         return STATUS_COMPLETED_CMD;
     }
