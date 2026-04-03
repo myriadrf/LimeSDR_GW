@@ -50,8 +50,8 @@ int16_t LM75_Read_Temperature(const litei2c_regs *I2C_REGS, uint8_t I2C_ADDR_LSB
     // Second byte received (LSB) into high byte (raw_data >> 8)
     LM75_Read_Register(I2C_REGS, I2C_ADDR_LSB, 0x00, &raw_data);
 
-    uint8_t i2c_rdata_0 = (uint8_t)(raw_data & 0xFF); // MSB
-    uint8_t i2c_rdata_1 = (uint8_t)(raw_data >> 8);   // LSB
+    uint8_t i2c_rdata_1 = (uint8_t)(raw_data & 0xFF); // MSB
+    uint8_t i2c_rdata_0 = (uint8_t)(raw_data >> 8);   // LSB
 
     // Exact logic from the provided snippet:
     converted_value = (signed short int)i2c_rdata_0;
