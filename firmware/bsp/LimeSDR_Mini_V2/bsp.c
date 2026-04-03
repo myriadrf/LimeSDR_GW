@@ -228,6 +228,7 @@ bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targe
         // FX3
         if (progmode == 2) {
             spiFlash_read(offset, data_count, data);
+            return STATUS_COMPLETED_CMD;
         }
     } else if (target == 3) // TARGET = EEPROM
     {
@@ -254,26 +255,14 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
         // FX3
         if (progmode == 2) {
             // FW to flash (actually just used to write XO DAC VALUE)
-            printf("%08x\n", offset);
-
             if (offset >= BSP_FLASH_STORAGE_OFFSET) {
                 if (offset % BSP_FLASH_BLOCK_SIZE == 0 && data_count > 0) {
-                    // flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+flash_page, 3);
                     spiflash_erase(offset);
                 }
 
-                // for (int k=0; k<data_cnt; k++) {
-                //     wdata[k] = LMS_Ctrl_Packet_Rx->Data_field[24+k];
-                // }
-
                 if (data_count > 0) {
-                    // if(MicoSPIFlash_PageProgram(spiflash, spiflash->memory_base+flash_page, (unsigned int)data_cnt,
-                    // wdata)!= 0) cmd_errors++;
-                    if (!spiflash_page_program(offset, &data[24], (unsigned int)data_count))
+                    if (!spiflash_page_program(offset, data, (unsigned int)data_count))
                         cmd_errors++;
-                    for (int i = 0; i < data_count; i++) {
-                        printf("%02x\n", data[i]);
-                    }
                 }
                 if (cmd_errors == 0)
                     return STATUS_COMPLETED_CMD;
