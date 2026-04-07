@@ -453,7 +453,8 @@ class FourChannelCombiner(LiteXModule):
         self.sink    = stream.Endpoint([("data", 128), ("keep", 16)])
         self.source  = stream.Endpoint([("data", 128), ("keep", 16)])
 
-        self.axis_chnl_combiner = ChannelCombiner(platform, s_clk_domain, s_clk_rst_n, s_clk_ch_en)
+        axis_chnl_combiner = ChannelCombiner(platform, s_clk_rst_n, s_clk_ch_en)
+        self.axis_chnl_combiner = ClockDomainsRenamer(s_clk_domain)(axis_chnl_combiner)
 
         self.bit_width_selector = ClockDomainsRenamer(s_clk_domain)(BitwidthSelector(platform))
 
