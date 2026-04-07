@@ -333,7 +333,9 @@ class RXPathTop(LiteXModule):
         self.comb += [
             self.source_ep_conv.reset.eq(~s_clk_rst_n),
             self.source_ep_conv.source.connect(self.source_ep_cdc.sink, omit=["keep", "last"]),
-            self.source_ep_cdc.source.connect(self.source),
+            # Override ready to flush out leftover data when system is in reset
+            self.source_ep_cdc.source.connect(self.source, omit=["ready"]),
+            self.source_ep_cdc.source.ready.eq(self.source.ready | ~m_clk_rst_n),
         ]
 
         if not bypass_packets:
