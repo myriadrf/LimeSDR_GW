@@ -226,8 +226,6 @@ class RXPathTop(LiteXModule):
         self.bit_width_selector = ClockDomainsRenamer(s_clk_domain)(BitwidthSelector(platform))
 
         self.comb += [
-            self.sink.connect(self.chnl_combiner.sink, keep=["data", "keep", "valid", "ready"]),
-            self.chnl_combiner.source.connect(self.bit_width_selector.sink, keep=["data", "keep", "valid", "ready"]),
             self.bit_width_selector.sel.eq(Mux(s_smpl_width == 2, 1, 0)),
             self.bit_width_selector.rst.eq(~s_clk_rst_n),
         ]
