@@ -14,8 +14,9 @@ The top-level file integrates the following main blocks:
 - :ref:`I2C0, I2C1 <i2c_modules>` and :ref:`Lms_spi <lms_spi_module>` – Communication interfaces for controlling onboard peripherals.
 - :ref:`Flash <flash_module>` – Module for accessing the FPGA configuration FLASH memory.
 
-.. figure:: limesdr-xtrx/images/main_block_diagram.svg
+.. figure:: limesdr-xtrx/images/main_block_diagram.drawio.svg
    :width: 1000
+   :align: center
    :alt: Main block diagram for LimeSDR XTRX
 
 .. _soft_core_cpu_module:
@@ -37,8 +38,9 @@ The **Lime_top Module** serves as a wrapper for the LMS7002M transceiver control
 - :ref:`RX Path Top Module <rx_path_top_module>` – Manages the receive path from the LMS7002M to the FPGA and host, packing IQ samples into packets and generating timestamps.
 - :ref:`TX Path Top Module <tx_path_top_module>` – Manages the transmit path from the host through the FPGA to the LMS7002M, unpacking IQ sample packets and handling stream synchronization with timestamps.
 
-.. figure:: limesdr-xtrx/images/limetop_block_diagram.svg
-   :width: 1000
+.. figure:: limesdr-xtrx/images/limetop_block_diagram.drawio.svg
+   :width: 500
+   :align: center
    :alt: Lime_top block diagram
 
 .. _lms7002_top_module:
