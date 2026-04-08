@@ -92,9 +92,10 @@ class CRG(LiteXModule):
         self.cd_fpga_sysref = ClockDomain()
         self.cd_fpga_1pps   = ClockDomain()
 
+        vctcxo_ref = platform.request("gpio_d11")
         self.cd_vctcxo_ref = ClockDomain()
-        self.comb += self.cd_vctcxo_ref.clk.eq(platform.request("gpio_d11"))
-        platform.add_period_constraint(self.cd_vctcxo_ref.clk, 1e9/40e6)
+        self.comb += self.cd_vctcxo_ref.clk.eq(vctcxo_ref)
+        platform.add_period_constraint(vctcxo_ref, 1e9/40e6)
 
         # # #
 
@@ -1002,10 +1003,10 @@ def main():
         builder.build(run=build,
                         vivado_synth_directive                  = "PerformanceOptimized",
                         vivado_opt_directive                    = "Explore",
-                        vivado_place_directive                  = "Explore",
+                        vivado_place_directive                  = "ExtraNetDelay_high",
                         vivado_post_place_phys_opt_directive    = "Explore",
-                        vivado_route_directive                  = "Explore",
-                        vivado_post_route_phys_opt_directive    = "Explore",
+                        vivado_route_directive                  = "NoTimingRelaxation",
+                        vivado_post_route_phys_opt_directive    = "AggressiveExplore",
                         vivado_max_threads                      = 7,
                       )
         if prepare:
