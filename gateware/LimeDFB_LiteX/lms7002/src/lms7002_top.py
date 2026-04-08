@@ -64,6 +64,8 @@ class LMS7002Top(LiteXModule):
         self.smpl_cnt_en      = Signal() # To rx_path
         self.smpl_cmp_cnt     = Signal(16) # Unused
 
+        self.comb += self.hw_ver.eq(hw_ver)
+
         # CSR --------------------------------------------------------------------------------------
         # LMS Ctrl GPIO
         self._lms_ctr_gpio = CSRStorage(size=4, description="LMS Control GPIOs.")
