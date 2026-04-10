@@ -256,7 +256,7 @@ class BaseSoC(SoCCore):
         with_fft              = False,
         flash_boot            = False,
         gold_img              = False,
-        firmware_flash_offset = 0x220000,
+        firmware_flash_offset = 0xA00000,
     ):
 
         # Platform ---------------------------------------------------------------------------------
@@ -944,7 +944,7 @@ def main():
     parser.add_argument("--cable",                 default="ft2232",        help="JTAG cable.")
     parser.add_argument("--driver",                action="store_true",     help="Generate PCIe driver from LitePCIe (override local version).")
     parser.add_argument("--flash-boot",            action="store_true",     help="Write Firmware in Flash instead of RAM.")
-    parser.add_argument("--firmware-flash-offset", default=0x220000,        help="Firmware SPI Flash offset.")
+    parser.add_argument("--firmware-flash-offset", default=0xA00000,        help="Firmware SPI Flash offset.")
     parser.add_argument("--gold",                  action="store_true",     help="Build/Flash golden image instead of user")
 
     # PPSDO.
@@ -1047,7 +1047,7 @@ def main():
             # TODO: move user img address to a global variable somewhere instead of hardcoding
             prog = soc.platform.create_programmer(cable=args.cable)
             #prog.flash("0x00220000", os.path.join(bistream_output_dir, soc.build_name + "_user" + ".bin"), verbose_level="2", enable_quad=True)
-            prog.flash("0x00310000", os.path.join(bistream_output_dir, soc.build_name + "_user" + ".bin"),
+            prog.flash("0x00500000", os.path.join(bistream_output_dir, soc.build_name + "_user" + ".bin"),
                        verbose_level="2")
 
     # Flash Firmware.

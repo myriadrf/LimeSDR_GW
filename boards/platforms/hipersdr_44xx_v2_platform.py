@@ -444,7 +444,7 @@ class Platform(XilinxUSPPlatform):
         self.gold_img_commands = [
             # Multiboot SPI-Flash Golden bitstream generation.
             "set_property BITSTREAM.CONFIG.CONFIGFALLBACK ENABLE [current_design]",
-            "set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 32'h00310000 [current_design]",
+            "set_property BITSTREAM.CONFIG.NEXT_CONFIG_ADDR 32'h00500000 [current_design]",
             #"set_property BITSTREAM.CONFIG.TIMER_CFG 0x493E0 [current_design]",
             # USR_ACCESS Field at 00007C-00007F binfile For Bitstream identification:
             #[32:24] - DEVICE ID
