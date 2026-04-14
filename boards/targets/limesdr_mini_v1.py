@@ -168,7 +168,7 @@ class BaseSoC(SoCCore):
             integrated_sram_size     = 0x2000
 
         SoCCore.__init__(self, platform, sys_clk_freq,
-            ident                    = "LiteX SoC on LimeSDR-Mini-V2",
+            ident                    = "LiteX SoC on LimeSDR-Mini-V1",
             ident_version            = True,
             cpu_type                 = cpu_type,
             cpu_variant              = cpu_variant,
@@ -404,7 +404,7 @@ class BaseSoC(SoCCore):
 # Build --------------------------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="LimeSDR-Mini-V2 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="LimeSDR-Mini-V1 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Build/Load/Utilities.
     parser.add_argument("--build",     action="store_true", help="Build bitstream.")
