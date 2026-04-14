@@ -153,19 +153,19 @@ class BaseSoC(SoCCore):
             integrated_rom_init      = []
             integrated_main_ram_size = 0x3800
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
-            integrated_sram_ram_size = 0x400
+            integrated_sram_size     = 0x2000
         elif flash_boot:
             integrated_rom_size      = 0
             integrated_rom_init      = []
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
-            integrated_sram_ram_size = 0x800
+            integrated_sram_size     = 0x2000
         else:
             integrated_rom_size      = 0x4000
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
-            integrated_sram_ram_size = 0x400
+            integrated_sram_size     = 0x2000
 
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
@@ -174,7 +174,7 @@ class BaseSoC(SoCCore):
             cpu_variant              = cpu_variant,
             integrated_rom_size      = integrated_rom_size,
             integrated_rom_init      = integrated_rom_init,
-            integrated_sram_ram_size = integrated_sram_ram_size,
+            integrated_sram_size     = integrated_sram_size,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
             with_uart                = False, #needs to be false to be able to add uart manually
