@@ -195,7 +195,7 @@ class LimeTop(LiteXModule):
                 TX_IN_PCT_SIZE         = TX_PCT_SIZE,
                 TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
                 TX_IN_PCT_DATA_W       = sink_width,
-                tx_s_clk_domain        = "sys",
+                tx_s_clk_domain        = sink_clk_domain,
                 tx_m_clk_domain        = "lms_tx" if with_lms7002 else phy_tx_source_clk,
                 tx_buffer_size         = tx_buffer_size,
                 tx_4ch_mode            = double_channels_mode,
@@ -209,7 +209,7 @@ class LimeTop(LiteXModule):
                 # TODO: Investigate WHY exactly "sys" uses less resources, because it shouldn't
                 rx_int_clk_domain      = "lms_rx" if with_lms7002 else phy_rx_sink_clk if soc_has_timesource else rx_sys_clk_domain,
                 rx_s_clk_domain        = "lms_rx" if with_lms7002 else phy_rx_sink_clk,
-                rx_m_clk_domain        = "sys",
+                rx_m_clk_domain        = source_clk_domain,
                 rx_use_channel_combiner = False if with_lms7002 else True,
 
                 # Misc
