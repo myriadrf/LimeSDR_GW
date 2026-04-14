@@ -13,6 +13,8 @@ int8_t LM75_Read_Register(const litei2c_regs *I2C_REGS, uint8_t I2C_ADDR_LSB, ui
 
 int8_t LM75_Write_Register(const litei2c_regs *I2C_REGS, uint8_t I2C_ADDR_LSB, uint8_t reg_addr, uint16_t data);
 
+int8_t LM75_Init(const litei2c_regs *I2C_REGS, uint8_t I2C_ADDR_LSB);
+
 int16_t LM75_Read_Temperature(const litei2c_regs *I2C_REGS, uint8_t I2C_ADDR_LSB);
 
 #endif // LIMESDR_GW_LM75_H

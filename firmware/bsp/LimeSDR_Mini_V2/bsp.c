@@ -27,6 +27,9 @@ void bsp_init(void)
             bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00) >> 8, BSP_DAC_DEFAULT_VAL & 0xff);
         }
     }
+
+    // Initialiaze LM75 temp sensor to control OS output with 45C-55C Hysteresis
+    LM75_Init(&I2C0_REGS, 0x0);
 }
 
 void bsp_powerup(void)
