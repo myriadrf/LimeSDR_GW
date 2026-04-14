@@ -43,12 +43,6 @@ OBJECTS += $(BSP_COMMON_OBJS)
 OBJECTS += $(DRIVERS_OBJS)
 OBJECTS += $(PERIPH_OBJS)
 
-ifeq ($(TARGET), LIMESDR_MINI_V1)
-ifeq ($(GOLDEN), 0)
-CFLAGS := $(filter-out -Os, $(CFLAGS)) -O0 -ggdb3 -g3
-endif
-endif
-
 all: firmware.bin firmware.hex
 
 %.hex: %.bin

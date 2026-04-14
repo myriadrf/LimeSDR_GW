@@ -165,25 +165,16 @@ class BaseSoC(SoCCore):
             "firev"    : "standard",
         }[cpu_type]
 
-
         if with_bios:
             integrated_rom_size      = 0x9800
             integrated_rom_init      = []
-            # Large default for first pass to allow firmware to build, small default for second pass to fail if calculation fails.
-            integrated_main_ram_size = 0x10000 if cpu_firmware is None else 0x1000
-            if cpu_firmware is not None and os.path.exists(cpu_firmware):
-                integrated_main_ram_size = max(integrated_main_ram_size, math.ceil(os.path.getsize(cpu_firmware) / 0x100) * 0x100)
-            integrated_main_ram_init = [] if cpu_firmware is None or not os.path.exists(cpu_firmware) else get_mem_data(cpu_firmware, endianness="little")
-            print(f"[RAM_SIZE_DEBUG] integrated_main_ram_size = 0x{integrated_main_ram_size:X} ({integrated_main_ram_size} bytes)")
+            integrated_main_ram_size = 0x4800
+            integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
         else:
-            # Large default for first pass to allow firmware to build, small default for second pass to fail if calculation fails.
-            integrated_rom_size      = 0x10000 if cpu_firmware is None else 0x1000
-            if cpu_firmware is not None and os.path.exists(cpu_firmware):
-                integrated_rom_size = max(integrated_rom_size, math.ceil(os.path.getsize(cpu_firmware) / 0x100) * 0x100)
-            integrated_rom_init      = [0] if cpu_firmware is None or not os.path.exists(cpu_firmware) else get_mem_data(cpu_firmware, endianness="little")
+            integrated_rom_size      = 0x4500
+            integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
-            print(f"[ROM_SIZE_DEBUG] integrated_rom_size = 0x{integrated_rom_size:X} ({integrated_rom_size} bytes)")
 
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-Mini-V2",
@@ -192,7 +183,7 @@ class BaseSoC(SoCCore):
             cpu_variant              = cpu_variant,
             integrated_rom_size      = integrated_rom_size,
             integrated_rom_init      = integrated_rom_init,
-            integrated_sram_ram_size = 0x0200,
+            integrated_sram_size     = 0x2000,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
             with_uart                = False, #needs to be false to be able to add uart manually
@@ -445,9 +436,7 @@ def main():
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
                 f.write("BSP_PROJECT_DIR=bsp/LimeSDR_Mini_V2\n")
-            ret = os.system(f"cd firmware && make clean all")
-            if ret != 0:
-                raise RuntimeError("Firmware build failed")
+            os.system(f"cd firmware && make clean all")
             bistream_output_dir = "bitstream/LimeSDR_Mini_V2"
             if not os.path.exists(bistream_output_dir):
                 os.makedirs(bistream_output_dir)

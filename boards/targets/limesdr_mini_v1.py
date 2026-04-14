@@ -56,7 +56,7 @@ STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
 TX_PCT_SIZE          = 4096  # TX packet size in bytes
-TX_N_BUFF            = 4     # N 4KB buffers in TX interface (2 OR 4)
+TX_N_BUFF            = 2     # N 4KB buffers in TX interface (2 OR 4)
 
 C_EP02_RDUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_RX_SIZE / (CTRL0_FPGA_RX_RWIDTH // 8)))) + 1
 C_EP82_WRUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_TX_SIZE / (CTRL0_FPGA_TX_WWIDTH // 8)))) + 1
@@ -151,38 +151,30 @@ class BaseSoC(SoCCore):
         if with_bios:
             integrated_rom_size      = 0x9800
             integrated_rom_init      = []
-            # Large default for first pass to allow firmware to build, small default for second pass to fail if calculation fails.
-            integrated_main_ram_size = 0x10000 if cpu_firmware is None else 0x3800
-            if cpu_firmware is not None and os.path.exists(cpu_firmware):
-                integrated_main_ram_size = max(integrated_main_ram_size, math.ceil(os.path.getsize(cpu_firmware) / 0x100) * 0x100)
-            integrated_main_ram_init = [] if cpu_firmware is None or not os.path.exists(cpu_firmware) else get_mem_data(cpu_firmware, endianness="little")
-            integrated_sram_ram_size = 0x400
-            print(f"[RAM_SIZE_DEBUG] integrated_main_ram_size = 0x{integrated_main_ram_size:X} ({integrated_main_ram_size} bytes)")
+            integrated_main_ram_size = 0x3800
+            integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+            integrated_sram_size     = 0x2000
         elif flash_boot:
             integrated_rom_size      = 0
             integrated_rom_init      = []
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
-            integrated_sram_ram_size = 0x800
+            integrated_sram_size     = 0x2000
         else:
-            # Large default for first pass to allow firmware to build, small default for second pass to fail if calculation fails.
-            integrated_rom_size      = 0x10000 if cpu_firmware is None else 0x1000
-            if cpu_firmware is not None and os.path.exists(cpu_firmware):
-                integrated_rom_size = max(integrated_rom_size, math.ceil(os.path.getsize(cpu_firmware) / 0x100) * 0x100)
-            integrated_rom_init      = [0] if cpu_firmware is None or not os.path.exists(cpu_firmware) else get_mem_data(cpu_firmware, endianness="little")
+            integrated_rom_size      = 0x4000
+            integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
-            integrated_sram_ram_size = 0x400
-            print(f"[ROM_SIZE_DEBUG] integrated_rom_size = 0x{integrated_rom_size:X} ({integrated_rom_size} bytes)")
+            integrated_sram_size     = 0x2000
 
         SoCCore.__init__(self, platform, sys_clk_freq,
-            ident                    = "LiteX SoC on LimeSDR-Mini-V2",
+            ident                    = "LiteX SoC on LimeSDR-Mini-V1",
             ident_version            = True,
             cpu_type                 = cpu_type,
             cpu_variant              = cpu_variant,
             integrated_rom_size      = integrated_rom_size,
             integrated_rom_init      = integrated_rom_init,
-            integrated_sram_ram_size = integrated_sram_ram_size,
+            integrated_sram_size     = integrated_sram_size,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
             with_uart                = False, #needs to be false to be able to add uart manually
@@ -412,7 +404,7 @@ class BaseSoC(SoCCore):
 # Build --------------------------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="LimeSDR-Mini-V2 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="LimeSDR-Mini-V1 LiteX Gateware.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Build/Load/Utilities.
     parser.add_argument("--build",     action="store_true", help="Build bitstream.")
@@ -496,9 +488,7 @@ def main():
                 f.write(f"LINKER={linker}\n")
                 f.write(f"GOLDEN={is_golden}\n")
                 f.write("BSP_PROJECT_DIR=bsp/LimeSDR_Mini_V1\n")
-            ret = os.system(f"cd firmware && make clean all")
-            if ret != 0:
-                raise RuntimeError("Firmware build failed")
+            os.system(f"cd firmware && make clean all")
             assert os.path.exists(cpu_firmware), f"Error: {cpu_firmware} not available"
 
     # Prepare pof/rpd files.
