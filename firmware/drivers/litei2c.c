@@ -10,6 +10,9 @@
 int8_t litei2c_transfer(
     const litei2c_regs *regs, const uint8_t I2C_addr, uint32_t *buf, const uint8_t txlen, const uint8_t rxlen)
 {
+    int8_t retval    = 0;
+    uint32_t timeout = 1000000;
+
     // Write active bit
     csr_write_simple(1, regs->master_active_addr);
     // Write I2C address
@@ -17,25 +20,42 @@ int8_t litei2c_transfer(
     // Write txlen, rxlen and recover = 0
     uint32_t settings = txlen | (rxlen << 8);
     csr_write_simple(settings, regs->master_settings_addr);
+
     // Wait for master to become ready
-    // TODO: Implement timeout? Also reset everything if actually does timeout
-    while (!(csr_read_simple(regs->master_status_addr) & (1 << MASTER_STATUS_TX_READY_OFFSET))) {
+    while (!(csr_read_simple(regs->master_status_addr) & (1 << MASTER_STATUS_TX_READY_OFFSET)) && timeout--) {
     }
+
+    if (timeout == 0) {
+        retval = -2; // Timeout error
+        goto cleanup;
+    }
+
     // Write buffer to core
     csr_write_simple(*buf, regs->master_rxtx_addr);
+
     // Wait for master to finish
-    // TODO: Implement timeout? Also reset everything if actually does timeout
-    while (!(csr_read_simple(regs->master_status_addr) & (1 << MASTER_STATUS_RX_READY_OFFSET))) {
+    timeout = 1000000;
+    while (!(csr_read_simple(regs->master_status_addr) & (1 << MASTER_STATUS_RX_READY_OFFSET)) && timeout--) {
     }
+
+    if (timeout == 0) {
+        retval = -2; // Timeout error
+        goto cleanup;
+    }
+
     // Check for NACK
     if (csr_read_simple(regs->master_status_addr) & (1 << MASTER_STATUS_NACK_OFFSET)) {
-        return -1;
+        retval = -1;
     }
+
     // Read buffer from the core
     *buf = csr_read_simple(regs->master_rxtx_addr);
-    // Write active bit
+
+cleanup:
+    // Write active bit to 0 to deactivate core
     csr_write_simple(0, regs->master_active_addr);
-    return 0;
+
+    return retval;
 }
 
 int8_t litei2c_transfer_reordered(
@@ -99,21 +119,39 @@ int8_t litei2c_transfer_reordered(
 
 int8_t litei2c_recover_bus(const litei2c_regs *regs)
 {
+    int8_t retval    = 0;
+    uint32_t timeout = 1000000;
+
     csr_write_simple(1, regs->master_active_addr);
     // Set recovery bit
     csr_write_simple(1 << 16, regs->master_settings_addr);
+
     // Wait for master to become ready
-    // TODO: Implement timeout? Also reset everything if actually does timeout
-    while (!(csr_read_simple(regs->master_status_addr) & (1 << MASTER_STATUS_TX_READY_OFFSET))) {
+    while (!(csr_read_simple(regs->master_status_addr) & (1 << MASTER_STATUS_TX_READY_OFFSET)) && timeout--) {
     }
+
+    if (timeout == 0) {
+        retval = -2;
+        goto cleanup;
+    }
+
     csr_write_simple(0, regs->master_rxtx_addr);
+
     // Wait for master to finish
-    // TODO: Implement timeout? Also reset everything if actually does timeout
-    while (!(csr_read_simple(regs->master_status_addr) & (1 << MASTER_STATUS_RX_READY_OFFSET))) {
+    timeout = 1000000;
+    while (!(csr_read_simple(regs->master_status_addr) & (1 << MASTER_STATUS_RX_READY_OFFSET)) && timeout--) {
     }
+
+    if (timeout == 0) {
+        retval = -2;
+        goto cleanup;
+    }
+
     (void)csr_read_simple(regs->master_rxtx_addr);
+
+cleanup:
     csr_write_simple(0, regs->master_active_addr);
-    return 0;
+    return retval;
 }
 
 int8_t
