@@ -6,6 +6,9 @@
 static uint8_t last_portion_valid = 0;
 static uint8_t last_portion       = 0;
 
+static uint16_t dac_val     = 0;
+static uint8_t *dac_val_ptr = (uint8_t *)&dac_val;
+
 litei2c_regs I2C0_REGS = {.master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
                           .master_addr_addr     = CSR_I2C0_MASTER_ADDR_ADDR,
                           .master_settings_addr = CSR_I2C0_MASTER_SETTINGS_ADDR,
@@ -143,9 +146,6 @@ uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id)
     return -1;
 }
 
-static uint16_t dac_val     = 0;
-static uint8_t *dac_val_ptr = (uint8_t *)&dac_val;
-
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb)
 {
     switch (channel) {
@@ -216,12 +216,12 @@ uint8_t bsp_gpio_get_cached(const uint8_t offset)
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data)
 {
-    litei2c_a16d16_read_register(&I2C0_REGS, BSP_I2C_EEPROM_ADDR, BSP_EEPROM_DAC_ADDR, (uint16_t *)data);
+    bsp_mem_read(BSP_EEPROM_DAC_ADDR, 0, 0, 3, data, 1);
 }
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data)
 {
-    litei2c_a16d16_write_register(&I2C0_REGS, BSP_I2C_EEPROM_ADDR, BSP_EEPROM_DAC_ADDR, (uint16_t *)*data);
+    bsp_mem_write(BSP_EEPROM_DAC_ADDR, 0, 0, 3, data, 1);
 }
 
 uint8_t
@@ -236,6 +236,7 @@ bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targe
             for (uint8_t i = 0; i < data_count; i++) {
                 // Read a byte at a time
                 retval |= litei2c_a16d8_read_register(&I2C0_REGS, BSP_I2C_EEPROM_ADDR, read_addr + i, &data[i]);
+                bsp_delay_ms(5);
             }
             if (retval == 0)
                 return STATUS_COMPLETED_CMD;
@@ -256,6 +257,7 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
             for (uint8_t i = 0; i < data_count; i++) {
                 // Write a byte at a time
                 retval |= litei2c_a16d8_write_register(&I2C0_REGS, BSP_I2C_EEPROM_ADDR, write_addr + i, data[i]);
+                bsp_delay_ms(5);
             }
             // Return Completed if no errors
             if (retval == 0)
