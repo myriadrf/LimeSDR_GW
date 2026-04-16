@@ -8,10 +8,10 @@
 """
 TX Path Top Module Structure:
 
-    AXI Stream Input (FIFO_DATA_W)
+    AXI Stream Input (sink_width)
     |
     v
-    Stream Converter (FIFO_DATA_W -> 128)
+    Stream Converter (sink_width -> 128)
     |
     v
     Input Buffer (CDC s_clk -> m_clk)
@@ -60,7 +60,7 @@ class TXPathTop(LiteXModule):
         PCT_MAX_SIZE      = 4096,
         PCT_HDR_SIZE      = 16,
         BUFF_COUNT        = 4,
-        FIFO_DATA_W       = 128,
+        sink_width        = 128,
         rx_clk_domain     = "lms_rx",
         m_clk_domain      = "lms_tx",
         s_clk_domain      = "lms_tx",
@@ -68,14 +68,14 @@ class TXPathTop(LiteXModule):
         input_buff_size   = 512
         ):
         #Input buffer acts as CDC, so a minimum of 4 depth is required to instantiate the async FIFO
-        assert input_buff_size >= (FIFO_DATA_W*4), "TXPathTop input_buff_size must be greater than or equal to 4 cycles of FIFO_DATA_W"
+        assert input_buff_size >= (128*4), "TXPathTop input_buff_size must be greater than or equal to 4 cycles of 128bit"
 
         assert fpgacfg_manager is not None
 
         self.platform          = platform
 
         self.source            = AXIStreamInterface(128 if output4channels else 64, clock_domain=m_clk_domain)
-        self.sink              = AXIStreamInterface(FIFO_DATA_W, clock_domain=s_clk_domain)
+        self.sink              = AXIStreamInterface(sink_width, clock_domain=s_clk_domain)
 
         self.rx_sample_nr      = Signal(64)
         self.pct_loss_flg      = Signal()
@@ -119,16 +119,16 @@ class TXPathTop(LiteXModule):
         data_pad_tready  = Signal()
         data_pad_tlast   = Signal()
 
-        # AXI Slave FIFO_DATA_W -> 128 (must uses s_axis_domain)
-        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(FIFO_DATA_W, 128)))
+        # AXI Slave sink_width -> 128 (must uses s_axis_domain)
+        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(sink_width, 128)))
         self.conv_64_to_128 = conv_64_to_128
 
         # Input data buffer (128 bit)
         input_buff = ClockDomainCrossing(
-            layout=[("data", FIFO_DATA_W)],
+            layout=[("data", 128)],
             cd_from  = s_clk_domain,
             cd_to    = m_clk_domain,
-            depth    = int(input_buff_size/FIFO_DATA_W),
+            depth    = int(input_buff_size/128),
             buffered = False)
         self.input_buff = input_buff
 

@@ -78,7 +78,7 @@ class RXTXTop(LiteXModule):
             PCT_MAX_SIZE    = TX_IN_PCT_SIZE,
             PCT_HDR_SIZE    = TX_IN_PCT_HDR_SIZE,
             BUFF_COUNT      = TX_N_BUFF,
-            FIFO_DATA_W     = TX_IN_PCT_DATA_W,
+            sink_width      = TX_IN_PCT_DATA_W,
             s_clk_domain    = tx_s_clk_domain,
             m_clk_domain    = tx_m_clk_domain,
             rx_clk_domain   = rx_s_clk_domain, # FIXME: unsure
