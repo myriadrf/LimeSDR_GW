@@ -28,7 +28,7 @@ from gateware.LimeDFB_LiteX.lms7002.src.lms7002_clk   import LMS7002CLK
 # LMS7002 Top --------------------------------------------------------------------------------------
 
 class LMS7002Top(LiteXModule):
-    def __init__(self, platform, pads=None, hw_ver=None, add_csr=True,
+    def __init__(self, platform, vendor, pads=None, hw_ver=None, add_csr=True,
         fpgacfg_manager      = None,
         pllcfg_manager       = None,
         diq_width            = 12,
@@ -185,7 +185,7 @@ class LMS7002Top(LiteXModule):
 
         # Clocks.
         # -------
-        self.lms7002_clk = LMS7002CLK(platform, pads, pllcfg_manager, with_max10_pll=with_max10_pll)
+        self.lms7002_clk = LMS7002CLK(platform, vendor, pads, pllcfg_manager, with_max10_pll=with_max10_pll)
         self.comb += [
             self.cd_lms_tx.clk.eq(self.lms7002_clk.tx_clk),
             self.cd_lms_rx.clk.eq(self.lms7002_clk.rx_clk),
@@ -201,7 +201,7 @@ class LMS7002Top(LiteXModule):
 
         # TX Path (DIQ1).
         # ------------------------------------------------------------------------------------------
-        self.lms7002_ddout = ClockDomainsRenamer("lms_tx")(LMS7002DDOUT(platform, 12, pads))
+        self.lms7002_ddout = ClockDomainsRenamer("lms_tx")(LMS7002DDOUT(platform, vendor, 12, pads))
         self.tx_cdc        = stream.AsyncFIFO([("data", 64)], depth=s_axis_tx_fifo_words, buffered=False)
         self.tx_cdc        = ClockDomainsRenamer({"write" : s_clk_domain, "read" : "lms_tx"})(self.tx_cdc)
 
@@ -314,7 +314,7 @@ class LMS7002Top(LiteXModule):
                 self.comb += tx_smpl_cmp_length.eq(smpl_cmp_cnt)
 
         # RX path (DIQ2). --------------------------------------------------------------------------
-        self.lms7002_ddin = ClockDomainsRenamer("lms_rx")(LMS7002DDIN(platform, 12, pads, invert_input_clock))
+        self.lms7002_ddin = ClockDomainsRenamer("lms_rx")(LMS7002DDIN(platform, vendor, 12, pads, invert_input_clock))
 
         self.rx_cdc = stream.ClockDomainCrossing([("data", 64), ("keep", 64 // 8)],
             cd_from = "lms_rx",

@@ -14,7 +14,7 @@ from litex.build.io import DDRInput
 # LMS7002 DDIN -------------------------------------------------------------------------------------
 
 class LMS7002DDIN(LiteXModule):
-    def __init__(self, platform, iq_width=12, pads=None, invert_input_clock=False):
+    def __init__(self, platform, vendor, iq_width=12, pads=None, invert_input_clock=False):
         # Delay control
         self.data_loadn     = Signal()
         self.data_move      = Signal()
@@ -43,7 +43,7 @@ class LMS7002DDIN(LiteXModule):
             buf_datain   = Signal()
             delay_datain = Signal()
 
-            if platform.name in ["limesdr_mini_v2"]:
+            if vendor == "lattice":
                 self.specials += [
                     # Input buffers.
                     # --------------
@@ -65,6 +65,9 @@ class LMS7002DDIN(LiteXModule):
                     )
                 ]
             else:
+                # TODO: Review if 'altera' or 'xilinx' vendors should implement input delays
+                # using their respective primitives (e.g., IDELAY), or if the absence 
+                # of delays is intentional for these targets.
                 print("LMS7002DDIN Missing Delay!")
                 self.comb += delay_datain.eq(datain[i])
 
@@ -83,7 +86,9 @@ class LMS7002DDIN(LiteXModule):
         # ------
         self.comb += datain.eq(Cat(pads.DIQ2_D, pads.ENABLE_IQSEL2))
 
-        if platform.name in ["limesdr_mini_v2"]:
+        # Risk: Using 'vendor' as a proxy for IDDR mode (SAME_EDGE vs SAME_EDGE_PIPELINED).
+        # This logic should eventually be decoupled and driven by an explicit 'iddr_mode' parameter.
+        if vendor == "lattice":
             # Internal registers
             # Resync both on rising edge
             self.sync.lms_rx += [
@@ -92,7 +97,7 @@ class LMS7002DDIN(LiteXModule):
                 #- We need to delay data captured on falling edge, in order to allign samples
                 rx_diq2_l.eq(   datain_reg_l),
             ]
-        elif platform.name in ["limesdr_xtrx", "limesdr_mini_v1", "ssdr"]:
+        elif vendor in ["xilinx", "altera"]:
             # LimeSDR-XTRX (IDDR is implemented in SAME_EDGE mode from MIGEN)
             # This aded extra logic matches SAME_EDGE_PIPELINED mode)
             # TODO: LimeSDR Mini V1 add which mode is this equivalent to

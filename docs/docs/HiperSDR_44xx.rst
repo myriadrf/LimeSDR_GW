@@ -51,6 +51,7 @@ The **LimeTop Module** serves as a wrapper for the RF transceiver control and da
 
 .. image:: hipersdr-44xx/images/limetop_block_diagram.drawio.svg
    :align: center
+   :width: 500
    :alt: Lime_top block diagram
 
 .. _rx_path_top_module:

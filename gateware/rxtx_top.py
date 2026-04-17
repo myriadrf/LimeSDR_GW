@@ -33,11 +33,17 @@ class RXTXTop(LiteXModule):
         tx_s_clk_domain    = "lms_tx",
         tx_m_clk_domain    = "lms_tx",
         tx_buffer_size     = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
+        tx_4ch_mode        = False,
+
+
         # RX parameters
         RX_IQ_WIDTH        = 12,
+        rx_sink_width      = 128,
+        RX_OUT_PCT_DATA_W  = 64,
         rx_s_clk_domain    = "lms_rx",
         rx_int_clk_domain  = "lms_rx",
         rx_m_clk_domain    = "lms_rx",
+        rx_use_channel_combiner = True,
 
         # Misc parameters
         soc_has_timesource = False,
@@ -72,11 +78,12 @@ class RXTXTop(LiteXModule):
             PCT_MAX_SIZE    = TX_IN_PCT_SIZE,
             PCT_HDR_SIZE    = TX_IN_PCT_HDR_SIZE,
             BUFF_COUNT      = TX_N_BUFF,
-            FIFO_DATA_W     = TX_IN_PCT_DATA_W,
+            sink_width      = TX_IN_PCT_DATA_W,
             s_clk_domain    = tx_s_clk_domain,
             m_clk_domain    = tx_m_clk_domain,
             rx_clk_domain   = rx_s_clk_domain, # FIXME: unsure
             input_buff_size = tx_buffer_size,
+            output4channels = tx_4ch_mode,
         )
 
         # RX Path.
@@ -87,6 +94,9 @@ class RXTXTop(LiteXModule):
             int_clk_domain     = rx_int_clk_domain,
             s_clk_domain       = rx_s_clk_domain,
             soc_has_timesource = soc_has_timesource,
+            sink_width         = rx_sink_width,
+            source_width       = RX_OUT_PCT_DATA_W,
+            use_channel_combiner = rx_use_channel_combiner,
         )
 
         # Logic.

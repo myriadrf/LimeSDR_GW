@@ -8,10 +8,10 @@
 """
 TX Path Top Module Structure:
 
-    AXI Stream Input (FIFO_DATA_W)
+    AXI Stream Input (sink_width)
     |
     v
-    Stream Converter (FIFO_DATA_W -> 128)
+    Stream Converter (sink_width -> 128)
     |
     v
     Input Buffer (CDC s_clk -> m_clk)
@@ -37,6 +37,7 @@ TX Path Top Module Structure:
 """
 
 import math
+from types import SimpleNamespace
 
 from litex.soc.interconnect.stream import ClockDomainCrossing
 from migen import *
@@ -52,8 +53,6 @@ from gateware.common import *
 
 # TX Path Top --------------------------------------------------------------------------------------
 
-
-
 class TXPathTop(LiteXModule):
     def __init__(self, platform, fpgacfg_manager=None,
         # TX parameters
@@ -61,20 +60,22 @@ class TXPathTop(LiteXModule):
         PCT_MAX_SIZE      = 4096,
         PCT_HDR_SIZE      = 16,
         BUFF_COUNT        = 4,
-        FIFO_DATA_W       = 128,
+        sink_width        = 128,
         rx_clk_domain     = "lms_rx",
         m_clk_domain      = "lms_tx",
         s_clk_domain      = "lms_tx",
+        output4channels   = False,
         input_buff_size   = 512
         ):
-        #Input buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
-        assert input_buff_size >= 512, "TXPathTop input_buff_size must be greater than or equal to 512 (4 cycles of 128bit)"
+        #Input buffer acts as CDC, so a minimum of 4 depth is required to instantiate the async FIFO
+        assert input_buff_size >= (128*4), "TXPathTop input_buff_size must be greater than or equal to 4 cycles of 128bit"
+
         assert fpgacfg_manager is not None
 
         self.platform          = platform
 
-        self.source            = AXIStreamInterface(64,          clock_domain=m_clk_domain)
-        self.sink              = AXIStreamInterface(FIFO_DATA_W, clock_domain=s_clk_domain)
+        self.source            = AXIStreamInterface(128 if output4channels else 64, clock_domain=m_clk_domain)
+        self.sink              = AXIStreamInterface(sink_width, clock_domain=s_clk_domain)
 
         self.rx_sample_nr      = Signal(64)
         self.pct_loss_flg      = Signal()
@@ -92,7 +93,7 @@ class TXPathTop(LiteXModule):
 
         # Synchro
         rx_sample_nr_sync= Signal(64)
-        ch_en            = Signal(2)
+        ch_en            = Signal(4 if output4channels else 2)
         smpl_width       = Signal(2)
         synch_dis        = Signal()
 
@@ -118,8 +119,8 @@ class TXPathTop(LiteXModule):
         data_pad_tready  = Signal()
         data_pad_tlast   = Signal()
 
-        # AXI Slave FIFO_DATA_W -> 128 (must uses s_axis_domain)
-        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(FIFO_DATA_W, 128)))
+        # AXI Slave sink_width -> 128 (must uses s_axis_domain)
+        conv_64_to_128      = ResetInserter()(ClockDomainsRenamer(s_clk_domain)(stream.Converter(sink_width, 128)))
         self.conv_64_to_128 = conv_64_to_128
 
         # Input data buffer (128 bit)
@@ -138,24 +139,23 @@ class TXPathTop(LiteXModule):
         unpack_bypass       = Signal()
 
         # LiteScope probes
-        self.smpl_width         = smpl_width
-        self.unpack_bypass      = unpack_bypass
-        self.p2d_rd_tready      = p2d_rd_tready
-        self.p2d_rd_tlast       = p2d_rd_tlast
-        self.p2d_rd_tvalid      = p2d_rd_tvalid
-        self.p2d_rd_tdata       = p2d_rd_tdata
-        self.p2d_rd_resetn      = p2d_rd_resetn
-        self.p2d_wr_tvalid      = p2d_wr_tvalid
-        self.p2d_wr_tready      = p2d_wr_tready
-        self.p2d_wr_tlast       = p2d_wr_tlast
-        self.p2d_wr_tdata       = p2d_wr_tdata
-        self.conn_buf           = Signal()
-        self.data_pad_tready    = data_pad_tready
-        self.data_pad_tlast     = data_pad_tlast
-        self.data_pad_tvalid    = data_pad_tvalid
-        self.data_pad_tdata     = data_pad_tdata
-        self.curr_buf_index     = curr_buf_index
-        self.rx_sample_nr_sync  = rx_sample_nr_sync
+        self.smpl_width        = smpl_width
+        self.unpack_bypass     = unpack_bypass
+        self.p2d_rd_tready     = p2d_rd_tready
+        self.p2d_rd_tlast      = p2d_rd_tlast
+        self.p2d_rd_tvalid     = p2d_rd_tvalid
+        self.p2d_rd_tdata      = p2d_rd_tdata
+        self.p2d_wr_tvalid     = p2d_wr_tvalid
+        self.p2d_wr_tready     = p2d_wr_tready
+        self.p2d_wr_tlast      = p2d_wr_tlast
+        self.p2d_wr_tdata      = p2d_wr_tdata
+        self.conn_buf          = Signal()
+        self.data_pad_tready   = data_pad_tready
+        self.data_pad_tlast    = data_pad_tlast
+        self.data_pad_tvalid   = data_pad_tvalid
+        self.data_pad_tdata    = data_pad_tdata
+        self.curr_buf_index    = curr_buf_index
+        self.rx_sample_nr_sync = rx_sample_nr_sync
 
         self.s_reset_n = s_reset_n
         self.m_reset_n = m_reset_n
@@ -180,15 +180,15 @@ class TXPathTop(LiteXModule):
                 self.cd_smpl_nr_fifo.rst.eq( (~(s_reset_n & self.ext_reset_n))),
             ]
 
-        p2d_wr_sink_ready = Signal()
+        self.p2d_wr_sink_ready = p2d_wr_sink_ready = Signal()
 
         self.comb += [
             conv_64_to_128.reset.eq(     ~s_reset_n),
             conv_64_to_128.sink.last.eq( 0),
 
             conv_64_to_128.sink.data.eq( self.sink.data),
-            conv_64_to_128.sink.valid.eq(self.sink.valid),
-            self.sink.ready.eq(          conv_64_to_128.sink.ready),
+            conv_64_to_128.sink.valid.eq(self.sink.valid & s_reset_n),
+            self.sink.ready.eq(          conv_64_to_128.sink.ready & s_reset_n),
 
             # smpl_nr_fifo
             smpl_nr_fifo.sink.data.eq(   self.rx_sample_nr),
@@ -200,10 +200,11 @@ class TXPathTop(LiteXModule):
             input_buff.sink.data.eq(     conv_64_to_128.source.data),
             input_buff.sink.last.eq(     conv_64_to_128.source.last),
             input_buff.sink.valid.eq(    conv_64_to_128.source.valid),
+
             # Async fifo used by ClockDomainCrossing does not have a reset
             # Passing reset as a ready signal to clear out the fifo is a workaround
             conv_64_to_128.source.ready.eq(input_buff.sink.ready | ~s_reset_n),
-            input_buff.source.ready.eq(p2d_wr_sink_ready | ~s_reset_n),
+            input_buff.source.ready.eq(p2d_wr_sink_ready | ~m_reset_n),
         ]
 
         self.pct2data_buf_wr = Instance("PCT2DATA_BUF_WR",
@@ -238,13 +239,13 @@ class TXPathTop(LiteXModule):
         packet_mode = True
         data_width  = 128
         tkeep_width = int(data_width/8)
-        fifo_depth  = 256
+        fifo_depth  = int(PCT_MAX_SIZE/(128/8))
 
         force_convert = platform.vhd2v_force
         # May be problematic if we need to use fifo somewhere else
         self.fifo_src_conv =  VHD2VConverter(platform,
                               work_package   = "work",
-                              force_convert  = True,#force_convert,
+                              force_convert  = force_convert,
                               flatten_source = False,
                               add_instance   = False,
                               files    = ["gateware/LimeDFB/axis_fifo/src/axis_fifo.vhd",
@@ -273,35 +274,38 @@ class TXPathTop(LiteXModule):
             # rd_usedw = Signal(usedw_width+1)
             sample_data_out = Signal(data_width)
 
-            self.packet_buf = Instance("axis_fifo",
-            # Parameters
-            #   vhd2v converter seems to have trouble with boolean and string parameters
-            #   but default values are good here
-            # p_G_PACKET_MODE         = True,
-            # p_G_VENDOR              = "GENERIC",
-            #### These are provided to vhd2vconverter
-            #p_G_FIFO_DEPTH          = fifo_depth,
-            #p_G_DATA_WIDTH          = data_width        ,
-            # s_axis
-            i_s_axis_aresetn        = (m_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
-            i_s_axis_aclk           = ClockSignal(m_clk_domain),
-            i_s_axis_tvalid         = p2d_wr_tvalid[i],
-            o_s_axis_tready         = p2d_wr_tready[i],
-            i_s_axis_tdata          = p2d_wr_tdata,
-            i_s_axis_tkeep          = Replicate(1,tkeep_width),
-            i_s_axis_tlast          = p2d_wr_tlast[i],
-            # m_axis
-            i_m_axis_aresetn  = (m_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
-            i_m_axis_aclk     = ClockSignal(m_clk_domain),
-            o_m_axis_tvalid   = p2d_rd_tvalid[i],
-            i_m_axis_tready   = p2d_rd_tready[i],
-            o_m_axis_tdata    = sample_data_out,
-            o_m_axis_tkeep    = Open(),# open, unused
-            o_m_axis_tlast    = p2d_rd_tlast[i],
-            # usedw
-            o_rdusedw         = Open(),#rd_usedw,
-            o_wrusedw         = Open(),#wr_usedw
-            )
+            fifo_dict = {
+                # --- Ports (s_axis) ---
+                "i_s_axis_aresetn": (m_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
+                "i_s_axis_aclk":    ClockSignal(m_clk_domain),
+                "i_s_axis_tvalid":  p2d_wr_tvalid[i],
+                "o_s_axis_tready":  p2d_wr_tready[i],
+                "i_s_axis_tdata":   p2d_wr_tdata,
+                "i_s_axis_tkeep":   Replicate(1, tkeep_width),
+                "i_s_axis_tlast":   p2d_wr_tlast[i],
+
+                # --- Ports (m_axis) ---
+                "i_m_axis_aresetn": (m_reset_n & self.ext_reset_n & p2d_rd_resetn[i]),
+                "i_m_axis_aclk":    ClockSignal(m_clk_domain),
+                "o_m_axis_tvalid":  p2d_rd_tvalid[i],
+                "i_m_axis_tready":  p2d_rd_tready[i],
+                "o_m_axis_tdata":   sample_data_out,
+                "o_m_axis_tkeep":   Open(),
+                "o_m_axis_tlast":   p2d_rd_tlast[i],
+
+                # --- Ports (usedw) ---
+                "o_rdusedw":        Open(),
+                "o_wrusedw":        Open(),
+            }
+
+            if force_convert:
+                fifo_config = fifo_dict
+            else:
+                fifo_config = fifo_dict.copy()
+                fifo_config["p_G_FIFO_DEPTH"] = fifo_depth
+                fifo_config["p_G_DATA_WIDTH"] = data_width
+
+            self.packet_buf = Instance("axis_fifo", **fifo_config)
 
             self.comb +=[
                 p2d_wr_buf_empty[i].eq(~p2d_rd_tvalid[i])
@@ -365,27 +369,45 @@ class TXPathTop(LiteXModule):
             # Control.
             i_BYPASS        = unpack_bypass,
         )
+        if not output4channels:
+            self.sample_unpack = Instance("SAMPLE_UNPACK",
+                # Clk/Reset.
+                i_RESET_N       = self.ext_reset_n,          # Unconnected for XTRX
+                i_AXIS_ACLK     = ClockSignal(m_clk_domain), # m_axis_domain
+                i_AXIS_ARESET_N = m_reset_n,                 # m_axis_domain.a_reset_n
 
-        self.sample_unpack = Instance("SAMPLE_UNPACK",
-            # Clk/Reset.
-            i_RESET_N       = self.ext_reset_n,          # Unconnected for XTRX
-            i_AXIS_ACLK     = ClockSignal(m_clk_domain), # m_axis_domain
-            i_AXIS_ARESET_N = m_reset_n,                 # m_axis_domain.a_reset_n
+                # AXI Stream Master
+                i_S_AXIS_TDATA  = fifo_smpl_buff.source.data,
+                o_S_AXIS_TREADY = fifo_smpl_buff.source.ready,
+                i_S_AXIS_TVALID = fifo_smpl_buff.source.valid,
+                i_S_AXIS_TLAST  = fifo_smpl_buff.source.last,
 
-            # AXI Stream Master
-            i_S_AXIS_TDATA  = fifo_smpl_buff.source.data,
-            o_S_AXIS_TREADY = fifo_smpl_buff.source.ready,
-            i_S_AXIS_TVALID = fifo_smpl_buff.source.valid,
-            i_S_AXIS_TLAST  = fifo_smpl_buff.source.last,
+                # AXI Stream Master
+                o_M_AXIS_TDATA  = self.source.data,
+                i_M_AXIS_TREADY = self.source.ready,
+                o_M_AXIS_TVALID = self.source.valid,
 
-            # AXI Stream Master
-            o_M_AXIS_TDATA  = self.source.data,
-            i_M_AXIS_TREADY = self.source.ready,
-            o_M_AXIS_TVALID = self.source.valid,
-
-            # Mode Settings.
-            i_CH_EN         = ch_en,
-        )
+                # Mode Settings.
+                i_CH_EN         = ch_en,
+            )
+        else:
+            from gateware.LimeDFB_LiteX.tx_path_top.src.sample_unpack128 import sample_unpack128
+            sample_unpack128_inst = ResetInserter()(ClockDomainsRenamer(m_clk_domain)(sample_unpack128()))
+            self.sample_unpack = sample_unpack128_inst
+            # Connect IO
+            self.comb += [
+                # Control signals
+                self.sample_unpack.reset.eq(~self.ext_reset_n),
+                self.sample_unpack.ch_en.eq(ch_en),
+                # Input data
+                self.sample_unpack.sink.data.eq(fifo_smpl_buff.source.data),
+                self.sample_unpack.sink.valid.eq(fifo_smpl_buff.source.valid),
+                self.fifo_smpl_buff.source.ready.eq(self.sample_unpack.sink.ready),
+                # Output data
+                self.source.data.eq(self.sample_unpack.source.data),
+                self.source.valid.eq(self.sample_unpack.source.valid),
+                self.sample_unpack.source.ready.eq(self.source.ready),
+            ]
 
         if platform.name.startswith("limesdr_mini"):
             self.specials += [
@@ -405,14 +427,18 @@ class TXPathTop(LiteXModule):
             MultiReg(self.pct_loss_flg_clr,      pct_loss_flg_clr, odomain=m_clk_domain),
         ]
 
-        self.comb += [
-            fifo_smpl_buff.reset.eq(~self.ext_reset_n),
-            self.source.last.eq(0),
+        sync_m_clk_domain = getattr(self.sync, m_clk_domain)
+        sync_m_clk_domain += [
             If(smpl_width == 0b00,
                 unpack_bypass.eq(1),
             ).Else(
                 unpack_bypass.eq(0),
             ),
+        ]
+
+        self.comb += [
+            fifo_smpl_buff.reset.eq(~self.ext_reset_n),
+            self.source.last.eq(0),
         ]
 
         self.pct2data_buf_wr_conv = add_vhd2v_converter(self.platform,
@@ -436,9 +462,56 @@ class TXPathTop(LiteXModule):
         # Removed Instance to avoid multiple definition
         self._fragment.specials.remove(self.sample_padder)
 
-        self.sample_unpack_conv = add_vhd2v_converter(self.platform,
-            instance = self.sample_unpack,
-            files    = ["gateware/LimeDFB_LiteX/tx_path_top/src/sample_unpack.vhd"],
-        )
-        # Removed Instance to avoid multiple definition
-        self._fragment.specials.remove(self.sample_unpack)
+        if not output4channels:
+            self.sample_unpack_conv = add_vhd2v_converter(self.platform,
+                instance = self.sample_unpack,
+                files    = ["gateware/LimeDFB_LiteX/tx_path_top/src/sample_unpack.vhd"],
+            )
+            # Removed Instance to avoid multiple definition
+            self._fragment.specials.remove(self.sample_unpack)
+
+        # Signal lists for debugging
+        self.flow_control_signals = SimpleNamespace()
+        self.flow_control_signals.m_clk = [
+            self.source.valid,
+            self.source.ready,
+            self.source.last,
+            p2d_wr_tvalid,
+            p2d_wr_tready,
+            p2d_wr_tlast,
+            p2d_rd_tvalid,
+            p2d_rd_tready,
+            p2d_rd_tlast,
+            data_pad_tvalid,
+            data_pad_tready,
+            data_pad_tlast,
+            conv_64_to_128.sink.valid,
+            conv_64_to_128.sink.ready,
+            conv_64_to_128.sink.last,
+            conv_64_to_128.source.valid,
+            conv_64_to_128.source.ready,
+            conv_64_to_128.source.last,
+            input_buff.source.valid,
+            input_buff.source.ready,
+            fifo_smpl_buff.sink.valid,
+            fifo_smpl_buff.sink.ready,
+            fifo_smpl_buff.sink.last,
+            fifo_smpl_buff.source.valid,
+            fifo_smpl_buff.source.ready,
+            fifo_smpl_buff.source.last,
+            smpl_nr_fifo.source.valid,
+            smpl_nr_fifo.source.ready,
+            p2d_wr_sink_ready,
+        ]
+
+        self.flow_control_signals.s_clk = [
+            self.sink.valid,
+            self.sink.ready,
+            input_buff.sink.valid,
+            input_buff.sink.ready,
+        ]
+
+        self.flow_control_signals.rx_clk = [
+            smpl_nr_fifo.sink.valid,
+            smpl_nr_fifo.sink.ready,
+        ]

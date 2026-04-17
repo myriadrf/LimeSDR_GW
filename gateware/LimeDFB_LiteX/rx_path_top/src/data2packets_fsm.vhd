@@ -40,7 +40,9 @@ entity DATA2PACKETS_FSM is
       WR_DATA_COUNT_AXIS   : in    std_logic_vector(9 downto 0);
 
       DBG_DROP_SAMPLES : out std_logic;
-      DBG_WR_HEADER    : out std_logic
+      DBG_WR_HEADER    : out std_logic;
+      DBG_STATE        : out  std_logic_vector(3 downto 0);
+      DBG_WR_CNT       : out std_logic_vector(15 downto 0)
 
    );
 end entity DATA2PACKETS_FSM;
@@ -70,6 +72,17 @@ architecture ARCH of DATA2PACKETS_FSM is
    signal pct_wrcnt                 : unsigned(15 downto 0);
 
 begin
+
+
+   DBG_STATE <=   x"0" when current_state = IDLE else 
+                  x"1" when current_state = DROP_SAMPLES else 
+                  x"2" when current_state = WR_HEADER else 
+                  x"3" when current_state = WR_PAYLOAD else 
+                  x"4" when current_state = PCT_END else 
+                  x"F";
+
+
+   DBG_WR_CNT <= std_logic_vector(pct_wrcnt);
 
    process (ACLK, ARESET_N) is
    begin

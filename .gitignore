@@ -17,6 +17,8 @@ vivado_*
 
 docs/_build/
 docs/docs/limesdr-xtrx/litex_doc/_build/
+docs/docs/ssdr_rev2/litex_doc/_build/
+docs/docs/hipersdr-44xx/litex_doc/_build/
 
 docs/venv/
 node_modules/
@@ -31,3 +33,5 @@ LimeSDR-Mini_lms7_trx_HW_1.2.svf
 !gateware/max10_onchipflash/max10_onchipflash.py
 gateware/max10_onchipflash/*
 /soc_structure.json
+/deps/
+/.venv/

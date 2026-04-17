@@ -1,0 +1,1051 @@
+#include "LMK05318B.h"
+#include "bsp.h"
+#include "litei2c.h"
+#include <stdint.h>
+#include <stdio.h> // For debug/logging (optional)
+
+#ifndef BSP_I2C_LMK_ADDR
+#    error "BSP_I2C_LMK_ADDR is not defined. Please define it before including this file."
+#endif
+
+uint32_t lmk05318b_config[] = {
+
+    // 0x000010,
+    // 0x00010B,
+    // 0x000235,
+    // 0x000332,
+    // 0x000404,
+    // 0x00050E,
+    // 0x000617,
+    // 0x00078E,
+    // 0x000802,
+    // 0x000AC8,
+    // 0x000B00,
+    0x000C1B,
+    0x000D08,
+    0x000E00,
+    0x000F00,
+    0x001000,
+    0x00111D,
+    0x0012FF,
+    0x001308,
+    0x001420,
+    0x001500,
+    0x001600,
+    0x001755,
+    0x001855,
+    0x001900,
+    0x001A00,
+    0x001B00,
+    0x001C01,
+    0x001D13,
+    0x001E40,
+    0x002044,
+    0x002300,
+    0x002403,
+    0x002500,
+    0x002600,
+    0x002702,
+    0x002807,
+    0x002900,
+    0x002A01,
+    0x002BC2,
+    0x002C01,
+    0x002D02,
+    0x002E11,
+    0x002F07,
+    0x003050,
+    0x00314A,
+    0x003204,
+    0x003380,
+    0x003410,
+    0x003501,
+    0x003690,
+    0x003700,
+    0x0038FF,
+    0x003900,
+    0x003A07,
+    0x003B90,
+    0x003C03,
+    0x003D90,
+    0x003EFF,
+    0x003F90,
+    0x004000,
+    0x004100,
+    0x004200,
+    0x004303,
+    0x004408,
+    0x004500,
+    0x004600,
+    0x004700,
+    0x004833,
+    0x004900,
+    0x004A00,
+    0x004B00,
+    0x004C00,
+    0x004D0F,
+    0x004E00,
+    0x004F11,
+    0x005080,
+    0x00510A,
+    0x005200,
+    0x00530F,
+    0x00543C,
+    0x005500,
+    0x005600,
+    0x00571E,
+    0x005884,
+    0x005980,
+    0x005A00,
+    0x005B14,
+    0x005C00,
+    0x005D0F,
+    0x005E3C,
+    0x005F00,
+    0x006000,
+    0x00611E,
+    0x006284,
+    0x006380,
+    0x006428,
+    0x006501,
+    0x006625,
+    0x00670F,
+    0x00681F,
+    0x006905,
+    0x006A00,
+    0x006B64,
+    0x006C00,
+    0x006D60,
+    0x006E27,
+    0x006F62,
+    0x007076,
+    0x007127,
+    0x007262,
+    0x007303,
+    0x007401,
+    0x007500,
+    0x007600,
+    0x007700,
+    0x007800,
+    0x007900,
+    0x007A00,
+    0x007B28,
+    0x007C00,
+    0x007D11,
+    0x007E79,
+    0x007F7A,
+    0x008000,
+    0x008101,
+    0x008200,
+    0x008301,
+    0x008401,
+    0x008577,
+    0x008600,
+    0x00872A,
+    0x008800,
+    0x00891C,
+    0x008A86,
+    0x008B03,
+    0x008C02,
+    0x008D00,
+    0x008E01,
+    0x008F01,
+    0x009077,
+    0x009101,
+    0x009289,
+    0x009320,
+    0x00950D,
+    0x009600,
+    0x009701,
+    0x00980D,
+    0x009929,
+    0x009A24,
+    0x009B32,
+    0x009C01,
+    // 0x009D00,
+    0x009E00,
+    0x009F00,
+    0x00A0FC,
+    0x00A132,
+    0x00A200,
+    // 0x00A400,
+    0x00A500,
+    0x00A701,
+    0x00B200,
+    0x00B400,
+    0x00B500,
+    0x00B600,
+    0x00B700,
+    0x00B800,
+    0x00B905,
+    0x00BA07,
+    0x00BB00,
+    0x00BC00,
+    0x00BD00,
+    0x00BE4B,
+    0x00BF00,
+    0x00C050,
+    0x00C12F,
+    0x00C22F,
+    0x00C300,
+    0x00C400,
+    0x00C51D,
+    0x00C600,
+    0x00C700,
+    0x00C813,
+    0x00C900,
+    0x00CA00,
+    0x00CB00,
+    0x00CC15,
+    0x00CD00,
+    0x00CE00,
+    0x00CF0B,
+    0x00D000,
+    0x00D114,
+    0x00D200,
+    0x00D316,
+    0x00D400,
+    0x00D514,
+    0x00D600,
+    0x00D716,
+    0x00D80F,
+    0x00D900,
+    0x00DA00,
+    0x00DB17,
+    0x00DC7A,
+    0x00DD00,
+    0x00DE03,
+    0x00DF0D,
+    0x00E04D,
+    0x00E100,
+    0x00E200,
+    0x00E325,
+    0x00E490,
+    0x00E500,
+    0x00E603,
+    0x00E70D,
+    0x00E84D,
+    0x00E90A,
+    0x00EA0A,
+    0x00EB01,
+    0x00EC8C,
+    0x00EDBA,
+    0x00EE80,
+    0x00EF00,
+    0x00F0C3,
+    0x00F150,
+    0x00F200,
+    0x00F300,
+    0x00F400,
+    0x00F912,
+    0x00FA00,
+    0x00FB11,
+    0x00FC2D,
+    0x00FD00,
+    0x00FE00,
+    0x00FF00,
+    0x010000,
+    0x010105,
+    0x010200,
+    0x010308,
+    0x010402,
+    0x010580,
+    0x010600,
+    0x010700,
+    0x010800,
+    0x010903,
+    0x010AE8,
+    0x010BA0,
+    0x010C0C,
+    0x010D01,
+    0x010E02,
+    0x010FAB,
+    0x011000,
+    0x011100,
+    0x011200,
+    0x01130E,
+    0x01140C,
+    0x01150E,
+    0x011609,
+    0x011708,
+    0x011809,
+    0x011907,
+    0x011A0C,
+    0x011B07,
+    0x011C1E,
+    0x011D1E,
+    0x011E02,
+    0x011FB0,
+    0x012003,
+    0x0121EC,
+    0x012203,
+    0x01230A,
+    0x012409,
+    0x012501,
+    0x012600,
+    0x01272C,
+    0x012805,
+    0x012909,
+    0x012A05,
+    0x012B01,
+    0x012C00,
+    0x012D1C,
+    0x012E21,
+    0x012F01,
+    0x013001,
+    0x013100,
+    0x013200,
+    0x013300,
+    0x013453,
+    0x013555,
+    0x013655,
+    0x013755,
+    0x013855,
+    0x013955,
+    0x013AFF,
+    0x013BFF,
+    0x013CFF,
+    0x013DFF,
+    0x013EFF,
+    0x013F03,
+    0x014000,
+    0x01410A,
+    0x014200,
+    0x014307,
+    0x014453,
+    0x014500,
+    0x014600,
+    0x014798,
+    0x014896,
+    0x014980,
+    0x014A00,
+    0x014B64,
+    0x014C00,
+    0x014D00,
+    0x014E3D,
+    0x014F09,
+    0x015000,
+    0x015198,
+    0x015296,
+    0x015380,
+    0x015400,
+    0x015500,
+    0x015600,
+    0x015700,
+    0x015800,
+    0x015900,
+    0x015A02,
+    0x015B00,
+    0x015C00,
+    0x015D00,
+    0x015E00,
+    0x015F00,
+    0x016000,
+    0x016528,
+    0x016F00,
+    0x019B0C,
+
+    /*
+                0x000010,
+                0x00010B,
+                0x000235,
+                0x000332,
+                0x000404,
+                0x00050E,
+                0x000617,
+                0x00078E,
+                0x000802,
+                0x000AC8,
+                0x000B00,
+                //0x000C1B,
+                0x000D08,
+                0x000E00,
+                0x000F00,
+                0x001000,
+                0x00111D,
+                0x0012FF,
+                0x001308,
+                0x001420,
+                0x001501,
+                0x001600,
+                0x001755,
+                0x001855,
+                //0x001900,
+                0x0019FF,
+                0x001A00,
+                0x001B00,
+                0x001C01,
+                0x001D11,
+                0x001E40,
+                0x002044,
+                0x002300,
+                0x002403,
+                0x002500,
+                0x002600,
+                0x002703,
+                0x002803,
+                0x002900,
+                0x002A01,
+                0x002BE2,
+                0x002C00,
+                0x002D03,
+                0x002E11,
+                0x002F07,
+                0x003050,
+                0x00314A,
+                0x003280,
+                0x0033C0,
+                0x003410,
+                0x003501,
+                0x0036D0,
+                0x003700,
+                0x0038FF,
+                0x0039D0,
+                0x003A03,
+                0x003BD0,
+                0x003C03,
+                0x003DD0,
+                0x003EFF,
+                0x003FD0,
+                0x004000,
+                0x004100,
+                0x004200,
+                0x004303,
+                0x004408,
+                0x004500,
+                0x004604,
+                0x00473B,
+                0x004833,
+                0x004900,
+                0x004A00,
+                0x004B00,
+                0x004C00,
+                0x004D0F,
+                0x004E00,
+                0x004F11,
+                0x005080,
+                0x00510A,
+                0x005200,
+                0x00530F,
+                0x00543C,
+                0x005500,
+                0x005600,
+                0x00571E,
+                0x005884,
+                0x005980,
+                0x005A00,
+                0x005B14,
+                0x005C00,
+                0x005D0F,
+                0x005E3C,
+                0x005F00,
+                0x006000,
+                0x00611E,
+                0x006284,
+                0x006380,
+                0x006428,
+                0x006501,
+                0x006655,
+                0x00670F,
+                0x00681F,
+                0x006905,
+                0x006A00,
+                0x006B64,
+                0x006C00,
+                0x006D30,
+                0x006E03,
+                0x006FE8,
+                0x007000,
+                0x007132,
+                0x0072C8,
+                0x007303,
+                0x007400,
+                0x007500,
+                0x007600,
+                0x007700,
+                0x007800,
+                0x007900,
+                0x007A00,
+                0x007B28,
+                0x007C00,
+                0x007D11,
+                0x007E79,
+                0x007F7A,
+                0x008000,
+                0x008101,
+                0x008200,
+                0x008301,
+                0x008401,
+                0x008577,
+                0x008600,
+                0x00872A,
+                0x008800,
+                0x00891C,
+                0x008A86,
+                0x008B03,
+                0x008C02,
+                0x008D00,
+                0x008E01,
+                0x008F01,
+                0x009077,
+                0x009101,
+                0x009289,
+                0x009320,
+                0x00950D,
+                0x009600,
+                0x009701,
+                0x00980D,
+                0x009929,
+                0x009A24,
+                0x009B32,
+                0x009C01,
+                //0x009D00,
+                0x009E00,
+                0x009F00,
+                0x00A0FC,
+                0x00A132,
+                0x00A200,
+                //0x00A400,
+                0x00A500,
+                0x00A700,
+                0x00B200,
+                0x00B400,
+                0x00B500,
+                0x00B600,
+                0x00B700,
+                0x00B800,
+                0x00B905,
+                0x00BA08,
+                0x00BB00,
+                0x00BC00,
+                0x00BD00,
+                0x00BE2C,
+                0x00BF00,
+                0x00C050,
+                0x00C100,
+                0x00C200,
+                0x00C300,
+                0x00C400,
+                0x00C51D,
+                0x00C600,
+                0x00C700,
+                0x00C81D,
+                0x00C900,
+                0x00CA00,
+                0x00CB00,
+                0x00CC15,
+                0x00CD00,
+                0x00CE00,
+                0x00CF15,
+                0x00D000,
+                0x00D114,
+                0x00D200,
+                0x00D316,
+                0x00D400,
+                0x00D514,
+                0x00D600,
+                0x00D716,
+                0x00D80F,
+                0x00D900,
+                0x00DA00,
+                0x00DB19,
+                0x00DC6E,
+                0x00DD00,
+                0x00DE03,
+                0x00DF0D,
+                0x00E047,
+                0x00E100,
+                0x00E200,
+                0x00E317,
+                0x00E47A,
+                0x00E500,
+                0x00E603,
+                0x00E70D,
+                0x00E84D,
+                0x00E90A,
+                0x00EA0A,
+                0x00EB00,
+                0x00ECC3,
+                0x00ED50,
+                0x00EE00,
+                0x00EF00,
+                0x00F0C3,
+                0x00F150,
+                0x00F200,
+                0x00F300,
+                0x00F400,
+                0x00F912,
+                0x00FA00,
+                0x00FB13,
+                0x00FC2C,
+                0x00FD00,
+                0x00FE00,
+                0x00FF00,
+                0x010000,
+                0x010101,
+                0x010200,
+                0x010301,
+                0x010402,
+                0x010580,
+                0x010600,
+                0x010700,
+                0x010800,
+                0x010900,
+                0x010AC8,
+                0x010BA0,
+                0x010C0C,
+                0x010D0A,
+                0x010E02,
+                0x010F14,
+                0x011000,
+                0x011100,
+                0x011200,
+                0x01130E,
+                0x01140C,
+                0x01150E,
+                0x011609,
+                0x011708,
+                0x011809,
+                0x011907,
+                0x011A0D,
+                0x011B07,
+                0x011C1E,
+                0x011D1E,
+                0x011E02,
+                0x011F30,
+                0x012000,
+                0x0121EE,
+                0x012202,
+                0x0123CA,
+                0x012409,
+                0x012501,
+                0x012600,
+                0x01272C,
+                0x012808,
+                0x01290C,
+                0x012A08,
+                0x012B01,
+                0x012C00,
+                0x012D1C,
+                0x012E20,
+                0x012F01,
+                0x013001,
+                0x013100,
+                0x013200,
+                0x013300,
+                0x013410,
+                0x0135AA,
+                0x0136AA,
+                0x0137AA,
+                0x0138AA,
+                0x0139AA,
+                0x013AFF,
+                0x013BFF,
+                0x013CFF,
+                0x013DFF,
+                0x013EFF,
+                0x013F03,
+                0x014000,
+                0x01410A,
+                0x014200,
+                0x014324,
+                0x01449F,
+                0x014500,
+                0x014600,
+                0x014798,
+                0x014896,
+                0x014980,
+                0x014A00,
+                0x014B64,
+                0x014C00,
+                0x014D00,
+                0x014E3D,
+                0x014F09,
+                0x015000,
+                0x015198,
+                0x015296,
+                0x015300,
+                0x015400,
+                0x015500,
+                0x015600,
+                0x015700,
+                0x015800,
+                0x015900,
+                0x015A01,
+                0x015B00,
+                0x015C00,
+                0x015D00,
+                0x015E00,
+                0x015F00,
+                0x016000,
+                0x016528,
+                0x016F00,
+                0x019B0C
+                */
+
+};
+
+#define LMK05318B_CONFIG_LEN (sizeof(lmk05318b_config) / sizeof(lmk05318b_config[0]))
+
+// Define the register addresses you want to read from
+uint16_t reg_addrs[] = {
+    0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E,
+    0x000F, 0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016, 0x0017, 0x0018, 0x0019, 0x001A, 0x001B, 0x001C,
+    0x001D, 0x001E, 0x0020, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D,
+    0x002E, 0x002F, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x003A, 0x003B,
+    0x003C, 0x003D, 0x003E, 0x003F, 0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047, 0x0048, 0x0049,
+    0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F, 0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057,
+    0x0058, 0x0059, 0x005A, 0x005B, 0x005C, 0x005D, 0x005E, 0x005F, 0x0060, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065,
+    0x0066, 0x0067, 0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F, 0x0070, 0x0071, 0x0072, 0x0073,
+    0x0074, 0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007A, 0x007B, 0x007C, 0x007D, 0x007E, 0x007F, 0x0080, 0x0081,
+    0x0082, 0x0083, 0x0084, 0x0085, 0x0086, 0x0087, 0x0088, 0x0089, 0x008A, 0x008B, 0x008C, 0x008D, 0x008E, 0x008F,
+    0x0090, 0x0091, 0x0092, 0x0093, 0x0095, 0x0096, 0x0097, 0x0098, 0x0099, 0x009A, 0x009B, 0x009C, 0x009D, 0x009E,
+    0x009F, 0x00A0, 0x00A1, 0x00A2, 0x00A4, 0x00A5, 0x00A7, 0x00B2, 0x00B4, 0x00B5, 0x00B6, 0x00B7, 0x00B8, 0x00B9,
+    0x00BA, 0x00BB, 0x00BC, 0x00BD, 0x00BE, 0x00BF, 0x00C0, 0x00C1, 0x00C2, 0x00C3, 0x00C4, 0x00C5, 0x00C6, 0x00C7,
+    0x00C8, 0x00C9, 0x00CA, 0x00CB, 0x00CC, 0x00CD, 0x00CE, 0x00CF, 0x00D0, 0x00D1, 0x00D2, 0x00D3, 0x00D4, 0x00D5,
+    0x00D6, 0x00D7, 0x00D8, 0x00D9, 0x00DA, 0x00DB, 0x00DC, 0x00DD, 0x00DE, 0x00DF, 0x00E0, 0x00E1, 0x00E2, 0x00E3,
+    0x00E4, 0x00E5, 0x00E6, 0x00E7, 0x00E8, 0x00E9, 0x00EA, 0x00EB, 0x00EC, 0x00ED, 0x00EE, 0x00EF, 0x00F0, 0x00F1,
+    0x00F2, 0x00F3, 0x00F4, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x00FD, 0x00FE, 0x00FF, 0x0100, 0x0101, 0x0102, 0x0103,
+    0x0104, 0x0105, 0x0106, 0x0107, 0x0108, 0x0109, 0x010A, 0x010B, 0x010C, 0x010D, 0x010E, 0x010F, 0x0110, 0x0111,
+    0x0112, 0x0113, 0x0114, 0x0115, 0x0116, 0x0117, 0x0118, 0x0119, 0x011A, 0x011B, 0x011C, 0x011D, 0x011E, 0x011F,
+    0x0120, 0x0121, 0x0122, 0x0123, 0x0124, 0x0125, 0x0126, 0x0127, 0x0128, 0x0129, 0x012A, 0x012B, 0x012C, 0x012D,
+    0x012E, 0x012F, 0x0130, 0x0131, 0x0132, 0x0133, 0x0134, 0x0135, 0x0136, 0x0137, 0x0138, 0x0139, 0x013A, 0x013B,
+    0x013C, 0x013D, 0x013E, 0x013F, 0x0140, 0x0141, 0x0142, 0x0143, 0x0144, 0x0145, 0x0146, 0x0147, 0x0148, 0x0149,
+    0x014A, 0x014B, 0x014C, 0x014D, 0x014E, 0x014F, 0x0150, 0x0151, 0x0152, 0x0153, 0x0154, 0x0155, 0x0156, 0x0157,
+    0x0158, 0x0159, 0x015A, 0x015B, 0x015C, 0x015D, 0x015E, 0x015F, 0x0160, 0x0165, 0x016F, 0x019B,
+};
+
+// Stub: Board-specific initialization
+bool LMK05318B_init(litei2c_regs *i2c_regs)
+{
+    bool status;
+    uint8_t rdata = 0;
+
+    if (LMK05318B_check_ID(i2c_regs)) {
+        status = LMK05318B_apply_config(i2c_regs);
+        status = LMK05318B_read_reg(i2c_regs, DEV_CTL, &rdata);
+        printf("[LMK05318B] DEV_CTL: 0x%x\n", rdata);
+
+        // Set FPGA1PPS and AFE GT REF clock to divider 4. That should result in ~245MHz
+        LMK05318B_write_reg(i2c_regs, 0x003C, 0x03);
+        LMK05318B_write_reg(i2c_regs, 0x0043, 0x03);
+        // LMK05318B_write_reg(i2c_regs, 0x0043, 0xFF);
+
+        // Set FPGA1PPS and AFE GT REF clock to divider 8. That should result in 122.88MHz
+        // LMK05318B_write_reg(i2c_regs, 0x003C, 0x07);
+        // LMK05318B_write_reg(i2c_regs, 0x0043, 0x07);
+
+        // Reset
+        LMK05318B_write_reg(i2c_regs, 0x000C, 0x9B);
+        LMK05318B_write_reg(i2c_regs, 0x000C, 0x1B);
+        LMK05318B_write_reg(i2c_regs, 0x002C, 0x01);
+        LMK05318B_write_reg(i2c_regs, 0x004A, 0x00);
+        LMK05318B_write_reg(i2c_regs, 0x004A, 0x01);
+        LMK05318B_write_reg(i2c_regs, 0x004A, 0x00);
+
+        /*
+            LMK05318B_write_reg(0x000C, 0x9B);
+            LMK05318B_write_reg(0x000C, 0x1B);
+            LMK05318B_write_reg(0x000C, 0x5B);
+            LMK05318B_write_reg(0x000C, 0x1B);
+            //LMK05318B_write_reg(OUTCTL_6, 0xC0);
+            //LMK05318B_write_reg(OUTCTL_2, 0xC0);
+             *
+             */
+
+        // LMK05318B_dump_registers();
+
+        LMK05318B_wait_for_lock(i2c_regs);
+        printf("[LMK05318B] Init Done\n");
+    } else {
+        printf("[LMK05318B] Init Failed\n");
+    }
+
+    // LMK05318B_check_lock();
+
+    // LMK05318B_dump_registers();
+    return status;
+}
+
+// Function to write a 16-bit register address and 8-bit data
+bool LMK05318B_write_reg(litei2c_regs *i2c_regs, uint16_t reg_addr, uint8_t value)
+{
+    return litei2c_a16d8_write_register(i2c_regs, BSP_I2C_LMK_ADDR, reg_addr, value) == 0;
+}
+
+bool LMK05318B_apply_config(litei2c_regs *litei2c_regs)
+{
+    for (size_t i = 0; i < LMK05318B_CONFIG_LEN; ++i) {
+        uint32_t entry = lmk05318b_config[i];
+        uint16_t reg   = (entry >> 8) & 0xFFFF;
+        uint8_t val    = entry & 0xFF;
+        if (!LMK05318B_write_reg(litei2c_regs, reg, val)) {
+            return false; // Stop on first error
+            printf("[LMK05318B] Error: cfg fail");
+        }
+    }
+    return true;
+}
+
+bool LMK05318B_read_reg(litei2c_regs *i2c_regs, uint16_t reg_addr, uint8_t *rdata)
+{
+    return litei2c_a16d8_read_register(i2c_regs, BSP_I2C_LMK_ADDR, reg_addr, rdata) == 0;
+}
+
+bool LMK05318B_check_ID(litei2c_regs *litei2c_regs)
+{
+    uint8_t rdata = 0;
+    bool status;
+
+    status = LMK05318B_read_reg(litei2c_regs, PRODID, &rdata);
+
+    if (rdata == LMK05318B_PRODID) {
+        printf("[LMK05318B] LMK05318B detected\n");
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void LMK05318B_check_lock(litei2c_regs *litei2c_regs)
+{
+    uint8_t rdata = 0;
+    bool status;
+
+    status = LMK05318B_read_reg(litei2c_regs, INT_FLAG0, &rdata);
+    printf("[LMK05318B] INT_FLAG0: 0x%x\n", rdata);
+
+    status = LMK05318B_read_reg(litei2c_regs, INT_FLAG1, &rdata);
+    printf("[LMK05318B] INT_FLAG1: 0x%x\n", rdata);
+
+    status = LMK05318B_read_reg(litei2c_regs, INT_FLAG0, &rdata);
+    printf("[LMK05318B] BAW_LOCKDET_PPM_MAX_BY1: 0x%x\n", rdata);
+}
+
+// Function to read a 16-bit register address and 8-bit data (useful for testing only)
+bool LMK05318B_verify_config(litei2c_regs *litei2c_regs)
+{
+    bool all_match = true;
+    for (size_t i = 0; i < LMK05318B_CONFIG_LEN; ++i) {
+        uint32_t entry       = lmk05318b_config[i];
+        uint16_t reg         = (entry >> 8) & 0xFFFF;
+        uint8_t expected_val = entry & 0xFF;
+
+        uint8_t actual_val;
+        if (!LMK05318B_read_reg(litei2c_regs, reg, &actual_val)) {
+            printf("[LMK05318B] Error: Failed to read reg 0x%04X\n", reg);
+            all_match = false;
+            continue;
+        }
+
+        if (actual_val != expected_val) {
+            printf("[LMK05318B] Warning: Reg 0x%04X mismatch (expected: 0x%02X, actual: 0x%02X)\n",
+                   reg,
+                   expected_val,
+                   actual_val);
+            all_match = false;
+        }
+    }
+
+    return all_match;
+}
+
+// Function to dump all register (usefull for testing only)
+void LMK05318B_dump_registers(litei2c_regs *litei2c_regs)
+{
+    const uint8_t i2c_addr = BSP_I2C_LMK_ADDR; // LMK05318B I2C address (example)
+    const int num_regs     = sizeof(reg_addrs) / sizeof(reg_addrs[0]);
+
+    // Array to store the read data
+    uint8_t reg_values[num_regs];
+
+    printf("[LMK05318B] Debug: REG dump\n");
+
+    // Read from each register
+    for (int i = 0; i < num_regs; i++) {
+        int8_t retval = litei2c_a16d8_read_register(litei2c_regs, i2c_addr, reg_addrs[i], &reg_values[i]);
+        if (retval == 0) {
+            printf("[LMK05318B] Read reg 0x%04X = 0x%02X\n", reg_addrs[i], reg_values[i]);
+        } else {
+            printf("[LMK05318B] Failed to read reg 0x%04X\n", reg_addrs[i]);
+        }
+    }
+}
+
+/*
+void LMK05318B_wait_for_lock(litei2c_regs *i2c_regs) {
+    uint8_t rdata = 0;
+    int timeout = 1000; // Wait up to 1 second
+
+    printf("[LMK] XO Coarse Validation...\n");
+
+    LMK05318B_read_reg(i2c_regs, 0xD, &rdata);
+    printf("[LMK] LOS_XO! (Status: 0x%02X)\n", rdata);
+
+    printf("[LMK] Waiting for DPLL and APLL Lock...\n");
+
+
+    //READ DPLL_REFSEL_STAT
+    LMK05318B_read_reg(i2c_regs, 0xD, &rdata);
+    printf("[LMK] LOS_XO! (Status: 0x%02X)\n", rdata);
+
+    //READ DPLL_REFSEL_STAT
+    LMK05318B_read_reg(i2c_regs, 0x13, &rdata);
+    printf("[LMK] LOS_XO! (Status: 0x%02X)\n", rdata);
+
+    while (timeout--) {
+        LMK05318B_read_reg(i2c_regs, 0xD, &rdata);
+        // Bit 2: PRIREF_VALSTAT, Bit 3: SECREF_VALSTAT
+        // We want both bits to be 1 (0x0C)
+        if ((rdata & 0xF) == 0x0) {
+            printf("[LMK] Locked! (Status: 0x%02X)\n", rdata);
+
+            LMK05318B_read_reg(i2c_regs, 0xD, &rdata);
+            printf("[LMK] DPLL_REFSEL_STAT! (Status: 0x%02X)\n", rdata);
+
+            LMK05318B_read_reg(i2c_regs, 0x165, &rdata);
+            printf("[LMK] PLL1_CALSTAT1! (Status: 0x%02X)\n", rdata);
+
+            LMK05318B_read_reg(i2c_regs, 0x16F, &rdata);
+            printf("[LMK] PLL2_CALSTAT1! (Status: 0x%02X)\n", rdata);
+
+            LMK05318B_read_reg(i2c_regs, 0x19B, &rdata);
+            printf("[LMK] REF_VALSTAT! (Status: 0x%02X)\n", rdata);
+
+            printf("[LMK] Time for lock (Status: 0x%02X)\n", timeout);
+
+
+            return;
+        }
+        cdelay(100000); // 1ms delay
+    }
+
+
+    printf("[LMK] ERROR: Timeout waiting for Lock! Status: 0x%02X\n", rdata);
+}
+*/
+
+void LMK05318B_wait_for_lock(litei2c_regs *i2c_regs)
+{
+    uint8_t rdata       = 0;
+    uint8_t rdata_0D    = 0;
+    uint8_t rdata_apll1 = 0;
+    uint8_t rdata_apll2 = 0;
+
+    uint8_t LOS_FDET_XO    = 0;
+    uint8_t PRIREF_VALSTAT = 0;
+    uint8_t SECREF_VALSTAT = 0;
+    uint8_t LOR_MISSCLK    = 0;
+    uint8_t LOR_FREQ       = 0;
+    uint8_t LOR_AMP        = 0;
+    uint8_t PLL1_VM_INSIDE = 0;
+    uint8_t LOFL_DPLL      = 0;
+    uint8_t LOPL_DPLL      = 0;
+    uint8_t PLL2_VM_INSIDE = 0;
+    uint8_t LOL_PLL2       = 0;
+
+    uint8_t DPLL_REFSEL_STAT = 0;
+
+    int timeout = 1000; // Wait up to 1 second
+
+    printf("[LMK] Waiting for XO, DPLL, and APLL Locks...\n");
+
+    while (timeout > 0) {
+        timeout--;
+        int is_locked = 1; // Assume locked until a condition fails
+
+        // ====================================================================
+        // (1) XO Coarse Validation & (2) Reference Validation
+        // ====================================================================
+        LMK05318B_read_reg(i2c_regs, 0xD, &rdata_0D);
+        LOS_FDET_XO = (rdata_0D & 0x10) >> 4;
+        LOL_PLL2    = (rdata_0D & 0x8) >> 3;
+
+        // Step 1: LOS_FDET_XO must be 0 if there is valid XO
+        if (LOS_FDET_XO == 1) {
+            is_locked = 0;
+        }
+
+        LMK05318B_read_reg(i2c_regs, 0x19B, &rdata);
+        PRIREF_VALSTAT = (rdata & 0x04) >> 2;
+        SECREF_VALSTAT = (rdata & 0x08) >> 3;
+
+        // Step 2: Assuming we always use SECREF for now, SECREF_VALSTAT must be 1 (Valid)
+        if (SECREF_VALSTAT != 0x01) {
+            is_locked = 0;
+        }
+
+        // Read status bit for reference validation and APLL1 / DPLL Lock Detect
+        LMK05318B_read_reg(i2c_regs, 0xE, &rdata);
+        LOPL_DPLL   = (rdata & 0x80) >> 7;
+        LOFL_DPLL   = (rdata & 0x40) >> 6;
+        LOR_MISSCLK = (rdata & 0x04) >> 2;
+        LOR_FREQ    = (rdata & 0x02) >> 1;
+        LOR_AMP     = (rdata & 0x01);
+
+        // Read status bit for reference validation and APLL1 / DPLL Lock Detect
+        LMK05318B_read_reg(i2c_regs, 0xA7, &rdata);
+        DPLL_REFSEL_STAT = (rdata & 0x3);
+
+        // ====================================================================
+        // (3) APLL1 / DPLL Lock Detect
+        // ====================================================================
+        // Assuming DPLL is enabled.
+        // We need: PLL1_VM_INSIDE = 1, LOFL_DPLL = 0, LOPL_DPLL = 0.
+        LMK05318B_read_reg(i2c_regs, 0x165, &rdata_apll1); // Fixed variable
+
+        PLL1_VM_INSIDE = (rdata_apll1 & 0x20) >> 5;
+
+        if (PLL1_VM_INSIDE == 0) {
+            is_locked = 0; // PLL1_VM_INSIDE must be 1
+        }
+        if ((LOFL_DPLL | LOPL_DPLL) != 0) {
+            is_locked = 0; // LOFL_DPLL and LOPL_DPLL must be 0
+        }
+
+        // ====================================================================
+        // (4) APLL2 Lock Detect
+        // ====================================================================
+        // We need: PLL2_VM_INSIDE = 1, LOL_PLL2 = 0.
+        LMK05318B_read_reg(i2c_regs, 0x16F, &rdata_apll2); // Fixed variable
+        PLL2_VM_INSIDE = (rdata_apll2 & 0x20) >> 5;
+
+        if (PLL2_VM_INSIDE == 0) {
+            is_locked = 0; // PLL2_VM_INSIDE must be 1
+        }
+        if (LOL_PLL2 != 0) {
+            is_locked = 0; // LOL_PLL2 must be 0
+        }
+
+        // ====================================================================
+        // Success Check
+        // ====================================================================
+        if (is_locked) {
+            printf("[LMK] System Successfully Locked!\n");
+            printf("[LMK] Time remaining: %d ms\n", timeout);
+            break; // Exit the loop to trigger the final unified print
+        }
+
+        cdelay(100000); // 1ms delay
+    }
+
+    // Check for Timeout
+    if (timeout <= 0) {
+        printf("[LMK] ERROR: Timeout waiting for Lock!\n");
+    }
+
+    // ========================================================================
+    // Final Status Diagnostic Print
+    // ========================================================================
+    printf("--- LMK05318B Final Status Map ---\n");
+    printf("[Registers] 0xD: 0x%02X, 0x165: 0x%02X, 0x16F: 0x%02X\n", rdata_0D, rdata_apll1, rdata_apll2);
+    printf("[XO/REF]    LOS_FDET_XO: %d | PRIREF_VALSTAT: %d | SECREF_VALSTAT: %d\n",
+           LOS_FDET_XO,
+           PRIREF_VALSTAT,
+           SECREF_VALSTAT);
+    printf("[DPLL LOR]  MISSCLK: %d | FREQ: %d | AMP: %d\n", LOR_MISSCLK, LOR_FREQ, LOR_AMP);
+    printf("[APLL1]     PLL1_VM_INSIDE: %d | LOFL_DPLL: %d | LOPL_DPLL: %d\n", PLL1_VM_INSIDE, LOFL_DPLL, LOPL_DPLL);
+    printf("[APLL2]     PLL2_VM_INSIDE: %d | LOL_PLL2: %d\n", PLL2_VM_INSIDE, LOL_PLL2);
+    printf("[DPLL_REFSEL_STAT]: 0x%02X\n", DPLL_REFSEL_STAT);
+    printf("----------------------------------\n");
+}

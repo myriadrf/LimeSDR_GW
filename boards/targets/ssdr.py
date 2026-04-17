@@ -35,7 +35,7 @@ from litex.soc.cores.xadc      import XADC
 from litex.soc.cores.dna       import DNA
 from litex.soc.cores.gpio      import GPIOOut
 from litex.soc.cores.spi_flash import S7SPIFlash
-from litex.soc.cores.bitbang   import I2CMaster
+from litei2c import LiteI2C
 from litex.soc.cores.spi       import SPIMaster
 
 from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
@@ -140,9 +140,8 @@ class BaseSoC(SoCCore):
         "xadc"        : 16,  # 11
         "dna"         : 17,  # 12
 
-        # XTRX.
+        # I2C.
         "i2c0"        : 18,
-        "i2c1"        : 19,
 
         # CNTRL
         "CNTRL"       : 26,
@@ -233,6 +232,11 @@ class BaseSoC(SoCCore):
             uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
+        # 1 for CSR
+        # 2 for FTDI
+        self.add_constant("LMS64C_METHOD",1)
+
+
         # Avoid stalling CPU at startup.
         self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
 
@@ -279,7 +283,7 @@ class BaseSoC(SoCCore):
         self.ram  = axi.AXILiteSRAM(0x1000)
         self.comb += self.mmap.connect(self.ram.bus)
         # Connect MMAP interface to SoC.
-        self.bus.add_slave(name="lime_top_mmap", slave=self.mmap, region=SoCRegion(origin=0x4000_000, size=0x1000))
+        self.bus.add_slave(name="limetop_mmap", slave=self.mmap, region=SoCRegion(origin=0x4000_000, size=0x1000))
 
         # ICAP -------------------------------------------------------------------------------------
         self.icap = ICAP()
@@ -349,7 +353,7 @@ class BaseSoC(SoCCore):
         # I2C Bus0 ---------------------------------------------------------------------------------
         # - Temperature Sensor (TMP114NB  @ 0x4E).
         # - PMIC-LMS           (LP8758  @ 0x60).
-        self.i2c0 = I2CMaster(pads=platform.request("i2c", 0))
+        self.i2c0 = LiteI2C(sys_clk_freq=sys_clk_freq, pads=platform.request("i2c", 0), clock_domain="sys")
 
         # PMIC --------------------------------------------------------------------------------
         # Buck0: 1.0V VCCINT + 1.0V MGTAVCC.
@@ -401,7 +405,7 @@ class BaseSoC(SoCCore):
 
 
         # LimeTOP ----------------------------------------------------------------------------------
-        self.lime_top = LimeTop(self, platform,
+        self.limetop = LimeTop(self, platform, vendor="xilinx",
             # Configuration.
             LMS_DIQ_WIDTH        = 12,
             sink_width           = 64,
@@ -428,18 +432,18 @@ class BaseSoC(SoCCore):
         )
         # VCTCXO -----------------------------------------------------------------------------------
         vctcxo_pads = platform.request("vctcxo")
-        self.comb  += vctcxo_pads.sel.eq(~self.lime_top.fpgacfg.ext_clk)
-        #self.comb  += vctcxo_pads.en.eq(self.lime_top.fpgacfg.tcxo_en)
+        self.comb  += vctcxo_pads.sel.eq(~self.limetop.fpgacfg.ext_clk)
+        #self.comb  += vctcxo_pads.en.eq(self.limetop.fpgacfg.tcxo_en)
 
-        self.comb += self.lime_top.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
+        self.comb += self.limetop.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
         # PCIE DMA -> TX Path -> LMS7002 Pipeline.
         self.comb += [
-            self.pcie_dma0.source.connect(self.lime_top.sink, omit=["ready"]),
-            self.pcie_dma0.source.ready.eq((self.lime_top.sink.ready & self.lime_top.fpgacfg.rx_en) | ~self.pcie_dma0.reader.enable),
+            self.pcie_dma0.source.connect(self.limetop.sink, omit=["ready"]),
+            self.pcie_dma0.source.ready.eq((self.limetop.sink.ready & self.limetop.fpgacfg.rx_en) | ~self.pcie_dma0.reader.enable),
         ]
 
-        self.comb += self.lime_top.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
+        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
 
         # LMS SPI -----------------------------------------------------------------------------------
 
@@ -447,7 +451,7 @@ class BaseSoC(SoCCore):
 
         # Interrupt --------------------------------------------------------------------------------
 
-        self.irq.add("lime_top")
+        self.irq.add("limetop")
 
         # GPS serial connected to LimeUART0
         from litex.soc.cores.uart import UARTPHY
@@ -466,13 +470,13 @@ class BaseSoC(SoCCore):
         #self.comb += [
         #    self.zda_parser.sink.data.eq (gnss_uart_phy.source.data ),
         #    self.zda_parser.sink.valid.eq(gnss_uart_phy.source.valid),
-        #    self.lime_top.time_seconds.eq(self.zda_parser.time_seconds),
-        #    self.lime_top.time_minutes.eq(self.zda_parser.time_minutes),
-        #    self.lime_top.time_hours.eq  (self.zda_parser.time_hours  ),
-        #    self.lime_top.time_day.eq    (self.zda_parser.time_day    ),
-        #    self.lime_top.time_month.eq  (self.zda_parser.time_month  ),
-        #    self.lime_top.time_year.eq   (self.zda_parser.time_year   ),
-        #    self.lime_top.rxtx_top.rx_path.pps.eq(self.zda_parser.pps ),
+        #    self.limetop.time_seconds.eq(self.zda_parser.time_seconds),
+        #    self.limetop.time_minutes.eq(self.zda_parser.time_minutes),
+        #    self.limetop.time_hours.eq  (self.zda_parser.time_hours  ),
+        #    self.limetop.time_day.eq    (self.zda_parser.time_day    ),
+        #    self.limetop.time_month.eq  (self.zda_parser.time_month  ),
+        #    self.limetop.time_year.eq   (self.zda_parser.time_year   ),
+        #    self.limetop.rxtx_top.rx_path.pps.eq(self.zda_parser.pps ),
         #]
         #####
         ## Current time registers
@@ -542,15 +546,15 @@ class BaseSoC(SoCCore):
         ### Misc assignments
         # Stream delay signals
         self.comb += [
-            # self.lime_top.fpgacfg.tx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
-            # self.lime_top.fpgacfg.tx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
-            # self.lime_top.fpgacfg.rx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
-            # self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
+            # self.limetop.fpgacfg.tx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
+            # self.limetop.fpgacfg.tx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
+            # self.limetop.fpgacfg.rx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
+            # self.limetop.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
             # NOTE: using rx_path synced pps, because separate tx path enable is not used, should be fine
-            self.lime_top.fpgacfg.tx_en_delay_signal[0].eq(self.lime_top.rxtx_top.rx_path.pps_rising),
-            #self.lime_top.fpgacfg.tx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
-            self.lime_top.fpgacfg.rx_en_delay_signal[0].eq(self.lime_top.rxtx_top.rx_path.pps_rising),
-            #self.lime_top.fpgacfg.rx_en_delay_signal[1].eq(self.lime_top.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
+            self.limetop.fpgacfg.tx_en_delay_signal[0].eq(self.limetop.rxtx_top.rx_path.pps_rising),
+            #self.limetop.fpgacfg.tx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
+            self.limetop.fpgacfg.rx_en_delay_signal[0].eq(self.limetop.rxtx_top.rx_path.pps_rising),
+            #self.limetop.fpgacfg.rx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
         ]
 
         # LMS8 -----------------------------------------------------------------------------------
@@ -571,10 +575,10 @@ class BaseSoC(SoCCore):
         self.gpio = GpioTop(platform, gpio_pads)
 
         self.comb += [ self.gpio.GPIO_DIR.eq(0b111011111),
-                       self.gpio.GPIO_OUT_VAL[5].eq(self.lime_top.lms7002_top.tx_ant_en)]
+                       self.gpio.GPIO_OUT_VAL[5].eq(self.limetop.lms7002_top.tx_ant_en)]
 
         self.comb += [
-            self.lime_top.rxtx_top.rx_path.pps.eq(self.gpio.GPIO_IN_VAL[6]),
+            self.limetop.rxtx_top.rx_path.pps.eq(self.gpio.GPIO_IN_VAL[6]),
         ]
 
         self.comb += [
@@ -633,6 +637,14 @@ class BaseSoC(SoCCore):
         """
         write_module_hierarchy_json(self, outfile="soc_structure.json", name="SoC")
 
+    def generate_documentation(self, build_name, build_html, **kwargs):
+        from litex.soc.doc import generate_docs
+        generate_docs(self, "docs/docs/{}/litex_doc".format(build_name),
+            project_name = "{}".format(build_name),
+            author       = "Lime Microsystems")
+        if build_html:
+            os.system("sphinx-build -M html docs/docs/{}/litex_doc docs/docs/{}/litex_doc/_build".format(build_name, build_name))
+
 
 # Build --------------------------------------------------------------------------------------------
 
@@ -663,6 +675,8 @@ def main():
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
+
+    parser.add_argument("--doc",    action="store_true", help="Generate SOC ducumentation")
 
     # Litescope Analyzer Probes.
     probeopts = parser.add_mutually_exclusive_group()
@@ -716,6 +730,7 @@ def main():
                 f.write(f"BUILD_DIR={builder.output_dir}\n")
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
+                f.write("BSP_PROJECT_DIR=bsp/SSDR\n")
             os.system(f"cd firmware && make clean all")
             bistream_output_dir = "bitstream/SSDR"
             if not os.path.exists(bistream_output_dir):
@@ -743,6 +758,10 @@ def main():
         insert_crc("firmware/firmware.bin", fbi_mode=True, o_filename="firmware/firmware.fbi", little_endian=True)
         prog = soc.platform.create_programmer(cable=args.cable)
         prog.flash(args.firmware_flash_offset, "firmware/firmware.fbi")
+
+    # Generate Litex Documentation files and if --doc option is used build also
+    build_name = soc.build_name.replace("_", "-")
+    soc.generate_documentation(build_name + "_rev2", build_html=args.doc)
 
 
 if __name__ == "__main__":

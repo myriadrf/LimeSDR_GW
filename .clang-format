@@ -1,0 +1,51 @@
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++03
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 120
+
+# Strict Bracing for Safety
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterControlStatement: false
+  AfterEnum: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+
+# Standard C Pointer Alignment
+PointerAlignment: Right
+
+# Tabular Alignment (REFINED)
+AlignConsecutiveMacros: true
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: false
+AlignConsecutiveBitFields: true
+
+# Hardware Abstraction / Function Readability
+BinPackParameters: false
+BinPackArguments: false
+SpaceAroundPointerQualifiers: Default
+SpaceBeforeAssignmentOperators: true
+SpaceAfterCStyleCast: false
+SpacesInCStyleCastParentheses: false
+
+# Preprocessor Handling
+IndentPPDirectives: AfterHash
+IncludeBlocks: Preserve
+PenaltyBreakBeforeFirstCallParameter: 100
+PenaltyExcessCharacter: 100
+PenaltyBreakAssignment: 50
