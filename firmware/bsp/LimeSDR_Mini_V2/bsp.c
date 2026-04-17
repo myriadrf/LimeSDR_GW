@@ -485,11 +485,15 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
 
 uint8_t bsp_program_mode2_check_support(void)
 {
-    return 1;
+    // MiniV2 does not actually support mode 2, but older implementations return success anyway.
+    // preserving behavior
+    return 0;
 }
 
 uint8_t bsp_program_mode2_boot_from_flash(void)
 {
+    // MiniV2 does not actually support mode 2, but older implementations return success anyway.
+    // preserving behavior
     return 1;
 }
 
