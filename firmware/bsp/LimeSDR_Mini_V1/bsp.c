@@ -21,8 +21,10 @@ void bsp_init(void)
     ft601_fifo_control_write(1);
     ft601_fifo_control_write(0);
     // Reset LMS7
+#ifndef GOLDEN_IMAGE
     limetop_lms7002_top_lms_ctr_gpio_write(0x0);
     limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+#endif
     {
         // Check if there is a value in permanent vctcxo memory
         // If there is, write it to runtime DAC
@@ -81,11 +83,11 @@ void bsp_delay_ms(unsigned int ms)
 
 int8_t lms_reset(uint8_t periph_id, uint8_t command)
 {
+#ifndef GOLDEN_IMAGE
     uint8_t check_val = lms7002m_periph_id_check(periph_id);
     if (check_val == 0)
         return 1;
     uint32_t read_value;
-
     switch (command) {
     case LMS_RST_DEACTIVATE:
         limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
@@ -110,6 +112,7 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command)
         limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
         return 0;
     }
+#endif
 }
 
 int8_t lms7002m_periph_id_check(uint8_t periph_id)
@@ -128,12 +131,18 @@ int8_t lms8001_periph_id_check(uint8_t periph_id)
 
 void lms7002m_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id)
 {
+#ifndef GOLDEN_IMAGE
     lms_spi_write(addr, val, periph_id);
+#endif
 }
 
 uint16_t lms7002m_spi_read(uint16_t addr, uint8_t periph_id)
 {
+#ifndef GOLDEN_IMAGE
     return lms_spi_read(addr, periph_id);
+#else
+    return -1;
+#endif
 }
 
 void lms8001_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id)
@@ -148,6 +157,7 @@ uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id)
 
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb)
 {
+#ifndef GOLDEN_IMAGE
     switch (channel) {
     case 0:
         // No read function, return cached values
@@ -167,10 +177,14 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
     default:
         return STATUS_ERROR_CMD;
     }
+#else
+    return STATUS_ERROR_CMD;
+#endif
 }
 
 uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_t value_msb, const uint8_t value_lsb)
 {
+#ifndef GOLDEN_IMAGE
     // Only channel 0 (DAC) and RAW units are supported for write
     if (channel == 0 && unit == 0) {
         dac_val_ptr[0]       = value_lsb;
@@ -181,6 +195,7 @@ uint8_t bsp_analog_write(const uint8_t channel, const uint8_t unit, const uint8_
         }
         return STATUS_ERROR_CMD;
     }
+#endif
     return STATUS_ERROR_CMD;
 }
 
@@ -227,6 +242,7 @@ void bsp_vctcxo_permanent_dac_write(uint8_t *data)
 uint8_t
 bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count)
 {
+#ifndef GOLDEN_IMAGE
     const uint16_t read_addr = (uint16_t)offset & 0xFFFF;
     if (target == 3) // TARGET = EEPROM
     {
@@ -242,12 +258,14 @@ bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targe
                 return STATUS_COMPLETED_CMD;
         }
     }
+#endif
     return STATUS_ERROR_CMD;
 }
 
 uint8_t
 bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count)
 {
+#ifndef GOLDEN_IMAGE
     const uint16_t write_addr = (uint16_t)offset & 0xFFFF;
     if (target == 3) // TARGET = EEPROM
     {
@@ -264,6 +282,7 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
                 return STATUS_COMPLETED_CMD;
         }
     }
+#endif
     return STATUS_ERROR_CMD;
 }
 

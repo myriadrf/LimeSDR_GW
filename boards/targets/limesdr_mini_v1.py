@@ -182,6 +182,9 @@ class BaseSoC(SoCCore):
             # uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
+        if gold_img:
+            self.add_constant("GOLDEN_IMAGE")
+
         # 1 for CSR
         # 2 for FTDI
         self.add_constant("LMS64C_METHOD",2)
