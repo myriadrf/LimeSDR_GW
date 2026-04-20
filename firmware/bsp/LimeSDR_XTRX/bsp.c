@@ -600,3 +600,19 @@ uint8_t bsp_serial_write(const uint8_t *data_field)
 
     return STATUS_RESOURCE_DENIED_CMD;
 }
+
+void gnss_init(void) {
+    // TODO: for now this uses PCIE_UART0. This is good for XTRX, but might need some
+    //       modifications to make it more dynamic in the future
+    // Enable ZDA messages
+    char pmtk_msg[] = "$PMTK314,1,1,1,1,1,5,0,0,0,0,0,0,0,0,0,0,0,1,0*2D\r\n";
+    // Enable PPS
+    char pmtk_msg2[] = "$PMTK285,4,100*38\r\n";
+    for (int i = 0; pmtk_msg2[i] != '\0'; i++) {
+        PCIE_UART0_rxtx_write((uint32_t)pmtk_msg2[i]);
+    }
+    cdelay(0xFFFFF);
+    for (int i = 0; pmtk_msg[i] != '\0'; i++) {
+        PCIE_UART0_rxtx_write((uint32_t)pmtk_msg[i]);
+    }
+}

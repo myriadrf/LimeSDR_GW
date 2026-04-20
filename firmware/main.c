@@ -126,7 +126,6 @@ int main(void)
     uart_init();
     bsp_isr_init();
     bsp_init();
-
     help();
     prompt();
 
@@ -157,6 +156,14 @@ int main(void)
 
         // Process received packet
         if (lms64_packet_pending) {
+
+#ifdef ZDAPARSER_PRESENT
+            static bool gnss_init_done = false;
+            if (gnss_init_done == false) {
+            gnss_init();
+            gnss_init_done = true;
+            }
+#endif
             uint8_t reg_array[4];
             uint16_t addr;
             uint16_t val;

@@ -128,5 +128,6 @@ uint8_t bsp_serial_write(const uint8_t *data_field);
 
 /* Peripheral Specific Extensions (Optional) */
 uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data);
+void gnss_init(void);
 
 #endif /* XTRX_BSP */
