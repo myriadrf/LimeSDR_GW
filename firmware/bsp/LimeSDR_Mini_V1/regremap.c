@@ -141,6 +141,18 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0xc9:
         value = limetop_general_periph_periph_input_RD_1_read();
         break;
+    case 0xcc:
+        value = limetop_general_periph_periph_output_OVRD_0_read();
+        break;
+    case 0xcd:
+        value = limetop_general_periph_periph_output_VAL_0_read();
+        break;
+    case 0xce:
+        value = limetop_general_periph_periph_output_OVRD_1_read();
+        break;
+    case 0xcf:
+        value = limetop_general_periph_periph_output_VAL_1_read();
+        break;
 
     default:
         printf("FRE: %04x\n", addr);
