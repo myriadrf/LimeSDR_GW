@@ -456,7 +456,7 @@ class BaseSoC(SoCCore):
         self.add_module(name="PCIE_UART0", module=pcie_uart0)
 
         # Get UTC time from GNSS, assign UTC data to timestamp logic in rx_path
-        from gateware.LimeDFB_LiteX.general.ZDAParser import ZDAParser
+        from gateware.LimeDFB.general.ZDAParser import ZDAParser
         self.zda_parser = ZDAParser(self)
         self.comb += [
             self.zda_parser.sink.data.eq (gnss_uart_phy.source.data ),
@@ -499,7 +499,7 @@ class BaseSoC(SoCCore):
         self.comb += self.sys_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         self.lms_clock_test = singl_clk_with_ref_test(platform=platform,test_clock_domain="xo_fpga"
-            , ref_clock_domain="sys")
+            , ref_clock_domain="sys", clock_target=12500000)
         self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         # VCTCXO tamer

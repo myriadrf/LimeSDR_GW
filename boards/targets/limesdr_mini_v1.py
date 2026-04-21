@@ -37,7 +37,7 @@ from gateware.helpers import write_module_hierarchy_json
 from gateware.max10_onchipflash.max10_onchipflash import Max10OnChipFlash
 from gateware.max10_dual_cfg.max10_dual_cfg       import Max10DualCfg
 
-from gateware.LimeDFB_LiteX.FT601.src.ft601 import FT601
+from gateware.LimeDFB.FT601.src.ft601 import FT601
 
 from gateware.LimeTop                       import LimeTop
 

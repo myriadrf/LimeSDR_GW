@@ -508,7 +508,7 @@ class BaseSoC(SoCCore):
         self.comb += self.sys_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         self.lms_clock_test = singl_clk_with_ref_test(platform=platform,test_clock_domain="xo_fpga"
-            , ref_clock_domain="sys")
+            , ref_clock_domain="sys", clock_target=12500000)
         self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         # VCTCXO tamer

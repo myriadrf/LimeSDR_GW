@@ -35,7 +35,7 @@ from litescope import LiteScopeAnalyzer
 
 from gateware.LimeTop                       import LimeTop
 
-from gateware.LimeDFB_LiteX.FT601.src.ft601 import FT601
+from gateware.LimeDFB.FT601.src.ft601 import FT601
 from gateware.Revision import *
 from gateware.helpers import write_module_hierarchy_json
 

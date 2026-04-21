@@ -25,12 +25,12 @@ from gateware.pllcfg    import PLLCfg
 from gateware.rxtx_top  import RXTXTop
 from gateware.xtrx_rfsw import xtrx_rfsw
 
-from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
-from gateware.LimeDFB_LiteX.general.busy_delay                import BusyDelay
-from gateware.LimeDFB_LiteX.general_periph.src.general_periph import GeneralPeriphTop
-from gateware.LimeDFB_LiteX.self_test.src.tst_top             import TstTop
+from gateware.LimeDFB.lms7002.src.lms7002_top           import LMS7002Top
+from gateware.LimeDFB.general.busy_delay                import BusyDelay
+from gateware.LimeDFB.general_periph.src.general_periph import GeneralPeriphTop
+from gateware.LimeDFB.self_test.mini_tst_top            import TstTop
 
-from gateware.examples.fft.LimeFFT                            import LimeFFT
+from gateware.examples.fft.LimeFFT                      import LimeFFT
 
 from gateware.common import *
 import warnings
