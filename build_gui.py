@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import platform
+import json
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QComboBox, QPushButton, QTabWidget, QFormLayout, QCheckBox,
@@ -124,6 +125,7 @@ class LiteXBuildGUI(QMainWindow):
         self.venv_python = self.find_venv_python()
         self.target_args = {}
         self.toolchain_env_scripts = []
+        self.current_target_path = None
 
         self.init_ui()
         self.scan_targets()
@@ -231,150 +233,139 @@ class LiteXBuildGUI(QMainWindow):
                 self.target_combo.addItem(f, os.path.join(targets_dir, f))
 
     def on_target_selected(self):
-        target_path = self.target_combo.currentData()
-        if not target_path:
+        self.current_target_path = self.target_combo.currentData()
+        if not self.current_target_path:
             return
         
         if not self.venv_python:
             QMessageBox.warning(self, "No VENV", "Virtual environment not found. Please run setup_litex.sh first.")
             return
 
-        self.log(f"Parsing target: {os.path.basename(target_path)}")
-        self.parse_target_help(target_path)
+        self.log(f"Parsing target: {os.path.basename(self.current_target_path)}")
+        self.parse_target_options(self.current_target_path)
 
-    def parse_target_help(self, target_path):
-        # Run python target.py --help
+    def parse_target_options(self, target_path):
+        # Run our extraction tool: python tools/target_info.py <target_path>
         try:
             env = os.environ.copy()
             env["PYTHONPATH"] = os.getcwd()
-            env["COLUMNS"] = "999"  # Prevent argparse from line-wrapping
             
+            # Using the same python as for targets if available
+            python_bin = self.venv_python if self.venv_python else "python3"
+            
+            info_tool = os.path.join(os.getcwd(), "tools", "target_info.py")
+            if not os.path.exists(info_tool):
+                self.log(f"Error: Extraction tool not found at {info_tool}")
+                QMessageBox.critical(self, "Missing Tool", f"Extraction tool not found at {info_tool}")
+                return
+
             result = subprocess.run(
-                [self.venv_python, target_path, "--help"],
+                [python_bin, info_tool, target_path],
                 capture_output=True, text=True, env=env, check=False
             )
             
             if result.returncode != 0:
-                error_msg = result.stderr if result.stderr.strip() else "Target script failed with no error message."
-                self.log(f"Error: Target script failed with exit code {result.returncode}")
+                error_msg = result.stderr if result.stderr.strip() else "Extraction tool failed with no error message."
+                self.log(f"Error: Extraction failed with exit code {result.returncode}")
                 self.log(error_msg)
-                QMessageBox.warning(self, "Target Error", f"Failed to get help from target script (Exit {result.returncode}):\n\n{error_msg}")
+                QMessageBox.critical(self, "Extraction Error", 
+                    f"Failed to extract options from target script using {os.path.basename(info_tool)}.\n\n"
+                    f"Exit code: {result.returncode}\n\n"
+                    f"Error output:\n{error_msg}")
                 return
 
-            if not result.stdout.strip():
-                error_msg = result.stderr if result.stderr.strip() else "Target script returned empty output."
-                self.log("Error: Target script returned no help output.")
-                if error_msg:
-                    self.log(error_msg)
-                QMessageBox.warning(self, "Target Error", f"Target script returned no help output.\n\n{error_msg}")
+            try:
+                options_data = json.loads(result.stdout)
+                self.generate_ui_from_json(options_data)
+            except json.JSONDecodeError:
+                self.log("Error: Extraction tool returned invalid JSON.")
+                self.log(result.stdout)
+                QMessageBox.critical(self, "Extraction Error", "Extraction tool returned invalid JSON. See log for details.")
                 return
 
-            self.generate_ui_from_help(result.stdout)
         except Exception as e:
             self.log(f"Exception during target parsing: {str(e)}")
-            QMessageBox.critical(self, "Parsing Error", f"Failed to run target help: {e}")
+            QMessageBox.critical(self, "Parsing Error", f"Failed to run target extraction: {e}")
 
-    def generate_ui_from_help(self, help_text):
+    def generate_ui_from_json(self, options_data):
         self.tabs.clear()
         self.target_args = {}
 
-        # Pre-filter help text to remove noise
-        if 'usage:' in help_text:
-            help_text = help_text[help_text.find('usage:'):]
-        
-        filtered_lines = [line for line in help_text.splitlines() if not (line.strip().startswith('[') or line.strip().startswith('('))]
-        clean_help = "\n".join(filtered_lines).strip()
+        # Group arguments by their group name
+        groups = {}
+        for opt in options_data:
+            group_name = opt.get("group", "Arguments")
+            if group_name not in groups:
+                groups[group_name] = []
+            groups[group_name].append(opt)
 
-        # Split help text into sections based on groups
-        # Groups look like "options:", "SoC options:", "Builder options:", etc.
-        sections = re.split(r'\n(?=[A-Za-z0-9\s]+:)\n?', clean_help)
-        
-        # The first section is usually 'usage: ...'
-        # Subsequent sections are groups
-        for section in sections:
-            section = section.strip()
-            if not section or section.startswith("usage:"):
-                continue
-            
-            lines = section.split('\n')
-            group_name = lines[0].strip()
-            group_content = "\n".join(lines[1:])
-            
+        for group_name, options in groups.items():
             tab = QWidget()
             tab_layout = QVBoxLayout(tab)
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
             scroll_content = QWidget()
-            
-            # Use FlowLayout for responsive reflow
             flow = FlowLayout(scroll_content)
-            
-            # Regex to find arguments:
-            # Matches: --arg-name, --choice {c1,c2}, --value VAL
-            # We want to capture the argument name and its help text (including choices and default)
-            # LiteX/Argparse help often uses indentation to group description with arg
-            # We'll split by what looks like the start of a new argument
-            group_content_clean = group_content.strip()
-            args_blocks = re.split(r'\n(?=\s+-[a-zA-Z0-9-])', group_content_clean)
-            
-            arguments_found = 0
-            for block in args_blocks:
-                match = re.match(r'^\s*(-[a-zA-Z0-9-]+(?:,\s+--[a-zA-Z0-9-]+)?)(.*?)(?:\s{2,}|\n\s+)(.*)$', block, re.DOTALL)
-                if not match:
+
+            for opt in options:
+                flags = opt.get("flags", [])
+                if not flags:
                     continue
                 
-                arg_names_raw, meta, help_desc = match.groups()
-                # Use the long name if available
-                arg_names = [n.strip() for n in arg_names_raw.split(',')]
-                long_name = next((n for n in arg_names if n.startswith('--')), arg_names[0])
+                long_name = next((f for f in flags if f.startswith('--')), flags[0])
                 clean_name = long_name.lstrip('-')
                 
-                if clean_name == 'help' or clean_name == 'h':
+                if clean_name in ['help', 'h']:
                     continue
 
-                arguments_found += 1
+                help_desc = opt.get("help") or ""
+                default_val = opt.get("default")
+                choices = opt.get("choices")
+                opt_type = opt.get("type", "string")
+
+                # Handle null/None defaults for bools
+                if opt_type == "bool" and default_val is None:
+                    default_val = False
+
+                # Special cases for targets where default is missing in help/metadata but known in the project
+                if default_val is None or default_val == "":
+                    if long_name == '--board' and 'xtrx' in self.current_target_path.lower():
+                        default_val = 'limesdr'
+                    elif long_name == '--cpu-type':
+                        if 'xtrx' in self.current_target_path.lower():
+                            default_val = 'vexriscv_smp'
+                        else:
+                            default_val = 'vexriscv'
+                    elif long_name == '--cable':
+                        default_val = 'ft2232'
+
                 widget = None
-                
-                # Check for choices: {choice1,choice2}
-                choice_match = re.search(r'{(.*?)}', meta)
-                if not choice_match:
-                    # Sometimes choices are in help_desc but that's harder to parse reliably
-                    choice_match = re.search(r'{(.*?)}', help_desc)
-
-                # Check if it's a boolean flag (usually (default: False) or no meta)
-                is_bool = "(default: False)" in help_desc or "(default: True)" in help_desc or not meta.strip()
-                
-                # Default value extraction
-                default_match = re.search(r'\(default: (.*?)\)', help_desc)
-                default_val = default_match.group(1) if default_match else ""
-
-                if choice_match:
-                    choices = [c.strip() for c in choice_match.group(1).split(',')]
+                if choices:
                     widget = QComboBox()
-                    widget.addItems(choices)
-                    if default_val in choices:
-                        widget.setCurrentText(default_val)
+                    widget.addItems([str(c) for c in choices])
+                    if default_val is not None:
+                        widget.setCurrentText(str(default_val))
                     widget.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
                     widget.setMaximumWidth(200)
                     self.target_args[long_name] = ('choice', widget)
-                elif is_bool:
+                elif opt_type == "bool":
                     widget = QCheckBox()
-                    if default_val.lower() == 'true':
+                    if default_val is True:
                         widget.setChecked(True)
                     widget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
                     self.target_args[long_name] = ('bool', widget)
                 else:
                     widget = QLineEdit()
-                    widget.setText(default_val)
+                    if default_val is not None:
+                        widget.setText(str(default_val))
                     widget.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
                     widget.setMaximumWidth(200)
                     self.target_args[long_name] = ('text', widget)
-                
+
                 label = QLabel(clean_name.replace('-', ' ').title())
-                label.setToolTip(help_desc.strip())
+                label.setToolTip(help_desc)
                 label.setStyleSheet("font-weight: bold; color: #333;")
-                
-                # Card-like container (QFrame)
+
                 container = QFrame()
                 container.setFrameShape(QFrame.Shape.StyledPanel)
                 container.setStyleSheet("""
@@ -389,22 +380,17 @@ class LiteXBuildGUI(QMainWindow):
                         border-color: #ccc;
                     }
                 """)
-                
                 container_layout = QVBoxLayout(container)
                 container_layout.setContentsMargins(8, 8, 8, 8)
                 container_layout.setSpacing(5)
                 container_layout.addWidget(label)
                 container_layout.addWidget(widget)
-                
-                # Ensure card doesn't stretch too much but has a base size
                 container.setFixedWidth(220)
-                
                 flow.addWidget(container)
 
-            if arguments_found > 0:
-                scroll.setWidget(scroll_content)
-                tab_layout.addWidget(scroll)
-                self.tabs.addTab(tab, group_name.rstrip(':'))
+            scroll.setWidget(scroll_content)
+            tab_layout.addWidget(scroll)
+            self.tabs.addTab(tab, group_name.rstrip(':'))
 
     def show_settings(self):
         # Simple dialog to add toolchain environment scripts (e.g. source /opt/intelFPGA/...)
@@ -429,11 +415,10 @@ class LiteXBuildGUI(QMainWindow):
         self.process.start("bash", [script, "--install"])
 
     def start_build(self):
-        target_path = self.target_combo.currentData()
-        if not target_path or not self.venv_python:
+        if not self.current_target_path or not self.venv_python:
             return
 
-        cmd = [self.venv_python, target_path]
+        cmd = [self.venv_python, self.current_target_path]
         
         for arg_name, (arg_type, widget) in self.target_args.items():
             if arg_type == 'bool':
