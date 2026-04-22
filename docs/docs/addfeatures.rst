@@ -11,6 +11,7 @@ Compatibility table
    :hidden:
 
    UTC timestamping <utc_timestamps>
+   Synchronized stream start <en_delay>
 
 **Note:** This table specifies the *earliest* gw version that implements the feature for a specific board.
 Later GW versions might have improvements and/or bug fixes, it is recommended to use the latest version, if possible.
@@ -22,4 +23,6 @@ Later GW versions might have improvements and/or bug fixes, it is recommended to
 +                                                  | LimeSDR XTRX           | LimeSDR Mini V1        | LimeSDR Mini V2        |
 +--------------------------------------------------+------------------------+------------------------+------------------------+
 | :doc:`UTC timestamping <utc_timestamps>`         | v3.1                   | --                     | --                     |
++--------------------------------------------------+------------------------+------------------------+------------------------+
+| :doc:`Synchronized stream start <en_delay>`      | v3.1                   | --                     | --                     |
 +--------------------------------------------------+------------------------+------------------------+------------------------+
