@@ -138,7 +138,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
 #ifdef TIMESOURCE_PRESENT
         // timesource registers
     case 0x280:
-        value = limetop_rxtx_top_rx_path_timestamp_settings_read() & 0xFFFF;
+        value = limetop_rxtx_top_rx_path_timestamp_mixer_timestamp_settings_read() & 0xFFFF;
         break;
 #endif
     case 0x281:
@@ -325,7 +325,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 #ifdef TIMESOURCE_PRESENT
         // timesource registers
     case 0x280:
-        limetop_rxtx_top_rx_path_timestamp_settings_write(value);
+    	limetop_rxtx_top_rx_path_timestamp_mixer_timestamp_settings_write(value);
         break;
 #endif
     case 0x281:
