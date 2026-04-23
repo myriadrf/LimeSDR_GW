@@ -54,6 +54,7 @@ extensions = [
     'myst_parser',
     'sphinx.ext.imgconverter',
     'sphinxcontrib.wavedrom',
+    'linuxdoc.rstFlatTable',
 ]
 
 # Allow same section headings and thus labels to be used across documents.
