@@ -151,6 +151,17 @@ The architecture uses three main interconnect mechanisms:
 
 **Streaming paths**
    Dedicated high-bandwidth data paths between **HIF** and **LimeTOP** for RX/TX sample transport.
+   These paths carry packetized I/Q sample data, with the packet format acting as the data-plane
+   contract between host software and the RF processing path.
+
+   - :doc:`Stream Packet Structure <stream_packet_structure>` describes the common host-to-LimeTOP
+     stream packet format.
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   stream_packet_structure
 
 **IRQ/event paths**
    Event-driven signaling between subsystems. Local **Event Manager** blocks collect subsystem
