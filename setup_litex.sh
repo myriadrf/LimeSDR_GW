@@ -79,8 +79,12 @@ if [ ! -d "$VENV_DIR" ]; then
 fi
 source "$VENV_DIR"/bin/activate
 
-# Ensure pip is up to date
-pip install --upgrade pip
+# Ensure pip is available and up to date
+if ! python3 -m pip --version > /dev/null 2>&1; then
+    echo "pip not found in virtual environment, attempting to install it..."
+    python3 -m ensurepip --upgrade
+fi
+python3 -m pip install --upgrade pip
 
 MANAGER="tools/litex_manager.py"
 chmod +x "$MANAGER"
