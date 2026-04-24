@@ -53,7 +53,7 @@ This module is part of LimeDFB and more details can be found in :external+dfb:re
 
 RX Path Top Module
 ^^^^^^^^^^^^^^^^^^
-This module is part of LimeDFB and more details can be found in :external+dfb:ref:`rx_path_top <docs/rx_path_top/readme:rx_path_top>` description. It handles the receive path from the LMS7002M to the FPGA and host, including IQ sample packetization and timestamp generation.
+This module is part of LimeDFB and more details can be found in :external+dfb:ref:`rx_path_top_litex <docs/rx_path_top_litex/readme:rx_path_top (LiteX)>` description. It handles the receive path from the LMS7002M to the FPGA and host, including IQ sample packetization and timestamp generation.
 
 .. _tx_path_top_module:
 
