@@ -6,8 +6,8 @@ Primary Code References
 The logic described below is distributed across the following source files:
 
 * **Board Target:** *boards/targets/limesdr_xtrx.py*
-* **NMEA Parser:** *gateware/LimeDFB_LiteX/general/ZDAParser.py*
-* **RX Datapath:** *gateware/LimeDFB_LiteX/rx_path_top/src/rx_path_top.py*
+* **NMEA Parser:** *gateware/LimeDFB/general/ZDAParser.py*
+* **RX Datapath:** *gateware/LimeDFB/rx_path_top/src/rx_path_top.py*
 
 System Overview
 ---------------
