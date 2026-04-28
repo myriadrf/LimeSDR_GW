@@ -35,12 +35,20 @@ void TMP114_Continuous_Conversion(const litei2c_regs *i2c_regs, const uint8_t ad
 
 uint16_t TMP114_Read_Temp(const litei2c_regs *i2c_regs, const uint8_t addr)
 {
-    uint32_t buf             = 0x0;
-    const uint8_t *buf_point = (uint8_t *)&buf;
+    uint32_t buf = 0x0;
+    const uint8_t *buf_point = (const uint8_t *)&buf;
+
     litei2c_transfer(i2c_regs, addr, &buf, 1, 2);
-    // rearrange data (refer to litei2c.h)
-    const uint16_t temp = buf_point[1] | (buf_point[0] << 8);
-    return temp;
+
+    /*
+     * litei2c_transfer() stores the 16-bit read result in little-endian order:
+     *   buf_point[0] = LSB
+     *   buf_point[1] = MSB
+     *
+     * TMP114 temperature register is a signed 16-bit value.
+     */
+    return (uint16_t)(((uint16_t)buf_point[1] << 8) |
+                       (uint16_t)buf_point[0]);
 }
 
 uint16_t TMP114_Read_Temp_OneShot(const litei2c_regs *i2c_regs, const uint8_t addr)
@@ -71,15 +79,13 @@ uint16_t TMP114_Read_Temp_OneShot(const litei2c_regs *i2c_regs, const uint8_t ad
     return TMP114_Read_Temp(i2c_regs, addr);
 }
 
-uint16_t TMP114_Convert_Temp(const uint16_t raw_temp)
+int16_t TMP114_Convert_Temp(const uint16_t raw_temp)
 {
-    // According to TMP114 datasheet, 1LSB of raw data is 0.0078125C
-    // One of the example values is 3200 = 25 C
-    // Doing the operations below we convert 3200 to 250
-    // Which should be interpreted as 25.0 C
-    uint16_t temp = raw_temp;
-    temp          = temp >> 4;
-    temp          = temp * 10;
-    temp          = temp >> 3;
-    return temp;
+    int16_t raw = (int16_t)raw_temp;
+
+    /*
+     * TMP114: 1 LSB = 1 / 128 °C.
+     * Return value is temperature in 0.1 °C units.
+     */
+    return (int16_t)(((int32_t)raw * 10) / 128);
 }

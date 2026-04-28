@@ -560,6 +560,8 @@ int main(void)
                 case CMD_ANALOG_VAL_RD:
                     spirez = 0;
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+
+                    	LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block];
                         spirez |=
                                 bsp_analog_read(LMS_Ctrl_Packet_Rx->Data_field[0 + (block)], // Channel (8bit)
                                                 &LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)], // Units (8bit)

@@ -77,6 +77,6 @@ uint16_t TMP114_Read_Temp_OneShot(const litei2c_regs *i2c_regs, uint8_t addr);
  * @return A 16-bit temperature value in multiples of 0.1 Celsius,
  * which is the processed and scaled interpretation of the raw sensor data.
  */
-uint16_t TMP114_Convert_Temp(uint16_t raw_temp);
+int16_t TMP114_Convert_Temp(uint16_t raw_temp);
 
 #endif // TMP114_H
