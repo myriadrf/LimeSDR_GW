@@ -227,9 +227,10 @@ class BaseSoC(SoCCore):
             integrated_sram_ram_size = 0x0200,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
-            with_uartbone            = with_uartbone,
-            uart_pads                = uart_console_pads,
-            uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
+            with_uart                = False,
+            #with_uartbone            = with_uartbone,
+            #uart_pads                = uart_console_pads,
+            #uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
         # 1 for CSR
@@ -238,7 +239,10 @@ class BaseSoC(SoCCore):
 
 
         # Avoid stalling CPU at startup.
-        self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
+        #self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
+
+        serial_signals = Record(layout=[("tx", 1), ("rx", 1)])
+        self.add_uart(name="uart", uart_name={True: "crossover", False:"serial"}[with_uartbone], baudrate=115200, fifo_depth=16, with_dynamic_baudrate=False, uart_pads=serial_signals)
 
         # Define platform name constant.
         self.add_constant(platform.name.upper())
