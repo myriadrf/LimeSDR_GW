@@ -418,7 +418,7 @@ def main():
             if args.debug:
                 soc.add_debug_probes()
         # Builder.
-        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite" , libc_mode="full")
         builder.build(run=build)
         # Firmware build.
         if prepare:

@@ -238,6 +238,9 @@ class LiteXBuildGUI(QMainWindow):
             return
         
         if not self.venv_python:
+            # Block parsing if venv is missing
+            self.tabs.clear()
+            self.tabs.addTab(QLabel("Virtual environment not found. Please run setup_litex.sh first."), "ERROR")
             QMessageBox.warning(self, "No VENV", "Virtual environment not found. Please run setup_litex.sh first.")
             return
 
@@ -247,20 +250,41 @@ class LiteXBuildGUI(QMainWindow):
     def parse_target_options(self, target_path):
         # Run our extraction tool: python tools/target_info.py <target_path>
         try:
-            env = os.environ.copy()
-            env["PYTHONPATH"] = os.getcwd()
-            
             # Using the same python as for targets if available
-            python_bin = self.venv_python if self.venv_python else "python3"
-            
+            venv_dir = None
+            if self.venv_python:
+                venv_dir = os.path.dirname(os.path.dirname(self.venv_python))
+
             info_tool = os.path.join(os.getcwd(), "tools", "target_info.py")
             if not os.path.exists(info_tool):
                 self.log(f"Error: Extraction tool not found at {info_tool}")
                 QMessageBox.critical(self, "Missing Tool", f"Extraction tool not found at {info_tool}")
                 return
 
+            # Prepare command wrapping for activation
+            if venv_dir:
+                if platform.system() == "Windows":
+                    activate_cmd = f"call {os.path.join(venv_dir, 'Scripts', 'activate.bat')}"
+                    full_cmd = f"{activate_cmd} && python {info_tool} {target_path}"
+                    shell_exe = "cmd"
+                    shell_args = ["/c", full_cmd]
+                else:
+                    activate_cmd = f"source {os.path.join(venv_dir, 'bin', 'activate')}"
+                    full_cmd = f"{activate_cmd} && python3 {info_tool} {target_path}"
+                    shell_exe = "bash"
+                    shell_args = ["-c", full_cmd]
+            else:
+                python_bin = "python3"
+                shell_exe = python_bin
+                shell_args = [info_tool, target_path]
+
+            env = os.environ.copy()
+            env["PYTHONPATH"] = os.getcwd()
+            if venv_dir:
+                env["VIRTUAL_ENV"] = venv_dir
+
             result = subprocess.run(
-                [python_bin, info_tool, target_path],
+                [shell_exe] + shell_args if venv_dir else [shell_exe, info_tool, target_path],
                 capture_output=True, text=True, env=env, check=False
             )
             
@@ -415,7 +439,12 @@ class LiteXBuildGUI(QMainWindow):
         self.process.start("bash", [script, "--install"])
 
     def start_build(self):
-        if not self.current_target_path or not self.venv_python:
+        if not self.venv_python:
+            QMessageBox.critical(self, "No VENV", "Virtual environment not found. Build prohibited. Please run setup_litex.sh first.")
+            return
+
+        if not self.current_target_path:
+            QMessageBox.warning(self, "No Target", "Please select a target first.")
             return
 
         cmd = [self.venv_python, self.current_target_path]
@@ -446,22 +475,39 @@ class LiteXBuildGUI(QMainWindow):
         # Prepare environment
         q_env = QProcessEnvironment.systemEnvironment()
         q_env.insert("PYTHONPATH", os.getcwd())
+        # Set VIRTUAL_ENV to point to our .venv
+        venv_dir = os.path.dirname(os.path.dirname(self.venv_python))
+        q_env.insert("VIRTUAL_ENV", venv_dir)
+        
+        self.process.setProcessEnvironment(q_env)
+
+        # Build activation and execution command
+        if platform.system() == "Windows":
+            activate_cmd = f"call {os.path.join(venv_dir, 'Scripts', 'activate.bat')}"
+            python_exe = "python"
+        else:
+            activate_cmd = f"source {os.path.join(venv_dir, 'bin', 'activate')}"
+            python_exe = "python3"
+
+        # Use the activated python instead of absolute path
+        cmd[0] = python_exe
         
         if self.toolchain_env_scripts:
-            # If scripts are provided, we wrap the execution in a shell for sourcing
             if platform.system() == "Windows":
-                # Windows: cmd /c "call script1.bat && call script2.bat && python target.py ..."
                 shell_cmd = " && ".join([f"call {s}" for s in self.toolchain_env_scripts])
-                full_cmd_str = f"{shell_cmd} && {' '.join(cmd)}"
+                full_cmd_str = f"{activate_cmd} && {shell_cmd} && {' '.join(cmd)}"
                 self.process.start("cmd", ["/c", full_cmd_str])
             else:
-                # Linux/macOS: bash -c "source script1.sh && source script2.sh && python target.py ..."
                 shell_cmd = " && ".join([f"source {s}" for s in self.toolchain_env_scripts])
-                full_cmd_str = f"{shell_cmd} && {' '.join(cmd)}"
+                full_cmd_str = f"{activate_cmd} && {shell_cmd} && {' '.join(cmd)}"
                 self.process.start("bash", ["-c", full_cmd_str])
         else:
-            self.process.setProcessEnvironment(q_env)
-            self.process.start(cmd[0], cmd[1:])
+            if platform.system() == "Windows":
+                full_cmd_str = f"{activate_cmd} && {' '.join(cmd)}"
+                self.process.start("cmd", ["/c", full_cmd_str])
+            else:
+                full_cmd_str = f"{activate_cmd} && {' '.join(cmd)}"
+                self.process.start("bash", ["-c", full_cmd_str])
 
         self.build_button.setEnabled(False)
         self.stop_button.setEnabled(True)

@@ -195,16 +195,24 @@ int main(void)
             LMS_Ctrl_Packet_Tx->Header.Status      = STATUS_BUSY_CMD;
 
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
-            case CMD_GET_INFO:
-
+            case CMD_GET_INFO: {
                 LMS_Ctrl_Packet_Tx->Data_field[0] = BSP_FW_VER; // FW_VER LSB
                 LMS_Ctrl_Packet_Tx->Data_field[1] = BSP_DEV_TYPE;
                 LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
                 LMS_Ctrl_Packet_Tx->Data_field[3] = BSP_HW_VER;
                 LMS_Ctrl_Packet_Tx->Data_field[4] = BSP_EXP_BOARD;
                 LMS_Ctrl_Packet_Tx->Data_field[9] = FW_VER_MAIN; // FW_VER MSB
+
+                uint8_t tmp_data_field[64];
+                if (bsp_serial_read(tmp_data_field) == STATUS_COMPLETED_CMD) {
+                    for (int i = 0; i < 8; i++) {
+                        LMS_Ctrl_Packet_Tx->Data_field[10 + i] = tmp_data_field[24 + 7 - i];
+                    }
+                }
+
                 LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                 break;
+            }
 
             case CMD_SERIAL_WR:
                 LMS_Ctrl_Packet_Tx->Header.Status = bsp_serial_write(LMS_Ctrl_Packet_Rx->Data_field);

@@ -991,7 +991,7 @@ def main():
         if prepare and not args.no_soc_json:
             soc.print_soc_hierarchy_json()
 
-        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite", libc_mode="full")
         builder.build(run=build,
                         vivado_synth_directive                  = "PerformanceOptimized",
                         vivado_opt_directive                    = "Explore",

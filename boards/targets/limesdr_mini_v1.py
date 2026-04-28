@@ -468,7 +468,7 @@ def main():
         output_dir = os.path.abspath(os.path.join("build", soc.platform.name))
         if args.golden:
             output_dir = output_dir + "_golden"
-        builder = Builder(soc, output_dir=output_dir, csr_csv="csr.csv", bios_console="lite")
+        builder = Builder(soc, output_dir=output_dir, csr_csv="csr.csv", bios_console="lite", libc_mode="full")
         builder.build(run=build)
         # Firmware build.
         if prepare:
