@@ -1,1 +1,22 @@
 module,address,address_end,default,name,description,op
+TIMECFG,0x0280,,0x0000,timestamp_settings,Timestamp Settings,upsert
+TIMECFG,0x0281,,0x0000,rx_delay_mode,RX delay mode,upsert
+TIMECFG,0x0282,,0x0000,tx_delay_mode,TX delay mode,upsert
+TIMECFG,0x0283,,0x0000,main_time_min_sec,Main time (minutes and seconds),upsert
+TIMECFG,0x0284,,0x0000,main_time_mon_day_hrs,Main time (months days and hours),upsert
+TIMECFG,0x0285,,0x0000,main_time_yrs,Main time (years),upsert
+TIMECFG,0x0286,,0x0000,rx_time_min_sec,RX start time (minutes and seconds),upsert
+TIMECFG,0x0287,,0x0000,rx_time_mon_day_hrs,RX start time (months days and hours),upsert
+TIMECFG,0x0288,,0x0000,rx_time_yrs,RX start time (years),upsert
+TIMECFG,0x0289,,0x0000,tx_time_min_sec,TX start time (minutes and seconds),upsert
+TIMECFG,0x028A,,0x0000,tx_time_mon_day_hrs,TX start time (months days and hours),upsert
+TIMECFG,0x028B,,0x0000,tx_time_yrs,TX start time (years),upsert
+FPGACFG,0x000E,,0x0000,reserved,Reserved,upsert
+FPGACFG,0x0011,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x0022,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x002C,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x002D,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x0030,,0x0000,reserved,Reserved,upsert
+TSTCFG,0x0067,,0x0000,reserved,Reserved,upsert
+TSTCFG,0x007D,,0x0000,reserved,Reserved,upsert
+TSTCFG,0x007E,,0x0000,reserved,Reserved,upsert

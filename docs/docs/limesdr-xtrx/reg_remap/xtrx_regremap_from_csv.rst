@@ -25,6 +25,9 @@ Quick Navigation
    * - :ref:`PERIPHCFG <xtrx_regmap_periphcfg>`
      - ``0x00C0`` - ``0x00D3``
      - GPIO and peripheral routing/enable controls
+   * - :ref:`TIMECFG <xtrx_regmap_timecfg>`
+     - ``0x0280`` - ``0x029F``
+     - GNSS time information and related
    * - :ref:`MEMCFG <xtrx_regmap_memcfg>`
      - ``0xFFE0`` - ``0xFFFF``
      - Reserved memory-mapped window
@@ -54,19 +57,19 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      -  
      - ``compile_rev``
      - Compile revision
-   * - :ref:`0x0003 <xtrx_reg_0003>`
+   * - :ref:`0x0003 <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x0004 <xtrx_reg_0004>`
+   * - :ref:`0x0004 <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x0005 <xtrx_reg_0005>`
+   * - :ref:`0x0005 <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x0006 <xtrx_reg_0006>`
+   * - :ref:`0x0006 <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
@@ -86,23 +89,23 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - ``0x0000``
      - ``rf_tdd_ctrl``
      - RF switch, TDD, pattern generation, and unified RX/TX enable control.
-   * - :ref:`0x000B <xtrx_reg_000b>`
+   * - :ref:`0x000B <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x000C <xtrx_reg_000c>`
+   * - :ref:`0x000C <xtrx_regmap_fpgacfg>`
      - ``0x0003``
      - \-
      - Reserved.
-   * - :ref:`0x000D <xtrx_reg_000d>`
+   * - :ref:`0x000D <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x000E <xtrx_reg_000e>`
+   * - :ref:`0x000E <xtrx_regmap_fpgacfg>`
      - ``0x0000``
-     - ``rx_packet_samples``
-     - RX packet size in samples.
-   * - :ref:`0x000F <xtrx_reg_000f>`
+     - \-
+     - Reserved
+   * - :ref:`0x000F <xtrx_regmap_fpgacfg>`
      - ``0x03FC``
      - \-
      - Reserved.
@@ -110,11 +113,11 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - ``0x0001``
      - ``txant_pre``
      - Number of samples to delay turning on the internal TDD signal.
-   * - :ref:`0x0011 <xtrx_reg_0011>`
-     - ``0x0001``
-     - ``txant_post``
-     - Number of samples to delay turning off the internal TDD signal.
-   * - :ref:`0x0012 <xtrx_reg_0012>`
+   * - :ref:`0x0011 <xtrx_regmap_fpgacfg>`
+     - ``0x0000``
+     - \-
+     - Reserved
+   * - :ref:`0x0012 <xtrx_regmap_fpgacfg>`
      - ``0xFFFF``
      - \-
      - Reserved.
@@ -122,19 +125,19 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - ``0x6F6B``
      - ``lms_misc_ctrl``
      - LMS7002 digital-interface and hard-enable control.
-   * - :ref:`0x0014 <xtrx_reg_0014>`
+   * - :ref:`0x0014 <xtrx_regmap_fpgacfg>`
      - ``0x0003``
      - \-
      - Reserved.
-   * - :ref:`0x0015 <xtrx_reg_0015>`
+   * - :ref:`0x0015 <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x0016 <xtrx_reg_0016>`
+   * - :ref:`0x0016 <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x0017 <xtrx_reg_0017>`
+   * - :ref:`0x0017 <xtrx_regmap_fpgacfg>`
      - ``0x2340``
      - \-
      - Reserved.
@@ -146,27 +149,27 @@ FPGACFG Registers (``0x0000`` - ``0x001F``)
      - ``0x1000``
      - ``rx_packet_size``
      - RX packet size in bytes.
-   * - :ref:`0x001A <xtrx_reg_001a>`
+   * - :ref:`0x001A <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x001B <xtrx_reg_001b>`
+   * - :ref:`0x001B <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x001C <xtrx_reg_001c>`
+   * - :ref:`0x001C <xtrx_regmap_fpgacfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x001D <xtrx_reg_001d>`
+   * - :ref:`0x001D <xtrx_regmap_fpgacfg>`
      - ``0x00FF``
      - \-
      - Reserved.
-   * - :ref:`0x001E <xtrx_reg_001e>`
+   * - :ref:`0x001E <xtrx_regmap_fpgacfg>`
      - ``0x0003``
      - \-
      - Reserved.
-   * - :ref:`0x001F <xtrx_reg_001f>`
+   * - :ref:`0x001F <xtrx_regmap_fpgacfg>`
      - ``0xD090``
      - \-
      - Reserved.
@@ -192,19 +195,19 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - ``0x0001``
      - ``pll_status``
      - PLL and phase-configuration status.
-   * - :ref:`0x0022 <xtrx_reg_0022>`
+   * - :ref:`0x0022 <xtrx_regmap_pllcfg>`
      - ``0x0000``
-     - ``pll_lock_status``
-     - PLL error and TX/RX PLL lock status.
+     - \-
+     - Reserved
    * - :ref:`0x0023 <xtrx_reg_0023>`
      - ``0x0000``
      - ``pll_ctrl``
      - PLL reconfiguration control.
-   * - :ref:`0x0024 <xtrx_reg_0024>`
+   * - :ref:`0x0024 <xtrx_regmap_pllcfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x0025 <xtrx_reg_0025>`
+   * - :ref:`0x0025 <xtrx_regmap_pllcfg>`
      - ``0x01F0``
      - \-
      - Reserved.
@@ -216,11 +219,11 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - ``0x0AAA``
      - ``c01_bypass_ctrl``
      - PLL output-divider bypass.
-   * - :ref:`0x0028 <xtrx_reg_0028>`
+   * - :ref:`0x0028 <xtrx_regmap_pllcfg>`
      - ``0xAAAA``
      - \-
      - Reserved.
-   * - :ref:`0x0029 <xtrx_reg_0029>`
+   * - :ref:`0x0029 <xtrx_regmap_pllcfg>`
      - ``0xAAAA``
      - \-
      - Reserved.
@@ -232,14 +235,14 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - ``0x0000``
      - ``m_cnt``
      - PLL multiplier value.
-   * - :ref:`0x002C <xtrx_reg_002c>`
+   * - :ref:`0x002C <xtrx_regmap_pllcfg>`
      - ``0x0000``
-     - ``m_frac(lsb)``
-     - PLL multiplier fractional value, LSB.
-   * - :ref:`0x002D <xtrx_reg_002d>`
+     - \-
+     - Reserved
+   * - :ref:`0x002D <xtrx_regmap_pllcfg>`
      - ``0x0000``
-     - ``m_frac(msb)``
-     - PLL multiplier fractional value, MSB.
+     - \-
+     - Reserved
    * - :ref:`0x002E <xtrx_reg_002e>`
      - ``0x0000``
      - ``c0_cnt``
@@ -248,10 +251,10 @@ PLLCFG Registers (``0x0020`` - ``0x003F``)
      - ``0x0000``
      - ``c1_cnt``
      - PLL output 1 divider value.
-   * - :ref:`0x0030 <xtrx_reg_0030>`
-     - ``0xEFFF``
-     - ``auto_phcfg_smpls``
-     - Number of samples used during auto phase configuration.
+   * - :ref:`0x0030 <xtrx_regmap_pllcfg>`
+     - ``0x0000``
+     - \-
+     - Reserved
    * - :ref:`0x0031 <xtrx_regmap_pllcfg>` - :ref:`0x003F <xtrx_regmap_pllcfg>`
      - ``0x0000``
      - \-
@@ -270,7 +273,7 @@ TSTCFG Registers (``0x0060`` - ``0x007F``)
      - Default
      - Name
      - Description
-   * - :ref:`0x0060 <xtrx_reg_0060>`
+   * - :ref:`0x0060 <xtrx_regmap_tstcfg>`
      - ``0x0000``
      - \-
      - Reserved.
@@ -286,15 +289,15 @@ TSTCFG Registers (``0x0060`` - ``0x007F``)
      - ``0x0000``
      - ``test_cmplt``
      - Test-complete bits for sys_clk, LMS_TX_CLK, and GNSS.
-   * - :ref:`0x0066 <xtrx_reg_0066>`
+   * - :ref:`0x0066 <xtrx_regmap_tstcfg>`
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x0067 <xtrx_reg_0067>`
+   * - :ref:`0x0067 <xtrx_regmap_tstcfg>`
      - ``0x0000``
-     - ``test_rez``
-     - Test result bits
-   * - :ref:`0x0068 <xtrx_reg_0068>`
+     - \-
+     - Reserved
+   * - :ref:`0x0068 <xtrx_regmap_tstcfg>`
      - ``0x0000``
      - \-
      - Reserved.
@@ -322,15 +325,15 @@ TSTCFG Registers (``0x0060`` - ``0x007F``)
      - ``0x0000``
      - \-
      - Reserved.
-   * - :ref:`0x007D <xtrx_reg_007d>`
-     - ``0xAAAA``
-     - ``tx_tst_i``
-     - TX test value for I channel.
-   * - :ref:`0x007E <xtrx_reg_007e>`
-     - ``0x5555``
-     - ``tx_tst_q``
-     - TX test value for Q channel.
-   * - :ref:`0x007F <xtrx_reg_007f>`
+   * - :ref:`0x007D <xtrx_regmap_tstcfg>`
+     - ``0x0000``
+     - \-
+     - Reserved
+   * - :ref:`0x007E <xtrx_regmap_tstcfg>`
+     - ``0x0000``
+     - \-
+     - Reserved
+   * - :ref:`0x007F <xtrx_regmap_tstcfg>`
      - ``0x0000``
      - \-
      - Reserved.
@@ -360,7 +363,7 @@ PERIPHCFG Registers (``0x00C0`` - ``0x00D3``)
      - ``0x0000``
      - ``board_gpio_dir``
      - Onboard GPIO direction. 0 = input, 1 = output.
-   * - :ref:`0x00C5 <xtrx_reg_00c5>`
+   * - :ref:`0x00C5 <xtrx_regmap_periphcfg>`
      - ``0x0000``
      - \-
      - Reserved.
@@ -384,10 +387,72 @@ PERIPHCFG Registers (``0x00C0`` - ``0x00D3``)
      - ``0x0003``
      - ``periph_en``
      - Peripheral enables: clock-out routing, GNSS reset, GNSS standby.
-   * - :ref:`0x00D3 <xtrx_reg_00d3>`
+   * - :ref:`0x00D3 <xtrx_regmap_periphcfg>`
      - ``0x0000``
      - \-
      - Reserved.
+
+.. _xtrx_regmap_timecfg:
+
+TIMECFG Registers (``0x0280`` - ``0x029F``)
+-------------------------------------------
+
+.. list-table:: TIMECFG registers
+   :header-rows: 1
+   :widths: 10 12 20 58
+
+   * - Address
+     - Default
+     - Name
+     - Description
+   * - :ref:`0x0280 <xtrx_reg_0280>`
+     - ``0x0000``
+     - ``timestamp_settings``
+     - Timestamp Settings
+   * - :ref:`0x0281 <xtrx_reg_0281>`
+     - ``0x0000``
+     - ``rx_delay_mode``
+     - RX delay mode
+   * - :ref:`0x0282 <xtrx_reg_0282>`
+     - ``0x0000``
+     - ``tx_delay_mode``
+     - TX delay mode
+   * - :ref:`0x0283 <xtrx_reg_0283>`
+     - ``0x0000``
+     - ``main_time_min_sec``
+     - Main time (minutes and seconds)
+   * - :ref:`0x0284 <xtrx_reg_0284>`
+     - ``0x0000``
+     - ``main_time_mon_day_hrs``
+     - Main time (months days and hours)
+   * - :ref:`0x0285 <xtrx_reg_0285>`
+     - ``0x0000``
+     - ``main_time_yrs``
+     - Main time (years)
+   * - :ref:`0x0286 <xtrx_reg_0286>`
+     - ``0x0000``
+     - ``rx_time_min_sec``
+     - RX start time (minutes and seconds)
+   * - :ref:`0x0287 <xtrx_reg_0287>`
+     - ``0x0000``
+     - ``rx_time_mon_day_hrs``
+     - RX start time (months days and hours)
+   * - :ref:`0x0288 <xtrx_reg_0288>`
+     - ``0x0000``
+     - ``rx_time_yrs``
+     - RX start time (years)
+   * - :ref:`0x0289 <xtrx_reg_0289>`
+     - ``0x0000``
+     - ``tx_time_min_sec``
+     - TX start time (minutes and seconds)
+   * - :ref:`0x028A <xtrx_reg_028a>`
+     - ``0x0000``
+     - ``tx_time_mon_day_hrs``
+     - TX start time (months days and hours)
+   * - :ref:`0x028B <xtrx_reg_028b>`
+     - ``0x0000``
+     - ``tx_time_yrs``
+     - TX start time (years)
 
 .. _xtrx_regmap_memcfg:
 
@@ -492,114 +557,6 @@ Address: ``0x0002`` | Default: ``not specified`` | Access: R
      - ``compile_rev``
      -  
      - Compile revision, read only.
-
-.. _xtrx_reg_0003:
-
-``0x0003`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0003`` | Default: ``not specified`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "reserved [7:0]"},
-     {"bits": 8, "name": "reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_0004:
-
-``0x0004`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0004`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_0005:
-
-``0x0005`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0005`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_0006:
-
-``0x0006`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0006`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
 
 .. _xtrx_reg_0007:
 
@@ -783,141 +740,6 @@ Address: ``0x000A`` | Default: ``0x0000`` | Access: R/W
      - 0/1
      - Unified RX/TX enable.
 
-.. _xtrx_reg_000b:
-
-``0x000B`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x000B`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_000c:
-
-``0x000C`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x000C`` | Default: ``0x0003`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_000d:
-
-``0x000D`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x000D`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_000e:
-
-``0x000E`` - rx_packet_samples
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x000E`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "RX_PACKET_SAMPLES [7:0]"},
-     {"bits": 8, "name": "RX_PACKET_SAMPLES [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - ``RX_PACKET_SAMPLES``
-     -  
-     - RX packet size in samples.
-
-.. _xtrx_reg_000f:
-
-``0x000F`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x000F`` | Default: ``0x03FC`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
 .. _xtrx_reg_0010:
 
 ``0x0010`` - txant_pre
@@ -944,60 +766,6 @@ Address: ``0x0010`` | Default: ``0x0001`` | Access: R/W
      - ``txant_pre``
      -  
      - Number of samples to delay turning on the internal TDD signal.
-
-.. _xtrx_reg_0011:
-
-``0x0011`` - txant_post
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0011`` | Default: ``0x0001`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "txant_post [7:0]"},
-     {"bits": 8, "name": "txant_post [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - ``txant_post``
-     -  
-     - Number of samples to delay turning off the internal TDD signal.
-
-.. _xtrx_reg_0012:
-
-``0x0012`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0012`` | Default: ``0xFFFF`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
 
 .. _xtrx_reg_0013:
 
@@ -1056,114 +824,6 @@ Address: ``0x0013`` | Default: ``0x6F6B`` | Access: R/W
      - ``LMS1_RESET``
      - 0=Reset active,1=Inactive
      - LMS1 hardware reset.
-
-.. _xtrx_reg_0014:
-
-``0x0014`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0014`` | Default: ``0x0003`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_0015:
-
-``0x0015`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0015`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_0016:
-
-``0x0016`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0016`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_0017:
-
-``0x0017`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0017`` | Default: ``0x2340`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
 
 .. _xtrx_reg_0018:
 
@@ -1235,168 +895,6 @@ Address: ``0x0019`` | Default: ``0x1000`` | Access: R/W
      -  
      - RX packet size in bytes.
 
-.. _xtrx_reg_001a:
-
-``0x001A`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x001A`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_001b:
-
-``0x001B`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x001B`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_001c:
-
-``0x001C`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x001C`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_001d:
-
-``0x001D`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x001D`` | Default: ``0x00FF`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_001e:
-
-``0x001E`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x001E`` | Default: ``0x0003`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_001f:
-
-``0x001F`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x001F`` | Default: ``0xD090`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
 .. _xtrx_reg_0020:
 
 ``0x0020`` - c1 phase
@@ -1467,39 +965,6 @@ Address: ``0x0021`` | Default: ``0x0001`` | Access: R
      - status
      - PLL configuration done, read only.
 
-.. _xtrx_reg_0022:
-
-``0x0022`` - pll_lock_status
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0022`` | Default: ``0x0000`` | Access: R
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 1, "name": "pll_lock_tx"},
-     {"bits": 1, "name": "pll_lock_rx"},
-     {"bits": 6, "name": "Reserved [7:2]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[1]``
-     - ``pll_lock_rx``
-     - 0=No lock,1=Locked
-     - RX PLL lock status.
-   * - ``[0]``
-     - ``pll_lock_tx``
-     - 0=No lock,1=Locked
-     - TX PLL lock status.
-
 .. _xtrx_reg_0023:
 
 ``0x0023`` - pll_ctrl
@@ -1539,60 +1004,6 @@ Address: ``0x0023`` | Default: ``0x0000`` | Access: R/W
      - ``phcfg_start``
      - 0->1 edge
      - Start phase configuration on transition.
-
-.. _xtrx_reg_0024:
-
-``0x0024`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0024`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_0025:
-
-``0x0025`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0025`` | Default: ``0x01F0`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
 
 .. _xtrx_reg_0026:
 
@@ -1664,60 +1075,6 @@ Address: ``0x0027`` | Default: ``0x0AAA`` | Access: R/W
      - 0=normal,1=bypass
      - C0 output-divider bypass control.
 
-.. _xtrx_reg_0028:
-
-``0x0028`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0028`` | Default: ``0xAAAA`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_0029:
-
-``0x0029`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0029`` | Default: ``0xAAAA`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
 .. _xtrx_reg_002a:
 
 ``0x002A`` - n_cnt
@@ -1772,60 +1129,6 @@ Address: ``0x002B`` | Default: ``0x0000`` | Access: R/W
      -  
      - PLL multiplier value.
 
-.. _xtrx_reg_002c:
-
-``0x002C`` - m_frac(lsb)
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x002C`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "m_frac_l [7:0]"},
-     {"bits": 8, "name": "m_frac_l [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - ``m_frac_l``
-     -  
-     - PLL multiplier fractional value, LSB.
-
-.. _xtrx_reg_002d:
-
-``0x002D`` - m_frac(msb)
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x002D`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "m_frac_h [7:0]"},
-     {"bits": 8, "name": "m_frac_h [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - ``m_frac_h``
-     -  
-     - PLL multiplier fractional value, MSB.
-
 .. _xtrx_reg_002e:
 
 ``0x002E`` - c0_cnt
@@ -1879,60 +1182,6 @@ Address: ``0x002F`` | Default: ``0x0000`` | Access: R/W
      - ``c1_cnt``
      -  
      - PLL output 1 divider value.
-
-.. _xtrx_reg_0030:
-
-``0x0030`` - auto_phcfg_smpls
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0030`` | Default: ``0xEFFF`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "auto_phcfg_smpls [7:0]"},
-     {"bits": 8, "name": "auto_phcfg_smpls [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - ``auto_phcfg_smpls``
-     -  
-     - Number of samples used during auto phase configuration.
-
-.. _xtrx_reg_0060:
-
-``0x0060`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0060`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
 
 .. _xtrx_reg_0061:
 
@@ -2009,98 +1258,6 @@ Address: ``0x0065`` | Default: ``0x0000`` | Access: R
      - ``test_cmplt[0]``
      - status
      - System clock test complete.
-
-.. _xtrx_reg_0066:
-
-``0x0066`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0066`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
-.. _xtrx_reg_0067:
-
-``0x0067`` - test_rez
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0067`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 1, "name": "test_rez[0]"},
-     {"bits": 1, "name": "test_rez[1]"},
-     {"bits": 1, "name": "test_rez[2]"},
-     {"bits": 5, "name": "Reserved [7:3]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[2]``
-     - ``test_rez[2]``
-     -  
-     - GNSS test result.
-   * - ``[1]``
-     - ``test_rez[1]``
-     -  
-     - LMS TX clock test result.
-   * - ``[0]``
-     - ``test_rez[0]``
-     -  
-     - System clock test result.
-
-.. _xtrx_reg_0068:
-
-``0x0068`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x0068`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
 
 .. _xtrx_reg_0069:
 
@@ -2187,87 +1344,6 @@ Address: ``0x0073`` | Default: ``0x0000`` | Access: R/W
      -  
      - Bits 23:16 of LMS TX clock test counter.
 
-.. _xtrx_reg_007d:
-
-``0x007D`` - tx_tst_i
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x007D`` | Default: ``0xAAAA`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "tx_tst_i [7:0]"},
-     {"bits": 8, "name": "tx_tst_i [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - ``tx_tst_i``
-     -  
-     - TX test value for I channel.
-
-.. _xtrx_reg_007e:
-
-``0x007E`` - tx_tst_q
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x007E`` | Default: ``0x5555`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "tx_tst_q [7:0]"},
-     {"bits": 8, "name": "tx_tst_q [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - ``tx_tst_q``
-     -  
-     - TX test value for Q channel.
-
-.. _xtrx_reg_007f:
-
-``0x007F`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x007F`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
-
 .. _xtrx_reg_00c0:
 
 ``0x00C0`` - board_gpio_ovrd
@@ -2321,33 +1397,6 @@ Address: ``0x00C4`` | Default: ``0x0000`` | Access: R/W
      - ``board_gpio_dir``
      - 0 = input, 1 = output.
      - Onboard GPIO direction.
-
-.. _xtrx_reg_00c5:
-
-``0x00C5`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
-
-Address: ``0x00C5`` | Default: ``0x0000`` | Access: R/W
-
-.. wavedrom::
-
-   { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
-     {"bits": 8, "name": "Reserved [15:8]"}
-   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
-
-.. list-table::
-   :header-rows: 1
-   :widths: 12 22 26 40
-
-   * - Bit(s)
-     - Field
-     - Values
-     - Description
-   * - ``[15:0]``
-     - \-
-     -  
-     - Reserved.
 
 .. _xtrx_reg_00c6:
 
@@ -2442,17 +1491,18 @@ Address: ``0x00D2`` | Default: ``0x0003`` | Access: R/W
      - 0 – Standby mode 1 – Normal mode (Default)
      - GNSS_HW_S
 
-.. _xtrx_reg_00d3:
+.. _xtrx_reg_0280:
 
-``0x00D3`` - reserved
-^^^^^^^^^^^^^^^^^^^^^
+``0x0280`` - timestamp_settings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Address: ``0x00D3`` | Default: ``0x0000`` | Access: R/W
+Address: ``0x0280`` | Default: ``0x0000`` | Access: R/W
 
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "Reserved [7:0]"},
+     {"bits": 1, "name": "TS_SEL"},
+     {"bits": 7, "name": "Reserved [7:1]"},
      {"bits": 8, "name": "Reserved [15:8]"}
    ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
@@ -2464,7 +1514,360 @@ Address: ``0x00D3`` | Default: ``0x0000`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
-     - \-
+   * - ``[0]``
+     - ``TS_SEL``
+     - 0: Classic, 1: Mixed
+     - Timestamp selector
+
+.. _xtrx_reg_0281:
+
+``0x0281`` - rx_delay_mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0281`` | Default: ``0x0000`` | Access: R/W
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 2, "name": "rx_del_sel [1:0]"},
+     {"bits": 6, "name": "Reserved [7:2]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[1:0]``
+     - ``rx_del_sel``
+     - 0: No Delay, 1: Delay until PPS, 2: Delay until PPS and Valid
+     - RX enable signal delay mode
+
+.. _xtrx_reg_0282:
+
+``0x0282`` - tx_delay_mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0282`` | Default: ``0x0000`` | Access: R/W
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 2, "name": "tx_del_sel [1:0]"},
+     {"bits": 6, "name": "Reserved [7:2]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[1:0]``
+     - ``tx_del_sel``
+     - 0: No Delay, 1: Delay until PPS, 2: Delay until PPS and Valid
+     - TX enable signal delay mode
+
+.. _xtrx_reg_0283:
+
+``0x0283`` - main_time_min_sec
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0283`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 6, "name": "sec [5:0]"},
+     {"bits": 2, "name": "min [7:6]"},
+     {"bits": 4, "name": "min [11:8]"},
+     {"bits": 4, "name": "Reserved [15:12]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[11:6]``
+     - ``min``
      -  
-     - Reserved.
+     - Current time minutes
+   * - ``[5:0]``
+     - ``sec``
+     -  
+     - Current time seconds
+
+.. _xtrx_reg_0284:
+
+``0x0284`` - main_time_mon_day_hrs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0284`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 5, "name": "hrs [4:0]"},
+     {"bits": 3, "name": "day [7:5]"},
+     {"bits": 2, "name": "day [9:8]"},
+     {"bits": 4, "name": "mon [13:10]"},
+     {"bits": 2, "name": "Reserved [15:14]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[13:10]``
+     - ``mon``
+     -  
+     - Current time months
+   * - ``[9:5]``
+     - ``day``
+     -  
+     - Current time days
+   * - ``[4:0]``
+     - ``hrs``
+     -  
+     - Current time hours
+
+.. _xtrx_reg_0285:
+
+``0x0285`` - main_time_yrs
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0285`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "yrs [7:0]"},
+     {"bits": 4, "name": "yrs [11:8]"},
+     {"bits": 4, "name": "Reserved [15:12]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[11:0]``
+     - ``yrs``
+     -  
+     - Current time years
+
+.. _xtrx_reg_0286:
+
+``0x0286`` - rx_time_min_sec
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0286`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 6, "name": "sec [5:0]"},
+     {"bits": 2, "name": "min [7:6]"},
+     {"bits": 4, "name": "min [11:8]"},
+     {"bits": 4, "name": "Reserved [15:12]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[11:6]``
+     - ``min``
+     -  
+     - RX stream start time minutes
+   * - ``[5:0]``
+     - ``sec``
+     -  
+     - RX stream start time seconds
+
+.. _xtrx_reg_0287:
+
+``0x0287`` - rx_time_mon_day_hrs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0287`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 5, "name": "hrs [4:0]"},
+     {"bits": 3, "name": "day [7:5]"},
+     {"bits": 2, "name": "day [9:8]"},
+     {"bits": 4, "name": "mon [13:10]"},
+     {"bits": 2, "name": "Reserved [15:14]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[13:10]``
+     - ``mon``
+     -  
+     - RX stream start time months
+   * - ``[9:5]``
+     - ``day``
+     -  
+     - RX stream start time days
+   * - ``[4:0]``
+     - ``hrs``
+     -  
+     - RX stream start time hours
+
+.. _xtrx_reg_0288:
+
+``0x0288`` - rx_time_yrs
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0288`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "yrs [7:0]"},
+     {"bits": 4, "name": "yrs [11:8]"},
+     {"bits": 4, "name": "Reserved [15:12]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[11:0]``
+     - ``yrs``
+     -  
+     - RX stream start time years
+
+.. _xtrx_reg_0289:
+
+``0x0289`` - tx_time_min_sec
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0289`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 6, "name": "sec [5:0]"},
+     {"bits": 2, "name": "min [7:6]"},
+     {"bits": 4, "name": "min [11:8]"},
+     {"bits": 4, "name": "Reserved [15:12]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[11:6]``
+     - ``min``
+     -  
+     - TX stream start time minutes
+   * - ``[5:0]``
+     - ``sec``
+     -  
+     - TX stream start time seconds
+
+.. _xtrx_reg_028a:
+
+``0x028A`` - tx_time_mon_day_hrs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x028A`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 5, "name": "hrs [4:0]"},
+     {"bits": 3, "name": "day [7:5]"},
+     {"bits": 2, "name": "day [9:8]"},
+     {"bits": 4, "name": "mon [13:10]"},
+     {"bits": 2, "name": "Reserved [15:14]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[13:10]``
+     - ``mon``
+     -  
+     - TX stream start time months
+   * - ``[9:5]``
+     - ``day``
+     -  
+     - TX stream start time days
+   * - ``[4:0]``
+     - ``hrs``
+     -  
+     - TX stream start time hours
+
+.. _xtrx_reg_028b:
+
+``0x028B`` - tx_time_yrs
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x028B`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "yrs [7:0]"},
+     {"bits": 4, "name": "yrs [11:8]"},
+     {"bits": 4, "name": "Reserved [15:12]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[11:0]``
+     - ``yrs``
+     -  
+     - TX stream start time years
