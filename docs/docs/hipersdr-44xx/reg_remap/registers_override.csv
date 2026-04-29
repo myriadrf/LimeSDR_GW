@@ -1,1 +1,13 @@
 module,address,address_end,default,name,description,op
+FPGACFG,0x0009,,0x0000,reserved,Reserved,upsert
+FPGACFG,0x000E,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x0022,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x002C,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x002D,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x0030,,0x0000,reserved,Reserved,upsert
+TSTCFG,0x0067,,0x0000,reserved,Reserved,upsert
+TSTCFG,0x007D,,0x0000,reserved,Reserved,upsert
+TSTCFG,0x007E,,0x0000,reserved,Reserved,upsert
+PERIPHCFG,0x00C0,,0x0000,reserved,Reserved,upsert
+PERIPHCFG,0x00C4,,0x0000,reserved,Reserved,upsert
+PERIPHCFG,0x00C6,,0x0000,reserved,Reserved,upsert

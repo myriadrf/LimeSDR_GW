@@ -5,3 +5,36 @@ address,title,access,default,field,msb,lsb,values,description,op
 0x00D2,PERIPH_EN,R/W,0x0003,PERIPH_EN[2],2,2,0 – CLK OUT → NC (Default) 1 – CLK OUT → mPCIe SMB_CLK (pin 30),EN_GPIO (mPCIe),upsert
 0x00D2,PERIPH_EN,R/W,0x0003,PERIPH_EN[1],1,1,0 – Reset 1 – Normal operation (Default),GNSS_HW_R,upsert
 0x00D2,PERIPH_EN,R/W,0x0003,PERIPH_EN[0],0,0,0 – Standby mode 1 – Normal mode (Default),GNSS_HW_S,upsert
+0x0280,timestamp_settings,R/W,0x0000,Reserved,15,1,,,delete
+0x0280,timestamp_settings,R/W,0x0000,TS_SEL,0,0,"0: Classic, 1: Mixed",Timestamp selector,upsert
+0x0281,rx_delay_mode,R/W,0x0000,Reserved,15,2,,,delete
+0x0281,rx_delay_mode,R/W,0x0000,rx_del_sel,1,0,"0: No Delay, 1: Delay until PPS, 2: Delay until PPS and Valid",RX enable signal delay mode,upsert
+0x0282,tx_delay_mode,R/W,0x0000,Reserved,15,2,,,delete
+0x0282,tx_delay_mode,R/W,0x0000,tx_del_sel,1,0,"0: No Delay, 1: Delay until PPS, 2: Delay until PPS and Valid",TX enable signal delay mode,upsert
+0x0283,main_time_min_sec,R,0x0000,Reserved,15,12,,,delete
+0x0283,main_time_min_sec,R,0x0000,min,11,6,,Current time minutes,upsert
+0x0283,main_time_min_sec,R,0x0000,sec,5,0,,Current time seconds,upsert
+0x0284,main_time_mon_day_hrs,R,0x0000,Reserved,15,14,,,delete
+0x0284,main_time_mon_day_hrs,R,0x0000,mon,13,10,,Current time months,upsert
+0x0284,main_time_mon_day_hrs,R,0x0000,day,9,5,,Current time days,upsert
+0x0284,main_time_mon_day_hrs,R,0x0000,hrs,4,0,,Current time hours,upsert
+0x0285,main_time_yrs,R,0x0000,Reserved,15,12,,,delete
+0x0285,main_time_yrs,R,0x0000,yrs,11,0,,Current time years,upsert
+0x0286,rx_time_min_sec,R,0x0000,Reserved,15,12,,,delete
+0x0286,rx_time_min_sec,R,0x0000,min,11,6,,RX stream start time minutes,upsert
+0x0286,rx_time_min_sec,R,0x0000,sec,5,0,,RX stream start time seconds,upsert
+0x0287,rx_time_mon_day_hrs,R,0x0000,Reserved,15,14,,,delete
+0x0287,rx_time_mon_day_hrs,R,0x0000,mon,13,10,,RX stream start time months,upsert
+0x0287,rx_time_mon_day_hrs,R,0x0000,day,9,5,,RX stream start time days,upsert
+0x0287,rx_time_mon_day_hrs,R,0x0000,hrs,4,0,,RX stream start time hours,upsert
+0x0288,rx_time_yrs,R,0x0000,Reserved,15,12,,,delete
+0x0288,rx_time_yrs,R,0x0000,yrs,11,0,,RX stream start time years,upsert
+0x0289,tx_time_min_sec,R,0x0000,Reserved,15,12,,,delete
+0x0289,tx_time_min_sec,R,0x0000,min,11,6,,TX stream start time minutes,upsert
+0x0289,tx_time_min_sec,R,0x0000,sec,5,0,,TX stream start time seconds,upsert
+0x028A,tx_time_mon_day_hrs,R,0x0000,Reserved,15,14,,,delete
+0x028A,tx_time_mon_day_hrs,R,0x0000,mon,13,10,,TX stream start time months,upsert
+0x028A,tx_time_mon_day_hrs,R,0x0000,day,9,5,,TX stream start time days,upsert
+0x028A,tx_time_mon_day_hrs,R,0x0000,hrs,4,0,,TX stream start time hours,upsert
+0x028B,tx_time_yrs,R,0x0000,Reserved,15,12,,,delete
+0x028B,tx_time_yrs,R,0x0000,yrs,11,0,,TX stream start time years,upsert
