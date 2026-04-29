@@ -211,30 +211,19 @@ def render(
             reg_name_by_addr[r.address] = r.name
 
     # Ensure every single-address register has bitfield coverage.
-    # - Reserved registers get an auto-generated full-width reserved field if missing.
+    # - Reserved registers are skipped in bitfield coverage if the user requested it.
     # - Non-reserved registers without bitfields are an error.
     missing_non_reserved: List[RegisterRow] = []
+    reserved_addresses: set[int] = set()
     for r in registers:
         if r.address != r.address_end:
             continue
+        if is_reserved_name(r.name):
+            reserved_addresses.add(r.address)
+            continue
         if r.address in bf_by_addr:
             continue
-        if is_reserved_name(r.name):
-            bf_by_addr[r.address] = [
-                BitfieldRow(
-                    address=r.address,
-                    title="reserved",
-                    access="R/W",
-                    default=r.default,
-                    field="reserved",
-                    msb=15,
-                    lsb=0,
-                    values="",
-                    description=r.description or "Reserved.",
-                )
-            ]
-        else:
-            missing_non_reserved.append(r)
+        missing_non_reserved.append(r)
     if missing_non_reserved:
         entries = ", ".join(f"{as_hex(r.address)} ({r.name})" for r in missing_non_reserved)
         raise ValueError(
@@ -285,7 +274,7 @@ def render(
         for r in mod_regs.get(m.module, []):
             module_anchor = f"{label_prefix}_regmap_{r.module.lower()}"
             if r.address == r.address_end:
-                if r.address in bf_by_addr:
+                if r.address in bf_by_addr and r.address not in reserved_addresses:
                     anchor = f"{label_prefix}_reg_{r.address:04X}".lower()
                     addr = f":ref:`{as_hex(r.address)} <{anchor}>`"
                 else:
@@ -308,6 +297,8 @@ def render(
     out.append("")
 
     for addr in sorted(bf_by_addr):
+        if addr in reserved_addresses:
+            continue
         rows = bf_by_addr[addr]
         first = rows[0]
         meta_title = next((r.title for r in rows if r.title), "")
