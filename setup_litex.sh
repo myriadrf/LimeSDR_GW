@@ -9,6 +9,7 @@ INSTALL=false
 CHECK=false
 FREEZE=false
 BYPASS_CONFIG=false
+TAG=""
 EDITABLE=true
 
 # Help message
@@ -20,6 +21,7 @@ function show_help {
     echo "  --check          Check currently installed LiteX versions against $CONFIG_FILE"
     echo "  --freeze         Save currently installed LiteX versions to $CONFIG_FILE"
     echo "  --new            Bypass $CONFIG_FILE and install newest LiteX repos"
+    echo "  --tag TAG        Bypass $CONFIG_FILE and install LiteX repos at TAG"
     echo "  --non-editable   Install LiteX repos in non-editable mode"
     echo "  --help           Show this help message"
     echo ""
@@ -49,6 +51,11 @@ while [[ $# -gt 0 ]]; do
             BYPASS_CONFIG=true
             INSTALL=true
             shift
+            ;;
+        --tag)
+            TAG="$2"
+            INSTALL=true
+            shift 2
             ;;
         --non-editable)
             EDITABLE=false
@@ -90,6 +97,9 @@ MANAGER="tools/litex_manager.py"
 chmod +x "$MANAGER"
 
 MANAGER_ARGS="--config $CONFIG_FILE --deps-dir $DEPS_DIR"
+if [ -n "$TAG" ]; then
+    MANAGER_ARGS="$MANAGER_ARGS --tag $TAG"
+fi
 if [ "$EDITABLE" = false ]; then
     MANAGER_ARGS="$MANAGER_ARGS --non-editable"
 fi

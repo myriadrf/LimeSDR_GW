@@ -28,33 +28,33 @@ DEFAULT_GIT_REPOS = {
     # HDL.
     "migen":    GitRepo(url="https://github.com/m-labs/", clone="recursive", editable=False),
     # LiteX SoC builder.
-    "pythondata-software-picolibc":    GitRepo(url="https://github.com/litex-hub/", clone="recursive"),
-    "pythondata-software-compiler_rt": GitRepo(url="https://github.com/litex-hub/"),
-    "litex":                           GitRepo(url="https://github.com/enjoy-digital/"),
+    "pythondata-software-picolibc":    GitRepo(url="https://github.com/litex-hub/", clone="recursive", tag=True),
+    "pythondata-software-compiler_rt": GitRepo(url="https://github.com/litex-hub/", tag=True),
+    "litex":                           GitRepo(url="https://github.com/enjoy-digital/", tag=True),
     # LiteX Cores Ecosystem.
-    "liteiclink":    GitRepo(url="https://github.com/enjoy-digital/"),
-    "liteeth":       GitRepo(url="https://github.com/enjoy-digital/"),
-    "litedram":      GitRepo(url="https://github.com/enjoy-digital/"),
-    "litepcie":      GitRepo(url="https://github.com/enjoy-digital/"),
-    "litesata":      GitRepo(url="https://github.com/enjoy-digital/"),
-    "litesdcard":    GitRepo(url="https://github.com/enjoy-digital/"),
-    "litescope":     GitRepo(url="https://github.com/enjoy-digital/"),
-    "litejesd204b":  GitRepo(url="https://github.com/enjoy-digital/"),
-    "litespi":       GitRepo(url="https://github.com/litex-hub/"),
-    "litei2c":       GitRepo(url="https://github.com/litex-hub/", branch="main"),
-    "litex-boards":  GitRepo(url="https://github.com/litex-hub/"),
+    "liteiclink":    GitRepo(url="https://github.com/enjoy-digital/", tag=True),
+    "liteeth":       GitRepo(url="https://github.com/enjoy-digital/", tag=True),
+    "litedram":      GitRepo(url="https://github.com/enjoy-digital/", tag=True),
+    "litepcie":      GitRepo(url="https://github.com/enjoy-digital/", tag=True),
+    "litesata":      GitRepo(url="https://github.com/enjoy-digital/", tag=True),
+    "litesdcard":    GitRepo(url="https://github.com/enjoy-digital/", tag=True),
+    "litescope":     GitRepo(url="https://github.com/enjoy-digital/", tag=True),
+    "litejesd204b":  GitRepo(url="https://github.com/enjoy-digital/", tag=True),
+    "litespi":       GitRepo(url="https://github.com/litex-hub/", tag=True),
+    "litei2c":       GitRepo(url="https://github.com/litex-hub/", branch="main", tag=True),
+    "litex-boards":  GitRepo(url="https://github.com/litex-hub/", tag=True),
     # LiteX Python Data.
-    "pythondata-misc-tapcfg":    GitRepo(url="https://github.com/litex-hub/"),
-    "pythondata-misc-usb_ohci":  GitRepo(url="https://github.com/litex-hub/", clone="recursive"),
-    "pythondata-cpu-lm32":       GitRepo(url="https://github.com/litex-hub/"),
-    "pythondata-cpu-mor1kx":     GitRepo(url="https://github.com/litex-hub/"),
-    "pythondata-cpu-minerva":    GitRepo(url="https://github.com/litex-hub/"),
-    "pythondata-cpu-naxriscv":   GitRepo(url="https://github.com/litex-hub/"),
-    "pythondata-cpu-sentinel":   GitRepo(url="https://github.com/litex-hub/", branch="main"),
-    "pythondata-cpu-serv":       GitRepo(url="https://github.com/litex-hub/"),
-    "pythondata-cpu-vexiiriscv": GitRepo(url="https://github.com/litex-hub/", branch="main"),
-    "pythondata-cpu-vexriscv":   GitRepo(url="https://github.com/litex-hub/"),
-    "pythondata-cpu-vexriscv-smp": GitRepo(url="https://github.com/litex-hub/", clone="recursive"),
+    "pythondata-misc-tapcfg":    GitRepo(url="https://github.com/litex-hub/", tag=True),
+    "pythondata-misc-usb_ohci":  GitRepo(url="https://github.com/litex-hub/", clone="recursive", tag=True),
+    "pythondata-cpu-lm32":       GitRepo(url="https://github.com/litex-hub/", tag=True),
+    "pythondata-cpu-mor1kx":     GitRepo(url="https://github.com/litex-hub/", tag=True),
+    "pythondata-cpu-minerva":    GitRepo(url="https://github.com/litex-hub/", tag=True),
+    "pythondata-cpu-naxriscv":   GitRepo(url="https://github.com/litex-hub/", tag=True),
+    "pythondata-cpu-sentinel":   GitRepo(url="https://github.com/litex-hub/", branch="main", tag=True),
+    "pythondata-cpu-serv":       GitRepo(url="https://github.com/litex-hub/", tag=True),
+    "pythondata-cpu-vexiiriscv": GitRepo(url="https://github.com/litex-hub/", branch="main", tag=True),
+    "pythondata-cpu-vexriscv":   GitRepo(url="https://github.com/litex-hub/", tag=True),
+    "pythondata-cpu-vexriscv-smp": GitRepo(url="https://github.com/litex-hub/", clone="recursive", tag=True),
 }
 
 # --- Helper Functions ---
@@ -93,14 +93,21 @@ def get_repo_url(name, repo):
 
 # --- Core Actions ---
 
-def do_install(config, deps_dir, editable_override=None, bypass_config=False):
+def do_install(config, deps_dir, editable_override=None, bypass_config=False, tag_override=None):
     os.makedirs(deps_dir, exist_ok=True)
     
-    if bypass_config:
+    if tag_override:
+        print(f"Tag override: Using tag '{tag_override}' for all repositories.")
+        if bypass_config:
+            git_repos = DEFAULT_GIT_REPOS
+        else:
+            # If we have a config, use repos from config, otherwise fallback to default
+            git_repos = config.git_repos if config else DEFAULT_GIT_REPOS
+    elif bypass_config:
         print("Bypassing config. Installing newest repositories from official list...")
         git_repos = DEFAULT_GIT_REPOS
     elif config is None:
-        print("Error: No config provided and --new not used.")
+        print("Error: No config provided and --new/--tag not used.")
         sys.exit(1)
     else:
         git_repos = config.git_repos
@@ -118,7 +125,17 @@ def do_install(config, deps_dir, editable_override=None, bypass_config=False):
             print("Repository already exists.")
 
         # 2. Fetch and Checkout
-        if bypass_config:
+        if tag_override and (repo.tag is not None):
+            print(f"Checking out Tag: {tag_override}")
+            run_command(["git", "fetch", "--tags"], cwd=repo_path)
+            try:
+                # Get the SHA1 of the tag and checkout that SHA1 (LiteX style)
+                tag_sha1 = subprocess.check_output(["git", "rev-list", "-n", "1", tag_override], cwd=repo_path, stderr=subprocess.DEVNULL).decode().strip()
+                run_command(["git", "checkout", tag_sha1], cwd=repo_path)
+            except subprocess.CalledProcessError:
+                # Fallback to direct checkout if rev-list fails (maybe it's not a tag but a branch/sha1)
+                run_command(["git", "checkout", tag_override], cwd=repo_path)
+        elif bypass_config:
             # For --new, we want latest of default branch
             print("Updating to latest...")
             run_command(["git", "fetch"], cwd=repo_path)
@@ -145,7 +162,11 @@ def do_install(config, deps_dir, editable_override=None, bypass_config=False):
             elif repo.tag is not None:
                 print(f"Checking out Tag: {repo.tag}")
                 run_command(["git", "fetch", "--tags"], cwd=repo_path)
-                run_command(["git", "checkout", f"tags/{repo.tag}"], cwd=repo_path)
+                try:
+                    tag_sha1 = subprocess.check_output(["git", "rev-list", "-n", "1", repo.tag], cwd=repo_path, stderr=subprocess.DEVNULL).decode().strip()
+                    run_command(["git", "checkout", tag_sha1], cwd=repo_path)
+                except subprocess.CalledProcessError:
+                    run_command(["git", "checkout", repo.tag], cwd=repo_path)
             else:
                 branch = repo.branch or "master"
                 print(f"Checking out Branch: {branch}")
@@ -200,7 +221,7 @@ def do_check(config, deps_dir):
                     all_ok = False
             elif repo.tag is not None:
                 try:
-                    tag_sha1 = subprocess.check_output(["git", "rev-list", "-n", "1", repo.tag], cwd=repo_path).decode().strip()
+                    tag_sha1 = subprocess.check_output(["git", "rev-list", "-n", "1", repo.tag], cwd=repo_path, stderr=subprocess.DEVNULL).decode().strip()
                     if current_sha1 == tag_sha1:
                         print(f"{name:30} | OK              | Tag: {repo.tag}")
                     else:
@@ -286,18 +307,19 @@ if __name__ == "__main__":
     parser.add_argument("--editable", action="store_true", default=None, help="Force editable install")
     parser.add_argument("--non-editable", action="store_false", dest="editable", help="Force non-editable install")
     parser.add_argument("--new", action="store_true", help="Bypass config and install latest versions")
+    parser.add_argument("--tag", help="Override repository version with this tag")
     
     args = parser.parse_args()
     
     config = None
-    if not args.new:
+    if not (args.new or args.tag):
         config = get_config(args.config)
         if config is None and args.command in ["check"]:
             print(f"Error: Config file {args.config} not found.")
             sys.exit(1)
             
     if args.command == "install":
-        do_install(config, args.deps_dir, editable_override=args.editable, bypass_config=args.new)
+        do_install(config, args.deps_dir, editable_override=args.editable, bypass_config=args.new, tag_override=args.tag)
     elif args.command == "check":
         if not do_check(config, args.deps_dir):
             sys.exit(1)
