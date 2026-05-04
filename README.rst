@@ -21,7 +21,7 @@ Documentation
 
 More details can be found in:
 
--  https://limesdrgw.myriadrf.org/
+-  https://myriadrf.org/projects/limesdr-gw
 
 Local documentation can be build (Sphinx documentation generator required):
 
