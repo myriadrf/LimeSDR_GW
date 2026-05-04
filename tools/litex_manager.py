@@ -5,11 +5,18 @@ import subprocess
 import importlib.util
 import builtins
 import argparse
+import urllib.request
+import tempfile
+import shutil
 
 # --- GitRepo Class Definition (Compatible with LiteX) ---
 
 class GitRepo:
     def __init__(self, url, clone="regular", develop=True, editable=True, sha1=None, branch="master", tag=None):
+        """
+        GitRepo definition.
+        :param tag: Can be a bool (True means 'taggable' via global --tag) or a str (a specific default tag).
+        """
         assert clone in ["regular", "recursive"]
         self.url      = url
         self.clone    = clone
@@ -21,41 +28,6 @@ class GitRepo:
 
 # Inject into builtins so config files can use it without import
 builtins.GitRepo = GitRepo
-
-# --- Default LiteX Repositories (Official List Fallback) ---
-
-DEFAULT_GIT_REPOS = {
-    # HDL.
-    "migen":    GitRepo(url="https://github.com/m-labs/", clone="recursive", editable=False),
-    # LiteX SoC builder.
-    "pythondata-software-picolibc":    GitRepo(url="https://github.com/litex-hub/", clone="recursive", tag=True),
-    "pythondata-software-compiler_rt": GitRepo(url="https://github.com/litex-hub/", tag=True),
-    "litex":                           GitRepo(url="https://github.com/enjoy-digital/", tag=True),
-    # LiteX Cores Ecosystem.
-    "liteiclink":    GitRepo(url="https://github.com/enjoy-digital/", tag=True),
-    "liteeth":       GitRepo(url="https://github.com/enjoy-digital/", tag=True),
-    "litedram":      GitRepo(url="https://github.com/enjoy-digital/", tag=True),
-    "litepcie":      GitRepo(url="https://github.com/enjoy-digital/", tag=True),
-    "litesata":      GitRepo(url="https://github.com/enjoy-digital/", tag=True),
-    "litesdcard":    GitRepo(url="https://github.com/enjoy-digital/", tag=True),
-    "litescope":     GitRepo(url="https://github.com/enjoy-digital/", tag=True),
-    "litejesd204b":  GitRepo(url="https://github.com/enjoy-digital/", tag=True),
-    "litespi":       GitRepo(url="https://github.com/litex-hub/", tag=True),
-    "litei2c":       GitRepo(url="https://github.com/litex-hub/", branch="main", tag=True),
-    "litex-boards":  GitRepo(url="https://github.com/litex-hub/", tag=True),
-    # LiteX Python Data.
-    "pythondata-misc-tapcfg":    GitRepo(url="https://github.com/litex-hub/", tag=True),
-    "pythondata-misc-usb_ohci":  GitRepo(url="https://github.com/litex-hub/", clone="recursive", tag=True),
-    "pythondata-cpu-lm32":       GitRepo(url="https://github.com/litex-hub/", tag=True),
-    "pythondata-cpu-mor1kx":     GitRepo(url="https://github.com/litex-hub/", tag=True),
-    "pythondata-cpu-minerva":    GitRepo(url="https://github.com/litex-hub/", tag=True),
-    "pythondata-cpu-naxriscv":   GitRepo(url="https://github.com/litex-hub/", tag=True),
-    "pythondata-cpu-sentinel":   GitRepo(url="https://github.com/litex-hub/", branch="main", tag=True),
-    "pythondata-cpu-serv":       GitRepo(url="https://github.com/litex-hub/", tag=True),
-    "pythondata-cpu-vexiiriscv": GitRepo(url="https://github.com/litex-hub/", branch="main", tag=True),
-    "pythondata-cpu-vexriscv":   GitRepo(url="https://github.com/litex-hub/", tag=True),
-    "pythondata-cpu-vexriscv-smp": GitRepo(url="https://github.com/litex-hub/", clone="recursive", tag=True),
-}
 
 # --- Helper Functions ---
 
@@ -84,33 +56,27 @@ def get_config(config_file):
 
 def get_repo_url(name, repo):
     url = repo.url
-    if not (url.endswith(".git") or url.startswith("git@")):
-        if url.endswith("/"):
-            url = url + name + ".git"
-        else:
-            url = url + "/" + name + ".git"
-    return url
+    if url.startswith("git@") or url.endswith(".git"):
+        return url
+    if not url.endswith("/"):
+        url += "/"
+    return url + name + ".git"
 
 # --- Core Actions ---
 
 def do_install(config, deps_dir, editable_override=None, bypass_config=False, tag_override=None):
     os.makedirs(deps_dir, exist_ok=True)
     
-    if tag_override:
-        print(f"Tag override: Using tag '{tag_override}' for all repositories.")
-        if bypass_config:
-            git_repos = DEFAULT_GIT_REPOS
-        else:
-            # If we have a config, use repos from config, otherwise fallback to default
-            git_repos = config.git_repos if config else DEFAULT_GIT_REPOS
-    elif bypass_config:
-        print("Bypassing config. Installing newest repositories from official list...")
-        git_repos = DEFAULT_GIT_REPOS
-    elif config is None:
-        print("Error: No config provided and --new/--tag not used.")
+    if not config:
+        print("Error: No config provided. Action requires a valid configuration file.")
         sys.exit(1)
-    else:
-        git_repos = config.git_repos
+
+    git_repos = config.git_repos
+    
+    if tag_override:
+        print(f"Tag override: Using tag '{tag_override}' for taggable repositories (from config).")
+    elif bypass_config:
+        print("Bypassing config SHA1s/tags. Updating repositories to latest branches (from config)...")
 
     for name, repo in git_repos.items():
         repo_path = os.path.join(deps_dir, name)
@@ -120,57 +86,69 @@ def do_install(config, deps_dir, editable_override=None, bypass_config=False, ta
         if not os.path.exists(repo_path):
             url = get_repo_url(name, repo)
             print(f"Cloning {url}...")
-            run_command(["git", "clone", url, name], cwd=deps_dir)
+            # Use --recursive if requested in the definition
+            clone_cmd = ["git", "clone"]
+            if repo.clone == "recursive":
+                clone_cmd.append("--recursive")
+            clone_cmd.extend([url, name])
+            run_command(clone_cmd, cwd=deps_dir)
         else:
             print("Repository already exists.")
 
         # 2. Fetch and Checkout
+        # Priority 1: Tag override (if repo is taggable)
+        # We use the tag provided via CLI (--tag) if the repo definition has tag=True or tag="some_default"
         if tag_override and (repo.tag is not None):
-            print(f"Checking out Tag: {tag_override}")
+            print(f"Checking out Tag (Override): {tag_override}")
             run_command(["git", "fetch", "--tags"], cwd=repo_path)
             try:
-                # Get the SHA1 of the tag and checkout that SHA1 (LiteX style)
+                # Try to get SHA1 of the tag first
                 tag_sha1 = subprocess.check_output(["git", "rev-list", "-n", "1", tag_override], cwd=repo_path, stderr=subprocess.DEVNULL).decode().strip()
-                run_command(["git", "checkout", tag_sha1], cwd=repo_path)
+                run_command(["git", "checkout", "-q", tag_sha1], cwd=repo_path)
             except subprocess.CalledProcessError:
-                # Fallback to direct checkout if rev-list fails (maybe it's not a tag but a branch/sha1)
-                run_command(["git", "checkout", tag_override], cwd=repo_path)
-        elif bypass_config:
-            # For --new, we want latest of default branch
-            print("Updating to latest...")
+                # Fallback to direct checkout
+                run_command(["git", "checkout", "-q", tag_override], cwd=repo_path)
+        
+        # Priority 2: Fixed SHA1 (from config or repo definition)
+        # We don't use fixed SHA1 if --new is used (bypass_config)
+        elif repo.sha1 is not None and not bypass_config:
+            sha1 = repo.sha1
+            if isinstance(sha1, int):
+                sha1 = f"{sha1:07x}"
+            print(f"Checking out SHA1: {sha1}")
             run_command(["git", "fetch"], cwd=repo_path)
-            # Find default branch
+            run_command(["git", "checkout", "-q", sha1], cwd=repo_path)
+            
+        # Priority 3: Default Tag (if defined in repo and not bypass_config)
+        elif repo.tag is not None and not isinstance(repo.tag, bool) and not bypass_config:
+            print(f"Checking out Tag (Default): {repo.tag}")
+            run_command(["git", "fetch", "--tags"], cwd=repo_path)
             try:
-                remote_info = subprocess.check_output(["git", "remote", "show", "origin"], cwd=repo_path).decode()
-                default_branch = "master"
-                for line in remote_info.splitlines():
-                    if "HEAD branch" in line:
-                        default_branch = line.split(":")[-1].strip()
-                        break
-                run_command(["git", "checkout", default_branch], cwd=repo_path)
-                run_command(["git", "pull", "--ff-only"], cwd=repo_path)
-            except:
-                run_command(["git", "pull", "--ff-only"], cwd=repo_path)
+                tag_sha1 = subprocess.check_output(["git", "rev-list", "-n", "1", repo.tag], cwd=repo_path, stderr=subprocess.DEVNULL).decode().strip()
+                run_command(["git", "checkout", "-q", tag_sha1], cwd=repo_path)
+            except subprocess.CalledProcessError:
+                run_command(["git", "checkout", "-q", repo.tag], cwd=repo_path)
+                
+        # Priority 4: Branch (default or latest)
         else:
-            if repo.sha1 is not None:
-                sha1 = repo.sha1
-                if isinstance(sha1, int):
-                    sha1 = f"{sha1:07x}"
-                print(f"Checking out SHA1: {sha1}")
+            branch = repo.branch or "master"
+            if bypass_config:
+                print(f"Updating to latest (bypass config)...")
                 run_command(["git", "fetch"], cwd=repo_path)
-                run_command(["git", "checkout", sha1], cwd=repo_path)
-            elif repo.tag is not None:
-                print(f"Checking out Tag: {repo.tag}")
-                run_command(["git", "fetch", "--tags"], cwd=repo_path)
+                # Try to find default branch if bypass_config
                 try:
-                    tag_sha1 = subprocess.check_output(["git", "rev-list", "-n", "1", repo.tag], cwd=repo_path, stderr=subprocess.DEVNULL).decode().strip()
-                    run_command(["git", "checkout", tag_sha1], cwd=repo_path)
-                except subprocess.CalledProcessError:
-                    run_command(["git", "checkout", repo.tag], cwd=repo_path)
-            else:
-                branch = repo.branch or "master"
-                print(f"Checking out Branch: {branch}")
-                run_command(["git", "checkout", branch], cwd=repo_path)
+                    remote_info = subprocess.check_output(["git", "remote", "show", "origin"], cwd=repo_path, stderr=subprocess.DEVNULL).decode()
+                    for line in remote_info.splitlines():
+                        if "HEAD branch" in line:
+                            branch = line.split(":")[-1].strip()
+                            break
+                except:
+                    pass
+            
+            print(f"Checking out Branch: {branch}")
+            run_command(["git", "checkout", "-q", branch], cwd=repo_path)
+            # Only pull if it's a branch and not a fixed commit or tag
+            if not (repo.sha1 or (repo.tag and not isinstance(repo.tag, bool))):
                 run_command(["git", "pull", "--ff-only"], cwd=repo_path)
 
         # 3. Submodules
@@ -243,7 +221,7 @@ def do_check(config, deps_dir):
             
     return all_ok
 
-def do_freeze(deps_dir, config_file):
+def do_freeze(deps_dir, config_file, current_config_repos=None):
     print(f"Freezing versions from {deps_dir} to {config_file}...")
     if not os.path.exists(deps_dir):
         print(f"Error: {deps_dir} does not exist.")
@@ -288,11 +266,19 @@ def do_freeze(deps_dir, config_file):
     with open(config_file, "w") as f:
         f.write("git_repos = {\n")
         for name, r in repos.items():
-            f.write(f'    "{name}" : GitRepo(url="{r["url"]}",\n')
+            f.write(f'    "{name}": GitRepo(\n')
+            f.write(f'        url     = "{r["url"]}",\n')
             f.write(f'        clone   = "{r["clone"]}",\n')
             f.write(f'        develop = True,\n')
             f.write(f'        sha1    = {r["sha1"]},\n')
-            f.write(f'        branch  = "{r["branch"]}"\n')
+            f.write(f'        branch  = "{r["branch"]}",\n')
+            # If repo was taggable in current session, keep it taggable in frozen config
+            tag_val = "None"
+            if current_config_repos and name in current_config_repos:
+                orig_repo = current_config_repos[name]
+                if orig_repo.tag is not None:
+                    tag_val = str(orig_repo.tag)
+            f.write(f'        tag     = {tag_val},\n')
             f.write(f'    ),\n')
         f.write("}\n")
     print("Freeze complete.")
@@ -306,17 +292,15 @@ if __name__ == "__main__":
     parser.add_argument("--deps-dir", default="deps", help="Directory for dependencies")
     parser.add_argument("--editable", action="store_true", default=None, help="Force editable install")
     parser.add_argument("--non-editable", action="store_false", dest="editable", help="Force non-editable install")
-    parser.add_argument("--new", action="store_true", help="Bypass config and install latest versions")
-    parser.add_argument("--tag", help="Override repository version with this tag")
+    parser.add_argument("--new", action="store_true", help="Ignore SHA1s/tags in config and install latest branches")
+    parser.add_argument("--tag", help="Use this tag for all taggable repositories defined in config")
     
     args = parser.parse_args()
     
-    config = None
-    if not (args.new or args.tag):
-        config = get_config(args.config)
-        if config is None and args.command in ["check"]:
-            print(f"Error: Config file {args.config} not found.")
-            sys.exit(1)
+    config = get_config(args.config)
+    if config is None:
+        print(f"Error: Config file {args.config} not found. A configuration file is now required.")
+        sys.exit(1)
             
     if args.command == "install":
         do_install(config, args.deps_dir, editable_override=args.editable, bypass_config=args.new, tag_override=args.tag)
@@ -324,4 +308,4 @@ if __name__ == "__main__":
         if not do_check(config, args.deps_dir):
             sys.exit(1)
     elif args.command == "freeze":
-        do_freeze(args.deps_dir, args.config)
+        do_freeze(args.deps_dir, args.config, current_config_repos=(config.git_repos if config else None))

@@ -17,11 +17,11 @@ function show_help {
     echo "Usage: $0 [options]"
     echo ""
     echo "Options:"
-    echo "  --install        Install LiteX environment (using $CONFIG_FILE if present)"
+    echo "  --install        Install LiteX environment (requires $CONFIG_FILE)"
     echo "  --check          Check currently installed LiteX versions against $CONFIG_FILE"
     echo "  --freeze         Save currently installed LiteX versions to $CONFIG_FILE"
-    echo "  --new            Bypass $CONFIG_FILE and install newest LiteX repos"
-    echo "  --tag TAG        Bypass $CONFIG_FILE and install LiteX repos at TAG"
+    echo "  --new            Update all repos in $CONFIG_FILE to their latest branches"
+    echo "  --tag TAG        Checkout TAG for all taggable repos in $CONFIG_FILE"
     echo "  --non-editable   Install LiteX repos in non-editable mode"
     echo "  --help           Show this help message"
     echo ""
@@ -72,6 +72,16 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Check requirements
+if ! command -v python3 &> /dev/null; then
+    echo "Error: python3 is not installed."
+    exit 1
+fi
+if ! command -v git &> /dev/null; then
+    echo "Error: git is not installed."
+    exit 1
+fi
 
 # Check if we are in the root of the repo (should have boards/ or gateware/)
 if [ ! -d "boards" ] || [ ! -d "gateware" ]; then

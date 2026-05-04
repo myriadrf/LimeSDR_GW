@@ -1,158 +1,210 @@
 git_repos = {
-    "litedram" : GitRepo(url="https://github.com/enjoy-digital/",
+    "litedram": GitRepo(
+        url     = "https://github.com/enjoy-digital/",
         clone   = "regular",
         develop = True,
         sha1    = 0xef9f94a,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "liteeth" : GitRepo(url="https://github.com/enjoy-digital/",
+    "liteeth": GitRepo(
+        url     = "https://github.com/enjoy-digital/",
         clone   = "regular",
         develop = True,
         sha1    = 0x25a4eb6,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "litei2c" : GitRepo(url="https://github.com/litex-hub/",
+    "litei2c": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0x66214ca,
-        branch  = "main"
+        branch  = "main",
+        tag     = True,
     ),
-    "liteiclink" : GitRepo(url="https://github.com/enjoy-digital/",
+    "liteiclink": GitRepo(
+        url     = "https://github.com/enjoy-digital/",
         clone   = "regular",
         develop = True,
         sha1    = 0x678793d,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "litejesd204b" : GitRepo(url="https://github.com/enjoy-digital/",
+    "litejesd204b": GitRepo(
+        url     = "https://github.com/enjoy-digital/",
         clone   = "regular",
         develop = True,
         sha1    = 0xc2622af,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "litepcie" : GitRepo(url="https://github.com/enjoy-digital/",
+    "litepcie": GitRepo(
+        url     = "https://github.com/enjoy-digital/",
         clone   = "regular",
         develop = True,
         sha1    = 0x73577dd,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "litesata" : GitRepo(url="https://github.com/enjoy-digital/",
+    "litesata": GitRepo(
+        url     = "https://github.com/enjoy-digital/",
         clone   = "regular",
         develop = True,
         sha1    = 0xc4baa46,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "litescope" : GitRepo(url="https://github.com/enjoy-digital/",
+    "litescope": GitRepo(
+        url     = "https://github.com/enjoy-digital/",
         clone   = "regular",
         develop = True,
         sha1    = 0x2dafca2,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "litesdcard" : GitRepo(url="https://github.com/enjoy-digital/",
+    "litesdcard": GitRepo(
+        url     = "https://github.com/enjoy-digital/",
         clone   = "regular",
         develop = True,
         sha1    = 0x80a3004,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "litespi" : GitRepo(url="https://github.com/litex-hub/",
+    "litespi": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0xc67f8db,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "litex" : GitRepo(url="https://github.com/enjoy-digital/",
+    "litex": GitRepo(
+        url     = "https://github.com/enjoy-digital/",
         clone   = "regular",
         develop = True,
         sha1    = 0x9fea53b,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "litex-boards" : GitRepo(url="https://github.com/litex-hub/",
+    "litex-boards": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0x801fc7d,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "migen" : GitRepo(url="https://git.m-labs.hk/M-Labs/",
+    "migen": GitRepo(
+        url     = "https://git.m-labs.hk/M-Labs/",
         clone   = "regular",
         develop = True,
         sha1    = 0x44e5627,
-        branch  = "master"
+        branch  = "master",
+        tag     = None,
     ),
-    "pythondata-cpu-lm32" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-cpu-lm32": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0x594f206,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "pythondata-cpu-minerva" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-cpu-minerva": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0x8db577a,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "pythondata-cpu-mor1kx" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-cpu-mor1kx": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0x4b9d59b,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "pythondata-cpu-naxriscv" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-cpu-naxriscv": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0x975694c,
-        branch  = "main"
+        branch  = "main",
+        tag     = True,
     ),
-    "pythondata-cpu-sentinel" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-cpu-sentinel": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "recursive",
         develop = True,
         sha1    = 0x83f93b6,
-        branch  = "main"
+        branch  = "main",
+        tag     = True,
     ),
-    "pythondata-cpu-serv" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-cpu-serv": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0xcdede3b,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "pythondata-cpu-vexiiriscv" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-cpu-vexiiriscv": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0x7f71c79,
-        branch  = "main"
+        branch  = "main",
+        tag     = True,
     ),
-    "pythondata-cpu-vexriscv" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-cpu-vexriscv": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "recursive",
         develop = True,
         sha1    = 0x1979a64,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "pythondata-cpu-vexriscv-smp" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-cpu-vexriscv-smp": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "recursive",
         develop = True,
         sha1    = 0x0a97182,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "pythondata-misc-tapcfg" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-misc-tapcfg": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0xfbcb024,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "pythondata-misc-usb_ohci" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-misc-usb_ohci": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "recursive",
         develop = True,
         sha1    = 0xf141aed,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "pythondata-software-compiler_rt" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-software-compiler_rt": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "regular",
         develop = True,
         sha1    = 0xfcb0324,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
-    "pythondata-software-picolibc" : GitRepo(url="https://github.com/litex-hub/",
+    "pythondata-software-picolibc": GitRepo(
+        url     = "https://github.com/litex-hub/",
         clone   = "recursive",
         develop = True,
         sha1    = 0x4dbc2c3,
-        branch  = "master"
+        branch  = "master",
+        tag     = True,
     ),
 }
