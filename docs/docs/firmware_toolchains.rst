@@ -13,11 +13,10 @@ The recommended toolchain is **riscv64-unknown-elf-gcc** with newlib (no OS), ta
 Installation
 ------------
 
-Use LiteX's setup script for automatic installation:
+The RISC-V toolchain should be installed following the official `LiteX installation instructions <https://github.com/enjoy-digital/litex>`_ as mentioned in the :ref:`quick_start` guide.
 
-.. code-block:: bash
-
-    ./litex_setup.py init install --toolchain riscv
+.. note::
+   While LiteX libraries are managed via `./setup_litex.sh`, the RISC-V compiler (GCC) must be installed separately and available in your ``$PATH``.
 
 LiteX handles firmware compilation, linker scripts, and Board Support Packages (BSPs) for the
 selected CPU, embedding the binary into the FPGA bitstream. Override defaults with `--riscv-cpu`

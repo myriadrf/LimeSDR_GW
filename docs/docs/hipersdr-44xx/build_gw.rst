@@ -12,10 +12,11 @@ Before building gateware for the **hipersdr_44xx** target, initialize the privat
 
    Run this command once after cloning the project repository.
 
-To build gateware for the **hipersdr_44xx** target, run:
+To build gateware for the **hipersdr_44xx** target, first activate the virtual environment and then run the build command:
 
 .. code:: bash
 
+   source .venv/bin/activate
    python3 -m boards.targets.hipersdr_44xx --build
 
 .. note::

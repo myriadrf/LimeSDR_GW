@@ -1,10 +1,11 @@
 LimeSDR XTRX Build Instructions
 ===============================
 
-To build gateware for the **limesdr_xtrx** target, run:
+To build gateware for the **limesdr_xtrx** target, first activate the virtual environment and then run the build command:
 
 .. code:: bash
 
+   source .venv/bin/activate
    python3 -m boards.targets.limesdr_xtrx --build
 
 .. note::

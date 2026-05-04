@@ -15,9 +15,10 @@ Requirements
 Before building the project, install the following required tools:
 
 - **LiteX**
-  Tag **2025.08** is required. Follow the installation instructions in the
-  `LiteX repository <https://github.com/enjoy-digital/litex>`_.
-  Ensure **RISC-V toolchain support** is installed together with LiteX.
+  LiteX and its dependencies are managed via the `./setup_litex.sh` script. This ensures that the correct and tested versions (as specified in ``litex_config.py``) are installed in a local virtual environment.
+  
+  .. note::
+     **RISC-V toolchain** installation should still be performed following the official `LiteX installation instructions <https://github.com/enjoy-digital/litex>`_. Ensure the toolchain is installed and accessible in your ``$PATH``.
 
 - **SBT (Scala Build Tool)**  
   Installation instructions are available in the official
@@ -77,19 +78,29 @@ Consult the respective toolchain documentation for installation details.
 Cloning the Repository
 ----------------------
 
-To clone the repository and initialize its submodules, run:
+To clone the repository and set up the environment, run:
 
 .. code:: bash
 
    git clone https://github.com/myriadrf/LimeSDR_GW.git
    cd LimeSDR_GW
-   git submodule init
-   git submodule update
+   git submodule update --init --recursive
+   
+   # Install LiteX libraries and create virtual environment
+   ./setup_litex.sh --install
 
 Build, Load, and Flash
 ----------------------
 
 Gateware for a selected target can be built with the following command:
+
+Before building, activate the virtual environment:
+
+.. code:: bash
+
+   source .venv/bin/activate
+
+Now run the build command:
 
 .. code:: bash
 

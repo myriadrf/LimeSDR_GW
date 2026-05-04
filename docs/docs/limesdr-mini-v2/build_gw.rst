@@ -1,10 +1,11 @@
 LimeSDR Mini V2 Build Instructions
 ==================================
 
-To build gateware for the **limesdr_mini_v2** target, run:
+To build gateware for the **limesdr_mini_v2** target, first activate the virtual environment and then run the build command:
 
 .. code:: bash
 
+   source .venv/bin/activate
    python3 -m boards.targets.limesdr_mini_v2 --build
 
 .. note::

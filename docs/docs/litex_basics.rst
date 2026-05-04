@@ -216,6 +216,9 @@ The same file can be used to build, load, or test a bitstream with different opt
 
 .. code-block:: bash
 
+    # Activate the virtual environment
+    source .venv/bin/activate
+
     # Open-source toolchain build + load
     python3 -m boards.targets.limesdr_mini_v2 --toolchain=trellis --build --load
     # Diamond toolchain build + flash

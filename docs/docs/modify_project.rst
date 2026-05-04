@@ -46,6 +46,8 @@ Alternatively, firmware can be compiled and loaded via UART:
    cd firmware && make clean all && cd ../
 
    # Load firmware through serial:
+   # (Ensure the virtual environment is activated to use litex_term)
+   source .venv/bin/activate
    litex_term /dev/ttyUSB0 --kernel firmware/firmware.bin --csr-csv csr.csv
 
 Debug Tools
@@ -62,6 +64,7 @@ Then, load the firmware through serial:
 
 .. code-block:: bash
 
+    source .venv/bin/activate
     litex_term /dev/ttyUSBx --kernel firmware/firmware.bin
 
 Run OpenOCD with one of the configurations:

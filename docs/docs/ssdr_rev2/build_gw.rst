@@ -1,10 +1,11 @@
 sSDR rev2 Build Instructions
 ============================
 
-To build gateware for the **ssdr** target, run:
+To build gateware for the **ssdr** target, first activate the virtual environment and then run the build command:
 
 .. code:: bash
 
+   source .venv/bin/activate
    python3 -m boards.targets.ssdr --build
 
 .. note::
