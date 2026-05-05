@@ -299,6 +299,8 @@ def render(
     for addr in sorted(bf_by_addr):
         if addr in reserved_addresses:
             continue
+        if addr not in reg_name_by_addr:
+            continue
         rows = bf_by_addr[addr]
         first = rows[0]
         meta_title = next((r.title for r in rows if r.title), "")
