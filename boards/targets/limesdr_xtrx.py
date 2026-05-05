@@ -446,6 +446,7 @@ class BaseSoC(SoCCore):
         self.irq.add("limetop")
 
         # GPS serial connected to LimeUART0
+        self.pps_internal = Signal()
         from litex.soc.cores.uart import UARTPHY
         from litex.soc.cores.uart import UART
 
@@ -459,8 +460,9 @@ class BaseSoC(SoCCore):
         # Get UTC time from GNSS, assign UTC data to timestamp logic in rx_path
         self.gnsstop = GNSSTop(self)
         self.comb += [
-            self.gnsstop.zda_parser.sink.data.eq (gnss_uart_phy.source.data ),
-            self.gnsstop.zda_parser.sink.valid.eq(gnss_uart_phy.source.valid),
+            self.gnsstop.sink.data.eq (gnss_uart_phy.source.data ),
+            self.gnsstop.sink.valid.eq(gnss_uart_phy.source.valid),
+            self.gnsstop.pps.eq        (self.pps_internal        ),
             self.limetop.time_seconds.eq(self.gnsstop.zda_parser.time_seconds),
             self.limetop.time_minutes.eq(self.gnsstop.zda_parser.time_minutes),
             self.limetop.time_hours.eq  (self.gnsstop.zda_parser.time_hours  ),
@@ -481,10 +483,6 @@ class BaseSoC(SoCCore):
         self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         # VCTCXO tamer
-        self.pps_internal = Signal()
-        self.comb += [
-            self.gnsstop.zda_parser.pps.eq(self.pps_internal)
-        ]
 
         synchro_pads = platform.request("synchro")
         self.comb += [
