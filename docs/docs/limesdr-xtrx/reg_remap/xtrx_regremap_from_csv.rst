@@ -25,6 +25,9 @@ Quick Navigation
    * - :ref:`PERIPHCFG <xtrx_regmap_periphcfg>`
      - ``0x00C0`` - ``0x00D3``
      - GPIO and peripheral routing/enable controls
+   * - :ref:`GNSSCFG <xtrx_regmap_gnsscfg>`
+     - ``0x0100`` - ``0x011F``
+     - GNSS configuration and status (legacy)
    * - :ref:`TIMECFG <xtrx_regmap_timecfg>`
      - ``0x0280`` - ``0x029F``
      - GNSS time information and related
@@ -388,6 +391,104 @@ PERIPHCFG Registers (``0x00C0`` - ``0x00D3``)
      - ``periph_en``
      - Peripheral enables: clock-out routing, GNSS reset, GNSS standby.
    * - :ref:`0x00D3 <xtrx_regmap_periphcfg>`
+     - ``0x0000``
+     - \-
+     - Reserved.
+
+.. _xtrx_regmap_gnsscfg:
+
+GNSSCFG Registers (``0x0100`` - ``0x011F``)
+-------------------------------------------
+
+.. list-table:: GNSSCFG registers
+   :header-rows: 1
+   :widths: 10 12 20 58
+
+   * - Address
+     - Default
+     - Name
+     - Description
+   * - :ref:`0x0100 <xtrx_regmap_gnsscfg>`
+     - ``0x0000``
+     - \-
+     - Reserved
+   * - :ref:`0x0101 <xtrx_regmap_gnsscfg>`
+     - ``0x0000``
+     - \-
+     - Reserved
+   * - :ref:`0x0102 <xtrx_reg_0102>`
+     - ``0x0000``
+     - ``gnss_utc_mm_ss1``
+     - UTC of position fix (MM-SS1)
+   * - :ref:`0x0103 <xtrx_reg_0103>`
+     - ``0x0003``
+     - ``gnss_utc_hh``
+     - UTC of position fix (HH)
+   * - :ref:`0x0104 <xtrx_reg_0104>`
+     - ``0x0000``
+     - ``gnss_status``
+     - Data valid status
+   * - :ref:`0x0105 <xtrx_reg_0105>`
+     - ``0x0022``
+     - ``gnss_lat_ll1_ll0``
+     - Latitude (LL1-LL0)
+   * - :ref:`0x0106 <xtrx_reg_0106>`
+     - ``0x0000``
+     - ``gnss_lat_ll3_ll2``
+     - Latitude (LL3-LL2)
+   * - :ref:`0x0107 <xtrx_reg_0107>`
+     - ``0x0164``
+     - ``gnss_lat_n_s``
+     - Latitude N/S
+   * - :ref:`0x0108 <xtrx_reg_0108>`
+     - ``0x0000``
+     - ``gnss_long_yy1_yy0``
+     - Longitude (YY1-YY0)
+   * - :ref:`0x0109 <xtrx_reg_0109>`
+     - ``0x0000``
+     - ``gnss_long_yy3_yy2``
+     - Longitude (YY3-YY2)
+   * - :ref:`0x010A <xtrx_reg_010a>`
+     - ``0x0000``
+     - ``gnss_long_y4``
+     - Longitude (Y4)
+   * - :ref:`0x010B <xtrx_reg_010b>`
+     - ``0x0000``
+     - ``gnss_long_e_w``
+     - Longitude E/W
+   * - :ref:`0x010C <xtrx_reg_010c>`
+     - ``0x0000``
+     - ``gnss_speed_xx1_xx0``
+     - Speed over ground (XX1-XX0)
+   * - :ref:`0x010D <xtrx_reg_010d>`
+     - ``0x0000``
+     - ``gnss_speed_xx2``
+     - Speed over ground (XX2)
+   * - :ref:`0x010E <xtrx_reg_010e>`
+     - ``0x0000``
+     - ``gnss_course_xx1_xx0``
+     - Course over ground (XX1-XX0)
+   * - :ref:`0x010F <xtrx_reg_010f>`
+     - ``0x0000``
+     - ``gnss_course_x2``
+     - Course over ground (X2)
+   * - :ref:`0x0110 <xtrx_reg_0110>`
+     - ``0x0000``
+     - ``gnss_date_mm_yy``
+     - Date (MM-YY)
+   * - :ref:`0x0111 <xtrx_reg_0111>`
+     - ``0x0000``
+     - ``gnss_date_dd``
+     - Date (DD)
+   * - :ref:`0x0112 <xtrx_regmap_gnsscfg>` - :ref:`0x0113 <xtrx_regmap_gnsscfg>`
+     - ``0x0000``
+     - \-
+     - Reserved.
+   * - :ref:`0x0114 <xtrx_reg_0114>`
+     - ``0x0000``
+     - ``gnss_fix``
+     - Combined fixes status
+   * - :ref:`0x0115 <xtrx_regmap_gnsscfg>` - :ref:`0x011F <xtrx_regmap_gnsscfg>`
      - ``0x0000``
      - \-
      - Reserved.
@@ -1490,6 +1591,516 @@ Address: ``0x00D2`` | Default: ``0x0003`` | Access: R/W
      - ``PERIPH_EN[0]``
      - 0 – Standby mode 1 – Normal mode (Default)
      - GNSS_HW_S
+
+.. _xtrx_reg_0102:
+
+``0x0102`` - gnss_utc_mm_ss1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0102`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "ss1 [7:0]"},
+     {"bits": 8, "name": "mm [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:8]``
+     - ``mm``
+     -  
+     - UTC of position fix (MM) in BCD format.
+   * - ``[7:0]``
+     - ``ss1``
+     -  
+     - UTC of position fix (SS1) in BCD format.
+
+.. _xtrx_reg_0103:
+
+``0x0103`` - gnss_utc_hh
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0103`` | Default: ``0x0003`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "hh [7:0]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[7:0]``
+     - ``hh``
+     -  
+     - UTC of position fix (HH) in BCD format.
+
+.. _xtrx_reg_0104:
+
+``0x0104`` - gnss_status
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0104`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 1, "name": "status"},
+     {"bits": 7, "name": "Reserved [7:1]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[0]``
+     - ``status``
+     - 1 = Data valid, 0 = Warning
+     - GNSS data valid status.
+
+.. _xtrx_reg_0105:
+
+``0x0105`` - gnss_lat_ll1_ll0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0105`` | Default: ``0x0022`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "ll0 [7:0]"},
+     {"bits": 8, "name": "ll1 [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:8]``
+     - ``ll1``
+     -  
+     - Latitude (LL1) in BCD format.
+   * - ``[7:0]``
+     - ``ll0``
+     -  
+     - Latitude (LL0) in BCD format.
+
+.. _xtrx_reg_0106:
+
+``0x0106`` - gnss_lat_ll3_ll2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0106`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "ll2 [7:0]"},
+     {"bits": 8, "name": "ll3 [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:8]``
+     - ``ll3``
+     -  
+     - Latitude (LL3) in BCD format.
+   * - ``[7:0]``
+     - ``ll2``
+     -  
+     - Latitude (LL2) in BCD format.
+
+.. _xtrx_reg_0107:
+
+``0x0107`` - gnss_lat_n_s
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0107`` | Default: ``0x0164`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 1, "name": "n_s"},
+     {"bits": 7, "name": "Reserved [7:1]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[0]``
+     - ``n_s``
+     - 0 = N, 1 = S
+     - Latitude North/South indicator.
+
+.. _xtrx_reg_0108:
+
+``0x0108`` - gnss_long_yy1_yy0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0108`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "yy0 [7:0]"},
+     {"bits": 8, "name": "yy1 [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:8]``
+     - ``yy1``
+     -  
+     - Longitude (YY1) in BCD format.
+   * - ``[7:0]``
+     - ``yy0``
+     -  
+     - Longitude (YY0) in BCD format.
+
+.. _xtrx_reg_0109:
+
+``0x0109`` - gnss_long_yy3_yy2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0109`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "yy2 [7:0]"},
+     {"bits": 8, "name": "yy3 [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:8]``
+     - ``yy3``
+     -  
+     - Longitude (YY3) in BCD format.
+   * - ``[7:0]``
+     - ``yy2``
+     -  
+     - Longitude (YY2) in BCD format.
+
+.. _xtrx_reg_010a:
+
+``0x010A`` - gnss_long_y4
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x010A`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 4, "name": "y4 [3:0]"},
+     {"bits": 4, "name": "Reserved [7:4]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[3:0]``
+     - ``y4``
+     -  
+     - Longitude (Y4) in BCD format.
+
+.. _xtrx_reg_010b:
+
+``0x010B`` - gnss_long_e_w
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x010B`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 1, "name": "e_w"},
+     {"bits": 7, "name": "Reserved [7:1]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[0]``
+     - ``e_w``
+     - 0 = E, 1 = W
+     - Longitude East/West indicator.
+
+.. _xtrx_reg_010c:
+
+``0x010C`` - gnss_speed_xx1_xx0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x010C`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "xx0 [7:0]"},
+     {"bits": 8, "name": "xx1 [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:8]``
+     - ``xx1``
+     -  
+     - Speed over ground (XX1) in BCD format.
+   * - ``[7:0]``
+     - ``xx0``
+     -  
+     - Speed over ground (XX0) in BCD format.
+
+.. _xtrx_reg_010d:
+
+``0x010D`` - gnss_speed_xx2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x010D`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "xx2 [7:0]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[7:0]``
+     - ``xx2``
+     -  
+     - Speed over ground (XX2) in BCD format.
+
+.. _xtrx_reg_010e:
+
+``0x010E`` - gnss_course_xx1_xx0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x010E`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "xx0 [7:0]"},
+     {"bits": 8, "name": "xx1 [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:8]``
+     - ``xx1``
+     -  
+     - Course over ground (XX1) in BCD format.
+   * - ``[7:0]``
+     - ``xx0``
+     -  
+     - Course over ground (XX0) in BCD format.
+
+.. _xtrx_reg_010f:
+
+``0x010F`` - gnss_course_x2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x010F`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 4, "name": "x2 [3:0]"},
+     {"bits": 4, "name": "Reserved [7:4]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[3:0]``
+     - ``x2``
+     -  
+     - Course over ground (X2) in BCD format.
+
+.. _xtrx_reg_0110:
+
+``0x0110`` - gnss_date_mm_yy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0110`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "yy [7:0]"},
+     {"bits": 8, "name": "mm [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:8]``
+     - ``mm``
+     -  
+     - Date (MM) in BCD format.
+   * - ``[7:0]``
+     - ``yy``
+     -  
+     - Date (YY) in BCD format.
+
+.. _xtrx_reg_0111:
+
+``0x0111`` - gnss_date_dd
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0111`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "dd [7:0]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[7:0]``
+     - ``dd``
+     -  
+     - Date (DD) in BCD format.
+
+.. _xtrx_reg_0114:
+
+``0x0114`` - gnss_fix
+^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0114`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 4, "name": "glgsa_fix [3:0]"},
+     {"bits": 4, "name": "gpgsa_fix [7:4]"},
+     {"bits": 4, "name": "gbgsa_fix [11:8]"},
+     {"bits": 4, "name": "gagsa_fix [15:12]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:12]``
+     - ``gagsa_fix``
+     - 1=No fix, 2=2D, 3=3D
+     - Galileo fix status.
+   * - ``[11:8]``
+     - ``gbgsa_fix``
+     - 1=No fix, 2=2D, 3=3D
+     - BeiDou fix status.
+   * - ``[7:4]``
+     - ``gpgsa_fix``
+     - 1=No fix, 2=2D, 3=3D
+     - GPS fix status.
+   * - ``[3:0]``
+     - ``glgsa_fix``
+     - 1=No fix, 2=2D, 3=3D
+     - GLONASS fix status.
 
 .. _xtrx_reg_0280:
 

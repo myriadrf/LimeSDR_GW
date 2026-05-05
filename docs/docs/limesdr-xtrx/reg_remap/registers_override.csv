@@ -20,3 +20,5 @@ PLLCFG,0x0030,,0x0000,reserved,Reserved,upsert
 TSTCFG,0x0067,,0x0000,reserved,Reserved,upsert
 TSTCFG,0x007D,,0x0000,reserved,Reserved,upsert
 TSTCFG,0x007E,,0x0000,reserved,Reserved,upsert
+GNSSCFG,0x0100,,0x0000,reserved,Reserved,upsert
+GNSSCFG,0x0101,,0x0000,reserved,Reserved,upsert

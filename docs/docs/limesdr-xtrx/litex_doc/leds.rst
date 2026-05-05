@@ -7,13 +7,13 @@ Register Listing for LEDS
 +----------------------------+------------------------------+
 | Register                   | Address                      |
 +============================+==============================+
-| :ref:`LEDS_OUT <LEDS_OUT>` | :ref:`0xf0004800 <LEDS_OUT>` |
+| :ref:`LEDS_OUT <LEDS_OUT>` | :ref:`0xf0005000 <LEDS_OUT>` |
 +----------------------------+------------------------------+
 
 LEDS_OUT
 ^^^^^^^^
 
-`Address: 0xf0004800 + 0x0 = 0xf0004800`
+`Address: 0xf0005000 + 0x0 = 0xf0005000`
 
     Led Output(s) Control.
 

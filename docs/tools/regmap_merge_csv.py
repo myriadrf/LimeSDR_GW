@@ -195,6 +195,21 @@ def main() -> None:
     )
     merged_bitfields = merge_bitfield_rows(common_bitfields, ov_bitfields)
 
+    # Cascading deletes: remove registers/bitfields if their parent module/register was deleted
+    active_modules = {r["module"].lower() for r in merged_modules}
+    merged_registers = [r for r in merged_registers if r["module"].lower() in active_modules]
+
+    active_addrs: set[int] = set()
+    for r in merged_registers:
+        start = int(normalize_int_text(r["address"]), 0)
+        end = int(normalize_int_text(r.get("address_end", ""), fallback=r["address"]), 0)
+        for a in range(start, end + 1):
+            active_addrs.add(a)
+
+    merged_bitfields = [
+        r for r in merged_bitfields if int(normalize_int_text(r["address"]), 0) in active_addrs
+    ]
+
     write_rows(args.out_modules, MODULE_FIELDS, merged_modules)
     write_rows(args.out_registers, REGISTER_FIELDS, merged_registers)
     write_rows(args.out_bitfields, BITFIELD_FIELDS, merged_bitfields)

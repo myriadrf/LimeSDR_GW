@@ -4,6 +4,7 @@
 
 #include "regremap.h"
 
+
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs
 void readCSR(uint8_t *address, uint8_t *regdata_array)
 {
@@ -135,6 +136,68 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x73:
         value = lms_clock_test_test_cnt_read() >> 16;
         break;
+#if defined(ZDAPARSER_PRESENT) || defined(RMCPARSER_PRESENT)
+    case 0x101:
+        value = gnsstop_gnss_utc_sss0_read();
+        break;
+    case 0x102:
+        value = gnsstop_gnss_utc_mm_ss1_read();
+        break;
+    case 0x103:
+        value = gnsstop_gnss_utc_hh_read();
+        break;
+#endif
+#ifdef RMCPARSER_PRESENT
+    case 0x104:
+        value = gnsstop_gnss_status_read() & 0x1;
+        break;
+    case 0x105:
+        value = gnsstop_gnss_lat_read() & 0xFFFF;
+        break;
+    case 0x106:
+        value = gnsstop_gnss_lat_read() >> 16;
+        break;
+    case 0x107:
+        value = (gnsstop_gnss_status_read() >> 1) & 0x1;
+        break;
+    case 0x108:
+        value = gnsstop_gnss_long_read() & 0xFFFF;
+        break;
+    case 0x109:
+        value = gnsstop_gnss_long_read() >> 16;
+        break;
+    case 0x10A:
+        value = gnsstop_gnss_long_ext_read();
+        break;
+    case 0x10B:
+        value = (gnsstop_gnss_status_read() >> 2) & 0x1;
+        break;
+    case 0x10C:
+        value = gnsstop_gnss_speed_read() & 0xFFFF;
+        break;
+    case 0x10D:
+        value = gnsstop_gnss_speed_read() >> 16;
+        break;
+    case 0x10E:
+        value = gnsstop_gnss_course_read() & 0xFFFF;
+        break;
+    case 0x10F:
+        value = gnsstop_gnss_course_read() >> 16;
+        break;
+#endif
+#if defined(ZDAPARSER_PRESENT) || defined(RMCPARSER_PRESENT)
+    case 0x110:
+        value = gnsstop_gnss_date_mm_yy_read();
+        break;
+    case 0x111:
+        value = gnsstop_gnss_date_dd_read();
+        break;
+#endif
+#ifdef GSAPARSER_PRESENT
+    case 0x114:
+        value = gnsstop_gnss_fix_read();
+        break;
+#endif
 #ifdef TIMESOURCE_PRESENT
         // timesource registers
     case 0x280:
@@ -150,13 +213,13 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
 #ifdef TIMESOURCE_PRESENT
         // current time
     case 0x283:
-        value = main_time_min_sec_read() & 0xFFFF;
+        value = gnsstop_time_min_sec_read() & 0xFFFF;
         break;
     case 0x284:
-        value = main_time_mon_day_hrs_read() & 0xFFFF;
+        value = gnsstop_time_mon_day_hrs_read() & 0xFFFF;
         break;
     case 0x285:
-        value = main_time_yrs_read() & 0xFFFF;
+        value = gnsstop_time_yrs_read() & 0xFFFF;
         break;
         // rx start time
     case 0x286:

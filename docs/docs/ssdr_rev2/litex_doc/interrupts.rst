@@ -21,8 +21,8 @@ The following interrupts are assigned on this system:
 +-----------+--------------------------+
 | 0         | :doc:`NOIRQ <noirq>`     |
 +-----------+--------------------------+
-| 2         | :doc:`TIMER0 <timer0>`   |
+| 1         | :doc:`TIMER0 <timer0>`   |
 +-----------+--------------------------+
-| 1         | :doc:`UART <uart>`       |
+| 2         | :doc:`UART <uart>`       |
 +-----------+--------------------------+
 

@@ -150,13 +150,13 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
 #ifdef TIMESOURCE_PRESENT
         // current time
     case 0x283:
-        value = main_time_min_sec_read() & 0xFFFF;
+        value = gnsstop_time_min_sec_read() & 0xFFFF;
         break;
     case 0x284:
-        value = main_time_mon_day_hrs_read() & 0xFFFF;
+        value = gnsstop_time_mon_day_hrs_read() & 0xFFFF;
         break;
     case 0x285:
-        value = main_time_yrs_read() & 0xFFFF;
+        value = gnsstop_time_yrs_read() & 0xFFFF;
         break;
         // rx start time
     case 0x286:
