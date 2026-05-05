@@ -25,12 +25,12 @@ Register Groups
     aux
     pcie_dma0
     ctrl
+    gnsstop
     gpio
     identifier_mem
     leds
-    lime_top
+    limetop
     lms_clock_test
-    main
     PCIE_UART0
     PCIE_UART1
     flash

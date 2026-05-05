@@ -7,19 +7,19 @@ Register Listing for GPIO
 +--------------------------------------------------------+--------------------------------------------+
 | Register                                               | Address                                    |
 +========================================================+============================================+
-| :ref:`GPIO_GPIO_OVERRIDE <GPIO_GPIO_OVERRIDE>`         | :ref:`0xf0003800 <GPIO_GPIO_OVERRIDE>`     |
+| :ref:`GPIO_GPIO_OVERRIDE <GPIO_GPIO_OVERRIDE>`         | :ref:`0xf0004000 <GPIO_GPIO_OVERRIDE>`     |
 +--------------------------------------------------------+--------------------------------------------+
-| :ref:`GPIO_GPIO_OVERRIDE_DIR <GPIO_GPIO_OVERRIDE_DIR>` | :ref:`0xf0003804 <GPIO_GPIO_OVERRIDE_DIR>` |
+| :ref:`GPIO_GPIO_OVERRIDE_DIR <GPIO_GPIO_OVERRIDE_DIR>` | :ref:`0xf0004004 <GPIO_GPIO_OVERRIDE_DIR>` |
 +--------------------------------------------------------+--------------------------------------------+
-| :ref:`GPIO_GPIO_OVERRIDE_VAL <GPIO_GPIO_OVERRIDE_VAL>` | :ref:`0xf0003808 <GPIO_GPIO_OVERRIDE_VAL>` |
+| :ref:`GPIO_GPIO_OVERRIDE_VAL <GPIO_GPIO_OVERRIDE_VAL>` | :ref:`0xf0004008 <GPIO_GPIO_OVERRIDE_VAL>` |
 +--------------------------------------------------------+--------------------------------------------+
-| :ref:`GPIO_GPIO_VAL <GPIO_GPIO_VAL>`                   | :ref:`0xf000380c <GPIO_GPIO_VAL>`          |
+| :ref:`GPIO_GPIO_VAL <GPIO_GPIO_VAL>`                   | :ref:`0xf000400c <GPIO_GPIO_VAL>`          |
 +--------------------------------------------------------+--------------------------------------------+
 
 GPIO_GPIO_OVERRIDE
 ^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0x0 = 0xf0003800`
+`Address: 0xf0004000 + 0x0 = 0xf0004000`
 
     GPIO Mode: 0: normal operation, 1: control is overriden.
 
@@ -37,7 +37,7 @@ GPIO_GPIO_OVERRIDE
 GPIO_GPIO_OVERRIDE_DIR
 ^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0x4 = 0xf0003804`
+`Address: 0xf0004000 + 0x4 = 0xf0004004`
 
     GPIO override direction: 0: Output, 1: Input.
 
@@ -55,7 +55,7 @@ GPIO_GPIO_OVERRIDE_DIR
 GPIO_GPIO_OVERRIDE_VAL
 ^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0x8 = 0xf0003808`
+`Address: 0xf0004000 + 0x8 = 0xf0004008`
 
     GPIO Logic level: 0: High, 1: Low. (Dir must be set to output)
 
@@ -73,7 +73,7 @@ GPIO_GPIO_OVERRIDE_VAL
 GPIO_GPIO_VAL
 ^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0xc = 0xf000380c`
+`Address: 0xf0004000 + 0xc = 0xf000400c`
 
     GPIO current value
 

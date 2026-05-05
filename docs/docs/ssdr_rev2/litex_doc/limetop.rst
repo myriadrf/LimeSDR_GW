@@ -167,7 +167,7 @@ Register Listing for LIMETOP
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
 | :ref:`LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                                                             | :ref:`0xf000493c <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                               |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_SETTINGS <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_SETTINGS>`                                         | :ref:`0xf0004940 <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_SETTINGS>`                     |
+| :ref:`LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`         | :ref:`0xf0004940 <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`     |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
 | :ref:`LIMETOP_RX_DELAY_MODE <LIMETOP_RX_DELAY_MODE>`                                                                                     | :ref:`0xf0004944 <LIMETOP_RX_DELAY_MODE>`                                           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
@@ -351,7 +351,7 @@ LIMETOP_FPGACFG_COMPILE_REV
 
         {
             "reg": [
-                {"name": "fpgacfg_compile_rev[15:0]", "attr": 'reset: 5', "bits": 16},
+                {"name": "fpgacfg_compile_rev[15:0]", "attr": 'reset: 8', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
@@ -1724,15 +1724,15 @@ LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE
         }
 
 
-LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_SETTINGS
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Address: 0xf0004800 + 0x140 = 0xf0004940`
 
     Timestamp Settings
 
     .. wavedrom::
-        :caption: LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_SETTINGS
+        :caption: LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS
 
         {
             "reg": [
