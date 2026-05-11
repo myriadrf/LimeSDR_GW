@@ -51,6 +51,7 @@ class LimeTop(LiteXModule):
         TX_PCT_SIZE          = 4096,
         TX_IN_PCT_HDR_SIZE   = 16,
         tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
+        tx_use_timing_buffers = False,
 
         with_lms7002         = True,
         # These clocks are only used if with_lms7002 is False
@@ -199,6 +200,7 @@ class LimeTop(LiteXModule):
                 tx_m_clk_domain        = "lms_tx" if with_lms7002 else phy_tx_source_clk,
                 tx_buffer_size         = tx_buffer_size,
                 tx_4ch_mode            = double_channels_mode,
+                tx_with_fifo_buff      = tx_use_timing_buffers,
 
                 # RX parameters
                 RX_IQ_WIDTH            = LMS_DIQ_WIDTH,

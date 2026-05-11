@@ -81,6 +81,7 @@ TX_N_BUFF            = 4     # N 4KB buffers in TX interface (2 OR 4)
 class CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
         self.cd_sys    = ClockDomain()
+        self.slow_sys  = ClockDomain()
         self.cd_idelay = ClockDomain()
         self.cd_afe    = ClockDomain()
         self.cd_jesd_freerun = ClockDomain()
@@ -113,6 +114,7 @@ class CRG(LiteXModule):
         self.pll_sys = pll_sys = USPLL(speedgrade=-2)
         pll_sys.register_clkin(clk125, 250e6)
         pll_sys.create_clkout(self.cd_sys,    sys_clk_freq)
+        pll_sys.create_clkout(self.slow_sys,  100e6)
 
         # TODO: these do nothing for now, currently rely on manual constraints
         #       to make these work, add_period_constraint commands should be used first
@@ -445,7 +447,6 @@ class BaseSoC(SoCCore):
             data_width  = 256,
             bar0_size   = 0x40000,
             ip_name="pcie4c_uscale_plus",
-            cd          = "sys",
         )
         self.pcie_phy.update_config({
             "vendor_id"                     : "2058",
@@ -537,6 +538,7 @@ class BaseSoC(SoCCore):
            TX_PCT_SIZE          = TX_PCT_SIZE,
            TX_IN_PCT_HDR_SIZE   = 16,
            tx_buffer_size       = self.pcie_phy.data_width * 4, #minimum tx cdc input buffer depth
+           tx_use_timing_buffers= False,
 
            with_lms7002         = False,
            phy_tx_source_clk    = self.crg.cd_afe.name,
@@ -931,6 +933,7 @@ def main():
     )
     parser.add_argument("--with-bscan",            action="store_true",     help="Enable CPU debug over JTAG."),
     parser.add_argument("--build",                 action="store_true",     help="Build bitstream.")
+    parser.add_argument("--synth-only",            action="store_true",     help="Terminate build after synthesis.")
     parser.add_argument("--load",                  action="store_true",     help="Load bitstream.")
     parser.add_argument("--flash",                 action="store_true",     help="Flash bitstream.")
     parser.add_argument("--cable",                 default="ft2232",        help="JTAG cable.")
@@ -965,6 +968,10 @@ def main():
     for run in range(2):
         prepare = (run == 0)
         build   = ((run == 1) & args.build)
+
+        if prepare:
+            print("PROGRESS: 5% [Generating SoC]")
+
         # SoC.
         soc = BaseSoC(
             board                 = args.board,
@@ -991,6 +998,31 @@ def main():
         if prepare and not args.no_soc_json:
             soc.print_soc_hierarchy_json()
 
+        # Progress tracking hooks
+        def add_progress(hook, percent, status):
+            if hasattr(soc.platform.toolchain, hook):
+                actual_percent = percent
+                if args.synth_only:
+                    if percent <= 25:
+                        actual_percent = int(percent * (100 / 25))
+                    else:
+                        actual_percent = 100
+                commands = getattr(soc.platform.toolchain, hook)
+                # Use doubled Tcl braces so LiteX's later str.format() keeps literal braces.
+                # Vivado will receive: puts {PROGRESS: <percent>% [<status>]}
+                commands.append(f'puts {{{{PROGRESS: {actual_percent}% [{status}]}}}}')
+
+        add_progress("pre_synthesis_commands", 25, "Synthesis")
+        if not args.synth_only:
+            add_progress("pre_optimize_commands", 45, "Optimization")
+            add_progress("pre_placement_commands", 55, "Placement")
+            add_progress("pre_routing_commands", 75, "Routing")
+            if hasattr(soc.platform.toolchain, "bitstream_commands"):
+                soc.platform.toolchain.bitstream_commands.append('puts {{PROGRESS: 95% [Bitstream]}}')
+
+        if args.synth_only and hasattr(soc.platform.toolchain, "pre_optimize_commands"):
+            soc.platform.toolchain.pre_optimize_commands.append("quit")
+
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite", libc_mode="full")
         builder.build(run=build,
                         vivado_synth_directive                  = "PerformanceOptimized",
@@ -1016,6 +1048,8 @@ def main():
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
                 f.write("BSP_PROJECT_DIR=bsp/HiperSDR_44xx\n")
+            
+            print("PROGRESS: 15% [Compiling Firmware]")
             os.system(f"cd firmware && make clean all")
             # os.system(f"cd firmware/hiper/ && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
             bistream_output_dir = "bitstream/{}".format(soc.get_build_name())

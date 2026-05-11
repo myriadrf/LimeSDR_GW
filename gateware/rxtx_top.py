@@ -34,6 +34,7 @@ class RXTXTop(LiteXModule):
         tx_m_clk_domain    = "lms_tx",
         tx_buffer_size     = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
         tx_4ch_mode        = False,
+        tx_with_fifo_buff  = False,
 
 
         # RX parameters
@@ -84,6 +85,7 @@ class RXTXTop(LiteXModule):
             rx_clk_domain   = rx_s_clk_domain, # FIXME: unsure
             input_buff_size = tx_buffer_size,
             output4channels = tx_4ch_mode,
+            with_fifo_buff  = tx_with_fifo_buff
         )
 
         # RX Path.
