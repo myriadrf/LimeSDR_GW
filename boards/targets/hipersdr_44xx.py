@@ -391,7 +391,7 @@ class BaseSoC(SoCCore):
 
             # PPSDO Instance.
             # Maybe TODO: use generic clock names and pass dac_bits by variable to enable copy-pasting this snippet?
-            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="vctcxo_ref", with_csr=True)
+            self.ppsdo = ppsdo = PPSDO(cd_sys="vctcxo_ref",sys_clk_freq=40e6, cd_rf="vctcxo_ref", with_csr=True)
             self.ppsdo.add_sources(dac_bits=16)
             self.comb += ppsdo.pps.eq(self.pps_internal)
 
