@@ -55,8 +55,10 @@ STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
-TX_PCT_SIZE          = 4096  # TX packet size in bytes
-TX_N_BUFF            = 2     # N 4KB buffers in TX interface (2 OR 4)
+# TX buffer: shared payload RAM holds up to TX_MAX_PCT_SIZE bytes total,
+# split across at most TX_N_BUFF queued packets.
+TX_MAX_PCT_SIZE      = 4096   # Total payload RAM capacity in bytes
+TX_N_BUFF            = 16     # Metadata FIFO depth; does not increase payload RAM
 
 C_EP02_RDUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_RX_SIZE / (CTRL0_FPGA_RX_RWIDTH // 8)))) + 1
 C_EP82_WRUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_TX_SIZE / (CTRL0_FPGA_TX_WWIDTH // 8)))) + 1
@@ -260,7 +262,7 @@ class BaseSoC(SoCCore):
             source_width       = STRM0_FPGA_TX_WWIDTH,
             source_clk_domain  = "ft601",
             TX_N_BUFF          = TX_N_BUFF,
-            TX_PCT_SIZE        = TX_PCT_SIZE,
+            TX_MAX_PCT_SIZE    = TX_MAX_PCT_SIZE,
             TX_IN_PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
             with_rx_tx_top     = with_rx_tx_top,
             with_lms7002       = with_lms7002,

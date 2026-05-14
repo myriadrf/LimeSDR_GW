@@ -57,8 +57,10 @@ STRM0_FPGA_RX_RWIDTH = 64    # Stream PC->FPGA, rd width
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
-TX_PCT_SIZE          = 4096  # TX packet size in bytes
-TX_N_BUFF            = 2     # N 4KB buffers in TX interface (2 OR 4)
+# TX buffer: shared payload RAM holds up to TX_MAX_PCT_SIZE bytes total,
+# split across at most TX_N_BUFF queued packets.
+TX_MAX_PCT_SIZE      = 16384 # Total payload RAM capacity in bytes
+TX_N_BUFF            = 16     # Metadata FIFO depth; does not increase payload RAM
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -405,7 +407,7 @@ class BaseSoC(SoCCore):
             source_width         = 64,
             source_clk_domain    = "sys",
             TX_N_BUFF            = TX_N_BUFF,
-            TX_PCT_SIZE          = 4096,
+            TX_MAX_PCT_SIZE      = TX_MAX_PCT_SIZE,
             TX_IN_PCT_HDR_SIZE   = 16,
             # Use default value
             # tx_buffer_size       = 512,
@@ -585,20 +587,21 @@ class BaseSoC(SoCCore):
     # LiteScope Analyzer Probes --------------------------------------------------------------------
     def add_debug(self):
         analyzer_signals = [
-            self.lime_top.rfsw_control.AUTO_IN,
-            self.lime_top.rfsw_control.TDD_OUT,
-            self.lime_top.rfsw_control.tdd_manual_val.storage,
-            self.lime_top.rfsw_control.tdd_auto_en.storage,
-            self.lime_top.rfsw_control.tdd_invert.storage,
-            self.lime_top.rfsw_control.rfsw_rx.storage,
-            self.lime_top.rfsw_control.rfsw_tx.storage,
-            self.lime_top.rfsw_control.rfsw_auto_en.storage,
+            self.limetop.rxtx_top.tx_path.pct_rd,
+            self.limetop.rxtx_top.tx_path.pct_clear,
+            self.limetop.rxtx_top.tx_path.pct_valid,
 
+            self.limetop.rxtx_top.tx_path.data_pad_tvalid,
+            self.limetop.rxtx_top.tx_path.data_pad_tready,
+            self.limetop.rxtx_top.tx_path.data_pad_tdata,
+
+            self.limetop.rxtx_top.tx_path.pct_loss_flg,
+            self.limetop.rxtx_top.tx_path.pct_loss_flg_clr,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 256,
-            clock_domain = "sys",
+            clock_domain = "lms_tx",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
