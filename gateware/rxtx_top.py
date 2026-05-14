@@ -26,7 +26,7 @@ class RXTXTop(LiteXModule):
         # TX parameters
         TX_IQ_WIDTH        = 12,
         TX_N_BUFF          = 4,
-        TX_IN_PCT_SIZE     = 4096,
+        TX_IN_MAX_PCT_SIZE     = 4096,
         TX_IN_PCT_HDR_SIZE = 16,
         TX_IN_PCT_DATA_W   = 128,
         TX_OUT_PCT_DATA_W  = 64,
@@ -75,7 +75,7 @@ class RXTXTop(LiteXModule):
         # --------
         self.tx_path = tx_path = TXPathTop(platform, fpgacfg_manager,
             IQ_WIDTH        = TX_IQ_WIDTH,
-            PCT_MAX_SIZE    = TX_IN_PCT_SIZE,
+            PCT_MAX_SIZE    = TX_IN_MAX_PCT_SIZE,
             PCT_HDR_SIZE    = TX_IN_PCT_HDR_SIZE,
             BUFF_COUNT      = TX_N_BUFF,
             sink_width      = TX_IN_PCT_DATA_W,
