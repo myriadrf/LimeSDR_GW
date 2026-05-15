@@ -49,6 +49,7 @@ from gateware.GpioTop  import GpioTop
 from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
 from gateware.helpers import write_module_hierarchy_json
+from gateware.xtrx_rfsw import xtrx_rfsw
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -448,6 +449,12 @@ class BaseSoC(SoCCore):
         ]
 
         self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
+
+        # RF Switches -------------------------------------------------------------------------------
+        rfsw_pads         = platform.request("rf_switches")
+        self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
+        #self.comb += rfsw_pads.tx.eq(1)
+        self.comb +=  self.rfsw_control.AUTO_IN.eq(self.limetop.lms7002_top.tx_ant_en)
 
         # LMS SPI -----------------------------------------------------------------------------------
 

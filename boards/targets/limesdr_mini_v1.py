@@ -38,6 +38,8 @@ from gateware.max10_onchipflash.max10_onchipflash import Max10OnChipFlash
 from gateware.max10_dual_cfg.max10_dual_cfg       import Max10DualCfg
 
 from gateware.LimeDFB.FT601.src.ft601 import FT601
+from gateware.LimeDFB.general_periph.src.general_periph import GeneralPeriphTop
+from gateware.LimeDFB.self_test.mini_tst_top            import TstTop
 
 from gateware.LimeTop                       import LimeTop
 
@@ -270,16 +272,83 @@ class BaseSoC(SoCCore):
             major_rev          =  MajorRevision if not gold_img else 0xDEAD,
             compile_rev        =  CompileRevision if not gold_img else 0xDEAD,
             revision_pads      = revision_pads,
+
+            with_event_manager = False,
+            with_clk_cfg_irq   = False,
         )
         # Make sure all sync statements happen on ft601 clock domain.
         # limetop = ClockDomainsRenamer({"sys": "ft601"})(limetop)
         self.limetop = limetop
+
+        rfsw_pads  = platform.request("RFSW")
+        tx_lb_pads = platform.request("TX_LB")
+
+        self.gpio = CSRStorage(16, reset=0b0001000101000100) # fpgacfg @23
+        self.comb += [
+            # RF Switch.
+            rfsw_pads.RX_V1.eq(self.gpio.storage[8]),
+            rfsw_pads.RX_V2.eq(self.gpio.storage[9]),
+            rfsw_pads.TX_V1.eq(self.gpio.storage[12]),
+            rfsw_pads.TX_V2.eq(self.gpio.storage[13]),
+
+            # TX
+            tx_lb_pads.AT.eq(  self.gpio.storage[1]),
+            tx_lb_pads.SH.eq(  self.gpio.storage[2]),
+        ]
+
+
+        # General Periph ---------------------------------------------------------------------------
+
+        gpio_pads     = platform.request("FPGA_GPIO")
+        egpio_pads    = platform.request("FPGA_EGPIO")
+
+        self.general_periph = GeneralPeriphTop(platform,
+            revision_pads = revision_pads,
+            gpio_pads     = gpio_pads,
+            gpio_len      = len(gpio_pads),
+            egpio_pads    = egpio_pads,
+            egpio_len     = 2,
+        )
+        if with_rx_tx_top:
+            self.comb +=[
+                self.general_periph.led1_r_in.eq(self.limetop.lms7002_top.lms7002_clk.pll_locked),
+            ]
+        self.comb += [
+            # General_periph active signals not driven for mini V1
+            self.general_periph.ep03_active.eq(0),
+            self.general_periph.ep83_active.eq(0),
+        ]
+
+        # cpu_busy(gpo) & busy_delay ---------------------------------------------------------------
+        self._gpo = CSRStorage(description="GPO interface", fields=[
+            CSRField("cpu_busy", size=1, offset=0, description="CPU state.", values=[
+                ("``0b0``", "IDLE."),
+                ("``0b1``", "BUSY."),
+            ])
+        ])
+
+        # Tst Top / Clock Test ---------------------------------------------------------------------
+
+        self.tst_top = TstTop(platform, ClockSignal("ft601"), ClockSignal("lmk"))
+
+        self.comb += [
+            # LMS7002 <-> TstTop.
+            self.limetop.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
+            self.limetop.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
+            self.limetop.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
+
+            # General Periph <-> RXTX Top.
+            self.general_periph.tx_txant_en.eq(self.limetop.rxtx_top.tx_path.tx_txant_en),
+
+            # General Periph <-> LMS7002
+            self.limetop.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
+        ]
+
         # Assign UART signals to general periph
         self.comb += [
-            self.limetop.general_periph.gpio_out_val[8].eq(serial_signals.tx),
-            serial_signals.rx.eq(self.limetop.general_periph.gpio_in_val[9]),
+            self.general_periph.gpio_out_val[8].eq(serial_signals.tx),
+            serial_signals.rx.eq(self.general_periph.gpio_in_val[9]),
             ]
-
 
         # FT601 ------------------------------------------------------------------------------------
         self.ft601 = FT601(self.platform, platform.request("FT"),

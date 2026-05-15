@@ -68,13 +68,13 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = limetop_fpgacfg_spi_ss_read();
         break;
     case 0x17:
-        value = limetop_gpio_read();
+        value = main_gpio_read();
         break;
     case 0x1a:
-        value = limetop_general_periph_fpga_led_ctrl_read();
+        value = general_periph_fpga_led_ctrl_read();
         break;
     case 0x1c:
-        value = limetop_general_periph_FX3_LED_CTRL_read();
+        value = general_periph_FX3_LED_CTRL_read();
         break;
     case 0x1d:
         value = limetop_fpgacfg_clk_ena_read();
@@ -96,13 +96,13 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
 
     case 0x65:
-        value = limetop_tst_top_test_cmplt_read();
+        value = tst_top_test_cmplt_read();
         break;
     case 0x67:
-        value = limetop_tst_top_test_rez_read();
+        value = tst_top_test_rez_read();
         break;
     case 0x69:
-        value = limetop_tst_top_fx3_clk_cnt_read();
+        value = tst_top_fx3_clk_cnt_read();
         break;
     case 0x6a:
     case 0x6b:
@@ -114,44 +114,44 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = 0;
         break;
     case 0x72:
-        value = limetop_tst_top_lmk_clk_cnt0_read();
+        value = tst_top_lmk_clk_cnt0_read();
         break;
     case 0x73:
-        value = limetop_tst_top_lmk_clk_cnt1_read();
+        value = tst_top_lmk_clk_cnt1_read();
         break;
     case 0x74:
-        value = limetop_tst_top_adf_cnt_read();
+        value = tst_top_adf_cnt_read();
         break;
 
     case 0xc0:
-        value = limetop_general_periph_board_gpio_OVRD_read();
+        value = general_periph_board_gpio_OVRD_read();
         break;
     case 0xc2:
-        value = limetop_general_periph_board_gpio_RD_read();
+        value = general_periph_board_gpio_RD_read();
         break;
     case 0xc4:
-        value = limetop_general_periph_board_gpio_DIR_read();
+        value = general_periph_board_gpio_DIR_read();
         break;
     case 0xc6:
-        value = limetop_general_periph_board_gpio_VAL_read();
+        value = general_periph_board_gpio_VAL_read();
         break;
     case 0xc8:
-        value = limetop_general_periph_periph_input_RD_0_read();
+        value = general_periph_periph_input_RD_0_read();
         break;
     case 0xc9:
-        value = limetop_general_periph_periph_input_RD_1_read();
+        value = general_periph_periph_input_RD_1_read();
         break;
     case 0xcc:
-        value = limetop_general_periph_periph_output_OVRD_0_read();
+        value = general_periph_periph_output_OVRD_0_read();
         break;
     case 0xcd:
-        value = limetop_general_periph_periph_output_VAL_0_read();
+        value = general_periph_periph_output_VAL_0_read();
         break;
     case 0xce:
-        value = limetop_general_periph_periph_output_OVRD_1_read();
+        value = general_periph_periph_output_OVRD_1_read();
         break;
     case 0xcf:
-        value = limetop_general_periph_periph_output_VAL_1_read();
+        value = general_periph_periph_output_VAL_1_read();
         break;
 
     default:
@@ -218,13 +218,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
 #endif
     case 0x17:
-        limetop_gpio_write(value);
+        main_gpio_write(value);
         break;
     case 0x1a:
-        limetop_general_periph_fpga_led_ctrl_write(value);
+        general_periph_fpga_led_ctrl_write(value);
         break;
     case 0x1c:
-        limetop_general_periph_FX3_LED_CTRL_write(value);
+        general_periph_FX3_LED_CTRL_write(value);
         break;
     case 0x1d:
         limetop_fpgacfg_clk_ena_write(value);
@@ -282,10 +282,10 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
 
     case 0x61:
-        limetop_tst_top_test_en_write(value);
+        tst_top_test_en_write(value);
         break;
     case 0x63:
-        limetop_tst_top_test_frc_err_write(value);
+        tst_top_test_frc_err_write(value);
         break;
     case 0x64:
         limetop_pllcfg_cnt_phase_read();
@@ -323,32 +323,32 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         limetop_pllcfg_c4_cnt_read();
         break;
     case 0x7d:
-        limetop_tst_top_tx_tst_i_write(value);
+        tst_top_tx_tst_i_write(value);
         break;
     case 0x7e:
-        limetop_tst_top_tx_tst_q_write(value);
+        tst_top_tx_tst_q_write(value);
         break;
 
     case 0xc0:
-        limetop_general_periph_board_gpio_OVRD_write(value);
+        general_periph_board_gpio_OVRD_write(value);
         break;
     case 0xc4:
-        limetop_general_periph_board_gpio_DIR_write(value);
+        general_periph_board_gpio_DIR_write(value);
         break;
     case 0xc6:
-        limetop_general_periph_board_gpio_VAL_write(value);
+        general_periph_board_gpio_VAL_write(value);
         break;
     case 0xcc:
-        limetop_general_periph_periph_output_OVRD_0_write(value);
+        general_periph_periph_output_OVRD_0_write(value);
         break;
     case 0xcd:
-        limetop_general_periph_periph_output_VAL_0_write(value);
+        general_periph_periph_output_VAL_0_write(value);
         break;
     case 0xce:
-        limetop_general_periph_periph_output_OVRD_1_write(value);
+        general_periph_periph_output_OVRD_1_write(value);
         break;
     case 0xcf:
-        limetop_general_periph_periph_output_VAL_1_write(value);
+        general_periph_periph_output_VAL_1_write(value);
         break;
 
     default:

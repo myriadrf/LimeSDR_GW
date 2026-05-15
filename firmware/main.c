@@ -168,7 +168,7 @@ int main(void)
             uint16_t addr;
             uint16_t val;
 #if LMS64C_METHOD == LMS64C_METHOD_FTDI
-            limetop_gpo_write(1);
+            main_gpo_write(1);
 
             // Read packet from the FIFO
             FTDI_getFifoData(glEp0Buffer_Rx, 64);
@@ -759,7 +759,7 @@ int main(void)
             }
             // gpo_val = 0x0;
             //*gpo_reg = gpo_val;
-            limetop_gpo_write(0);
+            main_gpo_write(0);
 #endif
         }
 

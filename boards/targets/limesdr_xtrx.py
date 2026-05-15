@@ -50,6 +50,7 @@ from gateware.GNSSTop import GNSSTop
 from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
 from gateware.helpers import write_module_hierarchy_json
+from gateware.xtrx_rfsw import xtrx_rfsw
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -437,6 +438,12 @@ class BaseSoC(SoCCore):
 
         self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
 
+        # RF Switches -------------------------------------------------------------------------------
+        rfsw_pads         = platform.request("rf_switches")
+        self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
+        #self.comb += rfsw_pads.tx.eq(1)
+        self.comb +=  self.rfsw_control.AUTO_IN.eq(self.limetop.lms7002_top.tx_ant_en)
+
         # LMS SPI -----------------------------------------------------------------------------------
 
         self.add_spi_master(name="spimaster", pads=platform.request("lms7002m_spi"), data_width=32, spi_clk_freq=1e6)
@@ -549,7 +556,7 @@ class BaseSoC(SoCCore):
 
 
         tdd_pads = platform.request_all("tdd_gpio")
-        self.comb += tdd_pads.eq(self.limetop.rfsw_control.TDD_OUT)
+        self.comb += tdd_pads.eq(self.rfsw_control.TDD_OUT)
 
         # PPSDO ------------------------------------------------------------------------------------
         if with_ppsdo:
@@ -557,7 +564,8 @@ class BaseSoC(SoCCore):
             from gateware.LimePPSDO.src.ppsdo import PPSDO
 
             # PPSDO Instance.
-            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="xo_fpga", with_csr=True)
+            # self.ppsdo = ppsdo = PPSDO(cd_sys=self.crg.cd_usb.name,sys_clk_freq=100e6, cd_rf="xo_fpga", with_csr=True)
+            self.ppsdo = ppsdo = PPSDO(cd_rf="xo_fpga", with_csr=True)
             self.ppsdo.add_sources(dac_bits=16)
             self.comb += ppsdo.pps.eq(self.pps_internal)
 
@@ -585,14 +593,14 @@ class BaseSoC(SoCCore):
     # LiteScope Analyzer Probes --------------------------------------------------------------------
     def add_debug(self):
         analyzer_signals = [
-            self.lime_top.rfsw_control.AUTO_IN,
-            self.lime_top.rfsw_control.TDD_OUT,
-            self.lime_top.rfsw_control.tdd_manual_val.storage,
-            self.lime_top.rfsw_control.tdd_auto_en.storage,
-            self.lime_top.rfsw_control.tdd_invert.storage,
-            self.lime_top.rfsw_control.rfsw_rx.storage,
-            self.lime_top.rfsw_control.rfsw_tx.storage,
-            self.lime_top.rfsw_control.rfsw_auto_en.storage,
+            self.rfsw_control.AUTO_IN,
+            self.rfsw_control.TDD_OUT,
+            self.rfsw_control.tdd_manual_val.storage,
+            self.rfsw_control.tdd_auto_en.storage,
+            self.rfsw_control.tdd_invert.storage,
+            self.rfsw_control.rfsw_rx.storage,
+            self.rfsw_control.rfsw_tx.storage,
+            self.rfsw_control.rfsw_auto_en.storage,
 
         ]
 

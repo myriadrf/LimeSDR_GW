@@ -40,13 +40,13 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0xA:
         tmp   = limetop_fpgacfg_reg10_read();
         value = tmp & 0x03; //(tmp >> 1) & 0x01;
-        value |= limetop_rfsw_control_rfsw_rx_read() << 2;
-        value |= limetop_rfsw_control_rfsw_tx_read() << 4;
-        value |= limetop_rfsw_control_tdd_manual_val_read() << 5;
-        value |= limetop_rfsw_control_tdd_auto_en_read() << 6;
-        value |= limetop_rfsw_control_tdd_invert_read() << 7;
+        value |= rfsw_control_rfsw_rx_read() << 2;
+        value |= rfsw_control_rfsw_tx_read() << 4;
+        value |= rfsw_control_tdd_manual_val_read() << 5;
+        value |= rfsw_control_tdd_auto_en_read() << 6;
+        value |= rfsw_control_tdd_invert_read() << 7;
         value |= (tmp & 0x200);
-        value |= limetop_rfsw_control_rfsw_auto_en_read() << 11;
+        value |= rfsw_control_rfsw_auto_en_read() << 11;
         break;
     case 0xF:
         value = limetop_fpgacfg_txant_pre_read();
@@ -232,13 +232,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         limetop_fpgacfg_reg10_write(reg);
         // limetop_lms7002_tx_en_write(value);
         // limetop_lms7002_rx_en_write(value);
-        limetop_rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
-        limetop_rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
-        limetop_rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
-        limetop_rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
-        limetop_rfsw_control_tdd_invert_write((value & 0x80) >> 7);
+        rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
+        rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
+        rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
+        rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
+        rfsw_control_tdd_invert_write((value & 0x80) >> 7);
         // limetop_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
-        limetop_rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
+        rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
         break;
     case 0xF:
         limetop_fpgacfg_txant_pre_write(value);
