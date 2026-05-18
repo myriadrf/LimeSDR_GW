@@ -10,7 +10,7 @@
 from tools.patches import LiteXMemoryPatcher
 # Apply LiteX Memory Patch
 LiteXMemoryPatcher(
-    min_width   = 0,
+    min_width   = 350,
     max_depth   = 64,
     limit       = None,
     ram_style   = "distributed"
@@ -75,7 +75,7 @@ LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
 # TX buffer: shared payload RAM holds up to TX_MAX_PCT_SIZE bytes total,
 # split across at most TX_N_BUFF queued packets.
-TX_MAX_PCT_SIZE      = 16384 # Total payload RAM capacity in bytes
+TX_MAX_PCT_SIZE      = 16384  # Total payload RAM capacity in bytes
 TX_N_BUFF            = 16     # Metadata FIFO depth; does not increase payload RAM
 
 # CRG ----------------------------------------------------------------------------------------------
@@ -894,16 +894,21 @@ class BaseSoC(SoCCore):
     def add_debug(self):
 
         analyzer_signals = [
-            self.afe.afe_sink.valid,
-            self.afe.afe_sink.ready,
-            self.afe.afe_source.valid,
-            self.afe.afe_source.ready,
-            self.afe.afe_sink.data,
+            self.limetop.rxtx_top.tx_path.pct_rd,
+            self.limetop.rxtx_top.tx_path.pct_clear,
+            self.limetop.rxtx_top.tx_path.pct_valid,
+
+            self.limetop.rxtx_top.tx_path.data_pad_tvalid,
+            self.limetop.rxtx_top.tx_path.data_pad_tready,
+            self.limetop.rxtx_top.tx_path.data_pad_tdata,
+
+            self.limetop.rxtx_top.tx_path.pct_loss_flg,
+            self.limetop.rxtx_top.tx_path.pct_loss_flg_clr,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 256,
-            clock_domain = "fpga_1pps",
+            clock_domain = "afe",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
@@ -995,7 +1000,8 @@ def main():
 
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite", libc_mode="full")
         builder.build(run=build,
-                        vivado_synth_directive                  = "PerformanceOptimized",
+                        #vivado_synth_directive                  = "PerformanceOptimized",
+                        vivado_synth_directive                  = "Default",
                         vivado_opt_directive                    = "Explore",
                         vivado_place_directive                  = "ExtraNetDelay_high",
                         vivado_post_place_phys_opt_directive    = "Explore",
