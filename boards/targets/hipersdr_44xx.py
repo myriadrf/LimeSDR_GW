@@ -167,7 +167,7 @@ class fpgacfg_csr(LiteXModule):
     def __init__(self,gold=False):
         # TODO: implement some sort of version increment mechanism
         #       or redo version storage entirely (maybe move to firmware)
-        self.board_id       = CSRStatus(16, reset=27)
+        self.board_id       = CSRStatus(16, reset=31)
         self.reserved_03    = CSRStorage(16, reset=0)
         self.reserved_04    = CSRStorage(16, reset=0)
         self.reserved_05    = CSRStorage(16, reset=0)
