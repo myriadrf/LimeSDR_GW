@@ -2,51 +2,15 @@
 // Created by ts on 8/7/24.
 //
 #include "stdint.h"
+#include "pll_ctrl.h"
 // #include <system.h>
 #include <generated/csr.h>
 
 #ifndef ED_LIMESDR_XTRX_LITEX_GW_XIL_CLK_DRP_H
 #    define ED_LIMESDR_XTRX_LITEX_GW_XIL_CLK_DRP_H
 
-#    define add_value(base, suffix) base##suffix
-
-#    define GENERATE_CLK_CTRL_ADDRS(base)                                                                              \
-        {                                                                                                              \
-            add_value(base, _PLLCFG_DONE_ADDR), add_value(base, _PHCFG_MODE_ADDR), add_value(base, _PHCFG_DONE_ADDR),  \
-                add_value(base, _PHCFG_ERR_ADDR), add_value(base, _PLLCFG_BUSY_ADDR),                                  \
-                add_value(base, _PLLCFG_START_ADDR), add_value(base, _PLLRST_START_ADDR),                              \
-                add_value(base, _PLL_IND_ADDR), add_value(base, _PHCFG_START_ADDR),                                    \
-                add_value(base, _PLLCFG_ERROR_ADDR), add_value(base, _VCO_MULT_BYP_ADDR),                              \
-                add_value(base, _VCO_DIV_BYP_ADDR), add_value(base, _C0_DIV_BYP_ADDR),                                 \
-                add_value(base, _C1_DIV_BYP_ADDR), add_value(base, _VCO_DIV_CNT_ADDR),                                 \
-                add_value(base, _VCO_MULT_CNT_ADDR), add_value(base, _C0_DIV_CNT_ADDR),                                \
-                add_value(base, _C1_DIV_CNT_ADDR), add_value(base, _C1_PHASE_ADDR),                                    \
-                add_value(base, _AUTO_PHCFG_SMPLS_ADDR)                                                                \
-        }
-
-typedef struct
-{
-    unsigned long pllcfg_done;
-    unsigned long phcfg_mode;
-    unsigned long phcfg_done;
-    unsigned long phcfg_err;
-    unsigned long pllcfg_busy;
-    unsigned long pllcfg_start;
-    unsigned long pllrst_start;
-    unsigned long pll_ind;
-    unsigned long phcfg_start;
-    unsigned long pllcfg_error;
-    unsigned long vco_mult_byp;
-    unsigned long vco_div_byp;
-    unsigned long c0_div_byp;
-    unsigned long c1_div_byp;
-    unsigned long vco_div_cnt;
-    unsigned long vco_mult_cnt;
-    unsigned long c0_div_cnt;
-    unsigned long c1_div_cnt;
-    unsigned long c1_phase;
-    unsigned long phcfg_samples;
-} CLK_CTRL_ADDRS;
+// Defined in pll_ctrl.h
+// #    define add_value(base, suffix) base##suffix
 
 #    define GENERATE_MMCM_DRP_ADDRS(base)                                                                              \
         {                                                                                                              \
@@ -71,14 +35,13 @@ typedef struct
 
 #    define GENERATE_SMPL_CMP_ADDRS(base)                                                                              \
         {                                                                                                              \
-            add_value(base, _CMP_START_ADDR), add_value(base, _CMP_LENGTH_ADDR), add_value(base, _CMP_DONE_ADDR),      \
+            add_value(base, _CMP_START_ADDR), add_value(base, _CMP_DONE_ADDR),      \
                 add_value(base, _CMP_ERROR_ADDR)                                                                       \
         }
 
 typedef struct
 {
     unsigned long cmp_start;
-    unsigned long cmp_length;
     unsigned long cmp_done;
     unsigned long cmp_error;
 } SMPL_CMP_ADDRS;

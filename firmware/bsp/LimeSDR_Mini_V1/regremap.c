@@ -5,6 +5,9 @@
 #include <generated/soc.h>
 
 #include "regremap.h"
+#include "../LimeSDR_XTRX/regremap.h"
+
+#include "../../../deps/litex/litex/soc/software/include/hw/common.h"
 
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-Mini-V1
 void readCSR(uint8_t *address, uint8_t *regdata_array)
@@ -82,19 +85,74 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x1e:
         value = limetop_fpgacfg_sync_pulse_period_read();
         break;
-
 #ifdef WITH_LMS7002
-    case 0x21:
-        value = limetop_pllcfg_reg01_read();
-        break;
-#endif
-    case 0x22:
-        value = limetop_pllcfg_pll_lock_read();
-        break;
-    case 0x25:
-        value = limetop_pllcfg_reg05_read();
-        break;
-
+        case 0x21:
+            value = csr_read_simple(clk_ctrl_addrs.pllcfg_done);
+            value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
+            value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
+            value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
+            break;
+        case 0x22:
+            value = csr_read_simple(clk_ctrl_addrs.pll_lock);
+            break;
+        case 0x23:
+            value = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
+            value |= csr_read_simple(clk_ctrl_addrs.phcfg_start) << 1;
+            value |= csr_read_simple(clk_ctrl_addrs.pllrst_start) << 2;
+            value |= csr_read_simple(clk_ctrl_addrs.pll_ind) << 3;
+            value |= csr_read_simple(clk_ctrl_addrs.cnt_ind) << 8;
+            value |= csr_read_simple(clk_ctrl_addrs.phcfg_updn) << 13;
+            value |= csr_read_simple(clk_ctrl_addrs.phcfg_mode) << 14;
+            break;
+        case 0x24:
+            value = csr_read_simple(clk_ctrl_addrs.cnt_phase);
+            break;
+        case 0x25:
+            value = csr_read_simple(clk_ctrl_addrs.pllcfg_vcodiv) << 7;
+            break;
+        case 0x26:
+            value = csr_read_simple(clk_ctrl_addrs.n_div_byp);
+            value |= csr_read_simple(clk_ctrl_addrs.n_odd_div) << 1;
+            value |= csr_read_simple(clk_ctrl_addrs.m_div_byp) << 2;
+            value |= csr_read_simple(clk_ctrl_addrs.m_odd_div) << 3;
+            break;
+        case 0x27:
+            value = csr_read_simple(clk_ctrl_addrs.c0_div_byp);
+            value |= csr_read_simple(clk_ctrl_addrs.c0_odddiv) << 1;
+            value |= csr_read_simple(clk_ctrl_addrs.c1_div_byp) << 2;
+            value |= csr_read_simple(clk_ctrl_addrs.c1_odddiv) << 3;
+            value |= csr_read_simple(clk_ctrl_addrs.c2_div_byp) << 4;
+            value |= csr_read_simple(clk_ctrl_addrs.c2_odddiv) << 5;
+            value |= csr_read_simple(clk_ctrl_addrs.c3_div_byp) << 6;
+            value |= csr_read_simple(clk_ctrl_addrs.c3_odddiv) << 7;
+            value |= csr_read_simple(clk_ctrl_addrs.c4_div_byp) << 8;
+            value |= csr_read_simple(clk_ctrl_addrs.c4_odddiv) << 9;
+            break;
+        case 0x2A:
+            value = csr_read_simple(clk_ctrl_addrs.n_cnt);
+            break;
+        case 0x2B:
+            value = csr_read_simple(clk_ctrl_addrs.m_cnt);
+            break;
+        case 0x2E:
+            value = csr_read_simple(clk_ctrl_addrs.c0_div_cnt);
+            break;
+        case 0x2F:
+            value = csr_read_simple(clk_ctrl_addrs.c1_div_cnt);
+            break;
+        case 0x30:
+            value = csr_read_simple(clk_ctrl_addrs.c2_div_cnt);
+            break;
+        case 0x31:
+            value = csr_read_simple(clk_ctrl_addrs.c3_div_cnt);
+            break;
+        case 0x32:
+            value = csr_read_simple(clk_ctrl_addrs.c4_div_cnt);
+            break;
+        case 0x3E:
+            value = csr_read_simple(clk_ctrl_addrs.phcfg_samples);
+            break;
+    #endif
     case 0x65:
         value = tst_top_test_cmplt_read();
         break;
@@ -212,11 +270,6 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0x12:
         limetop_fpgacfg_spi_ss_write(value);
         break;
-#ifdef WITH_LMS7002
-    case 0x13:
-        limetop_lms7002_top_lms1_write(value);
-        break;
-#endif
     case 0x17:
         main_gpio_write(value);
         break;
@@ -234,93 +287,72 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
 
 #ifdef WITH_LMS7002
-    case 0x23:
-        limetop_lms7002_top_reg03_write(value);
-        limetop_pllcfg_reg03_write(value);
+    case 0x13:
+        limetop_lms7002_top_lms1_write(value);
         break;
-#endif
+    case 0x23:
+        csr_write_simple(value & 0x1, clk_ctrl_addrs.pllcfg_start);
+        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.phcfg_start);
+        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.pllrst_start);
+        csr_write_simple((value >> 3) & 0x1F, clk_ctrl_addrs.pll_ind);
+        csr_write_simple((value >> 8) & 0x1F, clk_ctrl_addrs.cnt_ind);
+        csr_write_simple((value >> 13) & 0x1, clk_ctrl_addrs.phcfg_updn);
+        csr_write_simple((value >> 14) & 0x1, clk_ctrl_addrs.phcfg_mode);
+        break;
     case 0x24:
-        limetop_pllcfg_cnt_phase_write(value);
+        csr_write_simple(value, clk_ctrl_addrs.cnt_phase);
         break;
     case 0x25:
-        limetop_pllcfg_reg05_write(value);
+        csr_write_simple((value >> 7) & 0x1, clk_ctrl_addrs.pllcfg_vcodiv);
         break;
     case 0x26:
-        limetop_pllcfg_reg06_write(value);
+        csr_write_simple(value & 0x1, clk_ctrl_addrs.n_div_byp);
+        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.n_odd_div);
+        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.m_div_byp);
+        csr_write_simple((value >> 3) & 0x1, clk_ctrl_addrs.m_odd_div);
         break;
     case 0x27:
-        limetop_pllcfg_reg07_write(value);
+        csr_write_simple(value & 0x1, clk_ctrl_addrs.c0_div_byp);
+        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.c0_odddiv);
+        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.c1_div_byp);
+        csr_write_simple((value >> 3) & 0x1, clk_ctrl_addrs.c1_odddiv);
+        csr_write_simple((value >> 4) & 0x1, clk_ctrl_addrs.c2_div_byp);
+        csr_write_simple((value >> 5) & 0x1, clk_ctrl_addrs.c2_odddiv);
+        csr_write_simple((value >> 6) & 0x1, clk_ctrl_addrs.c3_div_byp);
+        csr_write_simple((value >> 7) & 0x1, clk_ctrl_addrs.c3_odddiv);
+        csr_write_simple((value >> 8) & 0x1, clk_ctrl_addrs.c4_div_byp);
+        csr_write_simple((value >> 9) & 0x1, clk_ctrl_addrs.c4_odddiv);
         break;
-    case 0x28:
+    case 0x2A:
+        csr_write_simple(value, clk_ctrl_addrs.n_cnt);
         break;
-    case 0x2a:
-        limetop_pllcfg_n_cnt_write(value);
+    case 0x2B:
+        csr_write_simple(value, clk_ctrl_addrs.m_cnt);
         break;
-    case 0x2b:
-        limetop_pllcfg_m_cnt_write(value);
+    case 0x2E:
+        csr_write_simple(value, clk_ctrl_addrs.c0_div_cnt);
         break;
-    case 0x2e:
-        limetop_pllcfg_c0_cnt_write(value);
-        break;
-    case 0x2f:
-        limetop_pllcfg_c1_cnt_write(value);
+    case 0x2F:
+        csr_write_simple(value, clk_ctrl_addrs.c1_div_cnt);
         break;
     case 0x30:
-        limetop_pllcfg_c2_cnt_write(value);
+        csr_write_simple(value, clk_ctrl_addrs.c2_div_cnt);
         break;
     case 0x31:
-        limetop_pllcfg_c3_cnt_write(value);
+        csr_write_simple(value, clk_ctrl_addrs.c3_div_cnt);
         break;
     case 0x32:
-        limetop_pllcfg_c4_cnt_write(value);
+        csr_write_simple(value, clk_ctrl_addrs.c4_div_cnt);
         break;
-    case 0x3e:
-        limetop_pllcfg_auto_phcfg_smpls_write(value);
+    case 0x3E:
+        csr_write_simple(value, clk_ctrl_addrs.phcfg_samples);
         break;
-    case 0x3f:
-        limetop_pllcfg_auto_phcfg_step_write(value);
-        break;
-
+#endif
     case 0x61:
         tst_top_test_en_write(value);
         break;
     case 0x63:
         tst_top_test_frc_err_write(value);
-        break;
-    case 0x64:
-        limetop_pllcfg_cnt_phase_read();
-        break; // Original bug preserved
-    case 0x65:
-        limetop_pllcfg_reg05_read();
-        break;
-    case 0x66:
-        limetop_pllcfg_reg06_read();
-        break;
-    case 0x67:
-        limetop_pllcfg_reg07_read();
-        break;
-    case 0x68:
-        break;
-    case 0x6a:
-        limetop_pllcfg_n_cnt_read();
-        break;
-    case 0x6b:
-        limetop_pllcfg_m_cnt_read();
-        break;
-    case 0x6e:
-        limetop_pllcfg_c0_cnt_read();
-        break;
-    case 0x6f:
-        limetop_pllcfg_c1_cnt_read();
-        break;
-    case 0x70:
-        limetop_pllcfg_c2_cnt_read();
-        break;
-    case 0x71:
-        limetop_pllcfg_c3_cnt_read();
-        break;
-    case 0x72:
-        limetop_pllcfg_c4_cnt_read();
         break;
     case 0x7d:
         tst_top_tx_tst_i_write(value);

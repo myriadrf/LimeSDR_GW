@@ -99,7 +99,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = csr_read_simple(clk_ctrl_addrs.c1_div_cnt);
         break;
     case 0x3E:
-        value = csr_read_simple(smpl_cmp_addrs.cmp_length);
+        value = csr_read_simple(clk_ctrl_addrs.phcfg_samples);
         break;
     case 0xC0:
         value = periphcfg_BOARD_GPIO_OVRD_read();
@@ -361,7 +361,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         csr_write_simple(value, clk_ctrl_addrs.c1_div_cnt);
         break;
     case 0x3E:
-        csr_write_simple(value, smpl_cmp_addrs.cmp_length);
+        value = csr_read_simple(clk_ctrl_addrs.phcfg_samples);
         break;
     case 0xC0:
         periphcfg_BOARD_GPIO_OVRD_write(value);

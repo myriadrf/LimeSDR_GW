@@ -328,21 +328,21 @@ class BaseSoC(SoCCore):
         ])
 
         # Tst Top / Clock Test ---------------------------------------------------------------------
-
         self.tst_top = TstTop(platform, ClockSignal("ft601"), ClockSignal("lmk"))
+        if with_lms7002:
 
-        self.comb += [
-            # LMS7002 <-> TstTop.
-            self.limetop.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
-            self.limetop.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
-            self.limetop.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
+            self.comb += [
+                # LMS7002 <-> TstTop.
+                self.limetop.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
+                self.limetop.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
+                self.limetop.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
 
-            # General Periph <-> RXTX Top.
-            self.general_periph.tx_txant_en.eq(self.limetop.rxtx_top.tx_path.tx_txant_en),
+                # General Periph <-> RXTX Top.
+                self.general_periph.tx_txant_en.eq(self.limetop.rxtx_top.tx_path.tx_txant_en),
 
-            # General Periph <-> LMS7002
-            self.limetop.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
-        ]
+                # General Periph <-> LMS7002
+                self.limetop.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
+            ]
 
         # Assign UART signals to general periph
         self.comb += [

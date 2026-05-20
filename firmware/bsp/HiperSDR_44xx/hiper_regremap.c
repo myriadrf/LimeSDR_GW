@@ -131,7 +131,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
     case 0x3E:
 #ifdef CSR_LIMETOP_LMS7002
-        value = csr_read_simple(smpl_cmp_addrs.cmp_length);
+        value = csr_read_simple(clk_ctrl_addrs.phcfg_samples);
 #endif
         break;
     case 0xCA:
@@ -328,7 +328,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
     case 0x3E:
 #ifdef CSR_LIMETOP_LMS7002
-        csr_write_simple(value, smpl_cmp_addrs.cmp_length);
+        csr_write_simple(clk_ctrl_addrs.phcfg_samples);
 #endif
         break;
     case 0xCA:

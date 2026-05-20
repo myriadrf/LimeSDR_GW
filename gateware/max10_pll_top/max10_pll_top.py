@@ -16,7 +16,7 @@ from gateware.common import add_vhd2v_converter
 # MAX10 PLL Top ------------------------------------------------------------------------------------
 
 class MAX10PLLTop(LiteXModule):
-    def __init__(self, platform, pads, pllcfg_manager,
+    def __init__(self, platform, pads,
         drct_c0_ndly = 1,
         drct_c1_ndly = 2,
         drct_c2_ndly = 1,
@@ -47,6 +47,48 @@ class MAX10PLLTop(LiteXModule):
         self.smpl_cmp_cnt   = Signal(16)
 
         # # #
+
+        self.phcfg_error      = Signal()
+        self.phcfg_done       = Signal()
+        self.pllcfg_busy      = Signal()
+        self.pllcfg_done      = Signal()
+        self.pll_lock         = Signal(16)
+        self.phcfg_tst        = Signal()
+        self.phcfg_mode       = Signal()
+        self.phcfg_updn       = Signal()
+        self.cnt_ind          = Signal(5)
+        self.pll_ind          = Signal(5)
+        self.pllrst_start     = Signal()
+        self.phcfg_start      = Signal()
+        self.pllcfg_start     = Signal()
+        self.cnt_phase        = Signal(16)
+        self.chp_curr         = Signal(3)
+        self.pllcfg_vcodiv    = Signal()
+        self.pllcfg_lf_res    = Signal(5)
+        self.pllcfg_lf_cap    = Signal(2)
+        self.m_odddiv         = Signal()
+        self.m_byp            = Signal()
+        self.n_odddiv         = Signal()
+        self.n_byp            = Signal()
+        self.c0_byp           = Signal()
+        self.c0_odddiv        = Signal()
+        self.c1_byp           = Signal()
+        self.c1_odddiv        = Signal()
+        self.c2_byp           = Signal()
+        self.c2_odddiv        = Signal()
+        self.c3_byp           = Signal()
+        self.c3_odddiv        = Signal()
+        self.c4_byp           = Signal()
+        self.c4_odddiv        = Signal()
+        self.n_cnt            = Signal(16)
+        self.m_cnt            = Signal(16)
+        self.c0_cnt           = Signal(16)
+        self.c1_cnt           = Signal(16)
+        self.c2_cnt           = Signal(16)
+        self.c3_cnt           = Signal(16)
+        self.c4_cnt           = Signal(16)
+        self.auto_phcfg_smpls = Signal(16)
+        self.auto_phcfg_step  = Signal(16)
 
         # Signals.
         # --------
@@ -104,51 +146,51 @@ class MAX10PLLTop(LiteXModule):
             o_pll_smpl_cmp_cnt       = self.smpl_cmp_cnt,
             # pllcfg ports
             # from pllcfg
-            i_phcfg_start            = pllcfg_manager.phcfg_start,
-            i_pllcfg_start           = pllcfg_manager.pllcfg_start,
-            i_pllrst_start           = pllcfg_manager.pllrst_start,
-            i_phcfg_updn             = pllcfg_manager.phcfg_updn,
-            i_cnt_ind                = pllcfg_manager.cnt_ind,
-            i_pll_ind                = pllcfg_manager.pll_ind,
-            i_phcfg_mode             = pllcfg_manager.phcfg_mode,
-            i_phcfg_tst              = pllcfg_manager.phcfg_tst,
-            i_cnt_phase              = pllcfg_manager.cnt_phase,
-            i_chp_curr               = pllcfg_manager.chp_curr,
-            i_pllcfg_vcodiv          = pllcfg_manager.pllcfg_vcodiv,
-            i_pllcfg_lf_res          = pllcfg_manager.pllcfg_lf_res,
-            i_pllcfg_lf_cap          = pllcfg_manager.pllcfg_lf_cap,
-            i_m_odddiv               = pllcfg_manager.m_odddiv,
-            i_m_byp                  = pllcfg_manager.m_byp,
-            i_n_odddiv               = pllcfg_manager.n_odddiv,
-            i_n_byp                  = pllcfg_manager.n_byp,
-            i_c0_odddiv              = pllcfg_manager.c0_odddiv,
-            i_c0_byp                 = pllcfg_manager.c0_byp,
-            i_c1_odddiv              = pllcfg_manager.c1_odddiv,
-            i_c1_byp                 = pllcfg_manager.c1_byp,
-            i_c2_odddiv              = pllcfg_manager.c2_odddiv,
-            i_c2_byp                 = pllcfg_manager.c2_byp,
-            i_c3_odddiv              = pllcfg_manager.c3_odddiv,
-            i_c3_byp                 = pllcfg_manager.c3_byp,
-            i_c4_odddiv              = pllcfg_manager.c4_odddiv,
-            i_c4_byp                 = pllcfg_manager.c4_byp,
-            i_n_cnt                  = pllcfg_manager.n_cnt,
-            i_m_cnt                  = pllcfg_manager.m_cnt,
-            i_c0_cnt                 = pllcfg_manager.c0_cnt,
-            i_c1_cnt                 = pllcfg_manager.c1_cnt,
-            i_c2_cnt                 = pllcfg_manager.c2_cnt,
-            i_c3_cnt                 = pllcfg_manager.c3_cnt,
-            i_c4_cnt                 = pllcfg_manager.c4_cnt,
-            i_auto_phcfg_smpls       = pllcfg_manager.auto_phcfg_smpls,
-            i_auto_phcfg_step        = pllcfg_manager.auto_phcfg_step,
+            i_phcfg_start            = self.phcfg_start,
+            i_pllcfg_start           = self.pllcfg_start,
+            i_pllrst_start           = self.pllrst_start,
+            i_phcfg_updn             = self.phcfg_updn,
+            i_cnt_ind                = self.cnt_ind,
+            i_pll_ind                = self.pll_ind,
+            i_phcfg_mode             = self.phcfg_mode,
+            i_phcfg_tst              = self.phcfg_tst,
+            i_cnt_phase              = self.cnt_phase,
+            i_chp_curr               = self.chp_curr,
+            i_pllcfg_vcodiv          = self.pllcfg_vcodiv,
+            i_pllcfg_lf_res          = self.pllcfg_lf_res,
+            i_pllcfg_lf_cap          = self.pllcfg_lf_cap,
+            i_m_odddiv               = self.m_odddiv,
+            i_m_byp                  = self.m_byp,
+            i_n_odddiv               = self.n_odddiv,
+            i_n_byp                  = self.n_byp,
+            i_c0_odddiv              = self.c0_odddiv,
+            i_c0_byp                 = self.c0_byp,
+            i_c1_odddiv              = self.c1_odddiv,
+            i_c1_byp                 = self.c1_byp,
+            i_c2_odddiv              = self.c2_odddiv,
+            i_c2_byp                 = self.c2_byp,
+            i_c3_odddiv              = self.c3_odddiv,
+            i_c3_byp                 = self.c3_byp,
+            i_c4_odddiv              = self.c4_odddiv,
+            i_c4_byp                 = self.c4_byp,
+            i_n_cnt                  = self.n_cnt,
+            i_m_cnt                  = self.m_cnt,
+            i_c0_cnt                 = self.c0_cnt,
+            i_c1_cnt                 = self.c1_cnt,
+            i_c2_cnt                 = self.c2_cnt,
+            i_c3_cnt                 = self.c3_cnt,
+            i_c4_cnt                 = self.c4_cnt,
+            i_auto_phcfg_smpls       = self.auto_phcfg_smpls,
+            i_auto_phcfg_step        = self.auto_phcfg_step,
 
             # to pllcfg
             # Status Inputs
-            o_pllcfg_busy_bit        = pllcfg_manager.pllcfg_busy,
-            o_pllcfg_done_bit        = pllcfg_manager.pllcfg_done,
-            o_auto_phcfg_done_bit    = pllcfg_manager.phcfg_done,
-            o_auto_phcfg_err_bit     = pllcfg_manager.phcfg_error,
+            o_pllcfg_busy_bit        = self.pllcfg_busy,
+            o_pllcfg_done_bit        = self.pllcfg_done,
+            o_auto_phcfg_done_bit    = self.phcfg_done,
+            o_auto_phcfg_err_bit     = self.phcfg_error,
             # PLL Lock flags
-            o_pll_lock_vect          = pllcfg_manager.pll_lock,
+            o_pll_lock_vect          = self.pll_lock,
         )
 
         inst3_clk        = Signal(3)

@@ -14,6 +14,7 @@
 #include "LMS64C_protocol.h"
 #include "bsp.h"
 #include "console_func.h"
+#include "pll_ctrl.h"
 
 #define sbi(p, n) ((p) |= (1UL << (n)))
 #define cbi(p, n) ((p) &= ~(1 << (n)))
@@ -45,7 +46,10 @@
 PLL_ADDRS pll1_rx_addrs       = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
 PLL_ADDRS pll0_tx_addrs       = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
 SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP);
+#endif
 // clk_ctrl_addrs is declared in regremap.h
+// Check one of the base addresses to make sure CLK CTRL exists
+#ifdef CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT_SIZE
 CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
 #endif
 

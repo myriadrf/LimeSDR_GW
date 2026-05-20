@@ -103,13 +103,6 @@ class LimeTop(LiteXModule):
         )
         self.comb += self.fpgacfg.pwr_src.eq(0)
 
-        # PLL Cfg ----------------------------------------------------------------------------------
-
-        if platform.name.startswith("limesdr_mini"):
-            self.pllcfg = PLLCfg()
-        else:
-            self.pllcfg = None
-
         # LMS7002 Top ------------------------------------------------------------------------------
         if with_lms7002:
             soc.add_constant("WITH_LMS7002")
@@ -124,7 +117,7 @@ class LimeTop(LiteXModule):
                 hw_ver          = hw_ver,
                 add_csr         = True,
                 fpgacfg_manager = self.fpgacfg,
-                pllcfg_manager  = self.pllcfg,
+                pllcfg_manager  = None,
                 diq_width       = LMS_DIQ_WIDTH,
                 with_max10_pll  = True,
             )
