@@ -50,14 +50,14 @@ CTRL0_FPGA_TX_SIZE   = 1024  # Control FPGA->PC, FIFO size in bytes
 CTRL0_FPGA_TX_WWIDTH = 32    # Control FPGA->PC, FIFO wr width
 STRM0_FPGA_RX_SIZE   = 4096  # Stream PC->FPGA, FIFO size in bytes
 STRM0_FPGA_RX_RWIDTH = 128   # Stream PC->FPGA, rd width
-STRM0_FPGA_TX_SIZE   = 16384 # Stream FPGA->PC, FIFO size in bytes
+STRM0_FPGA_TX_SIZE   = 8192  # Stream FPGA->PC, FIFO size in bytes
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
 # TX buffer: shared payload RAM holds up to TX_MAX_PCT_SIZE bytes total,
 # split across at most TX_N_BUFF queued packets.
-TX_MAX_PCT_SIZE      = 4096   # Total payload RAM capacity in bytes
+TX_MAX_PCT_SIZE      = 8192   # Total payload RAM capacity in bytes
 TX_N_BUFF            = 16     # Metadata FIFO depth; does not increase payload RAM
 
 C_EP02_RDUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_RX_SIZE / (CTRL0_FPGA_RX_RWIDTH // 8)))) + 1

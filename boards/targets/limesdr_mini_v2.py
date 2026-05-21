@@ -48,7 +48,7 @@ CTRL0_FPGA_TX_SIZE   = 1024  # Control FPGA->PC, FIFO size in bytes
 CTRL0_FPGA_TX_WWIDTH = 32    # Control FPGA->PC, FIFO wr width
 STRM0_FPGA_RX_SIZE   = 4096  # Stream PC->FPGA, FIFO size in bytes
 STRM0_FPGA_RX_RWIDTH = 128   # Stream PC->FPGA, rd width
-STRM0_FPGA_TX_SIZE   = 16384 # Stream FPGA->PC, FIFO size in bytes
+STRM0_FPGA_TX_SIZE   = 8192  # Stream FPGA->PC, FIFO size in bytes
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 
 LMS_DIQ_WIDTH        = 12
