@@ -75,8 +75,8 @@ LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
 # TX buffer: shared payload RAM holds up to TX_MAX_PCT_SIZE bytes total,
 # split across at most TX_N_BUFF queued packets.
-TX_MAX_PCT_SIZE      = 16384  # Total payload RAM capacity in bytes
-TX_N_BUFF            = 16     # Metadata FIFO depth; does not increase payload RAM
+TX_MAX_PCT_SIZE      = 8192  # Total payload RAM capacity in bytes
+TX_N_BUFF            = 16    # Metadata FIFO depth; does not increase payload RAM
 
 # CRG ----------------------------------------------------------------------------------------------
 
