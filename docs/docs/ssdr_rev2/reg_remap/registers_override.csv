@@ -1,1 +1,12 @@
 module,address,address_end,default,name,description,op
+TIMECFG,0x0281,,0x0000,rx_delay_mode,RX delay mode,upsert
+TIMECFG,0x0282,,0x0000,tx_delay_mode,TX delay mode,upsert
+FPGACFG,0x000E,,0x0000,reserved,Reserved,upsert
+FPGACFG,0x0011,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x0022,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x002C,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x002D,,0x0000,reserved,Reserved,upsert
+PLLCFG,0x0030,,0x0000,reserved,Reserved,upsert
+TSTCFG,0x0067,,0x0000,reserved,Reserved,upsert
+TSTCFG,0x007D,,0x0000,reserved,Reserved,upsert
+TSTCFG,0x007E,,0x0000,reserved,Reserved,upsert

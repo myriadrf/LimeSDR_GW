@@ -203,16 +203,28 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
         return STATUS_COMPLETED_CMD;
     }
     if (channel == 1) {
-        uint16_t buf;
-        uint8_t *buf_point = (uint8_t *)&buf;
-        *unit              = 0x50; // unit = 0.1C
-        buf                = TMP114_Read_Temp(&I2C0_REGS, BSP_I2C_TEMP_SENSOR_ADDR);
-        buf                = TMP114_Convert_Temp(buf);
-        *value_lsb         = buf_point[0];
-        *value_msb         = buf_point[1];
-        return STATUS_COMPLETED_CMD;
+        uint16_t raw_temp;
+        int16_t temp_x10;
+        uint16_t temp_word;
+
+        *unit = 0x50; // 0.1 C
+
+        raw_temp = TMP114_Read_Temp(&I2C0_REGS, BSP_I2C_TEMP_SENSOR_ADDR);
+        temp_x10 = TMP114_Convert_Temp(raw_temp);
+
+        /*
+         * Send signed int16_t temperature as two's-complement bytes.
+         * Example:
+         *   25.0 C  -> temp_x10 = 250  -> 0x00FA
+         *   -5.0 C  -> temp_x10 = -50  -> 0xFFCE
+         */
+        temp_word = (uint16_t)temp_x10;
+
+        *value_msb = (uint8_t)((temp_word >> 8) & 0xFF);
+        *value_lsb = (uint8_t)(temp_word & 0xFF);
     }
-    return STATUS_ERROR_CMD;
+
+    return STATUS_COMPLETED_CMD;
 }
 
 uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8_t value_lsb)

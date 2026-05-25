@@ -71,6 +71,7 @@ def merge_rows(
     override_rows: List[Dict[str, str]],
     fields: Sequence[str],
     key_fn,
+    sort_key_fn=None,
 ) -> List[Dict[str, str]]:
     result: List[Dict[str, str]] = [sanitize_row(r, fields) for r in base_rows]
     index: Dict[Tuple, int] = {key_fn(r): i for i, r in enumerate(result)}
@@ -92,7 +93,10 @@ def merge_rows(
             index[key] = len(result)
             result.append(row)
 
-    return [r for r in result if r is not None]
+    final_result = [r for r in result if r is not None]
+    if sort_key_fn:
+        final_result.sort(key=sort_key_fn)
+    return final_result
 
 
 def merge_bitfield_rows(
@@ -138,7 +142,9 @@ def merge_bitfield_rows(
             index[key] = len(result)
             result.append(row)
 
-    return [r for r in result if r is not None]
+    final_result = [r for r in result if r is not None]
+    final_result.sort(key=bitfield_key)
+    return final_result
 
 
 def write_rows(path: Path, fields: Sequence[str], rows: List[Dict[str, str]]) -> None:
@@ -172,9 +178,37 @@ def main() -> None:
     ov_registers = maybe_read(args.override_dir / "registers_override.csv")
     ov_bitfields = maybe_read(args.override_dir / "bitfields_override.csv")
 
-    merged_modules = merge_rows(common_modules, ov_modules, MODULE_FIELDS, module_key)
-    merged_registers = merge_rows(common_registers, ov_registers, REGISTER_FIELDS, register_key)
+    def module_sort_key(row: Dict[str, str]) -> Tuple[int, str]:
+        addr = int(normalize_int_text(row.get("address_start", "0")), 0)
+        name = row.get("module", "").strip().lower()
+        return (addr, name)
+
+    def register_sort_key(row: Dict[str, str]) -> Tuple[str, int, int]:
+        module = row.get("module", "").strip().lower()
+        addr = int(normalize_int_text(row.get("address", "0")), 0)
+        addr_end = int(normalize_int_text(row.get("address_end", ""), fallback=row.get("address", "0")), 0)
+        return (module, addr, addr_end)
+
+    merged_modules = merge_rows(common_modules, ov_modules, MODULE_FIELDS, module_key, module_sort_key)
+    merged_registers = merge_rows(
+        common_registers, ov_registers, REGISTER_FIELDS, register_key, register_sort_key
+    )
     merged_bitfields = merge_bitfield_rows(common_bitfields, ov_bitfields)
+
+    # Cascading deletes: remove registers/bitfields if their parent module/register was deleted
+    active_modules = {r["module"].lower() for r in merged_modules}
+    merged_registers = [r for r in merged_registers if r["module"].lower() in active_modules]
+
+    active_addrs: set[int] = set()
+    for r in merged_registers:
+        start = int(normalize_int_text(r["address"]), 0)
+        end = int(normalize_int_text(r.get("address_end", ""), fallback=r["address"]), 0)
+        for a in range(start, end + 1):
+            active_addrs.add(a)
+
+    merged_bitfields = [
+        r for r in merged_bitfields if int(normalize_int_text(r["address"]), 0) in active_addrs
+    ]
 
     write_rows(args.out_modules, MODULE_FIELDS, merged_modules)
     write_rows(args.out_registers, REGISTER_FIELDS, merged_registers)

@@ -46,6 +46,7 @@ from litescope import LiteScopeAnalyzer
 
 from gateware.aux      import AUX
 from gateware.GpioTop  import GpioTop
+from gateware.GNSSTop import GNSSTop
 from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
 from gateware.helpers import write_module_hierarchy_json
@@ -56,8 +57,10 @@ STRM0_FPGA_RX_RWIDTH = 64    # Stream PC->FPGA, rd width
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
-TX_PCT_SIZE          = 4096  # TX packet size in bytes
-TX_N_BUFF            = 2     # N 4KB buffers in TX interface (2 OR 4)
+# TX buffer: shared payload RAM holds up to TX_MAX_PCT_SIZE bytes total,
+# split across at most TX_N_BUFF queued packets.
+TX_MAX_PCT_SIZE      = 16384 # Total payload RAM capacity in bytes
+TX_N_BUFF            = 16     # Metadata FIFO depth; does not increase payload RAM
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -404,7 +407,7 @@ class BaseSoC(SoCCore):
             source_width         = 64,
             source_clk_domain    = "sys",
             TX_N_BUFF            = TX_N_BUFF,
-            TX_PCT_SIZE          = 4096,
+            TX_MAX_PCT_SIZE      = TX_MAX_PCT_SIZE,
             TX_IN_PCT_HDR_SIZE   = 16,
             # Use default value
             # tx_buffer_size       = 512,
@@ -445,6 +448,7 @@ class BaseSoC(SoCCore):
         self.irq.add("limetop")
 
         # GPS serial connected to LimeUART0
+        self.pps_internal = Signal()
         from litex.soc.cores.uart import UARTPHY
         from litex.soc.cores.uart import UART
 
@@ -456,40 +460,18 @@ class BaseSoC(SoCCore):
         self.add_module(name="PCIE_UART0", module=pcie_uart0)
 
         # Get UTC time from GNSS, assign UTC data to timestamp logic in rx_path
-        from gateware.LimeDFB_LiteX.general.ZDAParser import ZDAParser
-        self.zda_parser = ZDAParser(self)
+        self.gnsstop = GNSSTop(self)
         self.comb += [
-            self.zda_parser.sink.data.eq (gnss_uart_phy.source.data ),
-            self.zda_parser.sink.valid.eq(gnss_uart_phy.source.valid),
-            self.limetop.time_seconds.eq(self.zda_parser.time_seconds),
-            self.limetop.time_minutes.eq(self.zda_parser.time_minutes),
-            self.limetop.time_hours.eq  (self.zda_parser.time_hours  ),
-            self.limetop.time_day.eq    (self.zda_parser.time_day    ),
-            self.limetop.time_month.eq  (self.zda_parser.time_month  ),
-            self.limetop.time_year.eq   (self.zda_parser.time_year   ),
-            self.limetop.rxtx_top.rx_path.pps.eq(self.zda_parser.pps ),
-        ]
-        ####
-        # Current time registers
-        self.time_min_sec = CSRStatus(size= 16, description="Time in minutes and seconds, current", fields=[
-            CSRField("sec", size=6, offset=0, description="Current time, seconds"),
-            CSRField("min", size=6, offset=6, description="Current  time, minutes")
-        ])
-        self.time_mon_day_hrs = CSRStatus(size= 16, description="Time in months, days and hours, current", fields=[
-            CSRField("hrs", size=5, offset=0, description="Current time, hours"),
-            CSRField("day", size=5, offset=5, description="Current start time, days"),
-            CSRField("mon", size=4, offset=10, description="Current start time, months"),
-        ])
-        self.time_yrs = CSRStatus(size= 16, description="Time in years, current", fields=[
-            CSRField("yrs", size=12, offset=0, description="Current time, years")
-        ])
-        self.comb +=[
-                self.time_min_sec.fields.sec.eq    (self.zda_parser.time_seconds),
-                self.time_min_sec.fields.min.eq    (self.zda_parser.time_minutes),
-                self.time_mon_day_hrs.fields.hrs.eq(self.zda_parser.time_hours  ),
-                self.time_mon_day_hrs.fields.day.eq(self.zda_parser.time_day    ),
-                self.time_mon_day_hrs.fields.mon.eq(self.zda_parser.time_month  ),
-                self.time_yrs.fields.yrs.eq        (self.zda_parser.time_year   ),
+            self.gnsstop.sink.data.eq (gnss_uart_phy.source.data ),
+            self.gnsstop.sink.valid.eq(gnss_uart_phy.source.valid),
+            self.gnsstop.pps.eq        (self.pps_internal        ),
+            self.limetop.time_seconds.eq(self.gnsstop.zda_parser.time_seconds),
+            self.limetop.time_minutes.eq(self.gnsstop.zda_parser.time_minutes),
+            self.limetop.time_hours.eq  (self.gnsstop.zda_parser.time_hours  ),
+            self.limetop.time_day.eq    (self.gnsstop.zda_parser.time_day    ),
+            self.limetop.time_month.eq  (self.gnsstop.zda_parser.time_month  ),
+            self.limetop.time_year.eq   (self.gnsstop.zda_parser.time_year   ),
+            self.limetop.rxtx_top.rx_path.pps.eq(self.gnsstop.zda_parser.pps ),
         ]
         # CLK Tests --------------------------------------------------------------------------------
 
@@ -499,14 +481,10 @@ class BaseSoC(SoCCore):
         self.comb += self.sys_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         self.lms_clock_test = singl_clk_with_ref_test(platform=platform,test_clock_domain="xo_fpga"
-            , ref_clock_domain="sys")
+            , ref_clock_domain="sys", clock_target=12500000)
         self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         # VCTCXO tamer
-        self.pps_internal = Signal()
-        self.comb += [
-            self.zda_parser.pps.eq(self.pps_internal)
-        ]
 
         synchro_pads = platform.request("synchro")
         self.comb += [
@@ -566,9 +544,9 @@ class BaseSoC(SoCCore):
             # self.limetop.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
             # NOTE: using rx_path synced pps, because separate tx path enable is not used, should be fine
             self.limetop.fpgacfg.tx_en_delay_signal[0].eq(self.limetop.rxtx_top.rx_path.pps_rising),
-            self.limetop.fpgacfg.tx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
+            self.limetop.fpgacfg.tx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.gnsstop.zda_parser.time_valid),
             self.limetop.fpgacfg.rx_en_delay_signal[0].eq(self.limetop.rxtx_top.rx_path.pps_rising),
-            self.limetop.fpgacfg.rx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.zda_parser.time_valid),
+            self.limetop.fpgacfg.rx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.gnsstop.zda_parser.time_valid),
         ]
 
 
@@ -609,20 +587,21 @@ class BaseSoC(SoCCore):
     # LiteScope Analyzer Probes --------------------------------------------------------------------
     def add_debug(self):
         analyzer_signals = [
-            self.lime_top.rfsw_control.AUTO_IN,
-            self.lime_top.rfsw_control.TDD_OUT,
-            self.lime_top.rfsw_control.tdd_manual_val.storage,
-            self.lime_top.rfsw_control.tdd_auto_en.storage,
-            self.lime_top.rfsw_control.tdd_invert.storage,
-            self.lime_top.rfsw_control.rfsw_rx.storage,
-            self.lime_top.rfsw_control.rfsw_tx.storage,
-            self.lime_top.rfsw_control.rfsw_auto_en.storage,
+            self.limetop.rxtx_top.tx_path.pct_rd,
+            self.limetop.rxtx_top.tx_path.pct_clear,
+            self.limetop.rxtx_top.tx_path.pct_valid,
 
+            self.limetop.rxtx_top.tx_path.data_pad_tvalid,
+            self.limetop.rxtx_top.tx_path.data_pad_tready,
+            self.limetop.rxtx_top.tx_path.data_pad_tdata,
+
+            self.limetop.rxtx_top.tx_path.pct_loss_flg,
+            self.limetop.rxtx_top.tx_path.pct_loss_flg_clr,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 256,
-            clock_domain = "sys",
+            clock_domain = "lms_tx",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
@@ -715,7 +694,7 @@ def main():
         if prepare and not args.no_soc_json:
             soc.print_soc_hierarchy_json()
 
-        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite", libc_mode="full")
         builder.build(run=build)
         # Firmware build.
         if prepare:

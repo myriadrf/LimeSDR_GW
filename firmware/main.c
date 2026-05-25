@@ -195,16 +195,24 @@ int main(void)
             LMS_Ctrl_Packet_Tx->Header.Status      = STATUS_BUSY_CMD;
 
             switch (LMS_Ctrl_Packet_Rx->Header.Command) {
-            case CMD_GET_INFO:
-
+            case CMD_GET_INFO: {
                 LMS_Ctrl_Packet_Tx->Data_field[0] = BSP_FW_VER; // FW_VER LSB
                 LMS_Ctrl_Packet_Tx->Data_field[1] = BSP_DEV_TYPE;
                 LMS_Ctrl_Packet_Tx->Data_field[2] = LMS_PROTOCOL_VER;
                 LMS_Ctrl_Packet_Tx->Data_field[3] = BSP_HW_VER;
                 LMS_Ctrl_Packet_Tx->Data_field[4] = BSP_EXP_BOARD;
                 LMS_Ctrl_Packet_Tx->Data_field[9] = FW_VER_MAIN; // FW_VER MSB
+
+                uint8_t tmp_data_field[64];
+                if (bsp_serial_read(tmp_data_field) == STATUS_COMPLETED_CMD) {
+                    for (int i = 0; i < 8; i++) {
+                        LMS_Ctrl_Packet_Tx->Data_field[10 + i] = tmp_data_field[24 + 7 - i];
+                    }
+                }
+
                 LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
                 break;
+            }
 
             case CMD_SERIAL_WR:
                 LMS_Ctrl_Packet_Tx->Header.Status = bsp_serial_write(LMS_Ctrl_Packet_Rx->Data_field);
@@ -560,6 +568,8 @@ int main(void)
                 case CMD_ANALOG_VAL_RD:
                     spirez = 0;
                     for (block = 0; block < LMS_Ctrl_Packet_Rx->Header.Data_blocks; block++) {
+
+                    	LMS_Ctrl_Packet_Tx->Data_field[0 + (block * 4)] = LMS_Ctrl_Packet_Rx->Data_field[block];
                         spirez |=
                                 bsp_analog_read(LMS_Ctrl_Packet_Rx->Data_field[0 + (block)], // Channel (8bit)
                                                 &LMS_Ctrl_Packet_Tx->Data_field[1 + (block * 4)], // Units (8bit)

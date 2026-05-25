@@ -10,7 +10,7 @@
 from tools.patches import LiteXMemoryPatcher
 # Apply LiteX Memory Patch
 LiteXMemoryPatcher(
-    min_width   = 0,
+    min_width   = 350,
     max_depth   = 64,
     limit       = None,
     ram_style   = "distributed"
@@ -73,8 +73,10 @@ STRM0_FPGA_RX_RWIDTH = 64    # Stream PC->FPGA, rd width
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
-TX_PCT_SIZE          = 16384  # TX packet size in bytes
-TX_N_BUFF            = 4     # N 4KB buffers in TX interface (2 OR 4)
+# TX buffer: shared payload RAM holds up to TX_MAX_PCT_SIZE bytes total,
+# split across at most TX_N_BUFF queued packets.
+TX_MAX_PCT_SIZE      = 8192  # Total payload RAM capacity in bytes
+TX_N_BUFF            = 16    # Metadata FIFO depth; does not increase payload RAM
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -165,7 +167,7 @@ class fpgacfg_csr(LiteXModule):
     def __init__(self,gold=False):
         # TODO: implement some sort of version increment mechanism
         #       or redo version storage entirely (maybe move to firmware)
-        self.board_id       = CSRStatus(16, reset=27)
+        self.board_id       = CSRStatus(16, reset=31)
         self.reserved_03    = CSRStorage(16, reset=0)
         self.reserved_04    = CSRStorage(16, reset=0)
         self.reserved_05    = CSRStorage(16, reset=0)
@@ -391,7 +393,7 @@ class BaseSoC(SoCCore):
 
             # PPSDO Instance.
             # Maybe TODO: use generic clock names and pass dac_bits by variable to enable copy-pasting this snippet?
-            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="vctcxo_ref", with_csr=True)
+            self.ppsdo = ppsdo = PPSDO(cd_sys="vctcxo_ref",sys_clk_freq=40e6, cd_rf="vctcxo_ref", with_csr=True)
             self.ppsdo.add_sources(dac_bits=16)
             self.comb += ppsdo.pps.eq(self.pps_internal)
 
@@ -534,7 +536,7 @@ class BaseSoC(SoCCore):
            source_clk_domain    = self.crg.cd_sys.name,
            rx_sys_clk_domain    = self.crg.cd_sys.name,
            TX_N_BUFF            = TX_N_BUFF,
-           TX_PCT_SIZE          = TX_PCT_SIZE,
+           TX_MAX_PCT_SIZE      = TX_MAX_PCT_SIZE,
            TX_IN_PCT_HDR_SIZE   = 16,
            tx_buffer_size       = self.pcie_phy.data_width * 4, #minimum tx cdc input buffer depth
 
@@ -892,16 +894,21 @@ class BaseSoC(SoCCore):
     def add_debug(self):
 
         analyzer_signals = [
-            self.afe.afe_sink.valid,
-            self.afe.afe_sink.ready,
-            self.afe.afe_source.valid,
-            self.afe.afe_source.ready,
-            self.afe.afe_sink.data,
+            self.limetop.rxtx_top.tx_path.pct_rd,
+            self.limetop.rxtx_top.tx_path.pct_clear,
+            self.limetop.rxtx_top.tx_path.pct_valid,
+
+            self.limetop.rxtx_top.tx_path.data_pad_tvalid,
+            self.limetop.rxtx_top.tx_path.data_pad_tready,
+            self.limetop.rxtx_top.tx_path.data_pad_tdata,
+
+            self.limetop.rxtx_top.tx_path.pct_loss_flg,
+            self.limetop.rxtx_top.tx_path.pct_loss_flg_clr,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 256,
-            clock_domain = "fpga_1pps",
+            clock_domain = "afe",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
@@ -991,9 +998,10 @@ def main():
         if prepare and not args.no_soc_json:
             soc.print_soc_hierarchy_json()
 
-        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite", libc_mode="full")
         builder.build(run=build,
-                        vivado_synth_directive                  = "PerformanceOptimized",
+                        #vivado_synth_directive                  = "PerformanceOptimized",
+                        vivado_synth_directive                  = "Default",
                         vivado_opt_directive                    = "Explore",
                         vivado_place_directive                  = "ExtraNetDelay_high",
                         vivado_post_place_phys_opt_directive    = "Explore",

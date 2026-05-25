@@ -29,7 +29,7 @@ FPGACFG,0x0014,,0x0000,reserved,Reserved for lms3_4.,upsert
 FPGACFG,0x0015,,0x0000,reserved,Reserved for lms5_6.,upsert
 FPGACFG,0x0016,,0x0000,reserved,Reserved for lms7_8.,upsert
 FPGACFG,0x0017,,0x0000,gpio,GPIO for external periphery.,upsert
-FPGACFG,0x0018,,0x0001,dev_ctrl0,Device control bit 0 (not used).,upsert
+FPGACFG,0x0018,,,reserved,Reserved.,upsert
 FPGACFG,0x0019,,,reserved,Reserved.,upsert
 FPGACFG,0x001A,,0x0000,fpga_led_ctrl,Onboard FPGA LED override/control.,upsert
 FPGACFG,0x001C,,0x0000,fx3_led_ctrl,Onboard FX3 LED override/control.,upsert
@@ -80,18 +80,18 @@ PLLCFG,0x0028,,0x5555,c8..c15_byp_odddiv,Counter bypass and odd-division control
 PLLCFG,0x0029,,,reserved,Reserved.,upsert
 PLLCFG,0x002A,,0x0000,n_cnt,N counter values.,upsert
 PLLCFG,0x002B,,0x0000,m_cnt,M counter values.,upsert
-PLLCFG,0x002C,,0x0000,m_frac_l,M fractional counter values [15:0].,upsert
-PLLCFG,0x002D,,0x0000,m_frac_h,M fractional counter values [31:16].,upsert
+PLLCFG,0x002C,,,reserved,Reserved.,upsert
+PLLCFG,0x002D,,,reserved,Reserved.,upsert
 PLLCFG,0x002E,,0x0000,c0_cnt,C0 counter values.,upsert
 PLLCFG,0x002F,,0x0000,c1_cnt,C1 counter values.,upsert
 PLLCFG,0x0030,,0x0000,c2_cnt,C2 counter values.,upsert
 PLLCFG,0x0031,,0x0000,c3_cnt,C3 counter values.,upsert
 PLLCFG,0x0032,,0x0000,c4_cnt,C4 counter values.,upsert
-PLLCFG,0x0033,,0x0000,c5_cnt,C5 counter values.,upsert
-PLLCFG,0x0034,,0x0000,c6_cnt,C6 counter values.,upsert
-PLLCFG,0x0035,,0x0000,c7_cnt,C7 counter values.,upsert
-PLLCFG,0x0036,,0x0000,c8_cnt,C8 counter values.,upsert
-PLLCFG,0x0037,,0x0000,c9_cnt,C9 counter values.,upsert
+PLLCFG,0x0033,,,reserved,Reserved.,upsert
+PLLCFG,0x0034,,,reserved,Reserved.,upsert
+PLLCFG,0x0035,,,reserved,Reserved.,upsert
+PLLCFG,0x0036,,,reserved,Reserved.,upsert
+PLLCFG,0x0037,,,reserved,Reserved.,upsert
 PLLCFG,0x0038,,,reserved,Reserved for C10..C15 counter values.,upsert
 PLLCFG,0x0039,,,reserved,Reserved for C10..C15 counter values.,upsert
 PLLCFG,0x003A,,,reserved,Reserved for C10..C15 counter values.,upsert
@@ -100,7 +100,7 @@ PLLCFG,0x003C,,,reserved,Reserved for C10..C15 counter values.,upsert
 PLLCFG,0x003D,,,reserved,Reserved for C10..C15 counter values.,upsert
 PLLCFG,0x003E,,0x0FFF,auto_phcfg_smpls,Samples to compare in auto phase-shift mode.,upsert
 PLLCFG,0x003F,,0x0002,auto_phcfg_step,Step size for auto phase.,upsert
-TSTCFG,0x0060,,0x00F0,spi_sign,SPI signature and test register.,upsert
+TSTCFG,0x0060,,,reserved,Reserved.,upsert
 TSTCFG,0x0061,,0x0000,test_en,Test enable controls.,upsert
 TSTCFG,0x0062,,,reserved,Reserved.,upsert
 TSTCFG,0x0063,,0x0000,test_frc_err,Error insertion controls for tests.,upsert
@@ -122,13 +122,13 @@ TSTCFG,0x0072,,,lmk_clk_cnt_l,LMK clock counter low word.,upsert
 TSTCFG,0x0073,,,lmk_clk_cnt_h,LMK clock counter high word.,upsert
 TSTCFG,0x0074,,,adf_cnt,ADF transition count value.,upsert
 TSTCFG,0x0075,,,reserved,Reserved.,upsert
-TSTCFG,0x0076,,,ddr2_1_tst_detail1,DDR2_1 detailed test result flags.,upsert
-TSTCFG,0x0077,,,ddr2_1_pnf_per_bit_l,DDR2_1 data [15:0] pass/fail per bit.,upsert
-TSTCFG,0x0078,,,ddr2_1_pnf_per_bit_h,DDR2_1 data [31:16] pass/fail per bit.,upsert
+TSTCFG,0x0076,,,reserved,Reserved.,upsert
+TSTCFG,0x0077,,,reserved,Reserved.,upsert
+TSTCFG,0x0078,,,reserved,Reserved.,upsert
 TSTCFG,0x0079,,,reserved,Reserved.,upsert
-TSTCFG,0x007A,,,ddr2_2_tst_detail1,DDR2_2 detailed test result flags.,upsert
-TSTCFG,0x007B,,,ddr2_2_pnf_per_bit_l,DDR2_2 data [15:0] pass/fail per bit.,upsert
-TSTCFG,0x007C,,,ddr2_2_pnf_per_bit_h,DDR2_2 data [31:16] pass/fail per bit.,upsert
+TSTCFG,0x007A,,,reserved,Reserved.,upsert
+TSTCFG,0x007B,,,reserved,Reserved.,upsert
+TSTCFG,0x007C,,,reserved,Reserved.,upsert
 TSTCFG,0x007D,,0xAAAA,tx_tst_i,TX test pattern I sample value.,upsert
 TSTCFG,0x007E,,0x5555,tx_tst_q,TX test pattern Q sample value.,upsert
 TSTCFG,0x007F,,,reserved,Reserved.,upsert

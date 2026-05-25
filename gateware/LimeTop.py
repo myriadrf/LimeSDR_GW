@@ -25,12 +25,12 @@ from gateware.pllcfg    import PLLCfg
 from gateware.rxtx_top  import RXTXTop
 from gateware.xtrx_rfsw import xtrx_rfsw
 
-from gateware.LimeDFB_LiteX.lms7002.src.lms7002_top           import LMS7002Top
-from gateware.LimeDFB_LiteX.general.busy_delay                import BusyDelay
-from gateware.LimeDFB_LiteX.general_periph.src.general_periph import GeneralPeriphTop
-from gateware.LimeDFB_LiteX.self_test.src.tst_top             import TstTop
+from gateware.LimeDFB.lms7002.src.lms7002_top           import LMS7002Top
+from gateware.LimeDFB.general.busy_delay                import BusyDelay
+from gateware.LimeDFB.general_periph.src.general_periph import GeneralPeriphTop
+from gateware.LimeDFB.self_test.mini_tst_top            import TstTop
 
-from gateware.examples.fft.LimeFFT                            import LimeFFT
+from gateware.examples.fft.LimeFFT                      import LimeFFT
 
 from gateware.common import *
 import warnings
@@ -48,7 +48,7 @@ class LimeTop(LiteXModule):
         source_clk_domain    = "sys",
         rx_sys_clk_domain    = "sys",
         TX_N_BUFF            = 5,
-        TX_PCT_SIZE          = 4096,
+        TX_MAX_PCT_SIZE      = 4096,
         TX_IN_PCT_HDR_SIZE   = 16,
         tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
 
@@ -192,7 +192,7 @@ class LimeTop(LiteXModule):
                 # TX parameters
                 TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
                 TX_N_BUFF              = TX_N_BUFF,
-                TX_IN_PCT_SIZE         = TX_PCT_SIZE,
+                TX_IN_MAX_PCT_SIZE     = TX_MAX_PCT_SIZE,
                 TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
                 TX_IN_PCT_DATA_W       = sink_width,
                 tx_s_clk_domain        = sink_clk_domain,

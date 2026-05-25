@@ -1,1 +1,2 @@
 module,address_start,address_end,typical_use,op
+TIMECFG,0x0280,0x029F,"GNSS time information and related",upsert

@@ -35,7 +35,7 @@ from litescope import LiteScopeAnalyzer
 
 from gateware.LimeTop                       import LimeTop
 
-from gateware.LimeDFB_LiteX.FT601.src.ft601 import FT601
+from gateware.LimeDFB.FT601.src.ft601 import FT601
 from gateware.Revision import *
 from gateware.helpers import write_module_hierarchy_json
 
@@ -48,13 +48,15 @@ CTRL0_FPGA_TX_SIZE   = 1024  # Control FPGA->PC, FIFO size in bytes
 CTRL0_FPGA_TX_WWIDTH = 32    # Control FPGA->PC, FIFO wr width
 STRM0_FPGA_RX_SIZE   = 4096  # Stream PC->FPGA, FIFO size in bytes
 STRM0_FPGA_RX_RWIDTH = 128   # Stream PC->FPGA, rd width
-STRM0_FPGA_TX_SIZE   = 16384 # Stream FPGA->PC, FIFO size in bytes
+STRM0_FPGA_TX_SIZE   = 8192  # Stream FPGA->PC, FIFO size in bytes
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
-TX_PCT_SIZE          = 4096  # TX packet size in bytes
-TX_N_BUFF            = 4     # N 4KB buffers in TX interface (2 OR 4)
+# TX buffer: shared payload RAM holds up to TX_MAX_PCT_SIZE bytes total,
+# split across at most TX_N_BUFF queued packets.
+TX_MAX_PCT_SIZE      = 8192   # Total payload RAM capacity in bytes
+TX_N_BUFF            = 16     # Metadata FIFO depth; does not increase payload RAM
 
 C_EP02_RDUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_RX_SIZE / (CTRL0_FPGA_RX_RWIDTH // 8)))) + 1
 C_EP82_WRUSEDW_WIDTH = int(math.ceil(math.log2(CTRL0_FPGA_TX_SIZE / (CTRL0_FPGA_TX_WWIDTH // 8)))) + 1
@@ -235,7 +237,7 @@ class BaseSoC(SoCCore):
             source_width       = STRM0_FPGA_TX_WWIDTH,
             source_clk_domain  = "sys",
             TX_N_BUFF          = TX_N_BUFF,
-            TX_PCT_SIZE        = TX_PCT_SIZE,
+            TX_MAX_PCT_SIZE    = TX_MAX_PCT_SIZE,
             TX_IN_PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
             with_rx_tx_top     = with_rx_tx_top,
 
@@ -418,7 +420,7 @@ def main():
             if args.debug:
                 soc.add_debug_probes()
         # Builder.
-        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite" , libc_mode="full")
         builder.build(run=build)
         # Firmware build.
         if prepare:

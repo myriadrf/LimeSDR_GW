@@ -56,8 +56,10 @@ STRM0_FPGA_RX_RWIDTH = 64    # Stream PC->FPGA, rd width
 STRM0_FPGA_TX_WWIDTH = 64    # Stream FPGA->PC, wr width
 LMS_DIQ_WIDTH        = 12
 TX_IN_PCT_HDR_SIZE   = 16
-TX_PCT_SIZE          = 4096  # TX packet size in bytes
-TX_N_BUFF            = 2     # N 4KB buffers in TX interface (2 OR 4)
+# TX buffer: shared payload RAM holds up to TX_MAX_PCT_SIZE bytes total,
+# split across at most TX_N_BUFF queued packets.
+TX_MAX_PCT_SIZE      = 16384  # Total payload RAM capacity in bytes
+TX_N_BUFF            = 16     # Metadata FIFO depth; does not increase payload RAM
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -227,9 +229,10 @@ class BaseSoC(SoCCore):
             integrated_sram_ram_size = 0x0200,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
-            with_uartbone            = with_uartbone,
-            uart_pads                = uart_console_pads,
-            uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
+            with_uart                = False,
+            #with_uartbone            = with_uartbone,
+            #uart_pads                = uart_console_pads,
+            #uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
         # 1 for CSR
@@ -238,7 +241,10 @@ class BaseSoC(SoCCore):
 
 
         # Avoid stalling CPU at startup.
-        self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
+        #self.uart.add_auto_tx_flush(sys_clk_freq=sys_clk_freq, timeout=1, interval=128)
+
+        serial_signals = Record(layout=[("tx", 1), ("rx", 1)])
+        self.add_uart(name="uart", uart_name={True: "crossover", False:"serial"}[with_uartbone], baudrate=115200, fifo_depth=16, with_dynamic_baudrate=False, uart_pads=serial_signals)
 
         # Define platform name constant.
         self.add_constant(platform.name.upper())
@@ -413,7 +419,7 @@ class BaseSoC(SoCCore):
             source_width         = 64,
             source_clk_domain    = "sys",
             TX_N_BUFF            = TX_N_BUFF,
-            TX_PCT_SIZE          = 4096,
+            TX_MAX_PCT_SIZE      = TX_MAX_PCT_SIZE,
             TX_IN_PCT_HDR_SIZE   = 16,
             # Use default value
             # tx_buffer_size       = 512,
@@ -508,7 +514,7 @@ class BaseSoC(SoCCore):
         self.comb += self.sys_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         self.lms_clock_test = singl_clk_with_ref_test(platform=platform,test_clock_domain="xo_fpga"
-            , ref_clock_domain="sys")
+            , ref_clock_domain="sys", clock_target=12500000)
         self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
 
         # VCTCXO tamer
@@ -713,7 +719,7 @@ def main():
         if prepare and not args.no_soc_json:
             soc.print_soc_hierarchy_json()
 
-        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite")
+        builder = Builder(soc, csr_csv="csr.csv", bios_console="lite", libc_mode="full")
         builder.build(run=build)
         # Firmware build.
         if prepare:

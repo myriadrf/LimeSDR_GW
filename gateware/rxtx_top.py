@@ -16,8 +16,8 @@ from litex.soc.interconnect.axi.axi_stream import AXIStreamInterface
 from litex.soc.interconnect.csr            import CSRStatus, CSRStorage, CSRField
 
 from gateware.common                                    import *
-from gateware.LimeDFB_LiteX.rx_path_top.src.rx_path_top import RXPathTop
-from gateware.LimeDFB_LiteX.tx_path_top.src.tx_path_top import TXPathTop
+from gateware.LimeDFB.rx_path_top.src.rx_path_top       import RXPathTop
+from gateware.LimeDFB.tx_path_top.src.tx_path_top       import TXPathTop
 
 # RXTX Top -----------------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ class RXTXTop(LiteXModule):
         # TX parameters
         TX_IQ_WIDTH        = 12,
         TX_N_BUFF          = 4,
-        TX_IN_PCT_SIZE     = 4096,
+        TX_IN_MAX_PCT_SIZE     = 4096,
         TX_IN_PCT_HDR_SIZE = 16,
         TX_IN_PCT_DATA_W   = 128,
         TX_OUT_PCT_DATA_W  = 64,
@@ -75,7 +75,7 @@ class RXTXTop(LiteXModule):
         # --------
         self.tx_path = tx_path = TXPathTop(platform, fpgacfg_manager,
             IQ_WIDTH        = TX_IQ_WIDTH,
-            PCT_MAX_SIZE    = TX_IN_PCT_SIZE,
+            PCT_MAX_SIZE    = TX_IN_MAX_PCT_SIZE,
             PCT_HDR_SIZE    = TX_IN_PCT_HDR_SIZE,
             BUFF_COUNT      = TX_N_BUFF,
             sink_width      = TX_IN_PCT_DATA_W,
