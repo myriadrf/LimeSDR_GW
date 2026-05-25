@@ -45,7 +45,7 @@
 // If an error points here, most likely some of the macros are invalid.
 PLL_ADDRS pll1_rx_addrs       = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
 PLL_ADDRS pll0_tx_addrs       = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
-SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP);
+SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK);
 #endif
 // clk_ctrl_addrs is declared in regremap.h
 // Check one of the base addresses to make sure CLK CTRL exists

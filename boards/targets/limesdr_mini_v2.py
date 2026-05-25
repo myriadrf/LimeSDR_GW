@@ -354,9 +354,6 @@ class BaseSoC(SoCCore):
             serial_signals.rx.eq(self.general_periph.gpio_in_val[9]),
         ]
 
-        # LMS7002 <-> PLLCFG
-        self.comb += self.limetop.lms7002_top.smpl_cmp_length.eq(self.pllcfg.auto_phcfg_smpls)
-
         # Timing Constraints -----------------------------------------------------------------------
 
         # FIXME: Improve, minimal for now.

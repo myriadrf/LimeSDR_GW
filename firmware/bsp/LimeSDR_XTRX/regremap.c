@@ -310,7 +310,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         limetop_fpgacfg_txant_post_write(value);
         break;
     case 0x13:
-        printf("13\n");
+        limetop_lms7002_top_lms1_write(value);
         break;
     case 0x18:
         limetop_fpgacfg_reg18_write(value);

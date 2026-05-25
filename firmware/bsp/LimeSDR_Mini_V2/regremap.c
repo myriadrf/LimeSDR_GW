@@ -85,11 +85,15 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
 
 #ifdef WITH_LMS7002
     case 0x21:
-        value = limetop_lms7002_top_reg01_read();
+        value = csr_read_simple(clk_ctrl_addrs.pllcfg_done);
+        value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
+        value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
+        value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
+        value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
         break;
 #endif
     case 0x22:
-        value = limetop_pllcfg_pll_lock_read();
+        value = csr_read_simple(clk_ctrl_addrs.pll_lock);
         break;
     case 0x25:
         value = 0b110110000;
@@ -235,7 +239,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 
 #ifdef WITH_LMS7002
     case 0x23:
-        limetop_lms7002_top_reg03_write(value);
+        csr_write_simple(value & 0x1, clk_ctrl_addrs.pllcfg_start);
+        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.phcfg_start);
+        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.pllrst_start);
+        csr_write_simple((value >> 3) & 0x1F, clk_ctrl_addrs.pll_ind);
+        csr_write_simple((value >> 8) & 0x1F, clk_ctrl_addrs.cnt_ind);
+        csr_write_simple((value >> 13) & 0x1, clk_ctrl_addrs.phcfg_updn);
+        csr_write_simple((value >> 14) & 0x1, clk_ctrl_addrs.phcfg_mode);
         break;
 #endif
     case 0x24:
@@ -251,11 +261,11 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0x31:
     case 0x32:
         break;
-    case 0x3e:
-        limetop_pllcfg_auto_phcfg_smpls_write(value);
+    case 0x3E:
+        csr_write_simple(value, clk_ctrl_addrs.phcfg_samples);
         break;
     case 0x3f:
-        limetop_pllcfg_auto_phcfg_step_write(value);
+        csr_write_simple(value, clk_ctrl_addrs.phcfg_step);
         break;
 
     case 0x61:
@@ -291,6 +301,15 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
     case 0xcf:
         general_periph_periph_output_VAL_1_write(value);
+    {
+        uint8_t var = limetop_fpgacfg_bom_hw_ver_read();
+        if (var > 5) {
+            var = limetop_lms7002_top_lms1_read();
+            // Reset bit 0
+            var &= ~1;
+            var |= (value & 1);
+        }
+    }
         break;
 
     default:

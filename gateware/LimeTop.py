@@ -67,6 +67,7 @@ class LimeTop(LiteXModule):
 
         with_event_manager   = True,
         with_clk_cfg_irq     = True,
+        with_altera_max10_pll= False,
         soc_has_timesource   = False,
 
 
@@ -119,7 +120,7 @@ class LimeTop(LiteXModule):
                 fpgacfg_manager = self.fpgacfg,
                 pllcfg_manager  = None,
                 diq_width       = LMS_DIQ_WIDTH,
-                with_max10_pll  = True,
+                with_max10_pll  = with_altera_max10_pll,
             )
         else:
             # Create ports to interface with rxtx top, if lms7002 is not used.

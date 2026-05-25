@@ -122,6 +122,7 @@ class ClkCfgRegs(LiteXModule):
                                    description="Clock output 1 phase offset, in degrees")
         self.Auto_PHcfg_smpls = CSRStorage(size=16, reset=0xEFFF,
                                            description="Number of samples to use during auto phase configuration")
+        self.Auto_PHcfg_step = CSRStorage(size=16, reset=0x002,description="Phase configuration step size")
 
 # Xilinx LMS MM-------------------------------------------------------------------------------------
 

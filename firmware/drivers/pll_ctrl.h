@@ -46,7 +46,8 @@
                 add_value(base, _N_CNT_ADDR),\
                 add_value(base, _M_CNT_ADDR),\
                 add_value(base, _C1_PHASE_ADDR),                                                                       \
-                add_value(base, _AUTO_PHCFG_SMPLS_ADDR)                                                                \
+                add_value(base, _AUTO_PHCFG_SMPLS_ADDR),                                                                \
+                add_value(base, _AUTO_PHCFG_STEP_ADDR)\
         }
 
 typedef struct
@@ -93,6 +94,7 @@ typedef struct
     unsigned long m_cnt;
     unsigned long c1_phase;
     unsigned long phcfg_samples;
+    unsigned long phcfg_step;
 } CLK_CTRL_ADDRS;
 
 #endif //LIMESDR_GW_PLL_CTRL_H
