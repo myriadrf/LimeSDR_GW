@@ -398,6 +398,7 @@ class BaseSoC(SoCCore):
         )
 
         # LimeTOP ----------------------------------------------------------------------------------
+
         self.limetop = LimeTop(self, platform, vendor="xilinx",
             # Configuration.
             LMS_DIQ_WIDTH        = 12,

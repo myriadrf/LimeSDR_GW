@@ -21,7 +21,6 @@ from litex.soc.interconnect.csr              import *
 from litex.soc.interconnect.csr_eventmanager import *
 
 from gateware.fpgacfg   import FPGACfg
-from gateware.pllcfg    import PLLCfg
 from gateware.rxtx_top  import RXTXTop
 
 from gateware.LimeDFB.lms7002.src.lms7002_top           import LMS7002Top
@@ -95,27 +94,21 @@ class LimeTop(LiteXModule):
         # # #
 
         # FPGA Cfg ---------------------------------------------------------------------------------
-        self.fpgacfg  = FPGACfg(platform,
+        self.fpgacfg  = FPGACfg(
             board_id           = board_id,
             major_rev          = major_rev,
             compile_rev        = compile_rev,
             pads               = revision_pads,
             soc_has_timesource = soc_has_timesource,
         )
-        self.comb += self.fpgacfg.pwr_src.eq(0)
 
         # LMS7002 Top ------------------------------------------------------------------------------
         if with_lms7002:
             soc.add_constant("WITH_LMS7002")
-            if revision_pads is None:
-                hw_ver = Constant(0, 4)
-            else:
-                hw_ver = revision_pads.HW_VER
             self.lms7002_top = lms7002_top = LMS7002Top(
                 platform        = platform,
                 vendor          = vendor,
                 pads            = platform.request("LMS"),
-                hw_ver          = hw_ver,
                 add_csr         = True,
                 fpgacfg_manager = self.fpgacfg,
                 pllcfg_manager  = None,

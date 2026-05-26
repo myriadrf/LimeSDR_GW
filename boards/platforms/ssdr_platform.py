@@ -118,7 +118,7 @@ _io = [
 
         # RX-Interface (FPGA -> LMS).
         Subsignal("DIQ2_D",            Pins("W16 W17 V16 U17 W18 W19 V19 U18 V17 U19 U16 U15")),
-        Subsignal("TXNRX2_or_CLK_SEL", Pins("G3")),
+        Subsignal("TXNRX2",            Pins("G3")),
         Subsignal("ENABLE_IQSEL2",     Pins("T18")),
         Subsignal("MCLK2",             Pins("N17")),
         Subsignal("FCLK2",             Pins("P17")),

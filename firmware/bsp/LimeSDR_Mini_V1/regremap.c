@@ -26,16 +26,16 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = limetop_fpgacfg_compile_rev_read();
         break;
     case 0x03:
-        value = limetop_fpgacfg_bom_hw_ver_read();
+        value = mini_get_bom_ver();
         break;
     case 0x04:
-        value = limetop_fpgacfg_phase_reg_sel_read();
+        // value = limetop_fpgacfg_phase_reg_sel_read();
         break;
     case 0x05:
-        value = limetop_fpgacfg_drct_clk_en_read();
+        // value = limetop_fpgacfg_drct_clk_en_read();
         break;
     case 0x06:
-        value = limetop_fpgacfg_load_phase_read();
+        // value = limetop_fpgacfg_load_phase_read();
         break;
     case 0x07:
         value = limetop_fpgacfg_ch_en_read();
@@ -68,7 +68,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = limetop_fpgacfg_txant_post_read();
         break;
     case 0x12:
-        value = limetop_fpgacfg_spi_ss_read();
+        // value = limetop_fpgacfg_spi_ss_read();
         break;
     case 0x17:
         value = main_gpio_read();
@@ -91,7 +91,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
             value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
             value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
             value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
-            value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
+            // value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
             break;
         case 0x22:
             value = csr_read_simple(clk_ctrl_addrs.pll_lock);
@@ -230,13 +230,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 
     switch (addr) {
     case 0x04:
-        limetop_fpgacfg_phase_reg_sel_write(value);
+        // limetop_fpgacfg_phase_reg_sel_write(value);
         break;
     case 0x05:
-        limetop_fpgacfg_drct_clk_en_write(value);
+        // limetop_fpgacfg_drct_clk_en_write(value);
         break;
     case 0x06:
-        limetop_fpgacfg_load_phase_write(value);
+        // limetop_fpgacfg_load_phase_write(value);
         break;
     case 0x07:
         limetop_fpgacfg_ch_en_write(value);
@@ -269,7 +269,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         limetop_fpgacfg_txant_post_write(value);
         break;
     case 0x12:
-        limetop_fpgacfg_spi_ss_write(value);
+        // limetop_fpgacfg_spi_ss_write(value);
         break;
     case 0x17:
         main_gpio_write(value);
@@ -391,4 +391,29 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         printf("FWE: %04x\n", addr);
         break;
     }
+}
+
+
+uint16_t mini_get_bom_ver(void) {
+    uint16_t raw_reg = limetop_fpgacfg_bom_hw_ver_read();
+    // Extract raw pad values based on Migen layout
+    uint8_t raw_hw_pad  = raw_reg & 0x0F;          // Bits [3:0]
+    uint8_t raw_bom_pad = (raw_reg >> 4) & 0x07;   // Bits [6:4]
+
+    uint8_t hw_ver;
+    uint8_t bom_ver;
+
+    // Apply hardware revision logic
+    if (raw_hw_pad == 0) {
+        // Legacy workaround logic
+        bom_ver = raw_bom_pad & 0x03;
+        hw_ver  = (raw_bom_pad & 0x04) ? 2 : 1;
+    } else {
+        // Modern logic
+        hw_ver  = raw_hw_pad;
+        bom_ver = raw_bom_pad;
+    }
+
+    // Repack into Migen Cat(hw_ver, bom_ver, 0) format
+    return (uint16_t)((hw_ver & 0x0F) | ((bom_ver & 0x07) << 4));
 }

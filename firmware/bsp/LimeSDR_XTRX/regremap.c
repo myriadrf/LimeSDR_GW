@@ -264,9 +264,6 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     uint32_t reg;
 
     switch (addr) {
-    case 0x3:
-        limetop_fpgacfg_reserved_03_write(value);
-        break;
     case 0x05:
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);

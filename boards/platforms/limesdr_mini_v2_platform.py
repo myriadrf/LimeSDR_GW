@@ -106,7 +106,7 @@ _io = [
 
         # TX Interface (FPGA -> LMS).
         Subsignal("DIQ2_D",            Pins("A3 C2 A2 B4 C3 B2 D3 B1 A4 C1 C7 A6")),
-        Subsignal("TXNRX2_or_CLK_SEL", Pins("B6")),
+        Subsignal("TXNRX2",            Pins("B6")),
         Subsignal("ENABLE_IQSEL2",     Pins("C4")),
         Subsignal("MCLK2",             Pins("D2")),
         Subsignal("FCLK2",             Pins("D1")),
