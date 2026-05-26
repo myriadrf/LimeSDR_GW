@@ -257,6 +257,7 @@ class BaseSoC(SoCCore):
 
         limetop  = LimeTop(self, platform, vendor="altera",
             with_altera_max10_pll = True,
+            rx_fixed_packet_size = True,
             LMS_DIQ_WIDTH      = LMS_DIQ_WIDTH,
             sink_width         = STRM0_FPGA_RX_RWIDTH,
             sink_clk_domain    = "ft601",

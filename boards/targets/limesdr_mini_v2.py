@@ -234,6 +234,7 @@ class BaseSoC(SoCCore):
 
         self.limetop  = LimeTop(self, platform, vendor="lattice",
             LMS_DIQ_WIDTH      = LMS_DIQ_WIDTH,
+            rx_fixed_packet_size = True,
             sink_width         = STRM0_FPGA_RX_RWIDTH,
             sink_clk_domain    = "sys",
             source_width       = STRM0_FPGA_TX_WWIDTH,

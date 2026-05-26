@@ -42,6 +42,7 @@ class LimeTop(LiteXModule):
         source_width         = 64,
         source_clk_domain    = "sys",
         rx_sys_clk_domain    = "sys",
+        rx_fixed_packet_size = False,
         TX_N_BUFF            = 5,
         TX_PCT_SIZE          = 4096,
         TX_IN_PCT_HDR_SIZE   = 16,
@@ -149,6 +150,7 @@ class LimeTop(LiteXModule):
                 rx_s_clk_domain        = "lms_rx" if with_lms7002 else phy_rx_sink_clk,
                 rx_m_clk_domain        = source_clk_domain,
                 rx_use_channel_combiner = False if with_lms7002 else True,
+                rx_fixed_packet_size   = rx_fixed_packet_size,
 
                 # Misc
                 soc_has_timesource     = soc_has_timesource,
