@@ -358,7 +358,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         csr_write_simple(value, clk_ctrl_addrs.c1_div_cnt);
         break;
     case 0x3E:
-        value = csr_read_simple(clk_ctrl_addrs.phcfg_samples);
+        csr_write_simple(value, clk_ctrl_addrs.phcfg_samples);
         break;
     case 0xC0:
         periphcfg_BOARD_GPIO_OVRD_write(value);

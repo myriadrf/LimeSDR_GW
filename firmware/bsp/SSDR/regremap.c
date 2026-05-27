@@ -202,7 +202,11 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 
     switch (addr) {
     case 0x3:
-        limetop_fpgacfg_reserved_03_write(value);
+        csr_write_simple((value & 1), clk_ctrl_addrs.pllcfg_start);
+        csr_write_simple((value & 2) >> 1, clk_ctrl_addrs.phcfg_start);
+        csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.pllrst_start);
+        csr_write_simple((value & 8) >> 3, clk_ctrl_addrs.pll_ind);
+        csr_write_simple((value & 0x4000) >> 14, clk_ctrl_addrs.phcfg_mode);
         break;
     case 0x05:
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
@@ -298,7 +302,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         csr_write_simple(value, clk_ctrl_addrs.c1_div_cnt);
         break;
     case 0x3E:
-        csr_write_simple(clk_ctrl_addrs.phcfg_samples);
+        csr_write_simple(value, clk_ctrl_addrs.phcfg_samples);
         break;
     case 0xC0:
         periphcfg_BOARD_GPIO_OVRD_write(value);

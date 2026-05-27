@@ -36,6 +36,7 @@ class LimeTop(LiteXModule):
     def __init__(self, soc, platform, vendor,
         # Configuration.
         double_channels_mode = False,
+        one_chnl             = False,
         LMS_DIQ_WIDTH        = 12,
         sink_width           = 128,
         sink_clk_domain      = "sys",
@@ -115,6 +116,7 @@ class LimeTop(LiteXModule):
                 pllcfg_manager  = None,
                 diq_width       = LMS_DIQ_WIDTH,
                 with_max10_pll  = with_altera_max10_pll,
+                one_chnl        = one_chnl,
             )
         else:
             # Create ports to interface with rxtx top, if lms7002 is not used.

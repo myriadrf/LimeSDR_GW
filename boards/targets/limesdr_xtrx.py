@@ -480,7 +480,6 @@ class BaseSoC(SoCCore):
             self.limetop.rxtx_top.rx_path.pps.eq(self.gnsstop.zda_parser.pps ),
         ]
         # CLK Tests --------------------------------------------------------------------------------
-
         from gateware.LimeDFB.self_test.clk_no_ref_test import clk_no_ref_test
         from gateware.LimeDFB.self_test.singl_clk_with_ref_test import singl_clk_with_ref_test
         self.sys_clock_test = clk_no_ref_test(platform=platform,test_clock_domain="sys")
