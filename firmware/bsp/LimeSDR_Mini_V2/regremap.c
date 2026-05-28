@@ -98,6 +98,12 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x25:
         value = 0b110110000;
         break;
+    case 0x3E:
+        value = csr_read_simple(clk_ctrl_addrs.phcfg_samples);
+        break;
+    case 0x3F:
+        value = csr_read_simple(clk_ctrl_addrs.phcfg_step);
+        break;
 
     case 0x65:
         value = tst_top_test_cmplt_read();
