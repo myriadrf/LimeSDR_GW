@@ -11,8 +11,6 @@ from litex.gen import *
 
 from litex.soc.interconnect.csr import *
 
-from gateware.common import FromFPGACfg
-
 # PWR Cfg -----------------------------------------------------------------------------------------
 
 class PWRCtrl(LiteXModule):

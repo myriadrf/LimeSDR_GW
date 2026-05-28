@@ -36,6 +36,9 @@ from litescope import LiteScopeAnalyzer
 from gateware.LimeTop                       import LimeTop
 
 from gateware.LimeDFB.FT601.src.ft601 import FT601
+from gateware.LimeDFB.general_periph.src.general_periph import GeneralPeriphTop
+from gateware.LimeDFB.self_test.mini_tst_top            import TstTop
+from gateware.LimeDFB.general.busy_delay                import BusyDelay
 from gateware.Revision import *
 from gateware.helpers import write_module_hierarchy_json
 
@@ -229,9 +232,12 @@ class BaseSoC(SoCCore):
             self.add_spi_flash(mode="1x", clk_freq=100_000, module=W25Q128JV(Codes.READ_1_1_1), with_master=True)
 
         # LimeTop ----------------------------------------------------------------------------------
+        revision_pads = platform.request("revision")
 
         self.limetop  = LimeTop(self, platform, vendor="lattice",
             LMS_DIQ_WIDTH      = LMS_DIQ_WIDTH,
+            rx_fixed_packet_size = True,
+            one_chnl             = True,
             sink_width         = STRM0_FPGA_RX_RWIDTH,
             sink_clk_domain    = "sys",
             source_width       = STRM0_FPGA_TX_WWIDTH,
@@ -246,15 +252,12 @@ class BaseSoC(SoCCore):
             board_id           = 0x0011,
             major_rev          = MajorRevision,
             compile_rev        = CompileRevision,
-            revision_pads      = platform.request("revision"),
-        )
-        # Assign UART signals to general periph
-        self.comb += [
-            self.limetop.general_periph.gpio_out_val[8].eq(serial_signals.tx),
-            serial_signals.rx.eq(self.limetop.general_periph.gpio_in_val[9]),
-        ]
+            revision_pads      = revision_pads,
 
-        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en)
+            with_event_manager = False,
+            with_clk_cfg_irq   = False,
+        )
+
 
         # FT601 ------------------------------------------------------------------------------------
         self.ft601 = FT601(self.platform, platform.request("FT"),
@@ -282,11 +285,79 @@ class BaseSoC(SoCCore):
             self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
         ]
 
-        # Connect stream indication 
+
+        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en)
+
+        rfsw_pads  = platform.request("RFSW")
+        tx_lb_pads = platform.request("TX_LB")
+
+        self.gpio = CSRStorage(16, reset=0b0001000101000100) # fpgacfg @23
         self.comb += [
-            self.limetop.wr_active.eq(self.ft601.wr_active),
-            self.limetop.rd_active.eq(self.ft601.rd_active),
+            # RF Switch.
+            rfsw_pads.RX_V1.eq(self.gpio.storage[8]),
+            rfsw_pads.RX_V2.eq(self.gpio.storage[9]),
+            rfsw_pads.TX_V1.eq(self.gpio.storage[12]),
+            rfsw_pads.TX_V2.eq(self.gpio.storage[13]),
+
+            # TX
+            tx_lb_pads.AT.eq(  self.gpio.storage[1]),
+            tx_lb_pads.SH.eq(  self.gpio.storage[2]),
         ]
+
+        # General Periph ---------------------------------------------------------------------------
+
+        gpio_pads     = platform.request("FPGA_GPIO")
+        egpio_pads    = platform.request("FPGA_EGPIO")
+
+        self.general_periph = GeneralPeriphTop(platform,
+            revision_pads = revision_pads,
+            gpio_pads     = gpio_pads,
+            gpio_len      = len(gpio_pads),
+            egpio_pads    = egpio_pads,
+            egpio_len     = 2,
+        )
+
+        # cpu_busy(gpo) & busy_delay ---------------------------------------------------------------
+        self._gpo = CSRStorage(description="GPO interface", fields=[
+            CSRField("cpu_busy", size=1, offset=0, description="CPU state.", values=[
+                ("``0b0``", "IDLE."),
+                ("``0b1``", "BUSY."),
+            ])
+        ])
+
+        self.busy_delay  = BusyDelay(platform, "sys", 25, 100) # FIXME: freq?
+        self.comb       += self.busy_delay.busy_in.eq(self._gpo.fields.cpu_busy)
+
+        self.comb +=[
+            self.general_periph.led1_r_in.eq(~self.busy_delay.busy_out),
+            self.general_periph.ep03_active.eq(self.ft601.rd_active),
+            self.general_periph.ep83_active.eq(self.ft601.wr_active),
+        ]
+
+
+        # Tst Top / Clock Test ---------------------------------------------------------------------
+
+        self.tst_top = TstTop(platform, ClockSignal("ft601"), ClockSignal("lmk"))
+
+        self.comb += [
+            # LMS7002 <-> TstTop.
+            self.limetop.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
+            self.limetop.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
+            self.limetop.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
+
+            # General Periph <-> RXTX Top.
+            self.general_periph.tx_txant_en.eq(self.limetop.rxtx_top.tx_path.tx_txant_en),
+
+            # General Periph <-> LMS7002
+            self.limetop.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
+        ]
+
+        # Assign UART signals to general periph
+        self.comb += [
+            self.general_periph.gpio_out_val[8].eq(serial_signals.tx),
+            serial_signals.rx.eq(self.general_periph.gpio_in_val[9]),
+        ]
+
         # Timing Constraints -----------------------------------------------------------------------
 
         # FIXME: Improve, minimal for now.
@@ -322,10 +393,10 @@ class BaseSoC(SoCCore):
                     # # #
 
                     # Set FPGA_GPIO[1] as Input.
-                    self.comb += soc.limetop.general_periph.gpio_dir[1].eq(0)
+                    self.comb += soc.general_periph.gpio_dir[1].eq(0)
 
                     # Use FPGA_GPIO[1] as PPS.
-                    self.comb += self.pps.eq(soc.limetop.general_periph.gpio_in_val[1])
+                    self.comb += self.pps.eq(soc.general_periph.gpio_in_val[1])
 
             self.ppsdo_pps_input = PPSDOPPSInput(soc=self)
 

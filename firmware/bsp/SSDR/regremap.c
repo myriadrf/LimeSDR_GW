@@ -40,13 +40,13 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0xA:
         tmp   = limetop_fpgacfg_reg10_read();
         value = tmp & 0x03; //(tmp >> 1) & 0x01;
-        value |= limetop_rfsw_control_rfsw_rx_read() << 2;
-        value |= limetop_rfsw_control_rfsw_tx_read() << 4;
-        value |= limetop_rfsw_control_tdd_manual_val_read() << 5;
-        value |= limetop_rfsw_control_tdd_auto_en_read() << 6;
-        value |= limetop_rfsw_control_tdd_invert_read() << 7;
+        value |= rfsw_control_rfsw_rx_read() << 2;
+        value |= rfsw_control_rfsw_tx_read() << 4;
+        value |= rfsw_control_tdd_manual_val_read() << 5;
+        value |= rfsw_control_tdd_auto_en_read() << 6;
+        value |= rfsw_control_tdd_invert_read() << 7;
         value |= (tmp & 0x200);
-        value |= limetop_rfsw_control_rfsw_auto_en_read() << 11;
+        value |= rfsw_control_rfsw_auto_en_read() << 11;
         break;
     case 0xF:
         value = limetop_fpgacfg_txant_pre_read();
@@ -98,7 +98,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = csr_read_simple(clk_ctrl_addrs.c1_div_cnt);
         break;
     case 0x3E:
-        value = csr_read_simple(smpl_cmp_addrs.cmp_length);
+        value = csr_read_simple(clk_ctrl_addrs.phcfg_samples);
         break;
     case 0xC0:
         value = periphcfg_BOARD_GPIO_OVRD_read();
@@ -202,7 +202,11 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 
     switch (addr) {
     case 0x3:
-        limetop_fpgacfg_reserved_03_write(value);
+        csr_write_simple((value & 1), clk_ctrl_addrs.pllcfg_start);
+        csr_write_simple((value & 2) >> 1, clk_ctrl_addrs.phcfg_start);
+        csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.pllrst_start);
+        csr_write_simple((value & 8) >> 3, clk_ctrl_addrs.pll_ind);
+        csr_write_simple((value & 0x4000) >> 14, clk_ctrl_addrs.phcfg_mode);
         break;
     case 0x05:
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
@@ -232,13 +236,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         limetop_fpgacfg_reg10_write(reg);
         // limetop_lms7002_tx_en_write(value);
         // limetop_lms7002_rx_en_write(value);
-        limetop_rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
-        limetop_rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
-        limetop_rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
-        limetop_rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
-        limetop_rfsw_control_tdd_invert_write((value & 0x80) >> 7);
+        rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
+        rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
+        rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
+        rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
+        rfsw_control_tdd_invert_write((value & 0x80) >> 7);
         // limetop_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
-        limetop_rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
+        rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
         break;
     case 0xF:
         limetop_fpgacfg_txant_pre_write(value);
@@ -298,7 +302,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         csr_write_simple(value, clk_ctrl_addrs.c1_div_cnt);
         break;
     case 0x3E:
-        csr_write_simple(value, smpl_cmp_addrs.cmp_length);
+        csr_write_simple(value, clk_ctrl_addrs.phcfg_samples);
         break;
     case 0xC0:
         periphcfg_BOARD_GPIO_OVRD_write(value);

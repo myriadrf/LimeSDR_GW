@@ -50,6 +50,7 @@ from gateware.GNSSTop import GNSSTop
 from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
 from gateware.helpers import write_module_hierarchy_json
+from gateware.xtrx_rfsw import xtrx_rfsw
 
 # Constants ----------------------------------------------------------------------------------------
 
@@ -439,6 +440,12 @@ class BaseSoC(SoCCore):
 
         self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
 
+        # RF Switches -------------------------------------------------------------------------------
+        rfsw_pads         = platform.request("rf_switches")
+        self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
+        #self.comb += rfsw_pads.tx.eq(1)
+        self.comb +=  self.rfsw_control.AUTO_IN.eq(self.limetop.lms7002_top.tx_ant_en)
+
         # LMS SPI -----------------------------------------------------------------------------------
 
         self.add_spi_master(name="spimaster", pads=platform.request("lms7002m_spi"), data_width=32, spi_clk_freq=1e6)
@@ -551,7 +558,7 @@ class BaseSoC(SoCCore):
 
 
         tdd_pads = platform.request_all("tdd_gpio")
-        self.comb += tdd_pads.eq(self.limetop.rfsw_control.TDD_OUT)
+        self.comb += tdd_pads.eq(self.rfsw_control.TDD_OUT)
 
         # PPSDO ------------------------------------------------------------------------------------
         if with_ppsdo:
@@ -587,21 +594,20 @@ class BaseSoC(SoCCore):
     # LiteScope Analyzer Probes --------------------------------------------------------------------
     def add_debug(self):
         analyzer_signals = [
-            self.limetop.rxtx_top.tx_path.pct_rd,
-            self.limetop.rxtx_top.tx_path.pct_clear,
-            self.limetop.rxtx_top.tx_path.pct_valid,
+            self.rfsw_control.AUTO_IN,
+            self.rfsw_control.TDD_OUT,
+            self.rfsw_control.tdd_manual_val.storage,
+            self.rfsw_control.tdd_auto_en.storage,
+            self.rfsw_control.tdd_invert.storage,
+            self.rfsw_control.rfsw_rx.storage,
+            self.rfsw_control.rfsw_tx.storage,
+            self.rfsw_control.rfsw_auto_en.storage,
 
-            self.limetop.rxtx_top.tx_path.data_pad_tvalid,
-            self.limetop.rxtx_top.tx_path.data_pad_tready,
-            self.limetop.rxtx_top.tx_path.data_pad_tdata,
-
-            self.limetop.rxtx_top.tx_path.pct_loss_flg,
-            self.limetop.rxtx_top.tx_path.pct_loss_flg_clr,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 256,
-            clock_domain = "lms_tx",
+            clock_domain = "sys",
             register     = True,
             csr_csv      = "analyzer.csv"
         )

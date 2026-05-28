@@ -19,29 +19,59 @@ from litescope import LiteScopeAnalyzer
 # Clk Cfg Regs -------------------------------------------------------------------------------------
 
 class ClkCfgRegs(LiteXModule):
-    def __init__(self):
+    def __init__(self, use_status_regs=False):
+
         # --------- Clocking CFG registers --------------------------------------------------------
         # Control registers
+        # TODO: Currently each value is a register. Replace with registers and fields where appropriate
         self.DRCT_TXCLK_EN = CSRStorage(size=1, reset=0,
                                      description="TX CLK source selection: 0: PLL, 1: Direct clock")
         self.DRCT_RXCLK_EN = CSRStorage(size=1, reset=0,
                                      description="RX CLK source selection: 0: PLL, 1: Direct clock")
         self.PHCFG_MODE = CSRStorage(size=1, reset=0,
                                      description="Phase configuration mode: 0: Manual, 1: Auto")
-        self.PHCFG_DONE = CSRStorage(size=1, reset=0,
-                                     description="Phase config done: 0: Not done, 1: Done  ")
-        self.PHCFG_ERR  = CSRStorage(size=1, reset=0,
-                                     description="Phase config error: 0: no error, 1: error")
-        self.PLLCFG_DONE = CSRStorage(size=1, reset=0,
-                                      description="PLL configuration done: 0: Not done, 1: Done")
-        self.PLLCFG_BUSY = CSRStorage(size=1, reset=0,
-                                      description="Clock config busy: 0: Idle, 1: Busy")
+        self.PHCFG_UPDN = CSRStorage(size=1, reset=0,
+                             description="Phase shift direction : 0: Down, 1: Up")
+        if use_status_regs:
+            self.PHCFG_DONE = CSRStatus(size=1, reset=0,
+                                         description="Phase config done: 0: Not done, 1: Done  ")
+            self.PHCFG_ERR  = CSRStatus(size=1, reset=0,
+                                         description="Phase config error: 0: no error, 1: error")
+            self.PLLCFG_DONE = CSRStatus(size=1, reset=0,
+                                          description="PLL configuration done: 0: Not done, 1: Done")
+            self.PLLCFG_BUSY = CSRStatus(size=1, reset=0,
+                                          description="Clock config busy: 0: Idle, 1: Busy")
+        else:
+            self.PHCFG_DONE = CSRStorage(size=1, reset=0,
+                                         description="Phase config done: 0: Not done, 1: Done  ")
+            self.PHCFG_ERR  = CSRStorage(size=1, reset=0,
+                                         description="Phase config error: 0: no error, 1: error")
+            self.PLLCFG_DONE = CSRStorage(size=1, reset=0,
+                                          description="PLL configuration done: 0: Not done, 1: Done")
+            self.PLLCFG_BUSY = CSRStorage(size=1, reset=0,
+                                          description="Clock config busy: 0: Idle, 1: Busy")
         self.PLLCFG_START = CSRStorage(size=1, reset=0,
                                        description="Start PLL configuration: 0: idle, 0 to 1 transition: start configuration")
+        self.CNT_PHASE = CSRStorage(size=16, reset=0,
+                                    description="Counter phase value")
+        self.PLLCFG_VCODIV = CSRStorage(size=1, reset=0,
+                                        description="PLL VCO divider: 0: 0, 1: 1")
+        self.M_ODD_DIV = CSRStorage(size=1, reset=0,
+                                        description="M counter odd divider: 0: even, 1: odd")
+        self.M_Div_BYP = CSRStorage(size=1, reset=0,
+                                        description="M counter divider bypass: 0: normal, 1: bypass")
+        self.N_ODD_DIV = CSRStorage(size=1, reset=0,
+                                        description="N counter odd divider: 0: even, 1: odd")
+        self.N_Div_BYP = CSRStorage(size=1, reset=0,
+                                        description="N counter divider bypass: 0: normal, 1: bypass")
         self.PLLRST_START = CSRStorage(size=1, reset=0,
                                        description="Start PLL reset: 0: idle, 0 to 1 transition: start configuration")
-        self.PLL_IND = CSRStorage(size=1, reset=0,
-                                  description="PLL/MMCM index for reconfiguration: 0: TX PLL, 1: RX PLL")
+        self.PLL_IND = CSRStorage(size=5, reset=0,
+                                  description="PLL index for reconfiguration")
+        self.CNT_IND = CSRStorage(size=5, reset=0,
+                                  description="Counter index for reconfiguration: 0: All counters, 1 - M counter, 2 - C0 counter, 3 - C1 counter")
+        self.PLL_LOCK = CSRStatus(size=16, reset=0,
+                                      description="PLL lock status array: 0: not locked, 1: locked")
         self.PHCFG_START = CSRStorage(size=1, reset=0,
                                       description="Start phase configuration: 0: idle, 0 to 1 transition: start configuration")
         self.PLLCFG_ERROR = CSRStorage(size=1, reset=0,
@@ -54,6 +84,26 @@ class ClkCfgRegs(LiteXModule):
                                      description="Clock output 0 divider bypass: 0: do not bypass, 1: bypass")
         self.C1_Div_BYP = CSRStorage(size=1, reset=0,
                                      description="Clock output 1 divider bypass: 0: do not bypass, 1: bypass")
+        self.C2_Div_BYP = CSRStorage(size=1, reset=0,
+                                     description="Clock output 2 divider bypass: 0: do not bypass, 1: bypass")
+        self.C3_Div_BYP = CSRStorage(size=1, reset=0,
+                                     description="Clock output 3 divider bypass: 0: do not bypass, 1: bypass")
+        self.C4_Div_BYP = CSRStorage(size=1, reset=0,
+                                     description="Clock output 4 divider bypass: 0: do not bypass, 1: bypass")
+        self.C0_ODDDIV = CSRStorage(size=1, reset=0,
+                                    description="Clock output 0 odd divider: 0: even, 1: odd")
+        self.C1_ODDDIV = CSRStorage(size=1, reset=0,
+                                    description="Clock output 1 odd divider: 0: even, 1: odd")
+        self.C2_ODDDIV = CSRStorage(size=1, reset=0,
+                                    description="Clock output 2 odd divider: 0: even, 1: odd")
+        self.C3_ODDDIV = CSRStorage(size=1, reset=0,
+                                    description="Clock output 3 odd divider: 0: even, 1: odd")
+        self.C4_ODDDIV = CSRStorage(size=1, reset=0,
+                                    description="Clock output 4 odd divider: 0: even, 1: odd")
+        self.N_CNT = CSRStorage(size=16, reset=0,
+                                description="PLL N counter values")
+        self.M_CNT = CSRStorage(size=16, reset=0,
+                                description="PLL M counter values")
         self.VCO_Div_CNT = CSRStorage(size=16, reset=0,
                                       description="PLL VCO divider counter values")
         self.VCO_Mult_CNT = CSRStorage(size=16, reset=0,
@@ -62,10 +112,17 @@ class ClkCfgRegs(LiteXModule):
                                      description="Clock output 0 divider counter values")
         self.C1_Div_CNT = CSRStorage(size=16, reset=0,
                                      description="Clock output 1 divider counter values")
+        self.C2_Div_CNT = CSRStorage(size=16, reset=0,
+                                     description="Clock output 2 divider counter values")
+        self.C3_Div_CNT = CSRStorage(size=16, reset=0,
+                                     description="Clock output 3 divider counter values")
+        self.C4_Div_CNT = CSRStorage(size=16, reset=0,
+                                     description="Clock output 4 divider counter values")
         self.C1_Phase = CSRStorage(size=9, reset=0,
                                    description="Clock output 1 phase offset, in degrees")
         self.Auto_PHcfg_smpls = CSRStorage(size=16, reset=0xEFFF,
                                            description="Number of samples to use during auto phase configuration")
+        self.Auto_PHcfg_step = CSRStorage(size=16, reset=0x002,description="Phase configuration step size")
 
 # Xilinx LMS MM-------------------------------------------------------------------------------------
 

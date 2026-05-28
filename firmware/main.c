@@ -14,6 +14,7 @@
 #include "LMS64C_protocol.h"
 #include "bsp.h"
 #include "console_func.h"
+#include "pll_ctrl.h"
 
 #define sbi(p, n) ((p) |= (1UL << (n)))
 #define cbi(p, n) ((p) &= ~(1 << (n)))
@@ -44,8 +45,11 @@
 // If an error points here, most likely some of the macros are invalid.
 PLL_ADDRS pll1_rx_addrs       = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM);
 PLL_ADDRS pll0_tx_addrs       = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM);
-SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP);
+SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK);
+#endif
 // clk_ctrl_addrs is declared in regremap.h
+// Check one of the base addresses to make sure CLK CTRL exists
+#ifdef CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT_SIZE
 CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
 #endif
 
@@ -168,7 +172,7 @@ int main(void)
             uint16_t addr;
             uint16_t val;
 #if LMS64C_METHOD == LMS64C_METHOD_FTDI
-            limetop_gpo_write(1);
+            main_gpo_write(1);
 
             // Read packet from the FIFO
             FTDI_getFifoData(glEp0Buffer_Rx, 64);
@@ -759,7 +763,7 @@ int main(void)
             }
             // gpo_val = 0x0;
             //*gpo_reg = gpo_val;
-            limetop_gpo_write(0);
+            main_gpo_write(0);
 #endif
         }
 

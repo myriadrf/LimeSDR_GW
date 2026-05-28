@@ -44,6 +44,7 @@ class RXTXTop(LiteXModule):
         rx_int_clk_domain  = "lms_rx",
         rx_m_clk_domain    = "lms_rx",
         rx_use_channel_combiner = True,
+        rx_fixed_packet_size = False,
 
         # Misc parameters
         soc_has_timesource = False,
@@ -97,6 +98,7 @@ class RXTXTop(LiteXModule):
             sink_width         = rx_sink_width,
             source_width       = RX_OUT_PCT_DATA_W,
             use_channel_combiner = rx_use_channel_combiner,
+            fixed_packet_size  = rx_fixed_packet_size,
         )
 
         # Logic.

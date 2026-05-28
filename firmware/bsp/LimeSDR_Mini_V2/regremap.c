@@ -23,16 +23,16 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = limetop_fpgacfg_compile_rev_read();
         break;
     case 0x03:
-        value = limetop_fpgacfg_bom_hw_ver_read();
+        value = mini_get_bom_ver();
         break;
     case 0x04:
-        value = limetop_fpgacfg_phase_reg_sel_read();
+        // value = limetop_fpgacfg_phase_reg_sel_read();
         break;
     case 0x05:
-        value = limetop_fpgacfg_drct_clk_en_read();
+        // value = limetop_fpgacfg_drct_clk_en_read();
         break;
     case 0x06:
-        value = limetop_fpgacfg_load_phase_read();
+        // value = limetop_fpgacfg_load_phase_read();
         break;
     case 0x07:
         value = limetop_fpgacfg_ch_en_read();
@@ -65,16 +65,16 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = limetop_fpgacfg_txant_post_read();
         break;
     case 0x12:
-        value = limetop_fpgacfg_spi_ss_read();
+        // value = limetop_fpgacfg_spi_ss_read();
         break;
     case 0x17:
-        value = limetop_gpio_read();
+        value = main_gpio_read();
         break;
     case 0x1a:
-        value = limetop_general_periph_fpga_led_ctrl_read();
+        value = general_periph_fpga_led_ctrl_read();
         break;
     case 0x1c:
-        value = limetop_general_periph_FX3_LED_CTRL_read();
+        value = general_periph_FX3_LED_CTRL_read();
         break;
     case 0x1d:
         value = limetop_fpgacfg_clk_ena_read();
@@ -85,24 +85,28 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
 
 #ifdef WITH_LMS7002
     case 0x21:
-        value = limetop_lms7002_top_reg01_read();
+        value = csr_read_simple(clk_ctrl_addrs.pllcfg_done);
+        value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
+        value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
+        value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
+        value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
         break;
 #endif
     case 0x22:
-        value = limetop_pllcfg_pll_lock_read();
+        value = csr_read_simple(clk_ctrl_addrs.pll_lock);
         break;
     case 0x25:
         value = 0b110110000;
         break;
 
     case 0x65:
-        value = limetop_tst_top_test_cmplt_read();
+        value = tst_top_test_cmplt_read();
         break;
     case 0x67:
-        value = limetop_tst_top_test_rez_read();
+        value = tst_top_test_rez_read();
         break;
     case 0x69:
-        value = limetop_tst_top_fx3_clk_cnt_read();
+        value = tst_top_fx3_clk_cnt_read();
         break;
     case 0x6a:
     case 0x6b:
@@ -114,44 +118,44 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = 0;
         break;
     case 0x72:
-        value = limetop_tst_top_lmk_clk_cnt0_read();
+        value = tst_top_lmk_clk_cnt0_read();
         break;
     case 0x73:
-        value = limetop_tst_top_lmk_clk_cnt1_read();
+        value = tst_top_lmk_clk_cnt1_read();
         break;
     case 0x74:
-        value = limetop_tst_top_adf_cnt_read();
+        value = tst_top_adf_cnt_read();
         break;
 
     case 0xc0:
-        value = limetop_general_periph_board_gpio_OVRD_read();
+        value = general_periph_board_gpio_OVRD_read();
         break;
     case 0xc2:
-        value = limetop_general_periph_board_gpio_RD_read();
+        value = general_periph_board_gpio_RD_read();
         break;
     case 0xc4:
-        value = limetop_general_periph_board_gpio_DIR_read();
+        value = general_periph_board_gpio_DIR_read();
         break;
     case 0xc6:
-        value = limetop_general_periph_board_gpio_VAL_read();
+        value = general_periph_board_gpio_VAL_read();
         break;
     case 0xc8:
-        value = limetop_general_periph_periph_input_RD_0_read();
+        value = general_periph_periph_input_RD_0_read();
         break;
     case 0xc9:
-        value = limetop_general_periph_periph_input_RD_1_read();
+        value = general_periph_periph_input_RD_1_read();
         break;
     case 0xcc:
-        value = limetop_general_periph_periph_output_OVRD_0_read();
+        value = general_periph_periph_output_OVRD_0_read();
         break;
     case 0xcd:
-        value = limetop_general_periph_periph_output_VAL_0_read();
+        value = general_periph_periph_output_VAL_0_read();
         break;
     case 0xce:
-        value = limetop_general_periph_periph_output_OVRD_1_read();
+        value = general_periph_periph_output_OVRD_1_read();
         break;
     case 0xcf:
-        value = limetop_general_periph_periph_output_VAL_1_read();
+        value = general_periph_periph_output_VAL_1_read();
         break;
 
     default:
@@ -171,13 +175,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 
     switch (addr) {
     case 0x04:
-        limetop_fpgacfg_phase_reg_sel_write(value);
+        // limetop_fpgacfg_phase_reg_sel_write(value);
         break;
     case 0x05:
-        limetop_fpgacfg_drct_clk_en_write(value);
+        // limetop_fpgacfg_drct_clk_en_write(value);
         break;
     case 0x06:
-        limetop_fpgacfg_load_phase_write(value);
+        // limetop_fpgacfg_load_phase_write(value);
         break;
     case 0x07:
         limetop_fpgacfg_ch_en_write(value);
@@ -210,7 +214,7 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         limetop_fpgacfg_txant_post_write(value);
         break;
     case 0x12:
-        limetop_fpgacfg_spi_ss_write(value);
+        // limetop_fpgacfg_spi_ss_write(value);
         break;
 #ifdef WITH_LMS7002
     case 0x13:
@@ -218,13 +222,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
 #endif
     case 0x17:
-        limetop_gpio_write(value);
+        main_gpio_write(value);
         break;
     case 0x1a:
-        limetop_general_periph_fpga_led_ctrl_write(value);
+        general_periph_fpga_led_ctrl_write(value);
         break;
     case 0x1c:
-        limetop_general_periph_FX3_LED_CTRL_write(value);
+        general_periph_FX3_LED_CTRL_write(value);
         break;
     case 0x1d:
         limetop_fpgacfg_clk_ena_write(value);
@@ -235,7 +239,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 
 #ifdef WITH_LMS7002
     case 0x23:
-        limetop_lms7002_top_reg03_write(value);
+        csr_write_simple(value & 0x1, clk_ctrl_addrs.pllcfg_start);
+        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.phcfg_start);
+        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.pllrst_start);
+        csr_write_simple((value >> 3) & 0x1F, clk_ctrl_addrs.pll_ind);
+        csr_write_simple((value >> 8) & 0x1F, clk_ctrl_addrs.cnt_ind);
+        csr_write_simple((value >> 13) & 0x1, clk_ctrl_addrs.phcfg_updn);
+        csr_write_simple((value >> 14) & 0x1, clk_ctrl_addrs.phcfg_mode);
         break;
 #endif
     case 0x24:
@@ -251,50 +261,83 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0x31:
     case 0x32:
         break;
-    case 0x3e:
-        limetop_pllcfg_auto_phcfg_smpls_write(value);
+    case 0x3E:
+        csr_write_simple(value, clk_ctrl_addrs.phcfg_samples);
         break;
     case 0x3f:
-        limetop_pllcfg_auto_phcfg_step_write(value);
+        csr_write_simple(value, clk_ctrl_addrs.phcfg_step);
         break;
 
     case 0x61:
-        limetop_tst_top_test_en_write(value);
+        tst_top_test_en_write(value);
         break;
     case 0x63:
-        limetop_tst_top_test_frc_err_write(value);
+        tst_top_test_frc_err_write(value);
         break;
     case 0x7d:
-        limetop_tst_top_tx_tst_i_write(value);
+        tst_top_tx_tst_i_write(value);
         break;
     case 0x7e:
-        limetop_tst_top_tx_tst_q_write(value);
+        tst_top_tx_tst_q_write(value);
         break;
 
     case 0xc0:
-        limetop_general_periph_board_gpio_OVRD_write(value);
+        general_periph_board_gpio_OVRD_write(value);
         break;
     case 0xc4:
-        limetop_general_periph_board_gpio_DIR_write(value);
+        general_periph_board_gpio_DIR_write(value);
         break;
     case 0xc6:
-        limetop_general_periph_board_gpio_VAL_write(value);
+        general_periph_board_gpio_VAL_write(value);
         break;
     case 0xcc:
-        limetop_general_periph_periph_output_OVRD_0_write(value);
+        general_periph_periph_output_OVRD_0_write(value);
         break;
     case 0xcd:
-        limetop_general_periph_periph_output_VAL_0_write(value);
+        general_periph_periph_output_VAL_0_write(value);
         break;
     case 0xce:
-        limetop_general_periph_periph_output_OVRD_1_write(value);
+        general_periph_periph_output_OVRD_1_write(value);
         break;
     case 0xcf:
-        limetop_general_periph_periph_output_VAL_1_write(value);
+        general_periph_periph_output_VAL_1_write(value);
+    {
+        uint8_t var = limetop_fpgacfg_bom_hw_ver_read();
+        if (var > 5) {
+            var = limetop_lms7002_top_lms1_read();
+            // Reset bit 0
+            var &= ~1;
+            var |= (value & 1);
+        }
+    }
         break;
 
     default:
         printf("FWE: %04x\n", addr);
         break;
     }
+}
+
+uint16_t mini_get_bom_ver(void) {
+    uint16_t raw_reg = limetop_fpgacfg_bom_hw_ver_read();
+    // Extract raw pad values based on Migen layout
+    uint8_t raw_hw_pad  = raw_reg & 0x0F;          // Bits [3:0]
+    uint8_t raw_bom_pad = (raw_reg >> 4) & 0x07;   // Bits [6:4]
+
+    uint8_t hw_ver;
+    uint8_t bom_ver;
+
+    // Apply hardware revision logic
+    if (raw_hw_pad == 0) {
+        // Legacy workaround logic
+        bom_ver = raw_bom_pad & 0x03;
+        hw_ver  = (raw_bom_pad & 0x04) ? 2 : 1;
+    } else {
+        // Modern logic
+        hw_ver  = raw_hw_pad;
+        bom_ver = raw_bom_pad;
+    }
+
+    // Repack into Migen Cat(hw_ver, bom_ver, 0) format
+    return (uint16_t)((hw_ver & 0x0F) | ((bom_ver & 0x07) << 4));
 }

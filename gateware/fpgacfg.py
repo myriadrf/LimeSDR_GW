@@ -11,14 +11,10 @@ from litex.gen import *
 
 from litex.soc.interconnect.csr import *
 
-from gateware.common import FromFPGACfg
-
 # FPGA Cfg -----------------------------------------------------------------------------------------
 
 class FPGACfg(LiteXModule):
-    def __init__(self, platform, board_id, major_rev, compile_rev, pads=None, soc_has_timesource=False):
-        self.from_fpgacfg      = FromFPGACfg()
-        self.pwr_src           = Signal()
+    def __init__(self, board_id, major_rev, compile_rev, pads=None, soc_has_timesource=False):
         self.soc_has_timesource= soc_has_timesource
 
         # Export.
@@ -67,25 +63,7 @@ class FPGACfg(LiteXModule):
         self.board_id          = CSRStatus(16,  reset=board_id)
         self.major_rev         = CSRStatus(16,  reset=major_rev)
         self.compile_rev       = CSRStatus(16,  reset=compile_rev)
-
-        # limesdr_mini only
-        if platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]:
-            self.bom_hw_ver    = CSRStatus(16,  reset=0)
-
-            # FPGA direct clocking (4-6)
-            self.phase_reg_sel = CSRStorage(16, reset=0)
-            self._drct_clk_en  = CSRStorage(16, reset=0)
-            # load_phase, cnt_int[4:0], clk_ind[4:0]
-            self.load_phase    = CSRStorage(fields=[
-                CSRField("clk_int",        size=5, offset=0),
-                CSRField("cnt_int",        size=5, offset=5),
-                CSRField("load_phase_reg", size=1, offset=10),
-            ])
-        else:
-            self.reserved_03 = CSRStorage(16, reset=0)
-            self.reserved_04 = CSRStorage(16, reset=0)
-            self.reserved_05 = CSRStorage(16, reset=0)
-            self.reserved_06 = CSRStorage(16, reset=0)
+        self.bom_hw_ver    = CSRStatus(16,  reset=0)
 
         # Interface config (7-15)
         self._ch_en            = CSRStorage(4,  reset=0b1111,
@@ -94,14 +72,14 @@ class FPGACfg(LiteXModule):
         self.reg08             = CSRStorage(fields=[
             CSRField("smpl_width",  size=2, offset=0,  reset=0b10),
             CSRField("mode",        size=1, offset=5,  reset=0),
-            CSRField("ddr_en",      size=1, offset=6,  reset={True:0, False:1}[platform.name.startswith("limesdr_mini")]),
+            CSRField("ddr_en",      size=1, offset=6,  reset=1),
             CSRField("trxiq_pulse", size=1, offset=7,  reset=0),
             CSRField("mimo_int_en", size=1, offset=8,  reset=1),
-            CSRField("synch_dis",   size=1, offset=9,  reset={True:0, False:1}[platform.name.startswith("limesdr_mini")]),
+            CSRField("synch_dis",   size=1, offset=9,  reset=1),
             CSRField("synch_mode",  size=1, offset=10, reset=0),
         ])
         self.reg09             = CSRStorage(fields=[
-            CSRField("smpl_nr_clr",    size=1, offset=0, reset={True:1, False:0}[platform.name.startswith("limesdr_mini")]),
+            CSRField("smpl_nr_clr",    size=1, offset=0, reset=0),
             CSRField("txpct_loss_clr", size=1, offset=1, reset=1),
         ])
         self.reg10             = CSRStorage(fields=[
@@ -122,68 +100,32 @@ class FPGACfg(LiteXModule):
         # Peripheral config (16-31).
         self._txant_pre         = CSRStorage(16, reset=1)
         self._txant_post        = CSRStorage(16, reset=1)
-        if platform.name.startswith("limesdr_mini"):
-            self.spi_ss             = CSRStorage(16, reset=0xffff)
-        else:
-            self.reg18          = CSRStorage(fields=[
-                CSRField("tcxo_en", size=1, offset=1, reset=1,
-                    description="TCXO Enable: 0: Disabled, 1: Enabled."),
-                CSRField("ext_clk", size=1, offset=2, reset=0,
-                    description="CLK source select: 0: Internal, 1: External."),
-            ])
+        self.reg18          = CSRStorage(fields=[
+            CSRField("tcxo_en", size=1, offset=1, reset=1,
+                description="TCXO Enable: 0: Disabled, 1: Enabled."),
+            CSRField("ext_clk", size=1, offset=2, reset=0,
+                description="CLK source select: 0: Internal, 1: External."),
+        ])
         self._clk_ena           = CSRStorage(4, reset=0b1111)              # 29
         self._sync_pulse_period = CSRStorage(32, reset=0x3D090)            # 30
 
         # # #
-
-        # Signals.
-        _bom_ver = Signal(3)
-        _hw_ver  = Signal(4)
-
         # Logic.
-        if platform.name in ["limesdr_mini_v1", "limesdr_mini_v2"]:
+        if pads is not None:
             self.comb += [
-                self.bom_hw_ver.status.eq(          Cat(_hw_ver, _bom_ver, self.pwr_src, Constant(0, 8))),
-                # FPGA direct clocking
-                self.from_fpgacfg.phase_reg_sel.eq( self.phase_reg_sel.storage),
-                self.from_fpgacfg.drct_clk_en.eq(   self._drct_clk_en.storage),
-                self.drct_clk_en.eq(                self._drct_clk_en.storage),
-                self.from_fpgacfg.load_phase_reg.eq(self.load_phase.fields.load_phase_reg),
-                self.from_fpgacfg.clk_ind.eq(       self.load_phase.fields.clk_int),
-                self.from_fpgacfg.cnt_ind.eq(       self.load_phase.fields.cnt_int),
-                # Peripheral config.
-                self.from_fpgacfg.spi_ss.eq(        self.spi_ss.storage),
-            ]
-            self.sync += [
-                If((pads.HW_VER == 0),
-                    _bom_ver.eq(Cat(pads.BOM_VER[0:2], Constant(0,2))),
-                    If(pads.BOM_VER[2] == 0b1,
-                        _hw_ver.eq(Constant(2, 4)),
-                    ).Else(
-                        _hw_ver.eq(Constant(1, 4)),
-                    ),
-                ).Else(
-                    _hw_ver.eq(pads.HW_VER),
-                    _bom_ver.eq(pads.BOM_VER),
-                ),
+                self.bom_hw_ver.status.eq(          Cat(pads.HW_VER, pads.BOM_VER, Constant(0, 9))),
             ]
         else:
             self.comb += [
-                self.tcxo_en.eq(self.reg18.fields.tcxo_en),
-                self.ext_clk.eq(self.reg18.fields.ext_clk),
+                self.bom_hw_ver.status.eq(          Constant(0, 16)),
             ]
+        self.comb += [
+            self.tcxo_en.eq(self.reg18.fields.tcxo_en),
+            self.ext_clk.eq(self.reg18.fields.ext_clk),
+        ]
 
         self.comb += [
-
-            self.from_fpgacfg.wfm_ch_en.eq(        self.wfm_ch_en.storage),
-            self.from_fpgacfg.wfm_smpl_width.eq(   self.wfm_smpl_width.storage),
-
-            # Peripheral config.
-            self.from_fpgacfg.clk_ena.eq(          self._clk_ena.storage),
             self.clk_ena.eq(                       self._clk_ena.storage),
-
-            # export.
-            # -------
             # FPGA Cfg.
             self.ch_en.eq(            self._ch_en.storage),
             self.smpl_width.eq(       self.reg08.fields.smpl_width),
