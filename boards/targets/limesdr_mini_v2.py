@@ -69,7 +69,7 @@ C_EP83_WRUSEDW_WIDTH = int(math.ceil(math.log2(STRM0_FPGA_TX_SIZE / (STRM0_FPGA_
 # CRG ----------------------------------------------------------------------------------------------
 
 class _CRG(LiteXModule):
-    def __init__(self, platform, sys_clk_freq, use_pll=False):
+    def __init__(self, platform):
         self.rst      = Signal()
         self.cd_por   = ClockDomain()
         self.cd_sys   = ClockDomain()
@@ -96,15 +96,8 @@ class _CRG(LiteXModule):
         self.sync.por += por_count.eq(Cat(Constant(1, 1), por_count[0:3]))
         platform.add_platform_command("GSR_NET NET crg_por_done;")
 
-        # Sys Clk/Rst.
-        if use_pll:
-            self.pll = pll = ECP5PLL()
-            self.comb += pll.reset.eq(self.rst | ~por_done)
-            pll.register_clkin(self.ft_clk, 100e6)
-            pll.create_clkout(self.cd_sys, sys_clk_freq)
-        else:
-            self.comb += self.cd_sys.clk.eq(self.cd_por.clk)
-            self.specials += AsyncResetSynchronizer(self.cd_sys, ~por_done)
+        self.comb += self.cd_sys.clk.eq(self.cd_por.clk)
+        self.specials += AsyncResetSynchronizer(self.cd_sys, ~por_done)
 
         # FT601 Clk/Rst.
         self.comb     += self.cd_ft601.clk.eq(self.ft_clk),
@@ -137,6 +130,7 @@ class BaseSoC(SoCCore):
         self.add_module(name=f"{name}_phy", module=uartbone_phy)
         self.add_module(name=name,          module=uartbone)
         self.bus.add_master(name=name, master=uartbone.wishbone)
+    #     sys_clk_freq is fixed 77.5e6
     def __init__(self, sys_clk_freq=77.5e6, cpu_type="vexriscv", toolchain="trellis",
         with_bios      = False,
         with_rx_tx_top = True,
@@ -218,7 +212,7 @@ class BaseSoC(SoCCore):
         self.add_constant(platform.name.upper())
 
         # CRG --------------------------------------------------------------------------------------
-        self.crg = _CRG(platform, sys_clk_freq)
+        self.crg = _CRG(platform)
 
         # I2C Bus0 (LM75 & EEPROM) -----------------------------------------------------------------
         self.i2c0 = LiteI2C(sys_clk_freq=sys_clk_freq,pads=platform.request("FPGA_I2C"),clock_domain="sys")
