@@ -116,6 +116,9 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
+    SoCCore.csr_map = {
+        "ppsdo"       : 5,
+    }
 
     def add_uartbone_mod(self, name="uartbone", clk_freq=None, baudrate=115200, cd="sys", with_dynamic_baudrate=False, uart_pads=None):
         # Imports.

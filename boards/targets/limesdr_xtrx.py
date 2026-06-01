@@ -155,6 +155,7 @@ class BaseSoC(SoCCore):
         "i2c0"        : 18,
         "i2c1"        : 19,
 
+        "ppsdo"       : 22,
         # CNTRL
         "CNTRL"       : 26,
 
