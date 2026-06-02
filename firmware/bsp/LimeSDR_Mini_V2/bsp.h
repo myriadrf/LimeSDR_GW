@@ -68,12 +68,17 @@
 #define BSP_MAX_MCU_RETRIES 30
 
 /* Flash Memory (W25Q128JV, 128M-bit) */
-#define BSP_FLASH_STORAGE_OFFSET 0x00400000 // Start address for user space in FLASH memory
+#define BSP_FLASH_JUMP_CMD_OFFSET     0xFF0000
+#define BSP_FLASH_USER_IMG_OFFSET     0x000000
+#define BSP_FLASH_USER_IMG_OFFSET_END 0x13FFFF
+#define BSP_FLASH_GOLD_IMG_OFFSET     0x140000
+#define BSP_FLASH_GOLD_IMG_OFFSET_END 0x27FFFF
+// User flash space spans from end of gold img to start of jump cmd
+#define BSP_FLASH_STORAGE_OFFSET      0x280000 // Start address for user space in FLASH memory
+#define BSP_FLASH_STORAGE_OFFSET_END  0xFEF000 // End address for user space in FLASH memory
 #define BSP_FLASH_PAGE_SIZE         0x100      // 256 bytes, SPI Page size to be used for transfers
 #define BSP_FLASH_SECTOR_SIZE       0x1000     // 4KB
 #define BSP_FLASH_BLOCK_SIZE        0x10000    // 64KB
-#define BSP_CFM0_START_ADDR        0x000000
-#define BSP_CFM0_END_ADDR          0x13FFFF
 
 /*-----------------------------------------------------------------------*/
 /* Function Prototypes                                                   */

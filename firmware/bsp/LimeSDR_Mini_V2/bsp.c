@@ -216,13 +216,13 @@ uint8_t bsp_gpio_get_cached(const uint8_t offset)
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data)
 {
-    bsp_mem_read(0xff0000, 0, 2, 1, data, 2);
+    bsp_mem_read(0xFE0000, 0, 2, 1, data, 2);
 }
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data)
 {
     // Got values from LimeSuite source, portion byte unused, set to 0
-    bsp_mem_write(0xff0000, 0, 2, 1, data, 2);
+    bsp_mem_write(0xFE0000, 0, 2, 1, data, 2);
 }
 
 uint8_t
@@ -261,7 +261,7 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
         // FX3
         if (progmode == 2) {
             // FW to flash (actually just used to write XO DAC VALUE)
-            if (offset >= BSP_FLASH_STORAGE_OFFSET) {
+            if (offset >= BSP_FLASH_STORAGE_OFFSET && offset <= BSP_FLASH_STORAGE_OFFSET_END) {
                 if (offset % BSP_FLASH_BLOCK_SIZE == 0 && data_count > 0) {
                     spiflash_erase(offset);
                 }
@@ -272,6 +272,9 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
                 }
                 if (cmd_errors == 0)
                     return STATUS_COMPLETED_CMD;
+            }
+            else {
+                return STATUS_ERROR_CMD;
             }
         }
     } else if (target == 3) // TARGET = EEPROM
@@ -388,7 +391,7 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
         // Init
         case 10:
             // Set Flash memory addresses
-            address = BSP_CFM0_START_ADDR;
+            address = BSP_FLASH_USER_IMG_OFFSET;
 
             // spiflash_erase_primary(spiflash);
             //  Erase First 64KB block, other blocks are erased later
@@ -426,7 +429,7 @@ uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, c
                 p_spi_wrdata[3] = payload[byte + 3];
 
                 // Command to write into On-Chip Flash IP
-                if (address <= BSP_CFM0_END_ADDR) {
+                if (address <= BSP_FLASH_USER_IMG_OFFSET_END) {
                     // Erase Block if we reach starting address of 64KB block
                     if (address % BSP_FLASH_BLOCK_SIZE == 0) {
                         // flash_op_status = MicoSPIFlash_BlockErase(spiflash, spiflash->memory_base+address, 3);
