@@ -12,26 +12,132 @@ from litex.build.openfpgaloader import OpenFPGALoader
 # IOs ----------------------------------------------------------------------------------------------
 
 _io = [
-    # TODO: Define IOs for LimeSDR USB based on pinout.
-
     # Clk.
-    # ("clk50", 0, Pins("???"), IOStandard("3.3-V LVCMOS")),
+    ("LMK_CLK", 0, Pins("B12"), IOStandard("2.5 V")),
 
     # Leds.
-    # ("user_led", 0, Pins("???"), IOStandard("3.3-V LVCMOS")),
+    ("FPGA_LED1_G", 0, Pins("D2"),  IOStandard("3.3-V LVCMOS")),
+    ("FPGA_LED1_R", 0, Pins("E3"),  IOStandard("3.3-V LVCMOS")),
+    ("FPGA_LED2_G", 0, Pins("J4"),  IOStandard("3.3-V LVCMOS")),
+    ("FPGA_LED2_R", 0, Pins("E1"),  IOStandard("3.3-V LVCMOS")),
 
-    # USB-FIFO .
-    # ("fx2", 0, ...),
+    # Revision.
+    ("revision", 0,
+        Subsignal("HW_VER",  Pins("F20 F19 G18 H17"), IOStandard("2.5 V")),
+        Subsignal("BOM_VER", Pins("P1 R2 U2 U1"),     IOStandard("1.8 V")),
+        Misc("WEAK_PULL_UP_RESISTOR ON"),
+    ),
+
+    # GPIO.
+    ("FPGA_GPIO", 0, Pins("H8 H6 H2 H1 G4 G3 F2 F1"), IOStandard("3.3-V LVCMOS")),
+
+    # I2C.
+    ("FPGA_I2C", 0,
+        Subsignal("scl", Pins("H7")),
+        Subsignal("sda", Pins("J7")),
+        IOStandard("3.3-V LVCMOS")
+    ),
+
+    # SPI.
+    ("FPGA_SPI0", 0, # LMS
+        Subsignal("clk",  Pins("E6")),
+        Subsignal("cs_n", Pins("D10")),
+        Subsignal("mosi", Pins("D7")),
+        Subsignal("miso", Pins("C8")),
+        IOStandard("2.5 V")
+    ),
+    ("FPGA_SPI1", 0, # ADF/DAC
+        Subsignal("clk",  Pins("K8")),
+        Subsignal("cs_n", Pins("J5 J3")),
+        Subsignal("mosi", Pins("L8")),
+        IOStandard("3.3-V LVCMOS")
+    ),
+
+    # ADF MUXOUT.
+    ("ADF_MUXOUT", 0, Pins("J2"), IOStandard("3.3-V LVCMOS")),
+
+    # USB 3.0 (FX3).
+    ("FX3", 0,
+        Subsignal("pclk", Pins("T21")),
+        Subsignal("dq",   Pins(
+            "M19 AA21 Y22 Y21 W22 W21 W20 V22 V21 U22 U21 U20 U19 M22 M21 R22",
+            "R21 R20 R19 R18 P22 P21 M20 P16 P15 N22 N21 N20 N19 N18 N17 N16"
+        )),
+        Subsignal("ctl",  Pins("L6 L7 M1 M2 M3 M4 M6 M7 M8 N5 N6")),
+        Subsignal("led_g", Pins("G5")),
+        Subsignal("led_r", Pins("H5")),
+        IOStandard("1.8 V")
+    ),
 
     # RF-IC / LMS7002M.
-    # ("lms", 0, ...),
+    ("LMS", 0,
+        # Control.
+        Subsignal("RESET",       Pins("C6")),
+        Subsignal("RXEN",        Pins("C3")),
+        Subsignal("TXEN",        Pins("B10")),
+        Subsignal("CORE_LDO_EN", Pins("B18")),
+
+        # RX Interface (LMS -> FPGA).
+        Subsignal("DIQ1_D",      Pins("B17 B16 B15 B14 B13 C13 A18 A17 A16 A15 A14 A13")),
+        Subsignal("TXNRX1",      Pins("B9")),
+        Subsignal("IQSEL1",      Pins("C4")),
+        Subsignal("MCLK1",       Pins("G21")),
+        Subsignal("FCLK1",       Pins("B20")),
+
+        # TX Interface (FPGA -> LMS).
+        Subsignal("DIQ2_D",      Pins("B7 B6 B4 B3 A10 A9 A8 A7 A6 A5 A4 A3")),
+        Subsignal("TXNRX2",      Pins("B8")),
+        Subsignal("IQSEL2",      Pins("C7")),
+        Subsignal("MCLK2",       Pins("B11")),
+        Subsignal("FCLK2",       Pins("E5")),
+
+        # IOStandard.
+        IOStandard("2.5 V")
+    ),
+
+    # RF Loopback Control.
+    ("LB", 0,
+        Subsignal("TX1_AT", Pins("E16")),
+        Subsignal("TX1_H",  Pins("F15")),
+        Subsignal("TX1_L",  Pins("F14")),
+        Subsignal("TX1_SH", Pins("G15")),
+        Subsignal("TX2_AT", Pins("E15")),
+        Subsignal("TX2_H",  Pins("H11")),
+        Subsignal("TX2_L",  Pins("F11")),
+        Subsignal("TX2_SH", Pins("F16")),
+        IOStandard("2.5 V")
+    ),
+
+    # Temperature Sensor.
+    ("LM75_OS", 0, Pins("J6"), IOStandard("3.3-V LVCMOS")),
+
+    # Fan Control.
+    ("FAN_CTRL", 0, Pins("E4"), IOStandard("3.3-V LVCMOS")),
+
+    # Bridge SPI.
+    ("BRDG_SPI", 0,
+        Subsignal("cs_n", Pins("K7")),
+        Subsignal("miso", Pins("C1")),
+        Subsignal("mosi", Pins("B1")),
+        Subsignal("clk",  Pins("B2")),
+        IOStandard("3.3-V LVCMOS")
+    ),
+
+    # Clock Generator (Si5351).
+    ("SI_CLK", 0, Pins("T2"),    IOStandard("1.8 V")),
+    ("SI_CLK", 1, Pins("AA12"),  IOStandard("1.8 V")),
+    ("SI_CLK", 2, Pins("AB12"),  IOStandard("1.8 V")),
+    ("SI_CLK", 3, Pins("T22"),   IOStandard("1.8 V")),
+    ("SI_CLK", 5, Pins("G1"),    IOStandard("3.3-V LVCMOS")),
+    ("SI_CLK", 6, Pins("AA11"),  IOStandard("1.8 V")),
+    ("SI_CLK", 7, Pins("AB11"),  IOStandard("1.8 V")),
 ]
 
 # Platform -----------------------------------------------------------------------------------------
 
 class Platform(AlteraPlatform):
-    default_clk_name   = "clk50"
-    default_clk_period = 1e9/50e6
+    default_clk_name   = "LMK_CLK"
+    default_clk_period = 1e9/30.72e6
     create_rbf         = False
 
     def __init__(self, device="EP4CE40F23C8", **kwargs):
