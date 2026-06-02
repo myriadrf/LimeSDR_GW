@@ -19,12 +19,15 @@
 /*-----------------------------------------------------------------------*/
 /* Peripheral Includes                                                   */
 /*-----------------------------------------------------------------------*/
-// #include "placeholder_regremap.h"
+#include "regremap.h"
 
 /*-----------------------------------------------------------------------*/
 /* Constants & Macros                                                    */
 /*-----------------------------------------------------------------------*/
-// Define device indexes, addresses and similar here
+#define BSP_DEV_TYPE   LMS_DEV_LIMESDR
+#define BSP_HW_VER     1
+#define BSP_EXP_BOARD  EXP_BOARD_UNKNOWN
+#define BSP_FW_VER     11 // New main.c/bsp structure
 
 /*-----------------------------------------------------------------------*/
 /* Function Prototypes                                                   */
@@ -43,6 +46,7 @@ void bsp_process_irqs(void);
 void bsp_delay_ms(unsigned int ms);
 
 /* LMS Peripheral Checks & SPI Transfers */
+int8_t lms_reset(uint8_t periph_id, uint8_t command);
 int8_t lms7002m_periph_id_check(uint8_t periph_id);
 int8_t lms8001_periph_id_check(uint8_t periph_id);
 void lms7002m_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id);

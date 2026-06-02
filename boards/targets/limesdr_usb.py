@@ -45,11 +45,39 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=50e6, **kwargs):
+    def __init__(self,
+                 sys_clk_freq= 50e6,
+                 with_bios         = False,
+                 gold_img          = False,
+                 cpu_firmware      = None):
         platform = limesdr_usb.Platform()
 
+        if with_bios:
+            integrated_rom_size      = 0x6800
+            integrated_rom_init      = []
+            integrated_main_ram_size = 0x6800
+            integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+        else:
+            integrated_rom_size      = 0x6800
+            integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+            integrated_main_ram_size = 0
+            integrated_main_ram_init = []
+
         # SoCCore ----------------------------------------------------------------------------------
-        SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on LimeSDR-USB", **kwargs)
+        SoCCore.__init__(self, platform, sys_clk_freq,
+            ident                    = "LiteX SoC on LimeSDR-USB",
+            ident_version            = True,
+            cpu_type                 = "vexriscv",
+            cpu_variant              = "minimal",
+            integrated_rom_size      = integrated_rom_size,
+            integrated_rom_init      = integrated_rom_init,
+            integrated_sram_size     = 0x2000,
+            integrated_main_ram_size = integrated_main_ram_size,
+            integrated_main_ram_init = integrated_main_ram_init,
+            with_uart                = False, #for now
+            # with_uartbone            = with_uartbone,
+            # uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
+        )
 
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)

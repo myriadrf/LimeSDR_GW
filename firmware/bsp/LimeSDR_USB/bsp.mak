@@ -1,4 +1,4 @@
-BSP_OBJS = bsp.o
+BSP_OBJS = bsp.o regremap.o
 BSP_COMMON_OBJS = console_func.o lime_litex_helpers.o
 DRIVERS_OBJS =
 PERIPH_OBJS =
