@@ -11,6 +11,7 @@ import os
 import sys
 import argparse
 
+from gateware.LimeDFB.FX3.FX3 import FX3
 from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
 
@@ -31,6 +32,11 @@ class _CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
         self.rst      = Signal()
         self.cd_sys   = ClockDomain()
+
+        self.fx3_pclk = platform.request("FX3_PCLK")
+        self.comb += self.cd_sys.clk.eq(self.fx3_pclk)
+        # FX3 PCLK runs at 100MHz
+        platform.add_period_constraint(self.cd_sys.clk, 1e9/100e6)
 
         # # #
 
@@ -81,6 +87,9 @@ class BaseSoC(SoCCore):
 
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
+
+        # FX3
+        self.FX3 = FX3(pads=platform.request("FX3"))
 
         # TODO: Add modules and peripherals:
         # - FX3 (USB interface)

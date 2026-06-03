@@ -57,13 +57,24 @@ _io = [
     ("ADF_MUXOUT", 0, Pins("J2"), IOStandard("3.3-V LVCMOS")),
 
     # USB 3.0 (FX3).
+    # PCLK declared separately to be able to request it from the platform
+    # without requesting the other FX3 signals
+    ("FX3_PCLK", 0, Pins("T21"), IOStandard("1.8V")),
     ("FX3", 0,
-        Subsignal("pclk", Pins("T21")),
         Subsignal("dq",   Pins(
             "M19 AA21 Y22 Y21 W22 W21 W20 V22 V21 U22 U21 U20 U19 M22 M21 R22",
             "R21 R20 R19 R18 P22 P21 M20 P16 P15 N22 N21 N20 N19 N18 N17 N16"
         )),
-        Subsignal("ctl",  Pins("L6 L7 M1 M2 M3 M4 M6 M7 M8 N5 N6")),
+        Subsignal("ctl0", Pins("L6")),
+        Subsignal("ctl1", Pins("L7")),
+        Subsignal("ctl2", Pins("M1")),
+        Subsignal("ctl3", Pins("M2")),
+        Subsignal("ctl4", Pins("M3")),
+        Subsignal("ctl5", Pins("M4")),
+        Subsignal("ctl7", Pins("M7")),
+        Subsignal("ctl8", Pins("M8")),
+        Subsignal("ctl11", Pins("N5")),
+        Subsignal("ctl12", Pins("N6")),
         Subsignal("led_g", Pins("G5")),
         Subsignal("led_r", Pins("H5")),
         IOStandard("1.8 V")
@@ -136,8 +147,6 @@ _io = [
 # Platform -----------------------------------------------------------------------------------------
 
 class Platform(AlteraPlatform):
-    default_clk_name   = "LMK_CLK"
-    default_clk_period = 1e9/30.72e6
     create_rbf         = False
 
     def __init__(self, device="EP4CE40F23C8", **kwargs):
