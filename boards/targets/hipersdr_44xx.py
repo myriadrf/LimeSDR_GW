@@ -90,8 +90,10 @@ class CRG(LiteXModule):
         self.cd_lms_rx = ClockDomain()
         self.cd_lms_tx = ClockDomain()
 
-        self.cd_fpga_sysref = ClockDomain()
-        self.cd_fpga_1pps   = ClockDomain()
+        self.cd_fpga_sysref  = ClockDomain()
+        self.fpga_1pps_clk   = Signal()
+        self.cd_fpga_1pps    = ClockDomain()
+        self.cd_fpga_1pps_2x = ClockDomain()
 
         vctcxo_ref = platform.request("gpio_d11")
         self.cd_vctcxo_ref = ClockDomain()
@@ -137,8 +139,13 @@ class CRG(LiteXModule):
         self.specials += [Instance("IBUFDS",
             i_I   = fpga_1pps_pads.p,
             i_IB  = fpga_1pps_pads.n,
-            o_O   = self.cd_fpga_1pps.clk,
+            o_O   = self.fpga_1pps_clk,
         )]
+
+        self.pll_afe = pll_afe = USPLL(speedgrade=-2)
+        pll_afe.register_clkin(self.fpga_1pps_clk, 245.76e6)
+        pll_afe.create_clkout(self.cd_fpga_1pps, 245.76e6)
+        pll_afe.create_clkout(self.cd_fpga_1pps_2x,  491.52e6)
 
 
 
@@ -866,6 +873,17 @@ class BaseSoC(SoCCore):
             f.write("set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]\n\n")
             # set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]
             # f.write("set_clock_groups -name 1pps_double -asynchronous -group [get_clocks fpga_1pps_double_clk]\n\n")
+
+            f.write("# FPGA_1PPS 245.76Mhz\n")
+            f.write("create_clock -period 4.06901 -name fpga_1pps_clk [get_ports FPGA_1PPS_p]\n\n")
+
+            f.write("# Rename auto-derived pll_afe output clocks\n")
+            f.write("create_generated_clock -name afe_sys [get_pins -hierarchical \"*PLLE2_ADV_1/CLKOUT0\"]\n\n")
+            f.write("create_generated_clock -name afe_sys_2x [get_pins -hierarchical \"*PLLE2_ADV_1/CLKOUT1\"]\n\n")
+
+            f.write("# Add AFE sys clocks to same clock group\n")
+            f.write("set_clock_groups -name afe_sys_async_group -asynchronous -group [get_clocks {fpga_1pps_clk afe_sys afe_sys_2x}]\n\n")
+
         self.platform.add_source(timings_xdx_filename)
 
 
