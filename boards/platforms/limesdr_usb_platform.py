@@ -20,6 +20,8 @@ _io = [
     ("FPGA_LED1_R", 0, Pins("E3"),  IOStandard("3.3-V LVCMOS")),
     ("FPGA_LED2_G", 0, Pins("J4"),  IOStandard("3.3-V LVCMOS")),
     ("FPGA_LED2_R", 0, Pins("E1"),  IOStandard("3.3-V LVCMOS")),
+    ("FX3_LED_G", 0, Pins("G5"),  IOStandard("3.3-V LVCMOS")),
+    ("FX3_LED_R", 0, Pins("H5"),  IOStandard("3.3-V LVCMOS")),
 
     # Revision.
     ("revision", 0,
@@ -75,8 +77,6 @@ _io = [
         Subsignal("ctl8", Pins("M8")),
         Subsignal("ctl11", Pins("N5")),
         Subsignal("ctl12", Pins("N6")),
-        Subsignal("led_g", Pins("G5")),
-        Subsignal("led_r", Pins("H5")),
         IOStandard("1.8 V")
     ),
 

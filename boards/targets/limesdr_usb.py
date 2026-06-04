@@ -8,10 +8,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-import sys
 import argparse
 
-from gateware.LimeDFB.FX3.FX3 import FX3
+from gateware.LimeDFB.FX3.src.FX3 import FX3
 from gateware.helpers import write_module_hierarchy_json
 from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
@@ -58,6 +57,8 @@ class BaseSoC(SoCCore):
                  gold_img          = False,
                  cpu_firmware      = None):
         platform = limesdr_usb.Platform()
+        platform.name        = "limesdr_usb"
+        platform.vhd2v_force = False
 
         if with_bios:
             integrated_rom_size      = 0x6800
@@ -86,11 +87,17 @@ class BaseSoC(SoCCore):
             # uart_name                = {True: "crossover", False:"serial"}[with_uartbone],
         )
 
+        # 1 for CSR
+        # 2 for FTDI
+        # 3 for FX3
+        self.add_constant("LMS64C_METHOD",3)
+
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
 
         # FX3
-        self.FX3 = FX3(pads=platform.request("FX3"))
+        self.FX3 = FX3(platform=platform,
+                       pads=platform.request("FX3"))
 
         # TODO: Add modules and peripherals:
         # - FX3 (USB interface)
