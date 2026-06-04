@@ -9,6 +9,8 @@
 
 import os
 import argparse
+import shutil
+import subprocess
 
 from gateware.LimeDFB.FX3.src.FX3 import FX3
 from gateware.helpers import write_module_hierarchy_json
@@ -175,7 +177,25 @@ def main():
                 f.write(f"LINKER={linker}\n")
                 f.write("BSP_PROJECT_DIR=bsp/LimeSDR_USB\n")
             
-            # Note: Do not run make here yet as it's a skeleton.
+            os.system(f"cd firmware && make clean all")
+
+    if args.build:
+        output_location = "bitstream/LimeSDR_USB"
+        prefix = "LimeSDR-USB_lms7_trx"
+        sof_file = os.path.join(builder.gateware_dir, "limesdr_usb.sof")
+
+        os.makedirs(output_location, exist_ok=True)
+        print(f"Copying limesdr_usb.sof to {output_location}...")
+        shutil.copyfile(sof_file, os.path.join(output_location, prefix + ".sof"))
+
+        for fmt in ["rbf", "jic", "pof"]:
+            print(f"Generating {fmt.upper()} file...")
+            try:
+                subprocess.run(["quartus_cpf", "-c", f"gateware/limesdr_usb_{fmt}.cof"], check=True)
+            except Exception as e:
+                print(f"Error generating {fmt.upper()}: {e}")
+
+        print("Bitstream generation completed.")
 
     if args.load:
         prog = soc.platform.create_programmer(cable=args.cable)
