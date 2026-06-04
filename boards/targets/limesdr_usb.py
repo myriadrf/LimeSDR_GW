@@ -12,6 +12,7 @@ import sys
 import argparse
 
 from gateware.LimeDFB.FX3.FX3 import FX3
+from gateware.helpers import write_module_hierarchy_json
 from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
 
@@ -52,7 +53,7 @@ class _CRG(LiteXModule):
 
 class BaseSoC(SoCCore):
     def __init__(self,
-                 sys_clk_freq= 50e6,
+                 sys_clk_freq= 100e6,
                  with_bios         = False,
                  gold_img          = False,
                  cpu_firmware      = None):
@@ -96,6 +97,22 @@ class BaseSoC(SoCCore):
         # - LMS7002M (RF transceiver)
         # - SPI, I2C, GPIOs, etc.
 
+    # Utils
+    def print_soc_hierarchy_json(self, outfile=None):
+        """Generate the SoC submodule hierarchy and write it as JSON to soc_structure.json.
+        The filename is constant. No terminal printing.
+        """
+        write_module_hierarchy_json(self, outfile="soc_structure.json", name="SoC")
+
+
+    def generate_documentation(self, build_name, build_html, **kwargs):
+        from litex.soc.doc import generate_docs
+        generate_docs(self, "docs/docs/{}/litex_doc".format(build_name),
+            project_name = "{}".format(build_name),
+            author       = "Lime Microsystems")
+        if build_html:
+            os.system("sphinx-build -M html docs/docs/{}/litex_doc docs/docs/{}/litex_doc/_build".format(build_name, build_name))
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -109,6 +126,10 @@ def main():
     # SoC parameters.
     parser.add_argument("--with-bios", action="store_true", help="Enable LiteX BIOS.")
 
+    # Introspection.
+    parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
+    parser.add_argument("--doc",    action="store_true", help="Generate SOC ducumentation")
+
     args = parser.parse_args()
 
     # Build SoC.
@@ -121,6 +142,10 @@ def main():
             with_bios    = args.with_bios,
             cpu_firmware = None if prepare else "firmware/firmware.bin"
         )
+
+        # Always generate SoC hierarchy JSON during prepare pass unless disabled.
+        if prepare and not args.no_soc_json:
+            soc.print_soc_hierarchy_json()
         
         # Builder.
         builder = Builder(soc, csr_csv="csr.csv", bios_console="lite", libc_mode="full")
@@ -148,6 +173,10 @@ def main():
     if args.load:
         prog = soc.platform.create_programmer(cable=args.cable)
         prog.load_bitstream(builder.get_bitstream_filename(mode="sram", ext=".sof"))
+
+    # Generate Litex Documentation files and if --doc option is used build also
+    build_name = soc.build_name.replace("_", "-")
+    soc.generate_documentation(build_name, build_html=args.doc)
 
 if __name__ == "__main__":
     main()
