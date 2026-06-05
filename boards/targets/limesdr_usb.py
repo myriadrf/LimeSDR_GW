@@ -38,7 +38,7 @@ class _CRG(LiteXModule):
         self.fx3_pclk = platform.request("FX3_PCLK")
         self.comb += self.cd_sys.clk.eq(self.fx3_pclk)
         # FX3 PCLK runs at 100MHz
-        platform.add_period_constraint(self.cd_sys.clk, 1e9/100e6)
+        platform.add_period_constraint(self.fx3_pclk, 1e9/100e6)
 
         # # #
 
@@ -99,7 +99,8 @@ class BaseSoC(SoCCore):
 
         # FX3
         self.FX3 = FX3(platform=platform,
-                       pads=platform.request("FX3"))
+                       pads=platform.request("FX3"),
+                       vendor="altera")
 
         # TODO: Add modules and peripherals:
         # - FX3 (USB interface)
