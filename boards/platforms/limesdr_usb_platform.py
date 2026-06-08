@@ -66,18 +66,18 @@ _io = [
         Subsignal("dq",   Pins(
             "M19 AA21 Y22 Y21 W22 W21 W20 V22 V21 U22 U21 U20 U19 M22 M21 R22",
             "R21 R20 R19 R18 P22 P21 M20 P16 P15 N22 N21 N20 N19 N18 N17 N16"
-        )),
+        ), Misc("FAST_OUTPUT_REGISTER ON"), Misc("CLOCK_TO_OUTPUT_DELAY 1")),
         Subsignal("ctl0", Pins("L6")),
-        Subsignal("ctl1", Pins("L7")),
+        Subsignal("ctl1", Pins("L7"), Misc("CLOCK_TO_OUTPUT_DELAY 1")),
         Subsignal("ctl2", Pins("M1")),
-        Subsignal("ctl3", Pins("M2")),
+        Subsignal("ctl3", Pins("M2"), Misc("CLOCK_TO_OUTPUT_DELAY 1")),
         Subsignal("ctl4", Pins("M3")),
         Subsignal("ctl5", Pins("M4")),
-        Subsignal("ctl7", Pins("M7")),
+        Subsignal("ctl7", Pins("M7"), Misc("CLOCK_TO_OUTPUT_DELAY 1")),
         Subsignal("ctl8", Pins("M8")),
-        Subsignal("ctl11", Pins("N5")),
-        Subsignal("ctl12", Pins("N6")),
-        IOStandard("1.8 V")
+        Subsignal("ctl11", Pins("N5"), Misc("CLOCK_TO_OUTPUT_DELAY 1")),
+        Subsignal("ctl12", Pins("N6"), Misc("CLOCK_TO_OUTPUT_DELAY 1")),
+        IOStandard("1.8 V"),
     ),
 
     # RF-IC / LMS7002M.
@@ -142,6 +142,8 @@ _io = [
     ("SI_CLK", 5, Pins("G1"),    IOStandard("3.3-V LVCMOS")),
     ("SI_CLK", 6, Pins("AA11"),  IOStandard("1.8 V")),
     ("SI_CLK", 7, Pins("AB11"),  IOStandard("1.8 V")),
+
+    ("EXT_GND", 0, Pins("T17"), IOStandard("1.8 V")),
 ]
 
 # Platform -----------------------------------------------------------------------------------------

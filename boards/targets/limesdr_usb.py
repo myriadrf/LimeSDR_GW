@@ -32,13 +32,16 @@ from litex.soc.integration.builder  import *
 
 class _CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
-        self.rst      = Signal()
         self.cd_sys   = ClockDomain()
 
         self.fx3_pclk = platform.request("FX3_PCLK")
-        self.comb += self.cd_sys.clk.eq(self.fx3_pclk)
         # FX3 PCLK runs at 100MHz
         platform.add_period_constraint(self.fx3_pclk, 1e9/100e6)
+
+        self.ext_gnd = Signal()
+        self.ext_gnd = platform.request("EXT_GND")
+        self.comb += self.cd_sys.clk.eq(self.fx3_pclk)
+        self.specials += AsyncResetSynchronizer(self.cd_sys,self.ext_gnd)
 
         # # #
 
