@@ -18,8 +18,8 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
     }
 
-    regdata_array[0] = (value >> 8) & 0xFF;
-    regdata_array[1] = value & 0xFF;
+    regdata_array[0] = (uint8_t)(value & 0xFF);        // Byte 0 (LSB)
+    regdata_array[1] = (uint8_t)((value >> 8) & 0xFF); // Byte 1
 }
 
 // To write and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-USB
