@@ -13,7 +13,9 @@ import shutil
 import subprocess
 
 from gateware.LimeDFB.FX3.src.FX3 import FX3
+from gateware.LimeTop import LimeTop
 from gateware.helpers import write_module_hierarchy_json
+from gateware.Revision import *
 from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
 
@@ -64,6 +66,7 @@ class BaseSoC(SoCCore):
         platform = limesdr_usb.Platform()
         platform.name        = "limesdr_usb"
         platform.vhd2v_force = False
+        platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
 
         if with_bios:
             integrated_rom_size      = 0x6800
@@ -104,6 +107,50 @@ class BaseSoC(SoCCore):
         self.FX3 = FX3(platform=platform,
                        pads=platform.request("FX3"),
                        vendor="altera")
+
+        # LimeTop
+        self.limetop  = LimeTop(self,
+                                platform             = platform,
+                                vendor               ="altera",
+                                double_channels_mode = False,
+                                one_chnl             = False,
+                                LMS_DIQ_WIDTH        = 12,
+                                sink_width           = 32,
+                                sink_clk_domain      = "sys",
+                                source_width         = 32,
+                                source_clk_domain    = "sys",
+                                rx_sys_clk_domain    = "sys",
+                                rx_fixed_packet_size = True, # TODO: check
+                                TX_N_BUFF            = 5,
+                                TX_MAX_PCT_SIZE      = 4096,
+                                TX_IN_PCT_HDR_SIZE   = 16,
+                                tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
+
+                                with_lms7002         = True,
+                                # These clocks are only used if with_lms7002 is False
+                                phy_tx_source_clk    = "sys",
+                                phy_tx_sink_width    = 128,
+                                phy_rx_sink_clk      = "sys",
+                                phy_rx_sink_width    = 128,
+                                with_rx_tx_top       = True,
+                                fft_pts              = 512,     #Changing FFT points requires FFT src rebuild, use rebuild_fft_rtl=True
+                                rebuild_fft_rtl      = False,
+                                with_fft             = False,
+
+                                # FPGACFG.
+                                board_id             = 0x0011,
+                                major_rev            = MajorRevision,
+                                compile_rev          = CompileRevision,
+                                revision_pads        = platform.request("revision"),
+
+                                with_event_manager   = False,#True,
+                                with_clk_cfg_irq     = False,#True,
+                                with_altera_max10_pll= False,
+                                soc_has_timesource   = False,
+                                )
+
+        # self.lms_pads = platform.request("LMS")
+        # self.ddram0 = platform.request("ddram")
 
         # TODO: Add modules and peripherals:
         # - FX3 (USB interface)

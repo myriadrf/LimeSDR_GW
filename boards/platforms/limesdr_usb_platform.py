@@ -93,7 +93,7 @@ _io = [
         Subsignal("DIQ1_D",      Pins("B17 B16 B15 B14 B13 C13 A18 A17 A16 A15 A14 A13"),
             Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
         Subsignal("TXNRX1",      Pins("B9")),
-        Subsignal("IQSEL1",      Pins("C4"), Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("ENABLE_IQSEL1",      Pins("C4"), Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
         Subsignal("MCLK1",       Pins("G21")),
         Subsignal("FCLK1",       Pins("B20"), Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
 
@@ -101,7 +101,7 @@ _io = [
         Subsignal("DIQ2_D",      Pins("B7 B6 B4 B3 A10 A9 A8 A7 A6 A5 A4 A3"),
             Misc("CURRENT_STRENGTH_NEW \"MINIMUM CURRENT\"")),
         Subsignal("TXNRX2",      Pins("B8")),
-        Subsignal("IQSEL2",      Pins("C7"),  Misc("CURRENT_STRENGTH_NEW \"MINIMUM CURRENT\"")),
+        Subsignal("ENABLE_IQSEL2",      Pins("C7"),  Misc("CURRENT_STRENGTH_NEW \"MINIMUM CURRENT\"")),
         Subsignal("MCLK2",       Pins("B11"), Misc("CURRENT_STRENGTH_NEW \"MINIMUM CURRENT\"")),
         Subsignal("FCLK2",       Pins("E5")),
 
