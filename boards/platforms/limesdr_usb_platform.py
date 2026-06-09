@@ -25,9 +25,8 @@ _io = [
 
     # Revision.
     ("revision", 0,
-        Subsignal("HW_VER",  Pins("F20 F19 G18 H17"), IOStandard("2.5 V")),
+        Subsignal("HW_VER",  Pins("F20 F19 G18 H17"), IOStandard("2.5 V"), Misc("WEAK_PULL_UP_RESISTOR ON")),
         Subsignal("BOM_VER", Pins("P1 R2 U2 U1"),     IOStandard("1.8 V")),
-        Misc("WEAK_PULL_UP_RESISTOR ON"),
     ),
 
     # GPIO.
@@ -37,7 +36,8 @@ _io = [
     ("FPGA_I2C", 0,
         Subsignal("scl", Pins("H7")),
         Subsignal("sda", Pins("J7")),
-        IOStandard("3.3-V LVCMOS")
+        IOStandard("3.3-V LVCMOS"),
+        Misc("WEAK_PULL_UP_RESISTOR ON")
     ),
 
     # SPI.
@@ -50,7 +50,8 @@ _io = [
     ),
     ("FPGA_SPI1", 0, # ADF/DAC
         Subsignal("clk",  Pins("K8")),
-        Subsignal("cs_n", Pins("J5 J3")),
+        Subsignal("cs_n", Pins("J5")),
+        Subsignal("cs_n", Pins("J3"), Misc("WEAK_PULL_UP_RESISTOR ON")),
         Subsignal("mosi", Pins("L8")),
         IOStandard("3.3-V LVCMOS")
     ),
@@ -89,21 +90,103 @@ _io = [
         Subsignal("CORE_LDO_EN", Pins("B18")),
 
         # RX Interface (LMS -> FPGA).
-        Subsignal("DIQ1_D",      Pins("B17 B16 B15 B14 B13 C13 A18 A17 A16 A15 A14 A13")),
+        Subsignal("DIQ1_D",      Pins("B17 B16 B15 B14 B13 C13 A18 A17 A16 A15 A14 A13"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
         Subsignal("TXNRX1",      Pins("B9")),
-        Subsignal("IQSEL1",      Pins("C4")),
+        Subsignal("IQSEL1",      Pins("C4"), Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
         Subsignal("MCLK1",       Pins("G21")),
-        Subsignal("FCLK1",       Pins("B20")),
+        Subsignal("FCLK1",       Pins("B20"), Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
 
         # TX Interface (FPGA -> LMS).
-        Subsignal("DIQ2_D",      Pins("B7 B6 B4 B3 A10 A9 A8 A7 A6 A5 A4 A3")),
+        Subsignal("DIQ2_D",      Pins("B7 B6 B4 B3 A10 A9 A8 A7 A6 A5 A4 A3"),
+            Misc("CURRENT_STRENGTH_NEW \"MINIMUM CURRENT\"")),
         Subsignal("TXNRX2",      Pins("B8")),
-        Subsignal("IQSEL2",      Pins("C7")),
-        Subsignal("MCLK2",       Pins("B11")),
+        Subsignal("IQSEL2",      Pins("C7"),  Misc("CURRENT_STRENGTH_NEW \"MINIMUM CURRENT\"")),
+        Subsignal("MCLK2",       Pins("B11"), Misc("CURRENT_STRENGTH_NEW \"MINIMUM CURRENT\"")),
         Subsignal("FCLK2",       Pins("E5")),
 
         # IOStandard.
         IOStandard("2.5 V")
+    ),
+
+    # DDRAM.
+    ("ddram", 0,
+        Subsignal("a", Pins(
+            "W1 AA3 Y3 V6 AA1 AB3 Y2 AB5 Y1 V7 Y6 W2 T8"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("ba",    Pins("V4 V3 V1"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("cas_n", Pins("T4"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("cke",   Pins("R7"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("clk",   Pins("U7"),
+            Misc("CURRENT_STRENGTH_NEW 12MA"),
+            Misc("PAD_TO_CORE_DELAY 0")),
+        Subsignal("clk_n", Pins("U8"),
+            Misc("CURRENT_STRENGTH_NEW 12MA")),
+        Subsignal("cs_n",  Pins("R6"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("dm",    Pins("AA7 V5"),
+            Misc("CURRENT_STRENGTH_NEW 12MA"),
+            Misc("MEM_INTERFACE_DELAY_CHAIN_CONFIG FLEXIBLE_TIMING"),
+            Misc("OUTPUT_ENABLE_GROUP 3078784")),
+        Subsignal("dq", Pins(
+            "U10 AB8 AB7 AA9 V11 W10 AA8 Y10",
+            "W6 AA5 W7 V8 W8 Y7 U9 AA4"),
+            Misc("CURRENT_STRENGTH_NEW 12MA"),
+            Misc("MEM_INTERFACE_DELAY_CHAIN_CONFIG FLEXIBLE_TIMING"),
+            Misc("OUTPUT_ENABLE_GROUP 3078784")),
+        Subsignal("dqs",   Pins("AB9 V10"),
+            Misc("CURRENT_STRENGTH_NEW 12MA"),
+            Misc("MEM_INTERFACE_DELAY_CHAIN_CONFIG FLEXIBLE_TIMING"),
+            Misc("OUTPUT_ENABLE_GROUP 3078784")),
+        Subsignal("odt",   Pins("P6"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("ras_n", Pins("T5"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("we_n",  Pins("T7"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        IOStandard("SSTL-18 Class I")
+    ),
+    ("ddram", 1,
+        Subsignal("a", Pins(
+            "U15 AA17 T14 Y17 T16 P7 U17 N8 R16 AA20 AB17 U16 U14"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("ba",    Pins("U13 T13 V2"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("cas_n", Pins("T10"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("cke",   Pins("AB10"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("clk",   Pins("R14"),
+            Misc("CURRENT_STRENGTH_NEW 12MA"),
+            Misc("PAD_TO_CORE_DELAY 0")),
+        Subsignal("clk_n", Pins("R15"),
+            Misc("CURRENT_STRENGTH_NEW 12MA")),
+        Subsignal("cs_n",  Pins("Y8"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("dm",    Pins("AA16 AA10"),
+            Misc("CURRENT_STRENGTH_NEW 12MA"),
+            Misc("MEM_INTERFACE_DELAY_CHAIN_CONFIG FLEXIBLE_TIMING"),
+            Misc("OUTPUT_ENABLE_GROUP 3078784")),
+        Subsignal("dq", Pins(
+            "W15 V14 AB20 AB18 T15 W17 AB16 V15",
+            "W13 AB13 AA15 AB14 AA14 AB15 AA13 U12"),
+            Misc("CURRENT_STRENGTH_NEW 12MA"),
+            Misc("MEM_INTERFACE_DELAY_CHAIN_CONFIG FLEXIBLE_TIMING"),
+            Misc("OUTPUT_ENABLE_GROUP 3078784")),
+        Subsignal("dqs",   Pins("V13 Y13"),
+            Misc("CURRENT_STRENGTH_NEW 12MA"),
+            Misc("MEM_INTERFACE_DELAY_CHAIN_CONFIG FLEXIBLE_TIMING"),
+            Misc("OUTPUT_ENABLE_GROUP 3078784")),
+        Subsignal("odt",   Pins("T12"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("ras_n", Pins("T11"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        Subsignal("we_n",  Pins("T9"),
+            Misc("CURRENT_STRENGTH_NEW \"MAXIMUM CURRENT\"")),
+        IOStandard("SSTL-18 Class I")
     ),
 
     # RF Loopback Control.
@@ -163,5 +246,25 @@ class Platform(AlteraPlatform):
         return OpenFPGALoader(cable=cable)
 
     def do_finalize(self, fragment):
-        # self.add_period_constraint(...)
-        pass
+        # LMS_DIQ1_D Timing Delays (from QSF)
+        try:
+            self.lookup_request("LMS")
+            diq1_delays = [1, 0, 1, 1, 1, None, 1, 0, 0, 1, 1, 0]
+            for i, delay in enumerate(diq1_delays):
+                if delay is not None:
+                    self.add_platform_command(f"set_instance_assignment -name CLOCK_TO_OUTPUT_DELAY {delay} -to LMS_DIQ1_D[{i}]")
+        except:
+            pass
+
+        # CKN_CK_PAIR for DDRAM (from QSF)
+        try:
+            self.lookup_request("ddram", 0)
+            self.add_platform_command("set_instance_assignment -name CKN_CK_PAIR ON -from ddram_clk_n -to ddram_clk")
+        except:
+            pass
+
+        try:
+            self.lookup_request("ddram", 1)
+            self.add_platform_command("set_instance_assignment -name CKN_CK_PAIR ON -from ddram_1_clk_n -to ddram_1_clk")
+        except:
+            pass
