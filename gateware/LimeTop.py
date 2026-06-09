@@ -46,7 +46,6 @@ class LimeTop(LiteXModule):
         rx_fixed_packet_size = False,
         TX_N_BUFF            = 5,
         TX_MAX_PCT_SIZE      = 4096,
-        TX_IN_PCT_HDR_SIZE   = 16,
         tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
 
         with_lms7002         = True,
@@ -111,9 +110,7 @@ class LimeTop(LiteXModule):
                 platform        = platform,
                 vendor          = vendor,
                 pads            = platform.request("LMS"),
-                add_csr         = True,
                 fpgacfg_manager = self.fpgacfg,
-                pllcfg_manager  = None,
                 diq_width       = LMS_DIQ_WIDTH,
                 with_max10_pll  = with_altera_max10_pll,
                 one_chnl        = one_chnl,
@@ -131,10 +128,8 @@ class LimeTop(LiteXModule):
 
             self.rxtx_top = RXTXTop(platform, self.fpgacfg,
                 # TX parameters
-                TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
                 TX_N_BUFF              = TX_N_BUFF,
                 TX_IN_MAX_PCT_SIZE     = TX_MAX_PCT_SIZE,
-                TX_IN_PCT_HDR_SIZE     = TX_IN_PCT_HDR_SIZE,
                 TX_IN_PCT_DATA_W       = sink_width,
                 tx_s_clk_domain        = sink_clk_domain,
                 tx_m_clk_domain        = "lms_tx" if with_lms7002 else phy_tx_source_clk,
@@ -142,7 +137,6 @@ class LimeTop(LiteXModule):
                 tx_4ch_mode            = double_channels_mode,
 
                 # RX parameters
-                RX_IQ_WIDTH            = LMS_DIQ_WIDTH,
                 rx_sink_width          = 64 if with_lms7002 else phy_rx_sink_width,
                 RX_OUT_PCT_DATA_W      = source_width,
                 # "sys" uses less resources, presumably due to less clock domain crossings
@@ -151,7 +145,6 @@ class LimeTop(LiteXModule):
                 rx_int_clk_domain      = "lms_rx" if with_lms7002 else phy_rx_sink_clk if soc_has_timesource else rx_sys_clk_domain,
                 rx_s_clk_domain        = "lms_rx" if with_lms7002 else phy_rx_sink_clk,
                 rx_m_clk_domain        = source_clk_domain,
-                rx_use_channel_combiner = False if with_lms7002 else True,
                 rx_fixed_packet_size   = rx_fixed_packet_size,
 
                 # Misc

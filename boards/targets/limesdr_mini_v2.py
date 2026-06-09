@@ -241,7 +241,6 @@ class BaseSoC(SoCCore):
             source_clk_domain  = "sys",
             TX_N_BUFF          = TX_N_BUFF,
             TX_MAX_PCT_SIZE    = TX_MAX_PCT_SIZE,
-            TX_IN_PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
             with_rx_tx_top     = with_rx_tx_top,
 
             with_fft           = with_fft,

@@ -268,7 +268,6 @@ class BaseSoC(SoCCore):
             source_clk_domain  = "ft601",
             TX_N_BUFF          = TX_N_BUFF,
             TX_MAX_PCT_SIZE    = TX_MAX_PCT_SIZE,
-            TX_IN_PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
             with_rx_tx_top     = with_rx_tx_top,
             with_lms7002       = with_lms7002,
 

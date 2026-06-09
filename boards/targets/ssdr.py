@@ -421,7 +421,6 @@ class BaseSoC(SoCCore):
             source_clk_domain    = "sys",
             TX_N_BUFF            = TX_N_BUFF,
             TX_MAX_PCT_SIZE      = TX_MAX_PCT_SIZE,
-            TX_IN_PCT_HDR_SIZE   = 16,
             # Use default value
             # tx_buffer_size       = 512,
 
