@@ -633,6 +633,7 @@ class BaseSoC(SoCCore):
                            platform=platform,
                            pads=self.afe_pads,
                            with_debug=False,
+                           sys_clk_freq = sys_clk_freq,
                            s_clk_domain=self.crg.cd_fpga_1pps.name,
                            m_clk_domain=self.crg.cd_fpga_1pps.name,
                            demux_clk_domain=self.crg.cd_afe.name,
@@ -912,21 +913,16 @@ class BaseSoC(SoCCore):
     def add_debug(self):
 
         analyzer_signals = [
-            self.limetop.rxtx_top.tx_path.pct_rd,
-            self.limetop.rxtx_top.tx_path.pct_clear,
-            self.limetop.rxtx_top.tx_path.pct_valid,
-
-            self.limetop.rxtx_top.tx_path.data_pad_tvalid,
-            self.limetop.rxtx_top.tx_path.data_pad_tready,
-            self.limetop.rxtx_top.tx_path.data_pad_tdata,
-
-            self.limetop.rxtx_top.tx_path.pct_loss_flg,
-            self.limetop.rxtx_top.tx_path.pct_loss_flg_clr,
+            self.afe.tx_dsp.reset_n,
+            self.afe.tx_dsp.sclk,
+            self.afe.tx_dsp.sdin,
+            self.afe.tx_dsp.sdout,
+            self.afe.tx_dsp.sen,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 256,
-            clock_domain = "afe",
+            depth        = 2048,
+            clock_domain = "sys",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
