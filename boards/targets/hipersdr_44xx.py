@@ -83,7 +83,7 @@ TX_N_BUFF            = 16    # Metadata FIFO depth; does not increase payload RA
 class CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
         self.cd_sys    = ClockDomain()
-        self.cd_idelay = ClockDomain()
+        #self.cd_idelay = ClockDomain()
         self.cd_afe    = ClockDomain()
         self.cd_jesd_freerun = ClockDomain()
 
@@ -110,7 +110,7 @@ class CRG(LiteXModule):
         self.pll = pll = USMMCM(speedgrade=-2)
         self.comb += pll.reset.eq(rst125)
         pll.register_clkin(clk125, 250e6)
-        pll.create_clkout(self.cd_idelay, 200e6)
+        #pll.create_clkout(self.cd_idelay, 200e6)
         pll.create_clkout(self.cd_afe, 500e6)
         pll.create_clkout(self.cd_jesd_freerun, 100e6)
 
@@ -121,8 +121,8 @@ class CRG(LiteXModule):
         # TODO: these do nothing for now, currently rely on manual constraints
         #       to make these work, add_period_constraint commands should be used first
         #       to establish clock names used in these commands
-        platform.add_false_path_constraints(self.cd_sys.clk, self.cd_idelay.clk)
-        platform.add_false_path_constraints(self.cd_sys.clk, self.cd_afe.clk)
+        #platform.add_false_path_constraints(self.cd_sys.clk, self.cd_idelay.clk)
+        #platform.add_false_path_constraints(self.cd_sys.clk, self.cd_afe.clk)
 
 
         # IDelayCtrl.
@@ -864,13 +864,15 @@ class BaseSoC(SoCCore):
         with open(timings_xdx_filename, "w") as f:
             # Write timing constraints.
             f.write("# Renaming generated clocks\n")
-            f.write("create_generated_clock -name sys -source [get_pins PLLE2_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins PLLE2_ADV/CLKOUT0]\n\n")
-            f.write("create_generated_clock -name idelaye -source [get_pins PLLE2_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins PLLE2_ADV/CLKOUT1]\n\n")
-            f.write("create_generated_clock -name afe -source [get_pins PLLE2_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins PLLE2_ADV/CLKOUT2]\n\n")
+            f.write("create_generated_clock -name afe [get_pins -hierarchical \"*MMCME2_ADV/CLKOUT0\"]\n\n")
+            f.write("create_generated_clock -name jesd_freerun [get_pins -hierarchical \"*MMCME2_ADV/CLKOUT1\"]\n\n")
+
+            f.write("create_generated_clock -name sys [get_pins -hierarchical \"PLLE2_ADV/CLKOUT0\"]\n\n")
 
             f.write("set_clock_groups -name sys_async1 -asynchronous -group [get_clocks sys]\n\n")
             f.write("set_clock_groups -name sys_async2 -asynchronous -group [get_clocks afe]\n\n")
-            f.write("set_clock_groups -name 1pps -asynchronous -group [get_clocks fpga_1pps_clk]\n\n")
+            f.write("set_clock_groups -name sys_async3 -asynchronous -group [get_clocks jesd_freerun]\n\n")
+
             f.write("set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]\n\n")
             # set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]
             # f.write("set_clock_groups -name 1pps_double -asynchronous -group [get_clocks fpga_1pps_double_clk]\n\n")
@@ -883,7 +885,7 @@ class BaseSoC(SoCCore):
             f.write("create_generated_clock -name afe_sys_2x [get_pins -hierarchical \"*PLLE2_ADV_1/CLKOUT1\"]\n\n")
 
             f.write("# Add AFE sys clocks to same clock group\n")
-            f.write("set_clock_groups -name afe_sys_async_group -asynchronous -group [get_clocks {fpga_1pps_clk afe_sys afe_sys_2x}]\n\n")
+            f.write("set_clock_groups -name afe_sys_async_group -asynchronous -group [get_clocks afe_sys ] -group [get_clocks afe_sys_2x]\n\n")
 
         self.platform.add_source(timings_xdx_filename)
 
