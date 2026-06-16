@@ -452,7 +452,7 @@ class BaseSoC(SoCCore):
         self.pcie_phy = USPPCIEPHY(platform, platform.request(f"pcie_x4"),
             speed="gen4",
             data_width  = 256,
-            bar0_size   = 0x40000,
+            bar0_size   = 0x80000,
             ip_name="pcie4c_uscale_plus",
             cd          = "sys",
         )
@@ -641,6 +641,20 @@ class BaseSoC(SoCCore):
                            resampling_stages=0)
 
         self.comb += self.afe.jesd_freerun_clk.eq(self.crg.cd_jesd_freerun.clk)
+
+
+
+        TXDSP_MMAP_BASE = 0xf002_0000
+        TXDSP_MMAP_SIZE = 0x0002_0000
+        self.bus.add_slave(name="txdsp_mmap", slave=self.afe.tx_dsp.mmap, region=SoCRegion(origin=TXDSP_MMAP_BASE, size=TXDSP_MMAP_SIZE, cached=False,))
+
+        print("\nLiteX SoC bus regions:")
+        for name, region in self.bus.regions.items():
+            origin = region.origin
+            size = region.size
+            end = origin + size - 1
+
+            print(f"{name:24s} 0x{origin:08x} - 0x{end:08x}  size=0x{size:x}")
 
         # self.debug_counter = Signal(8, reset=0)
         # # equivalent to self.sync.demux_clk_domain. That way does not work because
