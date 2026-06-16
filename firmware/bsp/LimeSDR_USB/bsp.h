@@ -29,6 +29,15 @@
 #define BSP_EXP_BOARD  EXP_BOARD_UNKNOWN
 #define BSP_FW_VER     11 // New main.c/bsp structure
 
+/* LMS Specific IDs */
+#define BSP_MAX_ID_LMS7 1
+#define BSP_MAX_ID_LMS8 0
+
+/* SPI & Peripheral Config */
+#define BSP_DAC_INDEX 0
+//TODO: CHECK for real value
+// #define BSP_DAC_DEFAULT_VAL  46870 // Default TCXO DAC value loaded when EEPROM is empty
+
 /*-----------------------------------------------------------------------*/
 /* Function Prototypes                                                   */
 /*-----------------------------------------------------------------------*/

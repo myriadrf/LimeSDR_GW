@@ -257,28 +257,29 @@ class BaseSoC(SoCCore):
         revision_pads = platform.request("revision")
         revision_pads.BOM_VER = Cat(revision_pads.BOM_VER0, revision_pads.BOM_VER1, revision_pads.BOM_VER2)
 
-        limetop  = LimeTop(self, platform, vendor="altera",
-            with_altera_max10_pll = True,
+        limetop  = LimeTop(self, platform,
+            vendor               ="altera",
+            family               ="max10",
             rx_fixed_packet_size = True,
             one_chnl             = True,
-            LMS_DIQ_WIDTH      = LMS_DIQ_WIDTH,
-            sink_width         = STRM0_FPGA_RX_RWIDTH,
-            sink_clk_domain    = "ft601",
-            source_width       = STRM0_FPGA_TX_WWIDTH,
-            source_clk_domain  = "ft601",
-            TX_N_BUFF          = TX_N_BUFF,
-            TX_MAX_PCT_SIZE    = TX_MAX_PCT_SIZE,
-            with_rx_tx_top     = with_rx_tx_top,
-            with_lms7002       = with_lms7002,
+            LMS_DIQ_WIDTH        = LMS_DIQ_WIDTH,
+            sink_width           = STRM0_FPGA_RX_RWIDTH,
+            sink_clk_domain      = "ft601",
+            source_width         = STRM0_FPGA_TX_WWIDTH,
+            source_clk_domain    = "ft601",
+            TX_N_BUFF            = TX_N_BUFF,
+            TX_MAX_PCT_SIZE      = TX_MAX_PCT_SIZE,
+            with_rx_tx_top       = with_rx_tx_top,
+            with_lms7002         = with_lms7002,
 
             # FPGACFG.
-            board_id           = 0x0011,
-            major_rev          =  MajorRevision if not gold_img else 0xDEAD,
-            compile_rev        =  CompileRevision if not gold_img else 0xDEAD,
-            revision_pads      = revision_pads,
+            board_id             = 0x0011,
+            major_rev            =  MajorRevision if not gold_img else 0xDEAD,
+            compile_rev          =  CompileRevision if not gold_img else 0xDEAD,
+            revision_pads        = revision_pads,
 
-            with_event_manager = False,
-            with_clk_cfg_irq   = False,
+            with_event_manager   = False,
+            with_clk_cfg_irq     = False,
         )
         # Make sure all sync statements happen on ft601 clock domain.
         # limetop = ClockDomainsRenamer({"sys": "ft601"})(limetop)

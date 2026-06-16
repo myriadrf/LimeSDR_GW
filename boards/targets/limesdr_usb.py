@@ -14,6 +14,7 @@ import subprocess
 
 from gateware.LimeDFB.FX3.src.FX3 import FX3
 from gateware.LimeTop import LimeTop
+from gateware.board_specific.limesdr_usb.PSS_LimeSDR_Usb import PSS_LimeSDR_Usb
 from gateware.helpers import write_module_hierarchy_json
 from gateware.Revision import *
 from migen import *
@@ -108,10 +109,18 @@ class BaseSoC(SoCCore):
                        pads=platform.request("FX3"),
                        vendor="altera")
 
-        # LimeTop
+        # LMS SPI -----------------------------------------------------------------------------------
+        # LMS spi declared outside PSS, because the current firmware driver expects that
+        self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI0"), data_width=32, spi_clk_freq=1e6)
+
+        # PSS
+        self.pss = PSS_LimeSDR_Usb(self, platform, sys_clk_freq)
+
+        # LimeTop -----------------------------------------------------------------------------------
         self.limetop  = LimeTop(self,
                                 platform             = platform,
                                 vendor               ="altera",
+                                family               = "cycloneIV",
                                 double_channels_mode = False,
                                 one_chnl             = False,
                                 LMS_DIQ_WIDTH        = 12,
@@ -144,7 +153,6 @@ class BaseSoC(SoCCore):
 
                                 with_event_manager   = False,#True,
                                 with_clk_cfg_irq     = False,#True,
-                                with_altera_max10_pll= False,
                                 soc_has_timesource   = False,
                                 )
 

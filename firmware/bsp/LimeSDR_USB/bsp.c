@@ -2,6 +2,8 @@
 
 void bsp_init(void)
 {
+    limetop_lms7002_top_lms_ctr_gpio_write(0x0);
+    limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
     // TODO: Implement board initialization
 }
 
@@ -32,47 +34,81 @@ void bsp_process_irqs(void)
 
 void bsp_delay_ms(unsigned int ms)
 {
-    // TODO: Implement accurate delay
+    // TODO: Check if delay is reasonably accurate
+
+    // Implement platform-specific delay
+    // Example: busy wait or use a hardware timer
+    while (ms--) {
+        // rough CPU delay loop (not accurate)
+        for (volatile int i = 0; i < 1000; i++)
+            ;
+    }
 }
 
 int8_t lms_reset(uint8_t periph_id, uint8_t command)
 {
-    // TODO: Implement lms_reset
-    return 0;
+    uint8_t check_val = lms7002m_periph_id_check(periph_id);
+    if (check_val == 0)
+        return 1;
+    uint32_t read_value;
+    switch (command) {
+    case LMS_RST_DEACTIVATE:
+        limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+        return 0;
+
+    case LMS_RST_ACTIVATE:
+        limetop_lms7002_top_lms_ctr_gpio_write(0x0);
+        return 0;
+
+    case LMS_RST_PULSE:
+        limetop_lms7002_top_lms_ctr_gpio_write(0x0);
+        asm("nop");
+        asm("nop");
+        asm("nop");
+        asm("nop");
+        asm("nop");
+        asm("nop");
+        asm("nop");
+        asm("nop");
+        asm("nop");
+        asm("nop");
+        limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+        return 0;
+    }
 }
 
 int8_t lms7002m_periph_id_check(uint8_t periph_id)
 {
-    // TODO: Implement peripheral ID check
-    return 0;
+    if (periph_id > BSP_MAX_ID_LMS7) {
+        return 0; // Invalid ID
+    }
+    return 1; // Valid ID
 }
 
 int8_t lms8001_periph_id_check(uint8_t periph_id)
 {
-    // TODO: Implement peripheral ID check
-    return 0;
+    // No LMS8's on XTRX board
+    return 2; // No LMS8's
 }
 
 void lms7002m_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id)
 {
-    // TODO: Implement LMS7002M SPI write
+    lms_spi_write(addr, val, periph_id);
 }
 
 uint16_t lms7002m_spi_read(uint16_t addr, uint8_t periph_id)
 {
-    // TODO: Implement LMS7002M SPI read
-    return 0;
+    return lms_spi_read(addr, periph_id);
 }
 
 void lms8001_spi_write(uint16_t addr, uint16_t val, uint8_t periph_id)
 {
-    // TODO: Implement LMS8001 SPI write
+    // no LMS8 on XTRX
 }
 
 uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id)
 {
-    // TODO: Implement LMS8001 SPI read
-    return 0;
+    return -1;
 }
 
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb)

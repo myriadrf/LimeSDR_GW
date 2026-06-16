@@ -50,8 +50,8 @@ _io = [
     ),
     ("FPGA_SPI1", 0, # ADF/DAC
         Subsignal("clk",  Pins("K8")),
-        Subsignal("cs_n", Pins("J5")),
-        Subsignal("cs_n", Pins("J3"), Misc("WEAK_PULL_UP_RESISTOR ON")),
+        Subsignal("adf_cs_n", Pins("J5")),
+        Subsignal("dac_cs_n", Pins("J3"), Misc("WEAK_PULL_UP_RESISTOR ON")),
         Subsignal("mosi", Pins("L8")),
         IOStandard("3.3-V LVCMOS")
     ),

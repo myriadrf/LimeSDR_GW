@@ -33,7 +33,7 @@ import warnings
 # LimeTop ------------------------------------------------------------------------------------------
 
 class LimeTop(LiteXModule):
-    def __init__(self, soc, platform, vendor,
+    def __init__(self, soc, platform, vendor, family,
         # Configuration.
         double_channels_mode = False,
         one_chnl             = False,
@@ -67,7 +67,6 @@ class LimeTop(LiteXModule):
 
         with_event_manager   = True,
         with_clk_cfg_irq     = True,
-        with_altera_max10_pll= False,
         soc_has_timesource   = False,
 
 
@@ -109,10 +108,10 @@ class LimeTop(LiteXModule):
             self.lms7002_top = lms7002_top = LMS7002Top(
                 platform        = platform,
                 vendor          = vendor,
+                family          = family,
                 pads            = platform.request("LMS"),
                 fpgacfg_manager = self.fpgacfg,
                 diq_width       = LMS_DIQ_WIDTH,
-                with_max10_pll  = with_altera_max10_pll,
                 one_chnl        = one_chnl,
             )
         else:
