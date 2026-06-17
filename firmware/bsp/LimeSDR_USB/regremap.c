@@ -41,16 +41,8 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x9:
         value = limetop_fpgacfg_reg09_read();
         break;
-    case 0xA:
-        // tmp   = limetop_fpgacfg_reg10_read();
-        // value = tmp & 0x03; //(tmp >> 1) & 0x01;
-        // value |= rfsw_control_rfsw_rx_read() << 2;
-        // value |= rfsw_control_rfsw_tx_read() << 4;
-        // value |= rfsw_control_tdd_manual_val_read() << 5;
-        // value |= rfsw_control_tdd_auto_en_read() << 6;
-        // value |= rfsw_control_tdd_invert_read() << 7;
-        // value |= (tmp & 0x200);
-        // value |= rfsw_control_rfsw_auto_en_read() << 11;
+    case 0x0a:
+        value = limetop_fpgacfg_reg10_read();
         break;
     case 0xF:
         value = limetop_fpgacfg_txant_pre_read();
@@ -72,7 +64,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
         value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
         value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
-        // value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
+        value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
         break;
     case 0x22:
         value = csr_read_simple(clk_ctrl_addrs.pll_lock);
@@ -209,20 +201,8 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0x9:
         limetop_fpgacfg_reg09_write(value);
         break;
-    case 0xA:
-        reg = (value & 0x003) << 0; // rx_en + tx_en
-        // reg |= (value & 0x002) << 1; // tx_en
-        reg |= (value & 0x200) << 0; // test_ptrn_en
-        limetop_fpgacfg_reg10_write(reg);
-        // limetop_lms7002_tx_en_write(value);
-        // limetop_lms7002_rx_en_write(value);
-        // rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
-        // rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
-        // rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
-        // rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
-        // rfsw_control_tdd_invert_write((value & 0x80) >> 7);
-        // limetop_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
-        // rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
+    case 0x0a:
+        limetop_fpgacfg_reg10_write(value);
         break;
     case 0xF:
         limetop_fpgacfg_txant_pre_write(value);

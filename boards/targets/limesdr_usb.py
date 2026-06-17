@@ -156,6 +156,10 @@ class BaseSoC(SoCCore):
                                 soc_has_timesource   = False,
                                 )
 
+        self.comb += [
+            self.FX3.data_source.connect(self.limetop.sink),
+            self.limetop.source.connect(self.FX3.data_sink),
+        ]
         # self.lms_pads = platform.request("LMS")
         # self.ddram0 = platform.request("ddram")
 
