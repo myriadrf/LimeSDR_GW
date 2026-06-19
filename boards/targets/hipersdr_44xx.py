@@ -646,7 +646,7 @@ class BaseSoC(SoCCore):
 
         TXDSP_MMAP_BASE = 0xf002_0000
         TXDSP_MMAP_SIZE = 0x0002_0000
-        self.bus.add_slave(name="txdsp_mmap", slave=self.afe.tx_dsp.mmap, region=SoCRegion(origin=TXDSP_MMAP_BASE, size=TXDSP_MMAP_SIZE, cached=False,))
+        self.bus.add_slave(name="ram_mmap", slave=self.afe.dpd_capture_buffer.mmap, region=SoCRegion(origin=TXDSP_MMAP_BASE, size=TXDSP_MMAP_SIZE, cached=False,))
 
         print("\nLiteX SoC bus regions:")
         for name, region in self.bus.regions.items():
@@ -929,16 +929,18 @@ class BaseSoC(SoCCore):
     def add_debug(self):
 
         analyzer_signals = [
-            self.afe.tx_dsp.reset_n,
-            self.afe.tx_dsp.sclk,
-            self.afe.tx_dsp.sdin,
-            self.afe.tx_dsp.sdout,
-            self.afe.tx_dsp.sen,
+            self.afe.dpd_capture_buffer.reset_n,
+            self.afe.dpd_capture_buffer.bram_write.web  ,
+            self.afe.dpd_capture_buffer.bram_write.enb  ,
+            self.afe.dpd_capture_buffer.bram_write.addrb,
+            self.afe.dpd_capture_buffer.bram_write.doutb,
+            self.afe.dpd_capture_buffer.bram_write.start_write,
+            self.afe.dpd_capture_buffer.bram_write.full,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 2048,
-            clock_domain = "sys",
+            clock_domain = "fpga_1pps_2x",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
