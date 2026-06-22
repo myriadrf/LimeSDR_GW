@@ -4,6 +4,8 @@ void bsp_init(void)
 {
     limetop_lms7002_top_lms_ctr_gpio_write(0x0);
     limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+    csr_write_simple(0x0FFF, clk_ctrl_addrs.phcfg_samples);
+    csr_write_simple(0x0002, clk_ctrl_addrs.phcfg_step);
     // TODO: Implement board initialization
 }
 
