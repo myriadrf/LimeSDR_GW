@@ -21,6 +21,8 @@ create_generated_clock -name afe_sys [get_pins -hierarchical "*PLLE2_ADV_1/CLKOU
 
 create_generated_clock -name afe_sys_2x [get_pins -hierarchical "*PLLE2_ADV_1/CLKOUT1"]
 
+create_generated_clock -name afe_dsp [get_pins -hierarchical "*PLLE2_ADV_1/CLKOUT2"]
+
 # Add AFE sys clocks to same clock group
-set_clock_groups -name afe_sys_async_group -asynchronous -group [get_clocks afe_sys ] -group [get_clocks afe_sys_2x]
+set_clock_groups -name afe_sys_async_group -asynchronous -group [get_clocks afe_sys ] -group [get_clocks afe_sys_2x] -group [get_clocks afe_dsp]
 

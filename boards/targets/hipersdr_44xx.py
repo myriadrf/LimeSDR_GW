@@ -94,6 +94,7 @@ class CRG(LiteXModule):
         self.fpga_1pps_clk   = Signal()
         self.cd_fpga_1pps    = ClockDomain()
         self.cd_fpga_1pps_2x = ClockDomain()
+        self.cd_fpga_1pps_dsp = ClockDomain()
 
         vctcxo_ref = platform.request("gpio_d11")
         self.cd_vctcxo_ref = ClockDomain()
@@ -146,6 +147,7 @@ class CRG(LiteXModule):
         pll_afe.register_clkin(self.fpga_1pps_clk, 245.76e6)
         pll_afe.create_clkout(self.cd_fpga_1pps, 245.76e6)
         pll_afe.create_clkout(self.cd_fpga_1pps_2x,  491.52e6)
+        pll_afe.create_clkout(self.cd_fpga_1pps_dsp, 122.88e6)
 
 
 
@@ -897,9 +899,10 @@ class BaseSoC(SoCCore):
             f.write("# Rename auto-derived pll_afe output clocks\n")
             f.write("create_generated_clock -name afe_sys [get_pins -hierarchical \"*PLLE2_ADV_1/CLKOUT0\"]\n\n")
             f.write("create_generated_clock -name afe_sys_2x [get_pins -hierarchical \"*PLLE2_ADV_1/CLKOUT1\"]\n\n")
+            f.write("create_generated_clock -name afe_dsp [get_pins -hierarchical \"*PLLE2_ADV_1/CLKOUT2\"]\n\n")
 
             f.write("# Add AFE sys clocks to same clock group\n")
-            f.write("set_clock_groups -name afe_sys_async_group -asynchronous -group [get_clocks afe_sys ] -group [get_clocks afe_sys_2x]\n\n")
+            f.write("set_clock_groups -name afe_sys_async_group -asynchronous -group [get_clocks afe_sys ] -group [get_clocks afe_sys_2x] -group [get_clocks afe_dsp]\n\n")
 
         self.platform.add_source(timings_xdx_filename)
 
