@@ -163,13 +163,6 @@ class BaseSoC(SoCCore):
             self.FX3.data_source0_clr.eq  (~self.limetop.fpgacfg.rx_en),
             self.FX3.data_source1_clr.eq  (~self.limetop.fpgacfg.rx_en),
         ]
-        # self.lms_pads = platform.request("LMS")
-        # self.ddram0 = platform.request("ddram")
-
-        # TODO: Add modules and peripherals:
-        # - FX3 (USB interface)
-        # - LMS7002M (RF transceiver)
-        # - SPI, I2C, GPIOs, etc.
 
     # Utils
     def print_soc_hierarchy_json(self, outfile=None):
