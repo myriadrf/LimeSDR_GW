@@ -157,8 +157,11 @@ class BaseSoC(SoCCore):
                                 )
 
         self.comb += [
-            self.FX3.data_source.connect(self.limetop.sink),
-            self.limetop.source.connect(self.FX3.data_sink),
+            self.FX3.data_source.connect  (self.limetop.sink),
+            self.limetop.source.connect   (self.FX3.data_sink),
+            self.FX3.data_sink_clr.eq     (~self.limetop.fpgacfg.rx_en),
+            self.FX3.data_source0_clr.eq  (~self.limetop.fpgacfg.rx_en),
+            self.FX3.data_source1_clr.eq  (~self.limetop.fpgacfg.rx_en),
         ]
         # self.lms_pads = platform.request("LMS")
         # self.ddram0 = platform.request("ddram")
