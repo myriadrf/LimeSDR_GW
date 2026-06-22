@@ -35,26 +35,61 @@ from litex.soc.integration.builder  import *
 
 class _CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
-        self.cd_sys   = ClockDomain()
 
+        # Safety feature. Currently there is no support for other frequencies.
+        assert sys_clk_freq == 100e6
+
+        self.cd_sys   = ClockDomain()
         self.fx3_pclk = platform.request("FX3_PCLK")
         # FX3 PCLK runs at 100MHz
         platform.add_period_constraint(self.fx3_pclk, 1e9/100e6)
+        self.comb += self.cd_sys.clk.eq(self.fx3_pclk)
 
         self.ext_gnd = Signal()
         self.ext_gnd = platform.request("EXT_GND")
-        self.comb += self.cd_sys.clk.eq(self.fx3_pclk)
         self.specials += AsyncResetSynchronizer(self.cd_sys,self.ext_gnd)
 
-        # # #
+        self.cd_lmk  = ClockDomain()
+        self.clk_lmk = platform.request("LMK_CLK")
+        platform.add_period_constraint(self.clk_lmk, 1e9 / 30.72e6)
+        self.comb += self.cd_lmk.clk.eq(self.clk_lmk)
 
-        # TODO: Implement Clock and Reset Generation for Cyclone IV.
-        # Skeleton:
-        # self.clk = platform.request("???")
-        # self.pll = CycloneIVPLL(platform)
-        # self.pll.register_clkin(self.clk, ???)
-        # self.pll.create_clkout(self.cd_sys, sys_clk_freq)
-        # self.specials += AsyncResetSynchronizer(self.cd_sys, self.rst)
+        self.cd_si0 = ClockDomain()
+        self.clk_si0 = platform.request("SI_CLK", 0)
+        platform.add_period_constraint(self.clk_si0, 1e9 / 250e6)
+        self.comb += self.cd_si0.clk.eq(self.clk_si0)
+
+        self.cd_si1 = ClockDomain()
+        self.clk_si1 = platform.request("SI_CLK", 1)
+        platform.add_period_constraint(self.clk_si1, 1e9 / 250e6)
+        self.comb += self.cd_si1.clk.eq(self.clk_si1)
+
+        self.cd_si2 = ClockDomain()
+        self.clk_si2 = platform.request("SI_CLK", 2)
+        platform.add_period_constraint(self.clk_si2, 1e9 / 250e6)
+        self.comb += self.cd_si2.clk.eq(self.clk_si2)
+
+        self.cd_si3 = ClockDomain()
+        self.clk_si3 = platform.request("SI_CLK", 3)
+        platform.add_period_constraint(self.clk_si3, 1e9 / 250e6)
+        self.comb += self.cd_si3.clk.eq(self.clk_si3)
+
+        # No SI CLK 4
+
+        self.cd_si5 = ClockDomain()
+        self.clk_si5 = platform.request("SI_CLK", 5)
+        platform.add_period_constraint(self.clk_si5, 1e9 / 250e6)
+        self.comb += self.cd_si5.clk.eq(self.clk_si5)
+
+        self.cd_si6 = ClockDomain()
+        self.clk_si6 = platform.request("SI_CLK", 6)
+        platform.add_period_constraint(self.clk_si6, 1e9 / 250e6)
+        self.comb += self.cd_si6.clk.eq(self.clk_si6)
+
+        self.cd_si7 = ClockDomain()
+        self.clk_si7 = platform.request("SI_CLK", 7)
+        platform.add_period_constraint(self.clk_si7, 1e9 / 250e6)
+        self.comb += self.cd_si7.clk.eq(self.clk_si7)
 
 # BaseSoC ------------------------------------------------------------------------------------------
 
@@ -113,7 +148,7 @@ class BaseSoC(SoCCore):
         # LMS spi declared outside PSS, because the current firmware driver expects that
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI0"), data_width=32, spi_clk_freq=1e6)
 
-        # PSS
+        # PSS (Peripheral Support Subsystem)
         self.pss = PSS_LimeSDR_Usb(self, platform, sys_clk_freq)
 
         # LimeTop -----------------------------------------------------------------------------------
