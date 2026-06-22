@@ -1,4 +1,5 @@
 from gateware.GpioTop import GpioTop
+from gateware.board_specific.limesdr_usb.TST_TOP_LimeSDR_USB import TST_TOP_LimeSDR_USB
 from litei2c import LiteI2C
 from migen import *
 from litex.gen import *
@@ -8,6 +9,9 @@ from litex.soc.interconnect.csr import *
 
 class PSS_LimeSDR_Usb(LiteXModule):
     def __init__(self, soc, platform, sys_clk_freq):
+        self.platform = platform
+
+        self.adf_muxout = platform.request("ADF_MUXOUT")
 
         # SPI1 - TCXO DAC, ADF4002
         # Need to do some trickery here to add a dummy miso
@@ -37,5 +41,10 @@ class PSS_LimeSDR_Usb(LiteXModule):
 
         # GPIO
         self.gpio = GpioTop(platform=platform,pads=platform.request("FPGA_GPIO"))
+
+        # TST Top
+        self.tst_top = TST_TOP_LimeSDR_USB(self.platform)
+        self.comb += self.tst_top.adf_muxout.eq(self.adf_muxout)
+
 
 
