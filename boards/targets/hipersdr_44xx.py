@@ -147,7 +147,7 @@ class CRG(LiteXModule):
         pll_afe.register_clkin(self.fpga_1pps_clk, 245.76e6)
         pll_afe.create_clkout(self.cd_fpga_1pps, 245.76e6)
         pll_afe.create_clkout(self.cd_fpga_1pps_2x,  491.52e6)
-        pll_afe.create_clkout(self.cd_fpga_1pps_dsp, 122.88e6)
+        pll_afe.create_clkout(self.cd_fpga_1pps_dsp, 245.76e6)
 
 
 
