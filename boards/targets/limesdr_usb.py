@@ -142,7 +142,11 @@ class BaseSoC(SoCCore):
         # FX3
         self.FX3 = FX3(platform=platform,
                        pads=platform.request("FX3"),
-                       vendor="altera")
+                       vendor="altera",
+                       EP01_0_rwidth = 64,
+                       EP01_1_rwidth = 64,
+                       EP81_wwidth   = 64
+                       )
 
         # LMS SPI -----------------------------------------------------------------------------------
         # LMS spi declared outside PSS, because the current firmware driver expects that
@@ -159,9 +163,9 @@ class BaseSoC(SoCCore):
                                 double_channels_mode = False,
                                 one_chnl             = False,
                                 LMS_DIQ_WIDTH        = 12,
-                                sink_width           = 32,
+                                sink_width           = 64,
                                 sink_clk_domain      = "sys",
-                                source_width         = 32,
+                                source_width         = 64,
                                 source_clk_domain    = "sys",
                                 rx_sys_clk_domain    = "sys",
                                 rx_fixed_packet_size = True, # TODO: check
