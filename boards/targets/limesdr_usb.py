@@ -95,10 +95,11 @@ class _CRG(LiteXModule):
 
 class BaseSoC(SoCCore):
     def __init__(self,
-                 sys_clk_freq= 100e6,
+                 sys_clk_freq      = 100e6,
                  with_bios         = False,
                  gold_img          = False,
-                 cpu_firmware      = None):
+                 cpu_firmware      = None,
+                 with_jtagbone     = False):
         platform = limesdr_usb.Platform()
         platform.name        = "limesdr_usb"
         platform.vhd2v_force = False
@@ -138,6 +139,12 @@ class BaseSoC(SoCCore):
 
         # CRG --------------------------------------------------------------------------------------
         self.crg = _CRG(platform, sys_clk_freq)
+
+        # JTAGBone ---------------------------------------------------------------------------------
+        if with_jtagbone:
+            self.add_jtagbone()
+            platform.add_period_constraint(self.jtagbone_phy.cd_jtag.clk, 1e9/20e6)
+            platform.add_false_path_constraints(self.jtagbone_phy.cd_jtag.clk, self.crg.cd_sys.clk)
 
         # FX3
         self.FX3 = FX3(platform=platform,
@@ -201,6 +208,7 @@ class BaseSoC(SoCCore):
             self.FX3.data_sink_clr.eq     (~self.limetop.fpgacfg.rx_en),
             self.FX3.data_source0_clr.eq  (~self.limetop.fpgacfg.rx_en),
             self.FX3.data_source1_clr.eq  (~self.limetop.fpgacfg.rx_en),
+            self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en),
         ]
 
     # Utils
@@ -230,7 +238,8 @@ def main():
     parser.add_argument("--cable", default="usb-blaster", help="JTAG cable.")
 
     # SoC parameters.
-    parser.add_argument("--with-bios", action="store_true", help="Enable LiteX BIOS.")
+    parser.add_argument("--with-bios",     action="store_true", help="Enable LiteX BIOS.")
+    parser.add_argument("--with-jtagbone", action="store_true", help="Enable JTAGBone.")
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
@@ -245,8 +254,9 @@ def main():
         
         # SoC.
         soc = BaseSoC(
-            with_bios    = args.with_bios,
-            cpu_firmware = None if prepare else "firmware/firmware.bin"
+            with_bios     = args.with_bios,
+            with_jtagbone = args.with_jtagbone,
+            cpu_firmware  = None if prepare else "firmware/firmware.bin"
         )
 
         # Always generate SoC hierarchy JSON during prepare pass unless disabled.
