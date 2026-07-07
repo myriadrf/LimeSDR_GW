@@ -18,8 +18,10 @@ litei2c_regs I2C0_REGS = {.master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
 void bsp_init(void)
 {
     general_periph_board_gpio_OVRD_write(0xFF);
+#ifndef GOLDEN_IMAGE
     csr_write_simple(0x0FFF, clk_ctrl_addrs.phcfg_samples);
     csr_write_simple(0x0002, clk_ctrl_addrs.phcfg_step);
+#endif
     // RESET FIFO once on power-up
     ft601_fifo_control_write(1);
     ft601_fifo_control_write(0);
