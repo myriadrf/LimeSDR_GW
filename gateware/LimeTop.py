@@ -44,8 +44,8 @@ class LimeTop(LiteXModule):
         source_clk_domain    = "sys",
         rx_sys_clk_domain    = "sys",
         rx_fixed_packet_size = False,
-        TX_N_BUFF            = 5,
-        TX_MAX_PCT_SIZE      = 4096,
+        TX_N_BUFF            = 5, # size of tx packet buffer packet queue
+        TX_MAX_PCT_SIZE      = 8192, # Total tx packet buffer capacity in bytes
         tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
 
         with_lms7002         = True,
