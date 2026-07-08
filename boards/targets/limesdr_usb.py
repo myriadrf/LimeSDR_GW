@@ -176,8 +176,8 @@ class BaseSoC(SoCCore):
                                 source_clk_domain    = "sys",
                                 rx_sys_clk_domain    = "sys",
                                 rx_fixed_packet_size = True, # TODO: check
-                                TX_N_BUFF            = 5,
-                                TX_MAX_PCT_SIZE      = 4096,
+                                TX_N_BUFF            = 16,
+                                TX_MAX_PCT_SIZE      = 16384,
                                 tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
 
                                 with_lms7002         = True,
