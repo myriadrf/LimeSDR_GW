@@ -29,7 +29,10 @@ from litex.soc.integration.builder  import *
 
 # Constants ----------------------------------------------------------------------------------------
 
-# TODO: Define constants (FIFO sizes, etc.)
+FPGA_to_Host_data_width = 64 # bus width connecting FX3 and Limetop
+Host_to_FPGA_data_width = 64 # bus width connecting FX3 and Limetop
+Tx_max_buf_packets = 16      # maximum number of buffered tx packets in Limetop (any size)
+Tx_packet_buf_size = 16384   # total size (in bytes) of tx packet buffer in Limetop
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -98,7 +101,7 @@ class BaseSoC(SoCCore):
                  sys_clk_freq      = 100e6,
                  with_bios         = False,
                  gold_img          = False,
-                 cpu_firmware      = None,
+                 cpu_firmware   = None,
                  with_jtagbone     = False):
         platform = limesdr_usb.Platform()
         platform.name        = "limesdr_usb"
@@ -150,9 +153,9 @@ class BaseSoC(SoCCore):
         self.FX3 = FX3(platform=platform,
                        pads=platform.request("FX3"),
                        vendor="altera",
-                       EP01_0_rwidth = 64,
-                       EP01_1_rwidth = 64,
-                       EP81_wwidth   = 64
+                       EP01_0_rwidth = Host_to_FPGA_data_width,
+                       EP01_1_rwidth = Host_to_FPGA_data_width,
+                       EP81_wwidth   = FPGA_to_Host_data_width
                        )
 
         # LMS SPI -----------------------------------------------------------------------------------
@@ -165,41 +168,21 @@ class BaseSoC(SoCCore):
         # LimeTop -----------------------------------------------------------------------------------
         self.limetop  = LimeTop(self,
                                 platform             = platform,
-                                vendor               ="altera",
+                                vendor               = "altera",
                                 family               = "cycloneIV",
-                                double_channels_mode = False,
-                                one_chnl             = False,
-                                LMS_DIQ_WIDTH        = 12,
-                                sink_width           = 64,
-                                sink_clk_domain      = "sys",
-                                source_width         = 64,
-                                source_clk_domain    = "sys",
-                                rx_sys_clk_domain    = "sys",
-                                rx_fixed_packet_size = True, # TODO: check
-                                TX_N_BUFF            = 16,
-                                TX_MAX_PCT_SIZE      = 16384,
-                                tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
-
-                                with_lms7002         = True,
-                                # These clocks are only used if with_lms7002 is False
-                                phy_tx_source_clk    = "sys",
-                                phy_tx_sink_width    = 128,
-                                phy_rx_sink_clk      = "sys",
-                                phy_rx_sink_width    = 128,
-                                with_rx_tx_top       = True,
-                                fft_pts              = 512,     #Changing FFT points requires FFT src rebuild, use rebuild_fft_rtl=True
-                                rebuild_fft_rtl      = False,
-                                with_fft             = False,
-
+                                sink_width           = Host_to_FPGA_data_width,
+                                source_width         = FPGA_to_Host_data_width,
+                                rx_fixed_packet_size = True,
+                                TX_N_BUFF            = Tx_max_buf_packets,
+                                TX_MAX_PCT_SIZE      = Tx_packet_buf_size,
                                 # FPGACFG.
                                 board_id             = 0x0011,
                                 major_rev            = MajorRevision,
                                 compile_rev          = CompileRevision,
                                 revision_pads        = platform.request("revision"),
 
-                                with_event_manager   = False,#True,
-                                with_clk_cfg_irq     = False,#True,
-                                soc_has_timesource   = False,
+                                with_event_manager   = False,
+                                with_clk_cfg_irq     = False,
                                 )
 
         self.comb += [
