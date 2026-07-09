@@ -278,12 +278,12 @@ class BaseSoC(SoCCore):
             self.ft601.source.connect(self.limetop.sink),
             self.limetop.source.connect(self.ft601.sink),
             # FT601 <-> RXTX Top.
-            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.rxtx_top.rx_en),
-            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
+            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.stream_start_controller.rx_en),
+            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.stream_start_controller.tx_en),
         ]
 
 
-        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en)
+        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.stream_start_controller.tx_en)
 
         rfsw_pads  = platform.request("RFSW")
         tx_lb_pads = platform.request("TX_LB")
