@@ -557,12 +557,20 @@ class BaseSoC(SoCCore):
            soc_has_timesource   = False,
         )
 
+        self.synchro_pads = platform.request("synchro")
+
+        self.comb += [self.synchro_pads.pps_out.eq(self.limetop.stream_start_controller.rx_en),
+                      self.limetop.stream_start_controller.pps.eq(self.pps_internal),
+                      self.limetop.stream_start_controller.pps_valid.eq(1),
+                      self.limetop.stream_start_controller.ext_trigger.eq(self.synchro_pads.pps_in),
+        ]
+
         self.comb += self.limetop.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
         ## PCIE DMA -> TX Path -> LMS7002 Pipeline.
         self.comb += [
            self.pcie_dma0.source.connect(self.limetop.sink, omit=["ready"]),
-           self.pcie_dma0.source.ready.eq((self.limetop.sink.ready & self.limetop.fpgacfg.rx_en) | ~self.pcie_dma0.reader.enable),
+           self.pcie_dma0.source.ready.eq((self.limetop.sink.ready & self.limetop.stream_start_controller.tx_en) | ~self.pcie_dma0.reader.enable),
         ]
 
         self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
@@ -662,8 +670,8 @@ class BaseSoC(SoCCore):
         ]
 
         self.comb +=[
-            self.afe.rx_en.eq(self.limetop.fpgacfg.rx_en),
-            self.afe.tx_en.eq(self.limetop.fpgacfg.rx_en),
+            self.afe.rx_en.eq(self.limetop.stream_start_controller.rx_en),
+            self.afe.tx_en.eq(self.limetop.stream_start_controller.tx_en),
         ]
 
         #self.afe_pads = platform.request("afe79xx_serdes_x4")

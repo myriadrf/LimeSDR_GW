@@ -23,6 +23,8 @@ from gateware.LimeDFB.tx_path_top.src.tx_path_top       import TXPathTop
 
 class RXTXTop(LiteXModule):
     def __init__(self, platform, fpgacfg_manager=None,
+        rx_stream_en=None,
+        tx_stream_en=None,
         # TX parameters
         TX_IQ_WIDTH        = 12,
         TX_N_BUFF          = 4,
@@ -52,10 +54,12 @@ class RXTXTop(LiteXModule):
 
         assert fpgacfg_manager is not None
 
+        rx_stream_en = fpgacfg_manager.rx_en if rx_stream_en is None else rx_stream_en
+        tx_stream_en = fpgacfg_manager.rx_en if tx_stream_en is None else tx_stream_en
+
         self.platform              = platform
 
         self.rx_pct_fifo_aclrn_req = Signal()
-        self.rx_en                 = Signal()
 
         # Test Cfg From RXTX.
         # -------------------
@@ -74,7 +78,7 @@ class RXTXTop(LiteXModule):
 
         # TX Path.
         # --------
-        self.tx_path = tx_path = TXPathTop(platform, fpgacfg_manager,
+        self.tx_path = tx_path = TXPathTop(platform, fpgacfg_manager, tx_stream_en,
             IQ_WIDTH        = TX_IQ_WIDTH,
             PCT_MAX_SIZE    = TX_IN_MAX_PCT_SIZE,
             PCT_HDR_SIZE    = TX_IN_PCT_HDR_SIZE,
@@ -89,7 +93,7 @@ class RXTXTop(LiteXModule):
 
         # RX Path.
         # --------
-        self.rx_path = rx_path = RXPathTop(platform, fpgacfg_manager,
+        self.rx_path = rx_path = RXPathTop(platform, fpgacfg_manager, rx_stream_en,
             RX_IQ_WIDTH        = RX_IQ_WIDTH,
             m_clk_domain       = rx_m_clk_domain,
             int_clk_domain     = rx_int_clk_domain,
@@ -104,8 +108,6 @@ class RXTXTop(LiteXModule):
         # Logic.
         # ------
         self.comb += [
-            # Rx Enable.
-            self.rx_en.eq(fpgacfg_manager.rx_en),
 
             # CSR
             self._ddr2_1_pnf_per_bit_l.status.eq(self._ddr2_1_pnf_per_bit[:16]),

@@ -30,6 +30,184 @@ from gateware.examples.fft.LimeFFT                      import LimeFFT
 from gateware.common import *
 import warnings
 
+# Stream Start Controller --------------------------------------------------------------------------
+
+
+class StreamStartController(LiteXModule):
+    # Stream start modes.
+    START_IMMEDIATE       = 0  # en_req=1 starts stream immediately.
+    START_ON_PPS         = 1  # en_req=1 arms stream; PPS rising edge starts it.
+    START_ON_PPS_VALID   = 2  # en_req=1 arms stream; PPS rising edge starts it only when pps_valid=1.
+    START_ON_EXT_TRIGGER = 3  # en_req=1 arms stream; external trigger rising edge starts it.
+
+    def __init__(self, clock_domain="sys", synchronize_inputs=False):
+
+        # CSR start-mode configuration.
+        self.rx_delay_mode = CSRStorage(size=2, description="RX stream start mode", fields=[
+            CSRField("rx_del_sel", size=2, offset=0, description="RX stream start mode", reset=0, values=[
+                ("``0b00``", "Start immediately when rx_en_req is asserted."),
+                ("``0b01``", "Start on PPS rising edge after rx_en_req is asserted."),
+                ("``0b10``", "Start on PPS rising edge with pps_valid=1 after rx_en_req is asserted."),
+                ("``0b11``", "Start on external trigger rising edge after rx_en_req is asserted."),
+            ])
+        ])
+
+        self.tx_delay_mode = CSRStorage(size=2, description="TX stream start mode", fields=[
+            CSRField("tx_del_sel", size=2, offset=0, description="TX stream start mode", reset=0, values=[
+                ("``0b00``", "Start immediately when tx_en_req is asserted."),
+                ("``0b01``", "Start on PPS rising edge after tx_en_req is asserted."),
+                ("``0b10``", "Start on PPS rising edge with pps_valid=1 after tx_en_req is asserted."),
+                ("``0b11``", "Start on external trigger rising edge after tx_en_req is asserted."),
+            ])
+        ])
+
+        self.tx_sync_mode = CSRStorage(size=1, description="TX/RX stream start synchronization mode", fields=[
+            CSRField("tx_sync_with_rx", size=1, offset=0, reset=1, values=[
+                ("``0b0``", "TX starts independently using tx_en_req and tx_delay_mode."),
+                ("``0b1``", "TX follows RX. tx_en_req and tx_delay_mode are ignored."),
+            ])
+        ])
+
+        # Inputs from CSR / external logic.
+        self.rx_en_req = Signal()
+        self.tx_en_req = Signal()
+
+        self.pps         = Signal()
+        self.pps_valid   = Signal()
+        self.ext_trigger = Signal()
+
+        # Effective stream enables.
+        self.rx_en = Signal()
+        self.tx_en = Signal()
+
+        # # #
+
+        sync_domain = getattr(self.sync, clock_domain)
+
+        rx_en_req       = Signal()
+        tx_en_req       = Signal()
+        rx_start_mode   = Signal(2)
+        tx_start_mode   = Signal(2)
+        tx_sync_with_rx = Signal()
+        pps             = Signal()
+        pps_valid       = Signal()
+        ext_trigger     = Signal()
+
+        if synchronize_inputs:
+            self.specials += [
+                MultiReg(self.rx_en_req, rx_en_req, odomain=clock_domain),
+                MultiReg(self.tx_en_req, tx_en_req, odomain=clock_domain),
+
+                MultiReg(self.rx_delay_mode.fields.rx_del_sel, rx_start_mode, odomain=clock_domain),
+                MultiReg(self.tx_delay_mode.fields.tx_del_sel, tx_start_mode, odomain=clock_domain),
+                MultiReg(self.tx_sync_mode.fields.tx_sync_with_rx, tx_sync_with_rx, odomain=clock_domain),
+
+                MultiReg(self.pps,         pps,         odomain=clock_domain),
+                MultiReg(self.pps_valid,   pps_valid,   odomain=clock_domain),
+                MultiReg(self.ext_trigger, ext_trigger, odomain=clock_domain),
+            ]
+        else:
+            self.comb += [
+                rx_en_req.eq(self.rx_en_req),
+                tx_en_req.eq(self.tx_en_req),
+
+                rx_start_mode.eq(self.rx_delay_mode.fields.rx_del_sel),
+                tx_start_mode.eq(self.tx_delay_mode.fields.tx_del_sel),
+                tx_sync_with_rx.eq(self.tx_sync_mode.fields.tx_sync_with_rx),
+
+                pps.eq(self.pps),
+                pps_valid.eq(self.pps_valid),
+                ext_trigger.eq(self.ext_trigger),
+            ]
+
+        # PPS rising-edge detector.
+        pps_d      = Signal()
+        pps_rising = Signal()
+
+        sync_domain += [
+            pps_d.eq(pps),
+        ]
+
+        self.comb += [
+            pps_rising.eq(pps & ~pps_d),
+        ]
+
+        # External trigger rising-edge detector.
+        ext_trigger_d      = Signal()
+        ext_trigger_rising = Signal()
+
+        sync_domain += [
+            ext_trigger_d.eq(ext_trigger),
+        ]
+
+        self.comb += [
+            ext_trigger_rising.eq(ext_trigger & ~ext_trigger_d),
+        ]
+
+        # Start conditions.
+        rx_start_now = Signal()
+        tx_start_now = Signal()
+
+        self.comb += [
+            rx_start_now.eq(
+                (rx_start_mode == self.START_IMMEDIATE) |
+                ((rx_start_mode == self.START_ON_PPS) & pps_rising) |
+                ((rx_start_mode == self.START_ON_PPS_VALID) & pps_rising & pps_valid) |
+                ((rx_start_mode == self.START_ON_EXT_TRIGGER) & ext_trigger_rising)
+            ),
+
+            tx_start_now.eq(
+                (tx_start_mode == self.START_IMMEDIATE) |
+                ((tx_start_mode == self.START_ON_PPS) & pps_rising) |
+                ((tx_start_mode == self.START_ON_PPS_VALID) & pps_rising & pps_valid) |
+                ((tx_start_mode == self.START_ON_EXT_TRIGGER) & ext_trigger_rising)
+            ),
+        ]
+
+        # RX enable latch.
+        #
+        # - Cleared immediately when rx_en_req is low.
+        # - Set when rx_en_req is high and selected RX start condition occurs.
+        # - Holds while rx_en_req remains high.
+        sync_domain += [
+            If(rx_en_req == 0,
+                self.rx_en.eq(0),
+            ).Elif(rx_start_now,
+                self.rx_en.eq(1),
+            )
+        ]
+
+        # TX enable latch.
+        #
+        # tx_sync_with_rx = 0:
+        #   TX starts independently:
+        #       tx_en_req=1 arms TX.
+        #       tx_delay_mode selects the TX start condition.
+        #
+        # tx_sync_with_rx = 1:
+        #   TX follows RX:
+        #       tx_en_req is ignored.
+        #       tx_delay_mode is ignored.
+        #       TX clears when rx_en_req=0.
+        #       TX sets on rx_start_now, so TX and RX go high in the same clock cycle.
+        sync_domain += [
+            If(tx_sync_with_rx == 1,
+                If(rx_en_req == 0,
+                    self.tx_en.eq(0),
+                ).Elif(self.rx_en | rx_start_now,
+                    self.tx_en.eq(1),
+                )
+
+            ).Else(
+                If(tx_en_req == 0,
+                    self.tx_en.eq(0),
+                ).Elif(tx_start_now,
+                    self.tx_en.eq(1),
+                )
+            )
+        ]
+
+
 # LimeTop ------------------------------------------------------------------------------------------
 
 class LimeTop(LiteXModule):
@@ -85,6 +263,8 @@ class LimeTop(LiteXModule):
         self.vendor = vendor
 
         self.pps       = Signal()
+        self.pps_valid = Signal()
+        self.ext_stream_trigger = Signal()
 
 
 
@@ -101,8 +281,16 @@ class LimeTop(LiteXModule):
             major_rev          = major_rev,
             compile_rev        = compile_rev,
             pads               = revision_pads,
-            soc_has_timesource = soc_has_timesource,
         )
+
+        # Stream Start Controller
+        self.stream_start_controller = StreamStartController(clock_domain="sys", synchronize_inputs=True)
+        self.comb += [self.stream_start_controller.rx_en_req.eq(self.fpgacfg.rx_en),
+                      self.stream_start_controller.tx_en_req.eq(self.fpgacfg.tx_en),
+                      self.stream_start_controller.pps.eq(self.pps),
+                      self.stream_start_controller.pps_valid.eq(self.pps_valid),
+                      self.stream_start_controller.ext_trigger.eq(self.ext_stream_trigger),
+                      ]
 
         # LMS7002 Top ------------------------------------------------------------------------------
         if with_lms7002:
@@ -113,6 +301,8 @@ class LimeTop(LiteXModule):
                 pads            = platform.request("LMS"),
                 add_csr         = True,
                 fpgacfg_manager = self.fpgacfg,
+                rx_stream_en=self.stream_start_controller.rx_en,
+                tx_stream_en    = self.stream_start_controller.tx_en,
                 pllcfg_manager  = None,
                 diq_width       = LMS_DIQ_WIDTH,
                 with_max10_pll  = with_altera_max10_pll,
@@ -129,7 +319,7 @@ class LimeTop(LiteXModule):
 
         if with_rx_tx_top:
 
-            self.rxtx_top = RXTXTop(platform, self.fpgacfg,
+            self.rxtx_top = RXTXTop(platform, self.fpgacfg, self.stream_start_controller.rx_en, self.stream_start_controller.tx_en,
                 # TX parameters
                 TX_IQ_WIDTH            = LMS_DIQ_WIDTH,
                 TX_N_BUFF              = TX_N_BUFF,
@@ -158,28 +348,7 @@ class LimeTop(LiteXModule):
                 soc_has_timesource     = soc_has_timesource,
             )
 
-            if soc_has_timesource:
-                # TODO: move notes from here and other similar locations to top of limetop to act as a checklist
-                #       when using for new board.
-                self.rx_delay_mode = CSRStorage(size=2, description="RX enable signal delay mode", fields=[
-                    CSRField("rx_del_sel", size=2, offset=0, description="RX enable signal delay mode",reset=0, values=[
-                        ("``0b0``", "No Delay."),
-                        ("``0b1``", "Delay until PPS"), # NOTE: tx_en_delay_signal must be assigned at top level!
-                        ("``0b2``", "Delay until PPS and Valid"), # NOTE: tx_en_delay_signal must be assigned at top level!
-                    ])
-                ])
-                self.tx_delay_mode = CSRStorage(size=2, description="TX enable signal delay mode", fields=[
-                    CSRField("tx_del_sel", size=2, offset=0, description="TX enable signal delay mode",reset=0, values=[
-                        ("``0b0``", "No Delay."),
-                        ("``0b1``", "Delay until PPS"), # NOTE: rx_en_delay_signal must be assigned at top level!
-                        ("``0b2``", "Delay until PPS and Valid"), # NOTE: rx_en_delay_signal must be assigned at top level!
-                    ])
-                ])
 
-                self.comb += [
-                        self.fpgacfg.tx_en_delay_mode.eq(self.tx_delay_mode.fields.tx_del_sel),
-                        self.fpgacfg.rx_en_delay_mode.eq(self.rx_delay_mode.fields.rx_del_sel),
-                ]
             if with_lms7002:
                 # LMS7002 <-> RXTX Top.
                 self.comb += self.rxtx_top.rx_path.smpl_cnt_en.eq(self.lms7002_top.smpl_cnt_en)
@@ -202,7 +371,7 @@ class LimeTop(LiteXModule):
                 # Define Reset signal
                 fft_reset_n = Signal()
                 # Connect newly defined reset signal to main rx path reset trough MultiReg
-                self.specials += MultiReg(self.fpgacfg.rx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
+                self.specials += MultiReg(self.stream_start_controller.rx_en, fft_reset_n, odomain=self.lms7002_top.source.clock_domain)
 
                 # Instantiate FFT module
                 self.fft_example = LimeFFT(platform=platform,
@@ -265,8 +434,8 @@ class LimeTop(LiteXModule):
             rx_en_reg = Signal(reset=0)
             tx_en_reg = Signal(reset=0)
             self.sync.sys +=[
-                rx_en_reg.eq(self.fpgacfg.rx_en),
-                tx_en_reg.eq(self.fpgacfg.tx_en),
+                rx_en_reg.eq(self.stream_start_controller.rx_en),
+                tx_en_reg.eq(self.stream_start_controller.tx_en),
             ]
             ####
             # RX stream start time registers
@@ -284,14 +453,14 @@ class LimeTop(LiteXModule):
             ])
             self.sync.sys +=[
                 ## RX time store
-                If((self.fpgacfg.rx_en == 1) & (rx_en_reg == 0),[
+                If((self.stream_start_controller.rx_en == 1) & (rx_en_reg == 0),[
                     self.rx_time_min_sec.fields.sec.eq    (self.time_seconds),
                     self.rx_time_min_sec.fields.min.eq    (self.time_minutes),
                     self.rx_time_mon_day_hrs.fields.hrs.eq(self.time_hours  ),
                     self.rx_time_mon_day_hrs.fields.day.eq(self.time_day    ),
                     self.rx_time_mon_day_hrs.fields.mon.eq(self.time_month  ),
                     self.rx_time_yrs.fields.yrs.eq        (self.time_year   ),
-                ]).Elif(self.fpgacfg.rx_en == 0,[
+                ]).Elif(self.stream_start_controller.rx_en == 0,[
                     self.rx_time_min_sec.fields.sec.eq    (0),
                     self.rx_time_min_sec.fields.min.eq    (0),
                     self.rx_time_mon_day_hrs.fields.hrs.eq(0),
@@ -316,14 +485,14 @@ class LimeTop(LiteXModule):
             ])
             self.sync.sys +=[
                 ## TX time store
-                If((self.fpgacfg.tx_en == 1) & (tx_en_reg == 0),[
+                If((self.stream_start_controller.tx_en == 1) & (tx_en_reg == 0),[
                     self.tx_time_min_sec.fields.sec.eq    (self.time_seconds),
                     self.tx_time_min_sec.fields.min.eq    (self.time_minutes),
                     self.tx_time_mon_day_hrs.fields.hrs.eq(self.time_hours  ),
                     self.tx_time_mon_day_hrs.fields.day.eq(self.time_day    ),
                     self.tx_time_mon_day_hrs.fields.mon.eq(self.time_month  ),
                     self.tx_time_yrs.fields.yrs.eq        (self.time_year   ),
-                ]).Elif(self.fpgacfg.tx_en == 0,[
+                ]).Elif(self.stream_start_controller.tx_en == 0,[
                     self.tx_time_min_sec.fields.sec.eq    (0),
                     self.tx_time_min_sec.fields.min.eq    (0),
                     self.tx_time_mon_day_hrs.fields.hrs.eq(0),
