@@ -5,15 +5,18 @@ from litex.soc.interconnect.csr import CSRStorage, CSRStatus
 # tst_top (test top) -----------------------------------------------------------------
 
 class TST_TOP_LimeSDR_USB(LiteXModule):
-    def __init__(self, platform):
+    def __init__(self, platform, add_ddr_test=False):
 
+      self.add_ddr_test = add_ddr_test
       # ASSIGN value to this OUTSIDE this module
       self.adf_muxout = Signal()
-
-      self.test_en      = CSRStorage(size=4, description="Test enable")
-      self.test_frc_err = CSRStorage(size=4, description="Test force error")
-      self.test_cmplt   = CSRStatus(size=4, description="Test complete")
-      self.test_rez     = CSRStatus(size=4, description="Test result")
+      # tstcfg
+      self.test_en          = CSRStorage(size=6, description="Test enable")
+      self.test_frc_err     = CSRStorage(size=6, description="Test force error")
+      self.test_cmplt       = CSRStatus(size=6, description="Test complete")
+      self.test_rez         = CSRStatus(size=6, description="Test result")
+      self.ddr2_2_tst_fail  = CSRStatus(size=1, description="DDR2 2 test fail")
+      self.ddr2_pnf_per_bit = CSRStatus(size=32, description="DDR2 2 PNF per bit")
 
       self.fx3_clk_cnt    = CSRStatus(size=16, description="FX3 clock counter")
       self.si_clk0_cnt    = CSRStatus(size=16, description="Si5351C clock 0 counter")
@@ -31,10 +34,10 @@ class TST_TOP_LimeSDR_USB(LiteXModule):
       # --input ports
         i_FX3_clk       		= ClockSignal("sys"),
         i_reset_n   	 		= ~ResetSignal("sys"),
-        i_test_en				= self.test_en.storage,
-        i_test_frc_err		    = self.test_frc_err.storage,
-        o_test_cmplt			= self.test_cmplt.status,
-        o_test_rez			    = self.test_rez.status,
+        i_test_en				= self.test_en.storage[0:4],
+        i_test_frc_err		    = self.test_frc_err.storage[0:4],
+        o_test_cmplt			= self.test_cmplt.status[0:4],
+        o_test_rez			    = self.test_rez.status[0:4],
 
         i_Si5351C_clk_0 		= ClockSignal("si0"),
         i_Si5351C_clk_1 		= ClockSignal("si1"),
@@ -59,9 +62,46 @@ class TST_TOP_LimeSDR_USB(LiteXModule):
         o_ADF_MUXOUT_cnt	 	= self.adf_muxout_cnt.status,
       )
 
-      self.add_sources(platform)
+      self.add_sources_clock_test(platform)
 
-    def add_sources(self, platform):
+      if self.add_ddr_test:
+
+        self.ddram2_pads = platform.request("ddram",1)
+
+        self.specials += Instance("ddr2_tester",
+            # Inputs
+            i_global_reset_n    = self.test_en.storage[5],
+            i_pll_ref_clk       = ClockSignal("si1"),
+            i_soft_reset_n      = self.test_en.storage[5],
+            i_begin_test        = Constant(0),
+            i_insert_error      = self.test_frc_err.storage[5],
+
+            # Outputs
+            o_mem_odt           = self.ddram2_pads.odt,
+            o_mem_cs_n          = self.ddram2_pads.cs_n,
+            o_mem_cke           = self.ddram2_pads.cke,
+            o_mem_addr          = self.ddram2_pads.a,
+            o_mem_ba            = self.ddram2_pads.ba,
+            o_mem_ras_n         = self.ddram2_pads.ras_n,
+            o_mem_cas_n         = self.ddram2_pads.cas_n,
+            o_mem_we_n          = self.ddram2_pads.we_n,
+            o_mem_dm            = self.ddram2_pads.dm,
+            io_mem_clk           = self.ddram2_pads.clk,
+            io_mem_clk_n         = self.ddram2_pads.clk_n,
+            io_mem_dq            = self.ddram2_pads.dq,
+            io_mem_dqs           = self.ddram2_pads.dqs,
+
+            o_pnf_per_bit         = Open(),
+            o_pnf_per_bit_persist = self.ddr2_pnf_per_bit.status,
+            o_pass                = self.test_rez.status[5],
+            o_fail                = self.ddr2_2_tst_fail.status,
+            o_test_complete       = self.test_cmplt.status[5],
+        )
+
+        self.add_sources_ddr_test(platform)
+
+
+    def add_sources_clock_test(self, platform):
 
       # board specific files
       tst_top_files = [
@@ -77,4 +117,20 @@ class TST_TOP_LimeSDR_USB(LiteXModule):
 
       for file in tst_top_files:
         platform.add_source(file)
+
+    def add_sources_ddr_test(self, platform):
+      ddr2_tester_files = [
+          "gateware/board_specific/limesdr_usb/wfm_ram_buffer/ddr2_tester.vhd",
+      ]
+
+      for file in ddr2_tester_files:
+          platform.add_source(file)
+
+      ddr2_tester_ips = [
+          "gateware/board_specific/limesdr_usb/ddr2_traffic_gen/ddr2_traffic_gen.qsys",
+          "gateware/board_specific/limesdr_usb/ddr2/ddr2.qip",
+      ]
+
+      for ip in ddr2_tester_ips:
+          platform.add_ip(ip)
 

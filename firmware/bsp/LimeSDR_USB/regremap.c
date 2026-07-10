@@ -137,11 +137,9 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
     case 0x65:
         value = pss_tst_top_test_cmplt_read();
-        // TODO: Add DDR status results
         break;
     case 0x67:
         value = pss_tst_top_test_rez_read();
-        // TODO: Add DDR status results
         break;
     case 0x69:
         value = pss_tst_top_fx3_clk_cnt_read();
@@ -176,7 +174,20 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x74:
         value = pss_tst_top_adf_muxout_cnt_read();
         break;
-
+    case 0x7A:
+        // Bit0 - Test Complete
+        // Bit1 - Test Pass
+        // Bit2 - Test Fail
+        value = ((pss_tst_top_test_cmplt_read()>>5) & 0x1) |
+                ((pss_tst_top_test_rez_read()>>4) & 0x2) |
+                    ((pss_tst_top_ddr2_2_tst_fail_read() & 0x1)<<2);
+        break;
+    case 0x7B:
+        value = limetop_rxtx_top_ddr2_1_pnf_per_bit_l_read();
+        break;
+    case 0x7C:
+        value = limetop_rxtx_top_ddr2_1_pnf_per_bit_h_read();
+        break;
     case 0xC0:
         // value = periphcfg_BOARD_GPIO_OVRD_read();
         break;

@@ -43,7 +43,7 @@ class PSS_LimeSDR_Usb(LiteXModule):
         self.gpio = GpioTop(platform=platform,pads=platform.request("FPGA_GPIO"))
 
         # TST Top
-        self.tst_top = TST_TOP_LimeSDR_USB(self.platform)
+        self.tst_top = TST_TOP_LimeSDR_USB(self.platform, add_ddr_test=True)
         self.comb += self.tst_top.adf_muxout.eq(self.adf_muxout)
 
 
