@@ -559,10 +559,11 @@ class BaseSoC(SoCCore):
 
         self.synchro_pads = platform.request("synchro")
 
-        self.comb += [self.synchro_pads.pps_out.eq(self.limetop.stream_start_controller.rx_en),
-                      self.limetop.stream_start_controller.pps.eq(self.pps_internal),
-                      self.limetop.stream_start_controller.pps_valid.eq(1),
-                      self.limetop.stream_start_controller.ext_trigger.eq(self.synchro_pads.pps_in),
+        self.comb += [
+            self.synchro_pads.pps_out.eq(self.limetop.stream_start_controller.rx_en),
+            self.limetop.pps.eq(self.pps_internal),
+            self.limetop.pps_valid.eq(1),
+            self.limetop.ext_stream_trigger.eq(self.synchro_pads.pps_in),
         ]
 
         self.comb += self.limetop.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
@@ -902,21 +903,16 @@ class BaseSoC(SoCCore):
     def add_debug(self):
 
         analyzer_signals = [
-            self.limetop.rxtx_top.tx_path.pct_rd,
-            self.limetop.rxtx_top.tx_path.pct_clear,
-            self.limetop.rxtx_top.tx_path.pct_valid,
+            self.limetop.stream_start_controller.rx_en,
+            self.synchro_pads.pps_in,
+            self.limetop.stream_start_controller.rx_en_req,
+            self.limetop.stream_start_controller.ext_trigger,
 
-            self.limetop.rxtx_top.tx_path.data_pad_tvalid,
-            self.limetop.rxtx_top.tx_path.data_pad_tready,
-            self.limetop.rxtx_top.tx_path.data_pad_tdata,
-
-            self.limetop.rxtx_top.tx_path.pct_loss_flg,
-            self.limetop.rxtx_top.tx_path.pct_loss_flg_clr,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 256,
-            clock_domain = "afe",
+            clock_domain = "sys",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
