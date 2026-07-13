@@ -297,7 +297,7 @@ _io = [
 
     # Synchro.
     ("synchro", 0,
-        Subsignal("pps_in", Pins("J11")), # M2_1PPS_FPGA
+        Subsignal("pps_in", Pins("J11"), Misc("PULLDOWN=True")), # M2_1PPS_FPGA
         Subsignal("pps_out",Pins("F10")), # M2_1PPS_SYNC_OUT
         IOStandard("LVCMOS18"),
     ),
