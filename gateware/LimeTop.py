@@ -47,6 +47,7 @@ class LimeTop(LiteXModule):
         TX_N_BUFF            = 5, # size of tx packet buffer packet queue
         TX_MAX_PCT_SIZE      = 8192, # Total tx packet buffer capacity in bytes
         tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
+        TX_WITHTXIQ_MUX        = False,
 
         with_lms7002         = True,
         # These clocks are only used if with_lms7002 is False
@@ -113,6 +114,7 @@ class LimeTop(LiteXModule):
                 fpgacfg_manager = self.fpgacfg,
                 diq_width       = LMS_DIQ_WIDTH,
                 one_chnl        = one_chnl,
+                with_txiq_mux   = TX_WITHTXIQ_MUX,
             )
         else:
             # Create ports to interface with rxtx top, if lms7002 is not used.

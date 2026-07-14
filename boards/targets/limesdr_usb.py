@@ -31,8 +31,9 @@ from litex.soc.integration.builder  import *
 
 FPGA_to_Host_data_width = 64 # bus width connecting FX3 and Limetop
 Host_to_FPGA_data_width = 64 # bus width connecting FX3 and Limetop
-Tx_max_buf_packets = 16      # maximum number of buffered tx packets in Limetop (any size)
-Tx_packet_buf_size = 16384   # total size (in bytes) of tx packet buffer in Limetop
+wfm_data_width          = 64 # bus width connecting FX3 and wfmplayer
+Tx_max_buf_packets      = 16      # maximum number of buffered tx packets in Limetop (any size)
+Tx_packet_buf_size      = 16384   # total size (in bytes) of tx packet buffer in Limetop
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -154,7 +155,7 @@ class BaseSoC(SoCCore):
                        pads=platform.request("FX3"),
                        vendor="altera",
                        EP01_0_rwidth = Host_to_FPGA_data_width,
-                       EP01_1_rwidth = Host_to_FPGA_data_width,
+                       EP01_1_rwidth = wfm_data_width,
                        EP81_wwidth   = FPGA_to_Host_data_width
                        )
 
@@ -175,6 +176,7 @@ class BaseSoC(SoCCore):
                                 rx_fixed_packet_size = True,
                                 TX_N_BUFF            = Tx_max_buf_packets,
                                 TX_MAX_PCT_SIZE      = Tx_packet_buf_size,
+                                TX_WITHTXIQ_MUX      = True,
                                 # FPGACFG.
                                 board_id             = 0x0011,
                                 major_rev            = MajorRevision,
@@ -193,6 +195,39 @@ class BaseSoC(SoCCore):
             self.FX3.data_source1_clr.eq  (~self.limetop.fpgacfg.rx_en),
             self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en),
         ]
+
+            # LiteScope Analyzer Probes --------------------------------------------------------------------
+    def add_debug(self):
+        analyzer_signals = []
+        analyzer_signals += self.limetop.rxtx_top.tx_path.flow_control_signals.m_clk
+        analyzer_signals += [
+            self.limetop.lms7002_top.tx_cdc.source.valid,
+            self.limetop.lms7002_top.tx_cdc.sink.valid,
+            # self.limetop.lms7002_top.tx_cdc.source.data,
+            self.limetop.lms7002_top.tx_cdc.source.ready,
+            self.limetop.lms7002_top.tx_cdc.sink.ready,
+            self.limetop.rxtx_top.tx_path.p2d_wr_sink_ready,
+            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_packets_avail,
+            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_packets_reserved,
+            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_store_state,
+            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_read_state,
+            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_payload_used,
+            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_payload_will_fit
+            # self.limetop.lms7002_top.tx_cdc.source.last,
+        ]
+        # analyzer_signals += [
+            # self.FX3.source_data_fifo_0.source,
+            # self.FX3.source_data_fifo_0.sink,
+            # self.FX3.source_data_fifo_0.level,
+        # ]
+        # Only import LiteScope when it's actually needed
+        from litescope import LiteScopeAnalyzer
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 512,
+            clock_domain = "lms_tx",
+            register     = True,
+            csr_csv      = "analyzer.csv"
+        )
 
     # Utils
     def print_soc_hierarchy_json(self, outfile=None):
@@ -241,6 +276,8 @@ def main():
             with_jtagbone = args.with_jtagbone,
             cpu_firmware  = None if prepare else "firmware/firmware.bin"
         )
+
+        # soc.add_debug()
 
         # Always generate SoC hierarchy JSON during prepare pass unless disabled.
         if prepare and not args.no_soc_json:
