@@ -164,7 +164,7 @@ class BaseSoC(SoCCore):
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI0"), data_width=32, spi_clk_freq=1e6)
 
         # PSS (Peripheral Support Subsystem)
-        self.pss = PSS_LimeSDR_Usb(self, platform, sys_clk_freq)
+        self.pss = PSS_LimeSDR_Usb(self, platform, sys_clk_freq, add_ddr_modules=True)
 
         # LimeTop -----------------------------------------------------------------------------------
         self.limetop  = LimeTop(self,
