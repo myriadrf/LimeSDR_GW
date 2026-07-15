@@ -5,7 +5,7 @@ from litex.soc.interconnect.csr import CSRStorage, CSRStatus
 # tst_top (test top) -----------------------------------------------------------------
 
 class TST_TOP_LimeSDR_USB(LiteXModule):
-    def __init__(self, platform, ddr_test_pads, add_ddr_test=False):
+    def __init__(self, platform, ddr_test_pads=None, add_ddr_test=False):
       self.ddr_test_pads = ddr_test_pads
       self.add_ddr_test = add_ddr_test
       # ASSIGN value to this OUTSIDE this module
