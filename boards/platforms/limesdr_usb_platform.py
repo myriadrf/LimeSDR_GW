@@ -241,6 +241,7 @@ class Platform(AlteraPlatform):
         self.add_platform_command("set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA")
         self.add_platform_command("set_global_assignment -name DEVICE_FILTER_PIN_COUNT 484")
         self.add_platform_command("set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 8")
+        self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/LMS7002_timing.sdc")
 
     def create_programmer(self, cable="ft2232"):
         return OpenFPGALoader(cable=cable)
