@@ -12,6 +12,7 @@ import argparse
 import shutil
 import subprocess
 
+from deps.litex.litex.soc.interconnect.stream import ClockDomainCrossing
 from gateware.LimeDFB.FX3.src.FX3 import FX3
 from gateware.LimeTop import LimeTop
 from gateware.board_specific.limesdr_usb.PSS_LimeSDR_Usb import PSS_LimeSDR_Usb
@@ -21,6 +22,7 @@ from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
 
 from litex.gen import *
+from litex.soc.interconnect import stream
 
 from boards.platforms import limesdr_usb_platform as limesdr_usb
 
@@ -31,7 +33,7 @@ from litex.soc.integration.builder  import *
 
 FPGA_to_Host_data_width = 64 # bus width connecting FX3 and Limetop
 Host_to_FPGA_data_width = 64 # bus width connecting FX3 and Limetop
-wfm_data_width          = 64 # bus width connecting FX3 and wfmplayer
+wfm_data_width          = 32 # bus width connecting FX3 and wfmplayer
 Tx_max_buf_packets      = 16      # maximum number of buffered tx packets in Limetop (any size)
 Tx_packet_buf_size      = 16384   # total size (in bytes) of tx packet buffer in Limetop
 
@@ -47,7 +49,11 @@ class _CRG(LiteXModule):
         self.fx3_pclk = platform.request("FX3_PCLK")
         # FX3 PCLK runs at 100MHz
         platform.add_period_constraint(self.fx3_pclk, 1e9/100e6)
-        self.comb += self.cd_sys.clk.eq(self.fx3_pclk)
+        self.specials += Instance("GLOBAL",
+            i_in  = self.fx3_pclk,
+            o_out = self.cd_sys.clk
+        )
+        # self.comb += self.cd_sys.clk.eq(self.fx3_pclk)
 
         self.ext_gnd = Signal()
         self.ext_gnd = platform.request("EXT_GND")
@@ -110,12 +116,12 @@ class BaseSoC(SoCCore):
         platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
 
         if with_bios:
-            integrated_rom_size      = 0x6800
+            integrated_rom_size      = 0x4000
             integrated_rom_init      = []
-            integrated_main_ram_size = 0x6800
+            integrated_main_ram_size = 0x4000
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
         else:
-            integrated_rom_size      = 0x6800
+            integrated_rom_size      = 0x4000
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
@@ -164,7 +170,7 @@ class BaseSoC(SoCCore):
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI0"), data_width=32, spi_clk_freq=1e6)
 
         # PSS (Peripheral Support Subsystem)
-        self.pss = PSS_LimeSDR_Usb(self, platform, sys_clk_freq, add_ddr_modules=True)
+        self.pss = PSS_LimeSDR_Usb(self, platform, sys_clk_freq, pll_ref_clk=self.crg.fx3_pclk, add_ddr_modules=True, wfm_infifo_usedw_width=self.FX3.ep01_0_rdusedw_width)
 
         # LimeTop -----------------------------------------------------------------------------------
         self.limetop  = LimeTop(self,
@@ -192,38 +198,69 @@ class BaseSoC(SoCCore):
             self.limetop.source.connect   (self.FX3.data_sink),
             self.FX3.data_sink_clr.eq     (~self.limetop.fpgacfg.rx_en),
             self.FX3.data_source0_clr.eq  (~self.limetop.fpgacfg.rx_en),
-            self.FX3.data_source1_clr.eq  (~self.limetop.fpgacfg.rx_en),
             self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en),
+        ]
+        # WFMPlayer <-> lms7002_top
+        self.comb += [
+            self.limetop.lms7002_top.wfm_sink_l.eq(self.pss.wfm_player.diq_l),
+            self.limetop.lms7002_top.wfm_sink_h.eq(self.pss.wfm_player.diq_h),
+        ]
+        # FX3 <-> WFMPlayer
+        # NOTE: both FX3 and WFMPlayer need usedw signals from their fifos to operate properly
+        #       LiteX AsyncFifo does not have two level outputs, so two SyncFIFOs have to be used,
+        #       one for each clock domain.
+        self.wfm_fifo = ClockDomainsRenamer("lms_tx")(
+            ResetInserter()(stream.SyncFIFO([("data", 32)], depth=1024, buffered=True))
+        )
+        self.wfm_data_cdc = ClockDomainCrossing([("data",32)],"sys","lms_tx", depth=4)
+        # No CDC for clear signal, since it is actually in sys clock domain (unmodified fpacfg wfm_load signal passed through wfmplayer)
+        self.comb += [
+            # --- CDC for wfm data
+            self.FX3.data_source_1.connect(self.wfm_data_cdc.sink, omit=["keep", "id", "dest", "user"]),
+            self.wfm_data_cdc.source.connect(self.wfm_fifo.sink),
+            self.wfm_fifo.source.connect(self.pss.wfm_player.sink, omit=["keep", "id", "dest", "user"]),
+            # --- FIFO level for burst management
+            self.pss.wfm_player.sink_usedw.eq(self.wfm_fifo.level),
+            # --- Controls
+            self.wfm_fifo.reset.eq(~self.pss.wfm_player.wfm_infifo_reset_n),
+            self.FX3.data_source1_clr.eq  (~self.pss.wfm_player.wfm_infifo_reset_n),
+            self.FX3.data_source_sel.eq(self.pss.wfm_player.wfm_load)
         ]
 
             # LiteScope Analyzer Probes --------------------------------------------------------------------
     def add_debug(self):
+        reset_sig = Signal()
+        self.comb += reset_sig.eq(ResetSignal("lms_tx"))
         analyzer_signals = []
-        analyzer_signals += self.limetop.rxtx_top.tx_path.flow_control_signals.m_clk
         analyzer_signals += [
-            self.limetop.lms7002_top.tx_cdc.source.valid,
-            self.limetop.lms7002_top.tx_cdc.sink.valid,
-            # self.limetop.lms7002_top.tx_cdc.source.data,
-            self.limetop.lms7002_top.tx_cdc.source.ready,
-            self.limetop.lms7002_top.tx_cdc.sink.ready,
-            self.limetop.rxtx_top.tx_path.p2d_wr_sink_ready,
-            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_packets_avail,
-            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_packets_reserved,
-            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_store_state,
-            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_read_state,
-            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_payload_used,
-            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_payload_will_fit
-            # self.limetop.lms7002_top.tx_cdc.source.last,
+            self.pss.wfm_player.wfm_load,
+            self.pss.wfm_player.wfm_play,
+            self.pss.wfm_player.diq_h,
+            self.pss.wfm_player.diq_l,
+            self.pss.wfm_player.wfm_ch_en,
+            self.pss.wfm_player.sink_usedw,
+            # self.pss.wfm_player.sink_usedw_debug,
+            # self.pss.wfm_player.sink_debug,
+            # self.FX3.data_source_1
+            # self.pss.wfm_player.sink
+            # reset_sig,
+            # self.pss.wfm_player.diq_h,
+            # self.pss.wfm_player.diq_l,
+            # # self.pss.wfm_player.diq_h_full,
+            # self.pss.wfm_player.diq_l_full,
+            # self.limetop.lms7002_top.mux0_reg_l,
+            # self.limetop.lms7002_top.mux0_reg_h,
+            # self.limetop.lms7002_top.mux1_reg_l,
+            # self.limetop.lms7002_top.mux1_reg_h,
+            # self.limetop.lms7002_top.mux2_reg_l,
+            # self.limetop.lms7002_top.mux2_reg_h,
+            # self.limetop.lms7002_top.txiq_mux_sel_sync,
+            # self.limetop.lms7002_top.txiq_mux_sel.storage,
         ]
-        # analyzer_signals += [
-            # self.FX3.source_data_fifo_0.source,
-            # self.FX3.source_data_fifo_0.sink,
-            # self.FX3.source_data_fifo_0.level,
-        # ]
         # Only import LiteScope when it's actually needed
         from litescope import LiteScopeAnalyzer
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 512,
+            depth        = 128,
             clock_domain = "lms_tx",
             register     = True,
             csr_csv      = "analyzer.csv"

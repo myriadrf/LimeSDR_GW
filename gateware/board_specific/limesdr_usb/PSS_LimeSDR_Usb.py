@@ -9,7 +9,7 @@ from litex.soc.interconnect.csr import *
 # PSS (Peripheral Support Subsystem) -----------------------------------------------------------------
 
 class PSS_LimeSDR_Usb(LiteXModule):
-    def __init__(self, soc, platform, sys_clk_freq, add_ddr_modules=True):
+    def __init__(self, soc, platform, sys_clk_freq, pll_ref_clk, add_ddr_modules=True, wfm_infifo_usedw_width=11):
         self.platform = platform
 
         self.adf_muxout = platform.request("ADF_MUXOUT")
@@ -62,7 +62,7 @@ class PSS_LimeSDR_Usb(LiteXModule):
             self.wfm_ch_en = CSRStorage(size=2, description="WFM channel enable")
 
             self.wfm_ddr_pads = platform.request("ddram",0)
-            self.wfm_player = WFMPlayerTop(self.platform, self.wfm_ddr_pads)
+            self.wfm_player = WFMPlayerTop(self.platform, self.wfm_ddr_pads, pll_ref_clk, wfm_infifo_size=wfm_infifo_usedw_width)
 
             self.comb += [
                 self.wfm_player.wfm_load.eq(self.wfm_load.storage),

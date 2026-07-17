@@ -4,7 +4,7 @@
 # Copyright (c) 2024-2025 Lime Microsystems.
 #
 # SPDX-License-Identifier: Apache-2.0
-
+from litex.soc.interconnect.stream import Endpoint
 from migen import *
 
 from litex.gen import *
@@ -46,7 +46,7 @@ class WFMPlayerTop(LiteXModule):
     dcmpr_fifo_size : int
         Decompression FIFO size.
     """
-    def __init__(self, platform, ddr_pads,
+    def __init__(self, platform, ddr_pads, pll_ref_clk,
         dev_family       = "Cyclone IV E",
         cntrl_rate       = 1,
         cntrl_bus_size   = 16,
@@ -60,6 +60,12 @@ class WFMPlayerTop(LiteXModule):
         iq_width         = 12,
         dcmpr_fifo_size  = 10
     ):
+        # no support for other settings
+        assert data_width == 32
+        assert iq_width == 12
+
+        self.wfm_infifo_size = wfm_infifo_size
+
         self.platform           = platform
         self.phy_clk            = Signal()
         self.wfm_load           = Signal()
@@ -78,6 +84,9 @@ class WFMPlayerTop(LiteXModule):
         self.tst_pass     = Signal()
         self.tst_fail     = Signal()
         self.tst_complete = Signal()
+
+        self.sink       = Endpoint([("data",data_width)])
+        self.sink_usedw = Signal(self.wfm_infifo_size)
         # # #
 
         self.specials += Instance("wfm_player_top",
@@ -97,14 +106,14 @@ class WFMPlayerTop(LiteXModule):
 
             # Inputs
             i_reset_n               = ~ResetSignal("sys"),
-            i_ddr2_pll_ref_clk      = ClockSignal("sys"),
+            i_ddr2_pll_ref_clk      = pll_ref_clk,
             i_wcmd_clk              = ClockSignal("lms_tx"),
             i_rcmd_clk              = self.phy_clk,
             i_wfm_load              = self.wfm_load,
             i_wfm_play_stop         = self.wfm_play,
-            i_wfm_infifo_data       = Constant(0, data_width),      #DO LATER
-            i_wfm_infifo_rdempty    = Constant(0),#DO LATER
-            i_wfm_infifo_rdusedw    = Constant(0, wfm_infifo_size),#DO LATER
+            i_wfm_infifo_data       = self.sink.data,
+            i_wfm_infifo_rdempty    = ~self.sink.valid,
+            i_wfm_infifo_rdusedw    = self.sink_usedw,
             i_sample_width          = self.wfm_smpl_width,
             i_fr_start              = Constant(0),
             i_ch_en                 = self.wfm_ch_en,
@@ -115,7 +124,7 @@ class WFMPlayerTop(LiteXModule):
 
             # Outputs
             o_wfm_infifo_reset_n_req = self.wfm_infifo_reset_n,
-            o_wfm_infifo_rdreq       = Open(),#DO LATER
+            o_wfm_infifo_rdreq       = self.sink.ready,
             o_wfm_rdy                = Open(),
             o_dd_iq_h                = self.diq_h_full,
             o_dd_iq_l                = self.diq_l_full,

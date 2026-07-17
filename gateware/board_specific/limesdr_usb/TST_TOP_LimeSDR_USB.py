@@ -16,7 +16,7 @@ class TST_TOP_LimeSDR_USB(LiteXModule):
       self.test_cmplt       = CSRStatus(size=6, description="Test complete")
       self.test_rez         = CSRStatus(size=6, description="Test result")
       self.ddr2_2_tst_fail  = CSRStatus(size=1, description="DDR2 2 test fail")
-      self.ddr2_pnf_per_bit = CSRStatus(size=32, description="DDR2 2 PNF per bit")
+      self.ddr2_2_pnf_per_bit = CSRStatus(size=32, description="DDR2 2 PNF per bit")
       self.ddr2_1_tst_fail  = CSRStatus(size=1, description="DDR2 1 test fail")
       self.ddr2_1_pnf_per_bit = CSRStatus(size=32, description="DDR2 1 PNF per bit")
 
@@ -82,34 +82,34 @@ class TST_TOP_LimeSDR_USB(LiteXModule):
         assert ddr_test_pads is not None
 
         self.specials += Instance("ddr2_tester",
-            # Inputs
-            i_global_reset_n    = self.test_en.storage[5],
-            i_pll_ref_clk       = ClockSignal("si1"),
-            i_soft_reset_n      = self.test_en.storage[5],
-            i_begin_test        = Constant(0),
-            i_insert_error      = self.test_frc_err.storage[5],
+                                  # Inputs
+                                  i_global_reset_n    = self.test_en.storage[5],
+                                  i_pll_ref_clk       = ClockSignal("si1"),
+                                  i_soft_reset_n      = self.test_en.storage[5],
+                                  i_begin_test        = Constant(0),
+                                  i_insert_error      = self.test_frc_err.storage[5],
 
-            # Outputs
-            o_mem_odt           = self.ddr_test_pads.odt,
-            o_mem_cs_n          = self.ddr_test_pads.cs_n,
-            o_mem_cke           = self.ddr_test_pads.cke,
-            o_mem_addr          = self.ddr_test_pads.a,
-            o_mem_ba            = self.ddr_test_pads.ba,
-            o_mem_ras_n         = self.ddr_test_pads.ras_n,
-            o_mem_cas_n         = self.ddr_test_pads.cas_n,
-            o_mem_we_n          = self.ddr_test_pads.we_n,
-            o_mem_dm            = self.ddr_test_pads.dm,
-            io_mem_clk           = self.ddr_test_pads.clk,
-            io_mem_clk_n         = self.ddr_test_pads.clk_n,
-            io_mem_dq            = self.ddr_test_pads.dq,
-            io_mem_dqs           = self.ddr_test_pads.dqs,
+                                  # Outputs
+                                  o_mem_odt           = self.ddr_test_pads.odt,
+                                  o_mem_cs_n          = self.ddr_test_pads.cs_n,
+                                  o_mem_cke           = self.ddr_test_pads.cke,
+                                  o_mem_addr          = self.ddr_test_pads.a,
+                                  o_mem_ba            = self.ddr_test_pads.ba,
+                                  o_mem_ras_n         = self.ddr_test_pads.ras_n,
+                                  o_mem_cas_n         = self.ddr_test_pads.cas_n,
+                                  o_mem_we_n          = self.ddr_test_pads.we_n,
+                                  o_mem_dm            = self.ddr_test_pads.dm,
+                                  io_mem_clk           = self.ddr_test_pads.clk,
+                                  io_mem_clk_n         = self.ddr_test_pads.clk_n,
+                                  io_mem_dq            = self.ddr_test_pads.dq,
+                                  io_mem_dqs           = self.ddr_test_pads.dqs,
 
-            o_pnf_per_bit         = Open(),
-            o_pnf_per_bit_persist = self.ddr2_pnf_per_bit.status,
-            o_pass                = self.test_rez_ddr_test,
-            o_fail                = self.ddr2_2_tst_fail.status,
-            o_test_complete       = self.test_cmplt_ddr_test,
-        )
+                                  o_pnf_per_bit         = Open(),
+                                  o_pnf_per_bit_persist = self.ddr2_2_pnf_per_bit.status,
+                                  o_pass                = self.test_rez_ddr_test,
+                                  o_fail                = self.ddr2_2_tst_fail.status,
+                                  o_test_complete       = self.test_cmplt_ddr_test,
+                                  )
 
 
 

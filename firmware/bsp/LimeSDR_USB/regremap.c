@@ -44,6 +44,16 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x0a:
         value = limetop_fpgacfg_reg10_read();
         break;
+#ifdef DDR_MODULES_PRESENT
+    case 0x0c:
+        value = pss_wfm_ch_en_read();
+        break;
+    case 0x0d:
+        value = pss_wfm_smpl_width_read()&0x01;
+        value |= (pss_wfm_play_read()&0x01)<<1;
+        value |= (pss_wfm_load_read()&0x01)<<2;
+        break;
+#endif
     case 0xF:
         value = limetop_fpgacfg_txant_pre_read();
         break;
@@ -174,6 +184,12 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x74:
         value = pss_tst_top_adf_muxout_cnt_read();
         break;
+    case 0x77:
+        value = pss_tst_top_ddr2_1_pnf_per_bit_read()&0xFFFF;
+        break;
+    case 0x78:
+        value = (pss_tst_top_ddr2_1_pnf_per_bit_read()>>16)&0xFFFF;
+        break;
     case 0x7A:
         // Bit0 - Test Complete
         // Bit1 - Test Pass
@@ -183,10 +199,10 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
                     ((pss_tst_top_ddr2_2_tst_fail_read() & 0x1)<<2);
         break;
     case 0x7B:
-        value = limetop_rxtx_top_ddr2_1_pnf_per_bit_l_read();
+        value = pss_tst_top_ddr2_2_pnf_per_bit_read()&0xFFFF;
         break;
     case 0x7C:
-        value = limetop_rxtx_top_ddr2_1_pnf_per_bit_h_read();
+        value = (pss_tst_top_ddr2_2_pnf_per_bit_read()>>16)&0xFFFF;
         break;
     case 0xC0:
         // value = periphcfg_BOARD_GPIO_OVRD_read();
@@ -246,6 +262,17 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0x0a:
         limetop_fpgacfg_reg10_write(value);
         break;
+#ifdef DDR_MODULES_PRESENT
+    case 0x0C:
+        pss_wfm_ch_en_write(value);
+        break;
+    case 0x0D:
+        pss_wfm_smpl_width_write(value);
+        pss_wfm_play_write((value >> 1)&0x1);
+        limetop_lms7002_top_txiq_mux_sel_write((value >> 1)&0x1);
+        pss_wfm_load_write((value >> 2)&0x1);
+        break;
+#endif
     case 0xF:
         limetop_fpgacfg_txant_pre_write(value);
         break;

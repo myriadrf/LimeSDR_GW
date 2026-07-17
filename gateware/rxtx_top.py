@@ -52,20 +52,7 @@ class RXTXTop(LiteXModule):
         self.rx_pct_fifo_aclrn_req = Signal()
         self.rx_en                 = Signal()
 
-        # Test Cfg From RXTX.
-        # -------------------
-        # testcfg_from_rxtx @22
-        self._ddr2_1_status        = CSRStatus(3)
-        # testcfg_from_rxtx @23
-        self._ddr2_1_pnf_per_bit_l = CSRStatus(16)
-        # testcfg_from_rxtx @24
-        self._ddr2_1_pnf_per_bit_h = CSRStatus(16)
-
         # # #
-
-        # Signals.
-        # --------
-        self._ddr2_1_pnf_per_bit = Signal(32)
 
         # TX Path.
         # --------
@@ -97,10 +84,6 @@ class RXTXTop(LiteXModule):
         self.comb += [
             # Rx Enable.
             self.rx_en.eq(fpgacfg_manager.rx_en),
-
-            # CSR
-            self._ddr2_1_pnf_per_bit_l.status.eq(self._ddr2_1_pnf_per_bit[:16]),
-            self._ddr2_1_pnf_per_bit_h.status.eq(self._ddr2_1_pnf_per_bit[15:]),
 
             # RX <-> TX
             tx_path.pct_loss_flg_clr.eq(rx_path.pct_hdr_cap),
