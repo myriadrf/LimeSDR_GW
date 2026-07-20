@@ -247,8 +247,8 @@ class Platform(AlteraPlatform):
         self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/lms7_trx_timing.sdc")
         self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/Clock_groups.sdc")
 
-    def create_programmer(self, cable="ft2232"):
-        return OpenFPGALoader(cable=cable)
+    def create_programmer(self, cable="ft2232", fpga_part="EP4CE40"):
+        return OpenFPGALoader(cable=cable, fpga_part=fpga_part)
 
     def do_finalize(self, fragment):
         # LMS_DIQ1_D Timing Delays (from QSF)

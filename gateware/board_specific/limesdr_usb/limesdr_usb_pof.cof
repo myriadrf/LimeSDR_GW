@@ -4,12 +4,12 @@
 	<output_filename>bitstream/LimeSDR_USB/LimeSDR-USB_lms7_trx.pof</output_filename>
 	<n_pages>1</n_pages>
 	<width>1</width>
-	<mode>1</mode>
+	<mode>7</mode>
 	<sof_data>
 		<user_name>Page_0</user_name>
 		<page_flags>1</page_flags>
 		<bit0>
-			<sof_filename>build/limesdr_usb/gateware/limesdr_usb.sof<compress_bitstream>1</compress_bitstream></sof_filename> 
+			<sof_filename>build/limesdr_usb/gateware/limesdr_usb.sof</sof_filename> 
 		</bit0>
 	</sof_data>
 	<version>7</version>
@@ -19,4 +19,12 @@
 	<options>
 		<map_file>1</map_file>
 	</options>
+	<advanced_options>
+		<ignore_epcs_id_check>1</ignore_epcs_id_check>
+		<ignore_condone_check>2</ignore_condone_check>
+		<plc_adjustment>0</plc_adjustment>
+		<post_chain_bitstream_pad_bytes>-1</post_chain_bitstream_pad_bytes>
+		<post_device_bitstream_pad_bytes>-1</post_device_bitstream_pad_bytes>
+		<bitslice_pre_padding>1</bitslice_pre_padding>
+	</advanced_options>
 </cof>

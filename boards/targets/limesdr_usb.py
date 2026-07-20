@@ -282,6 +282,15 @@ class BaseSoC(SoCCore):
         if build_html:
             os.system("sphinx-build -M html docs/docs/{}/litex_doc docs/docs/{}/litex_doc/_build".format(build_name, build_name))
 
+# Flash SVF helpers --------------------------------------------------------------------------------
+
+# Committed, device-specific Serial Flash Loader (SFL) configuration SVF. It loads
+# the flash bridge into the FPGA SRAM and is constant (it does not depend on the
+# user gateware), so it is stored in the repo and prepended to the .jic-derived
+# flash operations at build time. Regenerate it with tools/generate_sfl_svf.py
+# (e.g. after a Quartus major-version upgrade).
+FLASH_SFL_SVF = "gateware/board_specific/limesdr_usb/sfl_ep4ce40_020f40dd.svf"
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -290,6 +299,7 @@ def main():
     # Build/Load/Utilities.
     parser.add_argument("--build", action="store_true", help="Build bitstream.")
     parser.add_argument("--load",  action="store_true", help="Load bitstream.")
+    parser.add_argument("--flash", action="store_true", help="Flash bitstream.")
     parser.add_argument("--cable", default="usb-blaster", help="JTAG cable.")
 
     # SoC parameters.
@@ -355,15 +365,61 @@ def main():
         for fmt in ["rbf", "jic", "pof"]:
             print(f"Generating {fmt.upper()} file...")
             try:
-                subprocess.run(["quartus_cpf", "-c", f"gateware/limesdr_usb_{fmt}.cof"], check=True)
+                subprocess.run(["quartus_cpf", "-c", f"gateware/board_specific/limesdr_usb/limesdr_usb_{fmt}.cof"], check=True)
             except Exception as e:
                 print(f"Error generating {fmt.upper()}: {e}")
+
+        print("Generating SVF files...")
+        try:
+            output_sof = os.path.join(output_location, prefix + ".sof")
+            output_jic = os.path.join(output_location, prefix + ".jic")
+            svf_file   = os.path.join(output_location, prefix + ".svf")
+            svf_flash_file = os.path.join(output_location, prefix + "_flash.svf")
+
+            # SVF for SRAM (load)
+            print("Generating SVF for SRAM...")
+            subprocess.run(["quartus_cpf", "-c", "-q", "12.0MHz", "-g", "3.3", "-n", "p", output_sof, svf_file], check=True)
+
+            # SVF for Flash (flash)
+            # The .jic-derived SVF only contains flash operations (erase/program/
+            # verify) and expects the Serial Flash Loader (SFL) to be already
+            # configured into the FPGA. openFPGALoader cannot do that for the
+            # EP4CE40, so we prepend the committed, device-specific SFL
+            # configuration SVF to obtain a single self-contained flash SVF.
+            print("Generating SVF for Flash...")
+            if not os.path.exists(FLASH_SFL_SVF):
+                raise FileNotFoundError(
+                    f"Missing SFL configuration SVF '{FLASH_SFL_SVF}'. "
+                    "Regenerate it with 'python3 tools/generate_sfl_svf.py'."
+                )
+
+            svf_flash_ops_file = os.path.join(output_location, prefix + "_flash_ops.svf")
+
+            # Flash operations (erase/program/verify through the SFL).
+            subprocess.run(["quartus_cpf", "-c", "-q", "12.0MHz", "-g", "3.3", "-n", "p", output_jic, svf_flash_ops_file], check=True)
+
+            # Concatenate committed SFL configuration + flash ops into a single
+            # self-contained flash SVF.
+            with open(svf_flash_file, "w") as out_f:
+                for part in (FLASH_SFL_SVF, svf_flash_ops_file):
+                    with open(part) as in_f:
+                        shutil.copyfileobj(in_f, out_f)
+
+            # Remove intermediate SVF.
+            if os.path.exists(svf_flash_ops_file):
+                os.remove(svf_flash_ops_file)
+        except Exception as e:
+            print(f"Error generating SVF: {e}")
 
         print("Bitstream generation completed.")
 
     if args.load:
         prog = soc.platform.create_programmer(cable=args.cable)
-        prog.load_bitstream(builder.get_bitstream_filename(mode="sram", ext=".sof"))
+        prog.load_bitstream("bitstream/LimeSDR_USB/LimeSDR-USB_lms7_trx.svf")
+
+    if args.flash:
+        prog = soc.platform.create_programmer(cable=args.cable)
+        prog.flash(0, "bitstream/LimeSDR_USB/LimeSDR-USB_lms7_trx_flash.svf")
 
     # Generate Litex Documentation files and if --doc option is used build also
     build_name = soc.build_name.replace("_", "-")
