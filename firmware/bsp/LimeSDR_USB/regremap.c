@@ -163,7 +163,7 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x6C:
         value = pss_tst_top_si_clk5_cnt_read();
         break;
-    case 0x6E:
+    case 0x6D:
         value = pss_tst_top_si_clk3_cnt_read();
         break;
     case 0x6F:

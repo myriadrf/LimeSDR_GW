@@ -20,6 +20,10 @@
 /* Peripheral Includes                                                   */
 /*-----------------------------------------------------------------------*/
 #include "regremap.h"
+#include "LM75.h"
+#include "AD56xx.h"
+#include "ADF4002.h"
+#include "i2c_eeprom.h"
 
 /*-----------------------------------------------------------------------*/
 /* Constants & Macros                                                    */
@@ -34,9 +38,15 @@
 #define BSP_MAX_ID_LMS8 0
 
 /* SPI & Peripheral Config */
-#define BSP_DAC_INDEX 0
-//TODO: CHECK for real value
-// #define BSP_DAC_DEFAULT_VAL  46870 // Default TCXO DAC value loaded when EEPROM is empty
+#define BSP_ADF4002_SPIMASTER 1
+#define BSP_ADF4002_CS        0
+#define BSP_DAC_SPIMASTER     1
+#define BSP_DAC_CS            1
+#define BSP_DAC_DEFAULT_VAL   125 // Default TCXO DAC value loaded when EEPROM is empty
+#define BSP_EEPROM_DAC_ADDR   0x0010 // Address in EEPROM memory where TCXO DAC value is stored
+
+/* I2C Config */
+#define EEPROM_I2C_ADDR		0x50
 
 /*-----------------------------------------------------------------------*/
 /* Function Prototypes                                                   */
