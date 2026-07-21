@@ -300,7 +300,7 @@ def main():
     parser.add_argument("--build", action="store_true", help="Build bitstream.")
     parser.add_argument("--load",  action="store_true", help="Load bitstream.")
     parser.add_argument("--flash", action="store_true", help="Flash bitstream.")
-    parser.add_argument("--cable", default="usb-blaster", help="JTAG cable.")
+    parser.add_argument("--cable", default="ft2232", help="JTAG cable.")
 
     # SoC parameters.
     parser.add_argument("--with-bios",     action="store_true", help="Enable LiteX BIOS.")
