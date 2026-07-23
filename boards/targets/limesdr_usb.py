@@ -29,13 +29,15 @@ from boards.platforms import limesdr_usb_platform as limesdr_usb
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder  import *
 
+from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
+
 # Constants ----------------------------------------------------------------------------------------
 
-FPGA_to_Host_data_width = 64 # bus width connecting FX3 and Limetop
-Host_to_FPGA_data_width = 64 # bus width connecting FX3 and Limetop
-wfm_data_width          = 32 # bus width connecting FX3 and wfmplayer
-Tx_max_buf_packets      = 16      # maximum number of buffered tx packets in Limetop (any size)
-Tx_packet_buf_size      = 16384   # total size (in bytes) of tx packet buffer in Limetop
+FPGA_TO_HOST_DATA_WIDTH = 64 # bus width connecting FX3 and Limetop
+HOST_TO_FPGA_DATA_WIDTH = 64 # bus width connecting FX3 and Limetop
+WFM_DATA_WIDTH          = 32 # bus width connecting FX3 and wfmplayer
+TX_MAX_BUF_PACKETS      = 16      # maximum number of buffered tx packets in Limetop (any size)
+TX_PACKET_BUF_SIZE      = 16384   # total size (in bytes) of tx packet buffer in Limetop
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -107,13 +109,28 @@ class BaseSoC(SoCCore):
     def __init__(self,
                  sys_clk_freq      = 100e6,
                  with_bios         = False,
-                 gold_img          = False,
+                 no_ddr            = False,
                  cpu_firmware   = None,
-                 with_jtagbone     = False):
+                 with_jtagbone     = False,
+                 with_cpu_debug    = False):
         platform = limesdr_usb.Platform()
         platform.name        = "limesdr_usb"
         platform.vhd2v_force = False
         platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
+
+        # JTAGBone (wishbone-over-JTAG bus master for gateware debugging / register
+        # monitoring with litex_server) and the RISC-V CPU debug tunnel both consume the
+        # board's single reserved Altera Virtual-JTAG (sld_virtual_jtag) instance, so they
+        # cannot be enabled at the same time.
+        if with_jtagbone and with_cpu_debug:
+            raise ValueError(
+                "--with-jtagbone and --with-cpu-debug are mutually exclusive: both need the "
+                "single Altera Virtual-JTAG instance on this Cyclone IV."
+            )
+
+        # The debug build swaps in a heavier VexRiscv-SMP core; drop DDR to free EP4CE40
+        # resources (equivalent to passing --no-ddr).
+        no_ddr = no_ddr or with_cpu_debug
 
         if with_bios:
             integrated_rom_size      = 0x4000
@@ -127,11 +144,24 @@ class BaseSoC(SoCCore):
             integrated_main_ram_init = []
 
         # SoCCore ----------------------------------------------------------------------------------
+        # CPU selection: production uses the small VexRiscv "minimal" core. The opt-in
+        # --with-cpu-debug build switches to a single-core VexRiscv-SMP exposing a
+        # spec-compliant RISC-V Debug Module over a dedicated Altera Virtual-JTAG tunnel
+        # (wired in add_jtag_cpu_debug()), debugged directly with upstream OpenOCD.
+        if with_cpu_debug:
+            cpu_type    = "vexriscv_smp"
+            cpu_variant = "standard"
+            VexRiscvSMP.with_rvc             = True
+            VexRiscvSMP.privileged_debug     = True
+            VexRiscvSMP.hardware_breakpoints = 4
+        else:
+            cpu_type    = "vexriscv"
+            cpu_variant = "minimal"
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-USB",
             ident_version            = True,
-            cpu_type                 = "vexriscv",
-            cpu_variant              = "minimal",
+            cpu_type                 = cpu_type,
+            cpu_variant              = cpu_variant,
             integrated_rom_size      = integrated_rom_size,
             integrated_rom_init      = integrated_rom_init,
             integrated_sram_size     = 0x2000,
@@ -151,18 +181,26 @@ class BaseSoC(SoCCore):
         self.crg = _CRG(platform, sys_clk_freq)
 
         # JTAGBone ---------------------------------------------------------------------------------
+        # Opt-in wishbone-over-JTAG bus master (over the on-board FT2232 cable) for gateware
+        # debugging and CSR/register monitoring via `litex_server --jtag` + `litex_cli`. This
+        # leaves the production vexriscv "minimal" core untouched and is independent of the
+        # RISC-V CPU debug tunnel (which is mutually exclusive with it, see above).
         if with_jtagbone:
             self.add_jtagbone()
             platform.add_period_constraint(self.jtagbone_phy.cd_jtag.clk, 1e9/20e6)
             platform.add_false_path_constraints(self.jtagbone_phy.cd_jtag.clk, self.crg.cd_sys.clk)
 
+        # JTAG CPU Debug ---------------------------------------------------------------------------
+        if with_cpu_debug:
+            self.add_jtag_cpu_debug()
+
         # FX3
         self.FX3 = FX3(platform=platform,
                        pads=platform.request("FX3"),
                        vendor="altera",
-                       EP01_0_rwidth = Host_to_FPGA_data_width,
-                       EP01_1_rwidth = wfm_data_width,
-                       EP81_wwidth   = FPGA_to_Host_data_width
+                       EP01_0_rwidth = HOST_TO_FPGA_DATA_WIDTH,
+                       EP01_1_rwidth = WFM_DATA_WIDTH,
+                       EP81_wwidth   = FPGA_TO_HOST_DATA_WIDTH
                        )
 
         # LMS SPI -----------------------------------------------------------------------------------
@@ -170,18 +208,22 @@ class BaseSoC(SoCCore):
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI0"), data_width=32, spi_clk_freq=1e6)
 
         # PSS (Peripheral Support Subsystem)
-        self.pss = PSS_LimeSDR_Usb(self, platform, sys_clk_freq, pll_ref_clk=self.crg.fx3_pclk, add_ddr_modules=True, wfm_infifo_usedw_width=self.FX3.ep01_0_rdusedw_width)
+        self.pss = PSS_LimeSDR_Usb(self, platform, sys_clk_freq,
+                                   pll_ref_clk=self.crg.fx3_pclk,
+                                   add_ddr_modules=not no_ddr,
+                                   wfm_infifo_usedw_width=self.FX3.ep01_0_rdusedw_width,
+                                   )
 
         # LimeTop -----------------------------------------------------------------------------------
         self.limetop  = LimeTop(self,
                                 platform             = platform,
                                 vendor               = "altera",
                                 family               = "cycloneIV",
-                                sink_width           = Host_to_FPGA_data_width,
-                                source_width         = FPGA_to_Host_data_width,
+                                sink_width           = HOST_TO_FPGA_DATA_WIDTH,
+                                source_width         = FPGA_TO_HOST_DATA_WIDTH,
                                 rx_fixed_packet_size = True,
-                                TX_N_BUFF            = Tx_max_buf_packets,
-                                TX_MAX_PCT_SIZE      = Tx_packet_buf_size,
+                                TX_N_BUFF            = TX_MAX_BUF_PACKETS,
+                                TX_MAX_PCT_SIZE      = TX_PACKET_BUF_SIZE,
                                 TX_WITHTXIQ_MUX      = True,
                                 # FPGACFG.
                                 board_id             = 0x0011,
@@ -200,34 +242,69 @@ class BaseSoC(SoCCore):
             self.FX3.data_source0_clr.eq  (~self.limetop.fpgacfg.rx_en),
             self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en),
         ]
-        # WFMPlayer <-> lms7002_top
-        self.comb += [
-            self.limetop.lms7002_top.wfm_sink_l.eq(self.pss.wfm_player.diq_l),
-            self.limetop.lms7002_top.wfm_sink_h.eq(self.pss.wfm_player.diq_h),
-        ]
-        # FX3 <-> WFMPlayer
-        # NOTE: both FX3 and WFMPlayer need usedw signals from their fifos to operate properly
-        #       LiteX AsyncFifo does not have two level outputs, so two SyncFIFOs have to be used,
-        #       one for each clock domain.
-        self.wfm_fifo = ClockDomainsRenamer("lms_tx")(
-            ResetInserter()(stream.SyncFIFO([("data", 32)], depth=1024, buffered=True))
+        # WFMPlayer wiring. The WFM player is a DDR-backed feature, so the PSS only
+        # instantiates it when DDR modules are present (add_ddr_modules / not no_ddr).
+        # The --with-cpu-debug build implies --no-ddr for EP4CE40 headroom and therefore
+        # has no WFM player; skip its wiring accordingly.
+        if not no_ddr:
+            # WFMPlayer <-> lms7002_top
+            self.comb += [
+                self.limetop.lms7002_top.wfm_sink_l.eq(self.pss.wfm_player.diq_l),
+                self.limetop.lms7002_top.wfm_sink_h.eq(self.pss.wfm_player.diq_h),
+            ]
+            # FX3 <-> WFMPlayer
+            # NOTE: both FX3 and WFMPlayer need usedw signals from their fifos to operate properly
+            #       LiteX AsyncFifo does not have two level outputs, so two SyncFIFOs have to be used,
+            #       one for each clock domain.
+            self.wfm_fifo = ClockDomainsRenamer("lms_tx")(
+                ResetInserter()(stream.SyncFIFO([("data", 32)], depth=1024, buffered=True))
+            )
+            self.wfm_data_cdc = ClockDomainCrossing([("data",32)],"sys","lms_tx", depth=4)
+            # No CDC for clear signal, since it is actually in sys clock domain (unmodified fpacfg wfm_load signal passed through wfmplayer)
+            self.comb += [
+                # --- CDC for wfm data
+                self.FX3.data_source_1.connect(self.wfm_data_cdc.sink, omit=["keep", "id", "dest", "user"]),
+                self.wfm_data_cdc.source.connect(self.wfm_fifo.sink),
+                self.wfm_fifo.source.connect(self.pss.wfm_player.sink, omit=["keep", "id", "dest", "user"]),
+                # --- FIFO level for burst management
+                self.pss.wfm_player.sink_usedw.eq(self.wfm_fifo.level),
+                # --- Controls
+                self.wfm_fifo.reset.eq(~self.pss.wfm_player.wfm_infifo_reset_n),
+                self.FX3.data_source1_clr.eq  (~self.pss.wfm_player.wfm_infifo_reset_n),
+                self.FX3.data_source_sel.eq(self.pss.wfm_player.wfm_load)
+            ]
+
+    # JTAG CPU Debug -------------------------------------------------------------------------------
+    def add_jtag_cpu_debug(self):
+        # Expose the VexRiscv-SMP tunneled RISC-V Debug Module through the single Altera
+        # Virtual-JTAG (sld_virtual_jtag) instance available on this Cyclone IV. This is the
+        # same BSCAN-tunnel framework used by the XTRX/SSDR/HiperSDR reference boards, so it is
+        # driven directly by upstream OpenOCD + riscv_jtag_tunneled.tcl (no litex_server, no
+        # jtagbone, no OpenOCD fork). Because the debug bus no longer needs the wishbone bridge,
+        # this instance is the sole virtual-JTAG consumer in debug builds.
+        from litex.soc.cores.jtag import AlteraJTAG
+        self.platform.add_reserved_jtag_decls()
+        self.jtag = jtag = AlteraJTAG(
+            primitive = AlteraJTAG.get_primitive(self.platform.device),
+            pads      = self.platform.get_reserved_jtag_pads(),
         )
-        self.wfm_data_cdc = ClockDomainCrossing([("data",32)],"sys","lms_tx", depth=4)
-        # No CDC for clear signal, since it is actually in sys clock domain (unmodified fpacfg wfm_load signal passed through wfmplayer)
         self.comb += [
-            # --- CDC for wfm data
-            self.FX3.data_source_1.connect(self.wfm_data_cdc.sink, omit=["keep", "id", "dest", "user"]),
-            self.wfm_data_cdc.source.connect(self.wfm_fifo.sink),
-            self.wfm_fifo.source.connect(self.pss.wfm_player.sink, omit=["keep", "id", "dest", "user"]),
-            # --- FIFO level for burst management
-            self.pss.wfm_player.sink_usedw.eq(self.wfm_fifo.level),
-            # --- Controls
-            self.wfm_fifo.reset.eq(~self.pss.wfm_player.wfm_infifo_reset_n),
-            self.FX3.data_source1_clr.eq  (~self.pss.wfm_player.wfm_infifo_reset_n),
-            self.FX3.data_source_sel.eq(self.pss.wfm_player.wfm_load)
+            self.cpu.jtag_reset.eq(jtag.reset),
+            self.cpu.jtag_capture.eq(jtag.capture),
+            self.cpu.jtag_shift.eq(jtag.shift),
+            self.cpu.jtag_update.eq(jtag.update),
+            self.cpu.jtag_clk.eq(jtag.tck),
+            self.cpu.jtag_tdi.eq(jtag.tdi),
+            self.cpu.jtag_enable.eq(True),
+            jtag.tdo.eq(self.cpu.jtag_tdo),
         ]
 
-            # LiteScope Analyzer Probes --------------------------------------------------------------------
+        self.cd_jtag = ClockDomain()
+        self.comb += ClockSignal("jtag").eq(jtag.tck)
+        self.platform.add_period_constraint(self.cd_jtag.clk, 1e9/20e6)
+        self.platform.add_false_path_constraints(self.cd_jtag.clk, self.crg.cd_sys.clk)
+
+    # LiteScope Analyzer Probes --------------------------------------------------------------------
     def add_debug(self):
         reset_sig = Signal()
         self.comb += reset_sig.eq(ResetSignal("lms_tx"))
@@ -303,8 +380,10 @@ def main():
     parser.add_argument("--cable", default="ft2232", help="JTAG cable.")
 
     # SoC parameters.
-    parser.add_argument("--with-bios",     action="store_true", help="Enable LiteX BIOS.")
-    parser.add_argument("--with-jtagbone", action="store_true", help="Enable JTAGBone.")
+    parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
+    parser.add_argument("--with-jtagbone",  action="store_true", help="Enable JTAGBone (wishbone-over-JTAG bus master) for gateware debugging / register monitoring with litex_server (mutually exclusive with --with-cpu-debug).")
+    parser.add_argument("--with-cpu-debug", action="store_true", help="Enable spec-compliant RISC-V CPU debug over a dedicated JTAG tunnel (implies --no-ddr, mutually exclusive with --with-jtagbone).")
+    parser.add_argument("--no-ddr",         action="store_true", help="Do not include DDR memory related modules. Useful for freeing resources when debugging")
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
@@ -319,9 +398,11 @@ def main():
         
         # SoC.
         soc = BaseSoC(
-            with_bios     = args.with_bios,
-            with_jtagbone = args.with_jtagbone,
-            cpu_firmware  = None if prepare else "firmware/firmware.bin"
+            with_bios      = args.with_bios,
+            with_jtagbone  = args.with_jtagbone,
+            with_cpu_debug = args.with_cpu_debug,
+            cpu_firmware   = None if prepare else "firmware/firmware.bin",
+            no_ddr         = args.no_ddr
         )
 
         # soc.add_debug()
