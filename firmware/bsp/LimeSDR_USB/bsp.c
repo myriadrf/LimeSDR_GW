@@ -17,7 +17,8 @@ static spimaster_regs SPIMASTER_FPGA1 = {.control_addr = CSR_FPGA_SPI1_CONTROL_A
                                   .status_addr  = CSR_FPGA_SPI1_STATUS_ADDR,
                                   .mosi_addr    = CSR_FPGA_SPI1_MOSI_ADDR,
                                   .miso_addr    = CSR_FPGA_SPI1_MISO_ADDR,
-                                  .cs_addr      = CSR_FPGA_SPI1_CS_ADDR};
+                                  .cs_addr      = CSR_FPGA_SPI1_CS_ADDR,
+                                  .phase_addr   = CSR_FPGA_SPI1_PHASE_ADDR};
 
 static i2c_eeprom_t I2C_EEPROM_CFG;
 static uint8_t dac_val;
@@ -41,7 +42,11 @@ void bsp_init(void)
     // Init Temperature sensor
     LM75_Init(&I2C_REGS,0);
     // Init EEPROM control struct
-    I2C_EEPROM_Init(&I2C_EEPROM_CFG,&I2C_REGS,EEPROM_I2C_ADDR,I2C_EEPROM_ADDR_8BIT,I2C_EEPROM_ADDR_MODE_STANDARD,64,16384);
+    // The M24128 is a 128-Kbit (16K x 8) EEPROM and requires a 16-bit (two-byte)
+    // memory address. Using I2C_EEPROM_ADDR_8BIT sends only a single address byte,
+    // which leaves the internal address pointer undefined and makes reads/writes
+    // land on the wrong location. Use I2C_EEPROM_ADDR_16BIT to match the device.
+    I2C_EEPROM_Init(&I2C_EEPROM_CFG,&I2C_REGS,EEPROM_I2C_ADDR,I2C_EEPROM_ADDR_16BIT,I2C_EEPROM_ADDR_MODE_STANDARD,64,16384);
 
     // Turn off ADF, turn on DAC
     bsp_control_adf(0,NULL,NULL);
@@ -242,7 +247,9 @@ void bsp_vctcxo_permanent_dac_read(uint8_t *data)
 
 void bsp_vctcxo_permanent_dac_write(uint8_t *data)
 {
-    // TODO: Implement VCTCXO permanent DAC write
+    // Persist the current TCXO DAC value to EEPROM so it survives power cycles.
+    // I2C_EEPROM_Write handles page boundaries and ACK polling internally.
+    I2C_EEPROM_Write(&I2C_EEPROM_CFG, BSP_EEPROM_DAC_ADDR, data, 1);
 }
 
 uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count)
@@ -313,6 +320,12 @@ uint8_t bsp_spi_transfer(
     case 1: // fpga_spi1
             // DAC / ADF
         regs = &SPIMASTER_FPGA1;
+        // The AD5601 VCTCXO DAC (CS1) latches SDIN on the SCLK falling edge and
+        // therefore requires SPI Mode 1 (CPHA=1). The ADF4002 PLL (CS0) that shares
+        // this master uses the default SPI Mode 0 (CPHA=0). Select the clock mode
+        // here, per transfer, via the SPI driver so the peripheral drivers
+        // (AD56xx / ADF4002) stay unaware of SPI modes.
+        spimaster_set_mode(regs, (cs == BSP_DAC_CS) ? SPI_MODE1 : SPI_MODE0);
         break;
 
     default:

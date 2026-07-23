@@ -4,6 +4,14 @@
 // cdelay is typically defined in the LiteX bios or board support code
 extern void cdelay(int count);
 
+void spimaster_set_mode(const spimaster_regs *regs, uint8_t mode)
+{
+    // CPOL is fixed at 0 in the LiteX SPIMaster core; only the clock phase (CPHA)
+    // is selectable. SPI_MODE0 -> CPHA=0, SPI_MODE1 -> CPHA=1. The phase CSR is
+    // provided by the runtime-CPHA gateware patch (tools/spi_cpha_patch.py).
+    csr_write_simple((mode & 0x1) ? 1 : 0, regs->phase_addr);
+}
+
 uint8_t spimaster_transfer(const spimaster_regs *regs, uint8_t cs, const uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata)
 {
     uint32_t recv_val = 0;
