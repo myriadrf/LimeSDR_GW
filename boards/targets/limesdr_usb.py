@@ -7,6 +7,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from tools.spi_cpha_patch import patch_spi_master_cpha
+# Add runtime-selectable SPI clock phase (CPHA) to the LiteX SPIMaster. This is required so the
+# AD5601 VCTCXO DAC on "fpga_spi1" (which latches SDIN on the SCLK falling edge, i.e. SPI Mode 1)
+# can be driven correctly while the ADF4002 PLL sharing the same master stays in SPI Mode 0.
+# Default (cpha=0) is bit-for-bit identical to the stock core, so all existing devices are
+# unaffected. Must be applied before any SPIMaster / add_spi_master is instantiated.
+patch_spi_master_cpha()
+
 import os
 import argparse
 import shutil
