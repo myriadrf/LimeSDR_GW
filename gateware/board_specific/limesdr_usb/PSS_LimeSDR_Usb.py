@@ -17,7 +17,7 @@ class PSS_LimeSDR_Usb(LiteXModule):
         # SPI1 - TCXO DAC, ADF4002
         # Need to do some trickery here to add a dummy miso
         # as well as to deal with two differently named chip selects
-        spi1_phy_pads = platform.request("FPGA_SPI1")
+        self.spi1_phy_pads = spi1_phy_pads = platform.request("FPGA_SPI1")
         spi1_pads = Record([
             ("clk",  1),
             ("cs_n", 2),

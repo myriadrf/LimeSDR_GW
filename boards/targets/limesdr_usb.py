@@ -13,7 +13,7 @@ from tools.spi_cpha_patch import patch_spi_master_cpha
 # can be driven correctly while the ADF4002 PLL sharing the same master stays in SPI Mode 0.
 # Default (cpha=0) is bit-for-bit identical to the stock core, so all existing devices are
 # unaffected. Must be applied before any SPIMaster / add_spi_master is instantiated.
-patch_spi_master_cpha()
+patch_spi_master_cpha(verbose=False)
 
 import os
 import argparse
@@ -130,6 +130,11 @@ class BaseSoC(SoCCore):
         # monitoring with litex_server) and the RISC-V CPU debug tunnel both consume the
         # board's single reserved Altera Virtual-JTAG (sld_virtual_jtag) instance, so they
         # cannot be enabled at the same time.
+        # FIXME: cycloneIV openocd litex support added in litex commit 00a2084a8596c00f445425b1ccce62772052f93f
+        #        (https://github.com/enjoy-digital/litex/commit/00a2084a8596c00f445425b1ccce62772052f93f)
+        #        if using OLDER version of litex, jtagbone will not work, unless litex dep manually modified as in the commit
+        # TODO: Remove this and the above fixme comments when this repo's litex_config.py points to a newer version of litex
+        #       than specified above
         if with_jtagbone and with_cpu_debug:
             raise ValueError(
                 "--with-jtagbone and --with-cpu-debug are mutually exclusive: both need the "
@@ -315,38 +320,13 @@ class BaseSoC(SoCCore):
     # LiteScope Analyzer Probes --------------------------------------------------------------------
     def add_debug(self):
         reset_sig = Signal()
-        self.comb += reset_sig.eq(ResetSignal("lms_tx"))
         analyzer_signals = []
-        analyzer_signals += [
-            self.pss.wfm_player.wfm_load,
-            self.pss.wfm_player.wfm_play,
-            self.pss.wfm_player.diq_h,
-            self.pss.wfm_player.diq_l,
-            self.pss.wfm_player.wfm_ch_en,
-            self.pss.wfm_player.sink_usedw,
-            # self.pss.wfm_player.sink_usedw_debug,
-            # self.pss.wfm_player.sink_debug,
-            # self.FX3.data_source_1
-            # self.pss.wfm_player.sink
-            # reset_sig,
-            # self.pss.wfm_player.diq_h,
-            # self.pss.wfm_player.diq_l,
-            # # self.pss.wfm_player.diq_h_full,
-            # self.pss.wfm_player.diq_l_full,
-            # self.limetop.lms7002_top.mux0_reg_l,
-            # self.limetop.lms7002_top.mux0_reg_h,
-            # self.limetop.lms7002_top.mux1_reg_l,
-            # self.limetop.lms7002_top.mux1_reg_h,
-            # self.limetop.lms7002_top.mux2_reg_l,
-            # self.limetop.lms7002_top.mux2_reg_h,
-            # self.limetop.lms7002_top.txiq_mux_sel_sync,
-            # self.limetop.lms7002_top.txiq_mux_sel.storage,
-        ]
+        analyzer_signals += [self.pss.spi1_phy_pads]
         # Only import LiteScope when it's actually needed
         from litescope import LiteScopeAnalyzer
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 128,
-            clock_domain = "lms_tx",
+            clock_domain = "sys",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
