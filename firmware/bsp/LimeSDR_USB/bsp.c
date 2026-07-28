@@ -32,8 +32,13 @@ static uint8_t dac_val;
 void bsp_init(void)
 {
     // Reset LMS7
-    limetop_lms7002_top_lms_ctr_gpio_write(0x0);
-    limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+    uint16_t lms1_val = limetop_lms7002_top_lms1_read();
+    // Set bit 1 (reset) to 0
+    lms1_val &= 0xFFFD;
+    limetop_lms7002_top_lms1_write(lms1_val);
+    // Set bit 1 (reset) to 1
+    lms1_val |= 2;
+    limetop_lms7002_top_lms1_write(lms1_val);
     // Init pll control register values
     csr_write_simple(0x0FFF, clk_ctrl_addrs.phcfg_samples);
     csr_write_simple(0x0002, clk_ctrl_addrs.phcfg_step);
@@ -113,20 +118,30 @@ void bsp_delay_ms(unsigned int ms)
 int8_t lms_reset(uint8_t periph_id, uint8_t command)
 {
     uint8_t check_val = lms7002m_periph_id_check(periph_id);
+    uint16_t lms1_val;
     if (check_val == 0)
         return 1;
     uint32_t read_value;
     switch (command) {
     case LMS_RST_DEACTIVATE:
-        limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+        lms1_val = limetop_lms7002_top_lms1_read();
+        // Set bit 1 (reset) to 1
+        lms1_val |= 2;
+        limetop_lms7002_top_lms1_write(lms1_val);
         return 0;
 
     case LMS_RST_ACTIVATE:
-        limetop_lms7002_top_lms_ctr_gpio_write(0x0);
+        lms1_val = limetop_lms7002_top_lms1_read();
+        // Set bit 1 (reset) to 0
+        lms1_val &= 0xFFFD;
+        limetop_lms7002_top_lms1_write(lms1_val);
         return 0;
 
     case LMS_RST_PULSE:
-        limetop_lms7002_top_lms_ctr_gpio_write(0x0);
+        lms1_val = limetop_lms7002_top_lms1_read();
+        // Set bit 1 (reset) to 0
+        lms1_val &= 0xFFFD;
+        limetop_lms7002_top_lms1_write(lms1_val);
         asm("nop");
         asm("nop");
         asm("nop");
@@ -137,7 +152,9 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command)
         asm("nop");
         asm("nop");
         asm("nop");
-        limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
+        // Set bit 1 (reset) to 1
+        lms1_val |= 2;
+        limetop_lms7002_top_lms1_write(lms1_val);
         return 0;
     }
 }
