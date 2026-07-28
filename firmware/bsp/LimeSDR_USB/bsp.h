@@ -37,7 +37,20 @@
 #define BSP_MAX_ID_LMS7 1
 #define BSP_MAX_ID_LMS8 0
 
+/* MCU SPI register offsets */
+#define BSP_MCU_CONTROL_REG 0x02
+#define BSP_MCU_STATUS_REG  0x03
+#define BSP_MCU_FIFO_WR_REG 0x04
+
+/* Programming modes */
+#define BSP_PROG_EEPROM 1
+#define BSP_PROG_SRAM   2
+#define BSP_BOOT_MCU    3
+
+#define BSP_MAX_MCU_RETRIES 30
+
 /* SPI & Peripheral Config */
+#define BSP_SPI_CS_LMS    (1 << 0)
 #define BSP_ADF4002_SPIMASTER 1
 #define BSP_ADF4002_CS        0
 #define BSP_DAC_SPIMASTER     1

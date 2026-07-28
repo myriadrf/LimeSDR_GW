@@ -20,11 +20,18 @@ static spimaster_regs SPIMASTER_FPGA1 = {.control_addr = CSR_FPGA_SPI1_CONTROL_A
                                   .cs_addr      = CSR_FPGA_SPI1_CS_ADDR,
                                   .phase_addr   = CSR_FPGA_SPI1_PHASE_ADDR};
 
+// Static, bsp-wide variables (required by some bsp functions)
+
+/* Persistent state across calls */
+static uint8_t last_portion_valid = 0;
+static uint8_t last_portion       = 0;
+
 static i2c_eeprom_t I2C_EEPROM_CFG;
 static uint8_t dac_val;
 
 void bsp_init(void)
 {
+    // Reset LMS7
     limetop_lms7002_top_lms_ctr_gpio_write(0x0);
     limetop_lms7002_top_lms_ctr_gpio_write(0xFFFFFFFF);
     // Init pll control register values
@@ -72,22 +79,22 @@ void bsp_powerup(void)
 
 void bsp_shutdown(void)
 {
-    // TODO: Implement shutdown sequence
+    // Not implemented for LimeSDR USB
 }
 
 static void bsp_isr(void)
 {
-    // TODO: Implement interrupt service routine
+    // Not implemented for LimeSDR USB
 }
 
 void bsp_isr_init(void)
 {
-    // TODO: Implement interrupt initialization
+    // Not implemented for LimeSDR USB
 }
 
 void bsp_process_irqs(void)
 {
-    // TODO: Process pending interrupts
+    // Not implemented for LimeSDR USB
 }
 
 void bsp_delay_ms(unsigned int ms)
@@ -254,56 +261,165 @@ void bsp_vctcxo_permanent_dac_write(uint8_t *data)
 
 uint8_t bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count)
 {
-    // Not implemented for LimeSDR USB
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
 uint8_t bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count)
 {
-    // Not implemented for LimeSDR USB
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
 uint8_t bsp_program_mode0_fpga_sram(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload)
 {
-    // TODO: Implement FPGA SRAM programming
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
 uint8_t bsp_program_mode1_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload)
 {
-    // TODO: Implement Flash programming
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
 uint8_t bsp_program_mode2_check_support(void)
 {
-    // TODO: Check if boot from flash is supported
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
 uint8_t bsp_program_mode2_boot_from_flash(void)
 {
-    // TODO: Trigger boot from flash
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
 uint8_t bsp_program_mode3_golden_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload)
 {
-    // TODO: Implement Golden image Flash programming
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
 uint8_t bsp_program_mode4_user_to_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload)
 {
-    // TODO: Implement User image Flash programming
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
 uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint8_t *data)
 {
-    // TODO: Implement LMS MCU firmware write
-    return 0;
+    uint16_t addr;
+    uint16_t val;
+    uint8_t MCU_retries;
+    uint8_t cmd_errors = 0;
+
+    /* Check portion ordering */
+    if (current_portion != 0) {
+        if (!last_portion_valid || last_portion != (current_portion - 1)) {
+            return STATUS_WRONG_ORDER_CMD;
+        }
+    } else {
+        /* First portion resets tracking */
+        last_portion_valid = 0;
+    }
+
+    if (current_portion == 0) {
+        /* Reset MCU */
+        addr = (0x80 << 8) | BSP_MCU_CONTROL_REG;
+        val  = 0x0000;
+        lms_spi_write(addr, val, BSP_SPI_CS_LMS);
+
+        /* Set mode */
+        addr = (0x80 << 8) | BSP_MCU_CONTROL_REG;
+
+        switch (prog_mode) {
+        case BSP_PROG_EEPROM:
+            val = 0x0001;
+            lms_spi_write(addr, val, BSP_SPI_CS_LMS);
+            break;
+
+        case BSP_PROG_SRAM:
+            val = 0x0002;
+            lms_spi_write(addr, val, BSP_SPI_CS_LMS);
+            break;
+
+        case BSP_BOOT_MCU:
+            val = 0x0003;
+            lms_spi_write(addr, val, BSP_SPI_CS_LMS);
+
+            /* Read MCU status (boot path) */
+            addr = (0x00 << 8) | BSP_MCU_STATUS_REG;
+            val  = lms_spi_read(addr, BSP_SPI_CS_LMS);
+
+            /* Save portion and return immediately for boot */
+            last_portion       = current_portion;
+            last_portion_valid = 1;
+
+            return (cmd_errors) ? STATUS_ERROR_CMD : STATUS_COMPLETED_CMD;
+
+        default:
+            return STATUS_ERROR_CMD;
+        }
+    }
+
+    /* Wait until EMPTY_WRITE_BUFF = 1 */
+    MCU_retries = 0;
+    while (MCU_retries < BSP_MAX_MCU_RETRIES) {
+        addr = (0x00 << 8) | BSP_MCU_STATUS_REG;
+        val  = lms_spi_read(addr, BSP_SPI_CS_LMS);
+        printf("%08x\n", val);
+
+        if (val & 0x01)
+            break;
+
+        MCU_retries++;
+        cdelay(3000);
+    }
+
+    /* Write 32 bytes to MCU FIFO */
+    for (uint8_t block = 0; block < 32; block++) {
+        addr = (0x80 << 8) | BSP_MCU_FIFO_WR_REG;
+        val  = (0x00 << 8) | data[block];
+        lms_spi_write(addr, val, BSP_SPI_CS_LMS);
+    }
+
+    /* Wait until EMPTY_WRITE_BUFF = 1 again */
+    MCU_retries = 0;
+    while (MCU_retries < 500) {
+        addr = (0x00 << 8) | BSP_MCU_STATUS_REG;
+        val  = lms_spi_read(addr, BSP_SPI_CS_LMS);
+
+        if (val & 0x01)
+            break;
+
+        MCU_retries++;
+        cdelay(3000);
+    }
+
+    /* Last portion: verify programming completed */
+    if (current_portion == 255) {
+        MCU_retries = 0;
+        while (MCU_retries < BSP_MAX_MCU_RETRIES) {
+            addr = (0x00 << 8) | BSP_MCU_STATUS_REG;
+            val  = lms_spi_read(addr, BSP_SPI_CS_LMS);
+
+            if (val & 0x40)
+                break; /* PROGRAMMED = 1 */
+
+            MCU_retries++;
+            cdelay(30000);
+        }
+
+        if (MCU_retries == BSP_MAX_MCU_RETRIES)
+            cmd_errors++;
+    }
+
+    /* Save portion tracking */
+    last_portion       = current_portion;
+    last_portion_valid = 1;
+
+    return (cmd_errors) ? STATUS_ERROR_CMD : STATUS_COMPLETED_CMD;
 }
 
 uint8_t bsp_spi_transfer(
@@ -337,13 +453,13 @@ uint8_t bsp_spi_transfer(
 
 uint8_t bsp_serial_read(uint8_t *data_field)
 {
-    // TODO: Implement serial number read
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
 uint8_t bsp_serial_write(const uint8_t *data_field)
 {
-    // TODO: Implement serial number write
+    // Not implemented for LimeSDR USB (Handled by FX3)
     return 0;
 }
 
@@ -365,5 +481,5 @@ uint8_t bsp_control_adf(uint8_t oe, const uint8_t data[3], bool pack_data)
 
 void bsp_init_adf(void)
 {
-    // TODO: Implement ADF initialization
+    // No ADF init sequence for LimeSDR USB
 }

@@ -220,9 +220,15 @@ class BaseSoC(SoCCore):
         # LMS spi declared outside PSS, because the current firmware driver expects that
         self.add_spi_master(name="spimaster", pads=platform.request("FPGA_SPI0"), data_width=32, spi_clk_freq=1e6)
 
+        # Revision pads (shared between LimeTop's FPGACFG board-id readback and the PSS's FX3 LED
+        # hardware-version gating).
+        revision_pads = platform.request("revision")
+
         # PSS (Peripheral Support Subsystem)
         self.pss = PSS_LimeSDR_Usb(self, platform, sys_clk_freq,
                                    pll_ref_clk=self.crg.fx3_pclk,
+                                   revision_pads=revision_pads,
+                                   fx3_busy=self.FX3.busy_out,
                                    add_ddr_modules=not no_ddr,
                                    wfm_infifo_usedw_width=self.FX3.ep01_0_rdusedw_width,
                                    )
@@ -242,7 +248,7 @@ class BaseSoC(SoCCore):
                                 board_id             = 0x0011,
                                 major_rev            = MajorRevision,
                                 compile_rev          = CompileRevision,
-                                revision_pads        = platform.request("revision"),
+                                revision_pads        = revision_pads,
 
                                 with_event_manager   = False,
                                 with_clk_cfg_irq     = False,
@@ -254,6 +260,14 @@ class BaseSoC(SoCCore):
             self.FX3.data_sink_clr.eq     (~self.limetop.fpgacfg.rx_en),
             self.FX3.data_source0_clr.eq  (~self.limetop.fpgacfg.rx_en),
             self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en),
+
+            # PSS LED1/FPGA_GPIO default value <- TX/RX PLL lock status (pll_lock[0]=TX, pll_lock[1]=RX).
+            self.pss.tx_pll_lock.eq(self.limetop.lms7002_top.lms7002_clk.CLK_CTRL.PLL_LOCK.status[0]),
+            self.pss.rx_pll_lock.eq(self.limetop.lms7002_top.lms7002_clk.CLK_CTRL.PLL_LOCK.status[1]),
+
+            # PSS FPGA_GPIO default value <- TX antenna-enable / TX packet-loss flag.
+            self.pss.tx_txant_en.eq(self.limetop.lms7002_top.tx_ant_en),
+            self.pss.tx_pct_loss_flg.eq(self.limetop.rxtx_top.tx_path.pct_loss_flg),
         ]
         # WFMPlayer wiring. The WFM player is a DDR-backed feature, so the PSS only
         # instantiates it when DDR modules are present (add_ddr_modules / not no_ddr).
