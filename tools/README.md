@@ -42,6 +42,7 @@ Scripts tailored for specific LimeSDR hardware variants.
 | Script | Function Description | Usage Example | Use Case |
 | :--- | :--- | :--- | :--- |
 | **`limesdr_mini_v2_bitstream.py`** | Automates the post-processing of bitstreams for the Mini V2, including MCS file generation for SPI Flash and directory organization. | *Internal utility* | Preparing production-ready firmware packages for distribution and flashing. |
+| **`generate_sfl_svf.py`** | Regenerates the committed LimeSDR-USB Serial Flash Loader (SFL) configuration SVF (`gateware/board_specific/limesdr_usb/sfl_ep4ce40_020f40dd.svf`) from the SFL image shipped with the active Quartus installation. | `python3 tools/generate_sfl_svf.py` | Refreshing the device-specific SFL bridge SVF that the `--flash` build prepends to the `.jic`-derived flash operations (e.g. after a Quartus major-version upgrade). |
 | **`test_gpsdo_cli.py`** | A CLI tool that interfaces with the `limeCSR` utility to monitor and tune the GPSDO PID loop in real-time. Supports check, reset, enable, and disable modes. | `python3 tools/test_gpsdo_cli.py --check` | On-bench debugging of frequency stability, GNSS lock status, and regulation loop performance. |
 
 ## GNU Radio Companion Flowgraphs

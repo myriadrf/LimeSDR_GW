@@ -26,12 +26,9 @@ class RXTXTop(LiteXModule):
         rx_stream_en=None,
         tx_stream_en=None,
         # TX parameters
-        TX_IQ_WIDTH        = 12,
         TX_N_BUFF          = 4,
         TX_IN_MAX_PCT_SIZE     = 4096,
-        TX_IN_PCT_HDR_SIZE = 16,
         TX_IN_PCT_DATA_W   = 128,
-        TX_OUT_PCT_DATA_W  = 64,
         tx_s_clk_domain    = "lms_tx",
         tx_m_clk_domain    = "lms_tx",
         tx_buffer_size     = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
@@ -39,13 +36,11 @@ class RXTXTop(LiteXModule):
 
 
         # RX parameters
-        RX_IQ_WIDTH        = 12,
         rx_sink_width      = 128,
         RX_OUT_PCT_DATA_W  = 64,
         rx_s_clk_domain    = "lms_rx",
         rx_int_clk_domain  = "lms_rx",
         rx_m_clk_domain    = "lms_rx",
-        rx_use_channel_combiner = True,
         rx_fixed_packet_size = False,
 
         # Misc parameters
@@ -61,27 +56,12 @@ class RXTXTop(LiteXModule):
 
         self.rx_pct_fifo_aclrn_req = Signal()
 
-        # Test Cfg From RXTX.
-        # -------------------
-        # testcfg_from_rxtx @22
-        self._ddr2_1_status        = CSRStatus(3)
-        # testcfg_from_rxtx @23
-        self._ddr2_1_pnf_per_bit_l = CSRStatus(16)
-        # testcfg_from_rxtx @24
-        self._ddr2_1_pnf_per_bit_h = CSRStatus(16)
-
         # # #
-
-        # Signals.
-        # --------
-        self._ddr2_1_pnf_per_bit = Signal(32)
 
         # TX Path.
         # --------
         self.tx_path = tx_path = TXPathTop(platform, fpgacfg_manager, tx_stream_en,
-            IQ_WIDTH        = TX_IQ_WIDTH,
             PCT_MAX_SIZE    = TX_IN_MAX_PCT_SIZE,
-            PCT_HDR_SIZE    = TX_IN_PCT_HDR_SIZE,
             BUFF_COUNT      = TX_N_BUFF,
             sink_width      = TX_IN_PCT_DATA_W,
             s_clk_domain    = tx_s_clk_domain,
@@ -94,24 +74,18 @@ class RXTXTop(LiteXModule):
         # RX Path.
         # --------
         self.rx_path = rx_path = RXPathTop(platform, fpgacfg_manager, rx_stream_en,
-            RX_IQ_WIDTH        = RX_IQ_WIDTH,
             m_clk_domain       = rx_m_clk_domain,
             int_clk_domain     = rx_int_clk_domain,
             s_clk_domain       = rx_s_clk_domain,
             soc_has_timesource = soc_has_timesource,
             sink_width         = rx_sink_width,
             source_width       = RX_OUT_PCT_DATA_W,
-            use_channel_combiner = rx_use_channel_combiner,
             fixed_packet_size  = rx_fixed_packet_size,
         )
 
         # Logic.
         # ------
         self.comb += [
-
-            # CSR
-            self._ddr2_1_pnf_per_bit_l.status.eq(self._ddr2_1_pnf_per_bit[:16]),
-            self._ddr2_1_pnf_per_bit_h.status.eq(self._ddr2_1_pnf_per_bit[15:]),
 
             # RX <-> TX
             tx_path.pct_loss_flg_clr.eq(rx_path.pct_hdr_cap),

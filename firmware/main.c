@@ -34,9 +34,22 @@
 
 #define LMS64C_METHOD_CSR  1
 #define LMS64C_METHOD_FTDI 2
+#define LMS64C_METHOD_FX3 3
 
-#if (LMS64C_METHOD != LMS64C_METHOD_CSR) && (LMS64C_METHOD != LMS64C_METHOD_FTDI)
+#if (LMS64C_METHOD != LMS64C_METHOD_CSR) && (LMS64C_METHOD != LMS64C_METHOD_FTDI) && (LMS64C_METHOD != LMS64C_METHOD_FX3)
 #    error "LMS64C_METHOD is set to an unsupported value."
+#endif
+
+#if LMS64C_METHOD == LMS64C_METHOD_FTDI
+#    define LMS64C_FIFO_STATUS_READ()    ft601_fifo_status_read()
+#    define LMS64C_FIFO_RDATA_READ()     ft601_fifo_rdata_read()
+#    define LMS64C_FIFO_WDATA_WRITE(v)   ft601_fifo_wdata_write(v)
+#    define LMS64C_FIFO_CONTROL_WRITE(v) ft601_fifo_control_write(v)
+#elif LMS64C_METHOD == LMS64C_METHOD_FX3
+#    define LMS64C_FIFO_STATUS_READ()    FX3_fifo_status_read()
+#    define LMS64C_FIFO_RDATA_READ()     FX3_fifo_rdata_read()
+#    define LMS64C_FIFO_WDATA_WRITE(v)   FX3_fifo_wdata_write(v)
+#    define LMS64C_FIFO_CONTROL_WRITE(v) FX3_fifo_control_write(v)
 #endif
 
 // Check one of the base addresses to make sure PLL's exist
@@ -54,9 +67,9 @@ CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIMETOP_LMS7002_TOP_
 #endif
 
 /********************** main.c function declarations **************************/
-// FTDI LMS64C Functions
-#if LMS64C_METHOD == LMS64C_METHOD_FTDI
-void FTDI_getFifoData(uint8_t *buf, uint8_t k);
+// FTDI & FX3 LMS64C Functions
+#if (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
+void LMS64C_getFifoData(uint8_t *buf, uint8_t k);
 #endif
 // CSR LMS64C Functions
 #if LMS64C_METHOD == LMS64C_METHOD_CSR
@@ -119,7 +132,7 @@ int main(void)
 #endif
 #if LMS64C_METHOD == LMS64C_METHOD_CSR
     lms64c_init();
-#elif LMS64C_METHOD == LMS64C_METHOD_FTDI
+#elif (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
     uint32_t dest_byte_reordered = 0;
     uint32_t *dest               = (uint32_t *)glEp0Buffer_Tx;
 #endif
@@ -127,19 +140,23 @@ int main(void)
     clk_cfg_irq_init();
 #endif
 
+#ifdef CSR_UART_BASE
     uart_init();
+#endif
     bsp_isr_init();
     bsp_init();
+#ifdef CSR_UART_BASE
     help();
     prompt();
+#endif
 
     while (1) {
         if (boot_img_en == 1) {
             bsp_program_mode2_boot_from_flash();
         }
         // LMS64C Method resolution
-#if LMS64C_METHOD == LMS64C_METHOD_FTDI
-        spirez               = ft601_fifo_status_read(); // Read FIFO Status
+#if (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
+        spirez               = LMS64C_FIFO_STATUS_READ(); // Read FIFO Status
         lms64_packet_pending = !(spirez & 0x01);
 #endif
 
@@ -154,7 +171,9 @@ int main(void)
         }
 #endif
 
+#ifdef CSR_UART_BASE
         console_service();
+#endif
 
         bsp_process_irqs();
 
@@ -171,11 +190,13 @@ int main(void)
             uint8_t reg_array[4];
             uint16_t addr;
             uint16_t val;
-#if LMS64C_METHOD == LMS64C_METHOD_FTDI
+#if (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
+#    ifdef CSR_MAIN_GPO_ADDR
             main_gpo_write(1);
+#    endif
 
             // Read packet from the FIFO
-            FTDI_getFifoData(glEp0Buffer_Rx, 64);
+            LMS64C_getFifoData(glEp0Buffer_Rx, 64);
 #elif LMS64C_METHOD == LMS64C_METHOD_CSR
             uint32_t read_value;
 
@@ -753,17 +774,19 @@ int main(void)
             CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
             irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
 
-#elif LMS64C_METHOD == LMS64C_METHOD_FTDI
+#elif (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
             for (int i = 0; i < (64 / sizeof(uint32_t)); ++i) {
                 // dest_byte_reordered = ((dest[cnt] & 0x000000FF) <<24) | ((dest[cnt] & 0x0000FF00) <<8) | ((dest[cnt]
                 // & 0x00FF0000) >>8) | ((dest[cnt] & 0xFF000000) >>24);
                 dest_byte_reordered = dest[i];
-                ft601_fifo_wdata_write(dest_byte_reordered);
-                // printf("%ld\n", ft601_fifo_status_read());
+                LMS64C_FIFO_WDATA_WRITE(dest_byte_reordered);
+                // printf("%ld\n", LMS64C_FIFO_STATUS_READ());
             }
             // gpo_val = 0x0;
             //*gpo_reg = gpo_val;
+#    ifdef CSR_MAIN_GPO_ADDR
             main_gpo_write(0);
+#    endif
 #endif
         }
 
@@ -824,15 +847,15 @@ int main(void)
     }
 }
 
-#if LMS64C_METHOD == LMS64C_METHOD_FTDI
-void FTDI_getFifoData(uint8_t *buf, uint8_t k)
+#if (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
+void LMS64C_getFifoData(uint8_t *buf, uint8_t k)
 {
     uint8_t cnt       = 0;
     uint32_t *dest    = (uint32_t *)buf;
     uint32_t fifo_val = 0;
 
     for (cnt = 0; cnt < k / sizeof(uint32_t); ++cnt) {
-        fifo_val  = ft601_fifo_rdata_read();
+        fifo_val  = LMS64C_FIFO_RDATA_READ();
         dest[cnt] = fifo_val; // Read Data From Fifo
     }
 }

@@ -537,7 +537,6 @@ class BaseSoC(SoCCore):
            rx_sys_clk_domain    = self.crg.cd_sys.name,
            TX_N_BUFF            = TX_N_BUFF,
            TX_MAX_PCT_SIZE      = TX_MAX_PCT_SIZE,
-           TX_IN_PCT_HDR_SIZE   = 16,
            tx_buffer_size       = self.pcie_phy.data_width * 4, #minimum tx cdc input buffer depth
 
            with_lms7002         = False,
