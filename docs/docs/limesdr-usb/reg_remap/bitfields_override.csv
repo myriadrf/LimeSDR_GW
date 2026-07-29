@@ -1,0 +1,153 @@
+address,title,access,default,field,msb,lsb,values,description,op
+0x00CA,periph_input_sel,R/W,0x0000,periph_input_sel,15,0,,"PPS input source select. 0 = GNSS_1PPS, 1 = 1PPSI_GPIO1.",delete
+0x00D2,PERIPH_EN,R/W,0x0003,PERIPH_EN,2,0,,"Peripheral enables: clock-out routing, GNSS reset, GNSS standby.",delete
+0x00D3,reserved,R/W,0x0000,Reserved,15,0,,Reserved.,delete
+0x000E,RX_PACKET_SAMPLES,R/W,0x0000,RX_PACKET_SAMPLES,15,0,,RX packet size in samples.,delete
+0x0011,txant_post,R/W,0x0001,txant_post,15,0,,Number of samples to delay turning off the internal TDD signal.,delete
+0x002C,m_frac(LSB),R/W,0x0000,m_frac_l,15,0,,"PLL multiplier fractional value, LSB.",delete
+0x002D,m_frac(MSB),R/W,0x0000,m_frac_h,15,0,,"PLL multiplier fractional value, MSB.",delete
+0x007D,tx_tst_i,R/W,0xAAAA,tx_tst_i,15,0,,TX test value for I channel.,delete
+0x007E,tx_tst_q,R/W,0x5555,tx_tst_q,15,0,,TX test value for Q channel.,delete
+0x0000,board_id,R,0x0011,board_id,15,0,,"Board identification number, read only (LimeSDR USB default 0x0011).",upsert
+0x0001,major_rev,R,,major_rev,15,0,,"Major gateware revision, read only.",upsert
+0x0002,compile_rev,R,,compile_rev,15,0,,"Gateware compile revision, read only.",upsert
+0x0003,board_ver_ctrl,R,0x0002,board_ver_ctrl,15,0,,"Board version/BOM control. Documented quirk: firmware currently always returns a fixed 0x0002, regardless of actual hardware/BOM version.",upsert
+0x0005,drct_clk_en,R/W,0x0000,drct_clk_en_tx,0,0,"0=PLL,1=Direct",TX clock source selection.,upsert
+0x0005,,,,drct_clk_en_rx,1,1,"0=PLL,1=Direct",RX clock source selection.,upsert
+0x0007,ch_en,R/W,0x0303,ch_en_rx0,0,0,"0=Disabled,1=Enabled",RX channel 0 enable.,upsert
+0x0007,,,,ch_en_rx1,1,1,"0=Disabled,1=Enabled",RX channel 1 enable.,upsert
+0x0007,,,,ch_en_tx0,8,8,"0=Disabled,1=Enabled",TX channel 0 enable.,upsert
+0x0007,,,,ch_en_tx1,9,9,"0=Disabled,1=Enabled",TX channel 1 enable.,upsert
+0x0008,stream_ctrl,R/W,0x0102,smpl_width,1,0,"10=12-bit,00=16-bit",Interface sample width selection.,upsert
+0x0008,,,,trxiq_pulse,7,7,"0=OFF,1=ON","TRXIQ pulse mode. Only bit exposed by firmware on both read and write; other reg08 bits are not accessible through this legacy register.",upsert
+0x0008,,,,mimo_int_en,8,8,"0=Disabled,1=Enabled",MIMO mode control.,upsert
+0x0008,,,,synch_dis,9,9,"0=Enabled,1=Disabled",Packet synchronization using timestamps.,upsert
+0x0009,reg09,R/W,0x0003,smpl_nr_clr,0,0,"0=Normal,1=Clear",Timestamp reset control.,upsert
+0x0009,,,,txpct_loss_clr,1,1,"0=Normal,1=Rising edge clears",TX packet dropping flag clear.,upsert
+0x000A,reg10,R/W,0x0000,rx_en,0,0,"0=Disabled,1=Enabled",Unified RX enable.,upsert
+0x000A,,,,rx_rf_sw,3,2,"00=RX_W,01=RX_L,10=RX_H,11=NC",RX RF switch select.,upsert
+0x000A,,,,tx_rf_sw,4,4,"0=TX2,1=TX1",TX RF switch select.,upsert
+0x000A,,,,tdd_manual,5,5,0/1,Manual value of external TDD signal.,upsert
+0x000A,,,,tdd_auto_en,6,6,0/1,Control external TDD signal by internal TDD signal.,upsert
+0x000A,,,,tdd_invert,7,7,0/1,Invert external TDD signal.,upsert
+0x000A,,,,rx_ptrn_en,8,8,0/1,RX test pattern enable.,upsert
+0x000A,,,,tx_ptrn_en,9,9,0/1,TX test pattern enable.,upsert
+0x000A,,,,tx_cnt_en,10,10,0/1,Counter test pattern on TX.,upsert
+0x000A,,,,rf_sw_auto_en,11,11,0/1,Control RF switches by internal TDD signal.,upsert
+0x000C,wfm_ch_en,R/W,0x0003,wfm_ch0_en,0,0,"0=Disabled,1=Enabled",WFM channel 0 enable.,upsert
+0x000C,,,,wfm_ch1_en,1,1,"0=Disabled,1=Enabled",WFM channel 1 enable.,upsert
+0x000D,wfm_ctrl2,R/W,0x0001,wfm_smpl_width,0,0,"0=16-bit,1=12-bit",WFM sample width selection.,upsert
+0x000D,,,,wfm_play,1,1,"0=Disabled,1=Enabled",WFM loaded-file play enable.,upsert
+0x000D,,,,wfm_load,2,2,0->1 transition,Starts WFM file loading.,upsert
+0x000F,txant_pre,R/W,0x0000,txant_pre,15,0,,Number of samples to delay turning on the internal TDD signal.,upsert
+0x0010,txant_post,R/W,0x0000,txant_post,15,0,,Number of samples to delay turning off the internal TDD signal.,upsert
+0x0013,lms1,W,0x0000,lms1_reset,1,1,"0=Reset active,1=Inactive","LMS1 hardware reset. Board-specific: this register is write-only in the current firmware, no read-back case is implemented.",upsert
+0x0013,,,,lms1_core_ldo_en,2,2,"0=Disabled,1=Enabled",LMS1 internal LDO control.,upsert
+0x0013,,,,lms1_txnrx1,3,3,"0=TXIQ,1=RXIQ",LMS1 port 1 mode.,upsert
+0x0013,,,,lms1_txnrx2,4,4,"0=TXIQ,1=RXIQ",LMS1 port 2 mode.,upsert
+0x0013,,,,lms1_txen,5,5,"0=Disabled,1=Enabled",LMS1 TX hard enable.,upsert
+0x0013,,,,lms1_rxen,6,6,"0=Disabled,1=Enabled",LMS1 RX hard enable.,upsert
+0x0017,lb_out_override,R/W,0x0000,tx1_l_h,0,0,"0=Disabled,1=Enabled","RF loopback TX1 path enable (drives complementary TX1_L/TX1_H switch outputs). Board-specific: writing this register also force-enables the override for all loopback outputs.",upsert
+0x0017,,,,tx1_at,1,1,"0=Disabled,1=Enabled",Channel TX1 loopback attenuator enable.,upsert
+0x0017,,,,tx1_sh,2,2,"0=Disabled,1=Enabled",Channel TX1 loopback shunt enable.,upsert
+0x0017,,,,tx2_l_h,4,4,"0=Disabled,1=Enabled",RF loopback TX2 path enable (drives complementary TX2_L/TX2_H switch outputs).,upsert
+0x0017,,,,tx2_at,5,5,"0=Disabled,1=Enabled",Channel TX2 loopback attenuator enable.,upsert
+0x0017,,,,tx2_sh,6,6,"0=Disabled,1=Enabled",Channel TX2 loopback shunt enable.,upsert
+0x0018,reg18,R/W,0x0000,reg18,15,0,,Board-specific control register; not further decoded by firmware.,upsert
+0x0019,rx_packet_size,R/W,0x1000,rx_packet_size,15,0,,RX packet size in bytes.,upsert
+0x001A,fpga_led_ctrl,R/W,0x0000,fpga_led1_ovrd,0,0,"0=OFF,1=ON",LED1 control override.,upsert
+0x001A,,,,fpga_led1_r,1,1,"0=OFF,1=ON",Red LED1 control.,upsert
+0x001A,,,,fpga_led1_g,2,2,"0=OFF,1=ON",Green LED1 control.,upsert
+0x001A,,,,fpga_led2_ovrd,4,4,"0=OFF,1=ON",LED2 control override.,upsert
+0x001A,,,,fpga_led2_r,5,5,"0=OFF,1=ON",Red LED2 control.,upsert
+0x001A,,,,fpga_led2_g,6,6,"0=OFF,1=ON",Green LED2 control.,upsert
+0x001C,fx3_led_ctrl,R/W,0x0000,fx3_led_ovrd,0,0,"0=OFF,1=ON",FX3 activity LED override.,upsert
+0x001C,,,,fx3_led_r,1,1,"0=OFF,1=ON",Red FX3 LED control.,upsert
+0x001C,,,,fx3_led_g,2,2,"0=OFF,1=ON",Green FX3 LED control.,upsert
+0x0020,c1_phase,R/W,0x0000,c1_phase,8,0,,Phase value for PLL output clock 1.,upsert
+0x0021,pll_status,R,0x0001,pllcfg_done,0,0,status,"PLL configuration done, read only.",upsert
+0x0021,,,,pllcfg_busy,1,1,status,"PLL configuration busy, read only.",upsert
+0x0021,,,,phcfg_done,2,2,status,"Phase configuration done, read only.",upsert
+0x0021,,,,phcfg_err,3,3,status,"Phase configuration error, read only.",upsert
+0x0021,,,,pllcfg_error,7,7,status,"PLL configuration error, read only. Board-specific: added in addition to the common status bits.",upsert
+0x0022,pll_lock,R,0x0000,pll_lock,0,0,"0=No lock,1=Locked",PLL lock status (single PLL on this board).,upsert
+0x0023,pll_ctrl,R/W,0x0000,pllcfg_start,0,0,0->1 transition,PLL reconfiguration start trigger.,upsert
+0x0023,,,,phcfg_start,1,1,0->1 transition,Phase shift start trigger.,upsert
+0x0023,,,,pllrst_start,2,2,0->1 transition,PLL reset trigger.,upsert
+0x0023,,,,pll_ind,7,3,,PLL index for reconfiguration.,upsert
+0x0023,,,,cnt_ind,12,8,"00000=all,00010=C0,00011=C1,...",Counter index for phase shift.,upsert
+0x0023,,,,phcfg_updn,13,13,"0=Down,1=Up",Phase shift direction.,upsert
+0x0023,,,,phcfg_mode,14,14,"0=Manual,1=AUTO",PLL phase configuration mode.,upsert
+0x0024,cnt_phase,R/W,0x0000,cnt_phase,15,0,,Counter phase value.,upsert
+0x0025,pllcfg_vcodiv,R/W,0x0000,pllcfg_vcodiv,7,7,"0=2,1=1","PLL VCO division value. Board-specific: only this bit is wired; loop-filter/charge-pump bits used on other boards are not implemented.",upsert
+0x0026,mn_bypass_ctrl,R/W,0x0000,n_div_byp,0,0,"0=normal,1=bypass",N counter bypass control.,upsert
+0x0026,,,,n_odd_div,1,1,"0=even,1=odd",N counter odd-division enable.,upsert
+0x0026,,,,m_div_byp,2,2,"0=normal,1=bypass",M counter bypass control.,upsert
+0x0026,,,,m_odd_div,3,3,"0=even,1=odd",M counter odd-division enable.,upsert
+0x0027,c0..c4_byp_odddiv,R/W,0x0000,c0_div_byp,0,0,"0=normal,1=bypass",C0 counter bypass control.,upsert
+0x0027,,,,c0_odddiv,1,1,"0=even,1=odd",C0 counter odd-division enable.,upsert
+0x0027,,,,c1_div_byp,2,2,"0=normal,1=bypass",C1 counter bypass control.,upsert
+0x0027,,,,c1_odddiv,3,3,"0=even,1=odd",C1 counter odd-division enable.,upsert
+0x0027,,,,c2_div_byp,4,4,"0=normal,1=bypass",C2 counter bypass control.,upsert
+0x0027,,,,c2_odddiv,5,5,"0=even,1=odd",C2 counter odd-division enable.,upsert
+0x0027,,,,c3_div_byp,6,6,"0=normal,1=bypass",C3 counter bypass control.,upsert
+0x0027,,,,c3_odddiv,7,7,"0=even,1=odd",C3 counter odd-division enable.,upsert
+0x0027,,,,c4_div_byp,8,8,"0=normal,1=bypass",C4 counter bypass control.,upsert
+0x0027,,,,c4_odddiv,9,9,"0=even,1=odd","C4 counter odd-division enable. Board-specific: this board's PLL reconfiguration block has 5 output counters (C0..C4), unlike the 8-counter block used on other boards.",upsert
+0x002A,n_cnt,R/W,0x0000,n_cnt,15,0,,N counter (PLL divider) value.,upsert
+0x002B,m_cnt,R/W,0x0000,m_cnt,15,0,,M counter (PLL multiplier) value.,upsert
+0x002E,c0_cnt,R/W,0x0000,c0_cnt,15,0,,C0 counter (PLL output 0 divider) value.,upsert
+0x002F,c1_cnt,R/W,0x0000,c1_cnt,15,0,,C1 counter (PLL output 1 divider) value.,upsert
+0x0030,c2_cnt,R/W,0x0000,c2_cnt,15,0,,C2 counter (PLL output 2 divider) value.,upsert
+0x0031,c3_cnt,R/W,0x0000,c3_cnt,15,0,,C3 counter (PLL output 3 divider) value.,upsert
+0x0032,c4_cnt,R/W,0x0000,c4_cnt,15,0,,C4 counter (PLL output 4 divider) value.,upsert
+0x003E,phcfg_samples,R/W,0x0FFF,phcfg_samples,15,0,,Number of samples to compare during automatic phase configuration.,upsert
+0x003F,phcfg_step,R/W,0x0002,phcfg_step,15,0,,Step size used during automatic phase configuration.,upsert
+0x0061,test_en,R/W,0x0000,fx3_pclk_tst_en,0,0,"0=Disabled,1=Enabled",FX3 PCLK test enable.,upsert
+0x0061,,,,si5351c_tst_en,1,1,"0=Disabled,1=Enabled",Si5351C clock test enable.,upsert
+0x0061,,,,vctcxo_tst_en,2,2,"0=Disabled,1=Enabled",VCTCXO test enable.,upsert
+0x0061,,,,adf_tst_en,3,3,"0=Disabled,1=Enabled",ADF4002 phase-detector test enable.,upsert
+0x0061,,,,ddr2_1_tst_en,4,4,"0=Disabled,1=Enabled","DDR2_1 memory test enable (WFM-player-driven self-test).",upsert
+0x0061,,,,ddr2_2_tst_en,5,5,"0=Disabled,1=Enabled",DDR2_2 memory test enable.,upsert
+0x0063,test_frc_err,R/W,0x0000,fx3_pclk_tst_frc_err,0,0,"0=Disabled,1=Enabled",Insert error into FX3 PCLK test.,upsert
+0x0063,,,,si5351c_tst_frc_err,1,1,"0=Disabled,1=Enabled",Insert error into Si5351C test.,upsert
+0x0063,,,,vctcxo_tst_frc_err,2,2,"0=Disabled,1=Enabled",Insert error into VCTCXO test.,upsert
+0x0063,,,,adf_tst_frc_err,3,3,"0=Disabled,1=Enabled",Insert error into ADF4002 phase-detector test.,upsert
+0x0063,,,,ddr2_1_tst_frc_err,4,4,"0=Disabled,1=Enabled",Insert error into DDR2_1 memory test.,upsert
+0x0063,,,,ddr2_2_tst_frc_err,5,5,"0=Disabled,1=Enabled",Insert error into DDR2_2 memory test.,upsert
+0x0065,test_cmplt,R,0x0000,fx3_pclk_tst_cmplt,0,0,"0=Not completed,1=Completed",FX3 PCLK test complete status.,upsert
+0x0065,,,,si5351c_tst_cmplt,1,1,"0=Not completed,1=Completed",Si5351C test complete status.,upsert
+0x0065,,,,vctcxo_tst_cmplt,2,2,"0=Not completed,1=Completed",VCTCXO test complete status.,upsert
+0x0065,,,,adf_tst_cmplt,3,3,"0=Not completed,1=Completed",ADF4002 phase-detector test complete status.,upsert
+0x0065,,,,ddr2_1_tst_cmplt,4,4,"0=Not completed,1=Completed",DDR2_1 test complete status.,upsert
+0x0065,,,,ddr2_2_tst_cmplt,5,5,"0=Not completed,1=Completed",DDR2_2 test complete status.,upsert
+0x0067,test_rez,R,0x0000,fx3_pclk_tst_rez,0,0,,Not used.,upsert
+0x0067,,,,si5351c_tst_rez,1,1,,Not used.,upsert
+0x0067,,,,vctcxo_tst_rez,2,2,,Not used.,upsert
+0x0067,,,,adf_tst_rez,3,3,,Not used.,upsert
+0x0067,,,,ddr2_1_tst_rez,4,4,,DDR2_1 test pass result.,upsert
+0x0067,,,,ddr2_2_tst_rez,5,5,,DDR2_2 test pass result.,upsert
+0x0069,fx3_clk_cnt,R,,fx3_clk_cnt,15,0,,FX3 PCLK counter value.,upsert
+0x006A,si5351c_clk7_cnt,R,,si5351c_clk7_cnt,15,0,,"Si5351C CLK7 counter value. Board-specific: SI5351C counters are addressed in descending order (0x6A=CLK7 .. 0x71=CLK0) on this board, unlike the ascending order used on other boards.",upsert
+0x006B,si5351c_clk6_cnt,R,,si5351c_clk6_cnt,15,0,,Si5351C CLK6 counter value.,upsert
+0x006C,si5351c_clk5_cnt,R,,si5351c_clk5_cnt,15,0,,Si5351C CLK5 counter value.,upsert
+0x006D,si5351c_clk3_cnt,R,,si5351c_clk3_cnt,15,0,,Si5351C CLK3 counter value.,upsert
+0x006F,si5351c_clk2_cnt,R,,si5351c_clk2_cnt,15,0,,Si5351C CLK2 counter value.,upsert
+0x0070,si5351c_clk1_cnt,R,,si5351c_clk1_cnt,15,0,,Si5351C CLK1 counter value.,upsert
+0x0071,si5351c_clk0_cnt,R,,si5351c_clk0_cnt,15,0,,Si5351C CLK0 counter value.,upsert
+0x0072,lmk_clk_cnt_l,R,,lmk_clk_cnt_l,15,0,,"LMK clock counter, bits [15:0].",upsert
+0x0073,lmk_clk_cnt_h,R,,lmk_clk_cnt_h,6,0,,"LMK clock counter, bits [22:16].",upsert
+0x0074,adf_muxout_cnt,R,,adf_muxout_cnt,15,0,,ADF4002 MUXOUT transition count value.,upsert
+0x0077,ddr2_1_pnf_per_bit_l,R,,ddr2_1_pnf_per_bit_l,15,0,,"DDR2_1 data [15:0] pass/fail-per-bit result. Board-specific: LimeSDR-USB has WFM-player-driven DDR2 self-test registers not present on other boards.",upsert
+0x0078,ddr2_1_pnf_per_bit_h,R,,ddr2_1_pnf_per_bit_h,15,0,,DDR2_1 data [31:16] pass/fail-per-bit result.,upsert
+0x007A,ddr2_2_tst_detail1,R,,ddr2_2_tst_cmplt,0,0,"0=Not completed,1=Complete",DDR2_2 test complete flag.,upsert
+0x007A,,,,ddr2_2_tst_pass,1,1,"0=Not completed,1=Pass",DDR2_2 test pass flag.,upsert
+0x007A,,,,ddr2_2_tst_fail,2,2,"0=Not completed,1=Fail",DDR2_2 test fail flag.,upsert
+0x007B,ddr2_2_pnf_per_bit_l,R,,ddr2_2_pnf_per_bit_l,15,0,,DDR2_2 data [15:0] pass/fail-per-bit result.,upsert
+0x007C,ddr2_2_pnf_per_bit_h,R,,ddr2_2_pnf_per_bit_h,15,0,,DDR2_2 data [31:16] pass/fail-per-bit result.,upsert
+0x00C0,board_gpio_ovrd,R/W,0x0000,board_gpio_ovrd,7,0,"0=Dedicated function,1=Overridden by user",GPIO override bits for FPGA_GPIO[7:0].,upsert
+0x00C2,board_gpio_rd,R,0x0000,board_gpio_rd,7,0,"0=Low,1=High",GPIO readback bits for FPGA_GPIO[7:0].,upsert
+0x00C4,board_gpio_dir,R/W,0x0000,board_gpio_dir,7,0,"0=Input,1=Output","GPIO direction bits for FPGA_GPIO[7:0]. Board-specific: firmware inverts this legacy 1=output convention before writing it to the underlying gpio_io CSR, whose own convention is 0=output.",upsert
+0x00C6,board_gpio_val,R/W,0x0000,board_gpio_val,7,0,"0=Low,1=High",GPIO output value bits for FPGA_GPIO[7:0].,upsert
+0x00CC,periph_output_ovrd_0,R/W,0x0000,periph_output_ovrd_0,0,0,"0=Dedicated,1=User controlled",Fan control override enable.,upsert
+0x00CD,periph_output_val_0,R/W,0x0000,periph_output_val_0,0,0,"0=OFF,1=ON",Fan control value.,upsert

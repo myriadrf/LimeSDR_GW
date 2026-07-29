@@ -1,0 +1,7 @@
+module,address_start,address_end,typical_use,op
+MEMCFG,,,,delete
+GNSSCFG,,,,delete
+FPGACFG,0x0000,0x001F,"Board ID, gateware revision, stream/interface control, LED and LMS enable/reset",upsert
+PLLCFG,0x0020,0x003F,"PLL status/control, divider and counter configuration",upsert
+TSTCFG,0x0060,0x007F,"Built-in test control/status, clock counters, and DDR2 self-test",upsert
+PERIPHCFG,0x00C0,0x00D3,"GPIO override/readback and fan control",upsert

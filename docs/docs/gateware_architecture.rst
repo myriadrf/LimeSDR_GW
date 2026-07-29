@@ -196,5 +196,6 @@ For board-specific architecture views and implementation details, see:
 - :doc:`limesdr_xtrx`
 - :doc:`limesdr_mini_v1`
 - :doc:`limesdr_mini_v2`
+- :doc:`limesdr_usb`
 - :doc:`HiperSDR_44xx`
 - :doc:`ssdr_rev2`

@@ -1,0 +1,107 @@
+module,address,address_end,default,name,description,op
+PLLCFG,0x0031,0x003F,0x0000,reserved,Reserved.,delete
+TSTCFG,0x0062,0x0064,0x0000,reserved,Reserved.,delete
+TSTCFG,0x006A,0x006D,0x0000,reserved,Reserved.,delete
+TSTCFG,0x006E,0x0071,0x0000,reserved,Reserved.,delete
+TSTCFG,0x0074,0x007C,0x0000,reserved,Reserved.,delete
+PERIPHCFG,0x00C1,0x00C3,0x0000,reserved,Reserved.,delete
+PERIPHCFG,0x00C7,0x00C9,0x0000,reserved,Reserved.,delete
+PERIPHCFG,0x00CB,0x00D1,0x0000,reserved,Reserved.,delete
+FPGACFG,0x0000,,0x0011,board_id,Board identification number (LimeSDR USB default 0x0011).,upsert
+FPGACFG,0x0001,,,major_rev,Major gateware revision number.,upsert
+FPGACFG,0x0002,,,compile_rev,Gateware compile revision number.,upsert
+FPGACFG,0x0003,,0x0002,board_ver_ctrl,"Board version/BOM control. Documented quirk: firmware currently always returns a fixed 0x0002, regardless of actual hardware/BOM version.",upsert
+FPGACFG,0x0005,,0x0000,drct_clk_en,Clock source selection for RX/TX interfaces (direct vs. PLL clocking).,upsert
+FPGACFG,0x0007,,0x0303,ch_en,RX/TX MIMO channel enable control.,upsert
+FPGACFG,0x0008,,0x0102,stream_ctrl,"Sample-width and interface-mode control. Only smpl_width[1:0], trxiq_pulse[7], mimo_int_en[8] and synch_dis[9] are writable; other bits are read-only pass-through.",upsert
+FPGACFG,0x0009,,0x0003,reg09,Packet control: TX packet-loss clear and timestamp reset.,upsert
+FPGACFG,0x000A,,0x0000,reg10,RX/TX module control.,upsert
+FPGACFG,0x000B,,,reserved,Reserved.,upsert
+FPGACFG,0x000C,,0x0003,wfm_ch_en,"WFM player channel enable control (DDR2/WFM-capable variants only, guarded by DDR_MODULES_PRESENT).",upsert
+FPGACFG,0x000D,,0x0001,wfm_ctrl2,"WFM player sample-width/play/load control (DDR2/WFM-capable variants only, guarded by DDR_MODULES_PRESENT).",upsert
+FPGACFG,0x000E,,,reserved,Reserved.,upsert
+FPGACFG,0x000F,,0x0000,txant_pre,Number of samples to delay turning on the internal TDD signal.,upsert
+FPGACFG,0x0010,,0x0000,txant_post,Number of samples to delay turning off the internal TDD signal.,upsert
+FPGACFG,0x0011,,,reserved,Reserved.,upsert
+FPGACFG,0x0012,,,reserved,Reserved.,upsert
+FPGACFG,0x0013,,0x0000,lms1,"LMS7002 hard-enable/reset and digital-interface control. Write-only in the current firmware (no read-back case is implemented, so readback always returns 0).",upsert
+FPGACFG,0x0014,,,reserved,Reserved for lms3_4.,upsert
+FPGACFG,0x0015,,,reserved,Reserved for lms5_6.,upsert
+FPGACFG,0x0016,,,reserved,Reserved for lms7_8.,upsert
+FPGACFG,0x0017,,0x0000,lb_out_override,"RF-loopback override value for the onboard TX1/TX2 loopback switches. Board-specific: writing this register also force-enables the override-enable bits for all loopback outputs (0xFF).",upsert
+FPGACFG,0x0018,,0x0000,reg18,Board-specific control register (documented as reg18; not further decoded by firmware).,upsert
+FPGACFG,0x0019,,0x1000,rx_packet_size,RX packet size in bytes.,upsert
+FPGACFG,0x001A,,0x0000,fpga_led_ctrl,"Onboard FPGA LED1/LED2 override/control. The single legacy OVRD bit for each LED is fanned out to the independent green- and red-pin override-enable bits.",upsert
+FPGACFG,0x001B,,,reserved,Reserved.,upsert
+FPGACFG,0x001C,,0x0000,fx3_led_ctrl,"Onboard FX3 activity LED override/control. The single legacy OVRD bit is fanned out to the independent green- and red-pin override-enable bits.",upsert
+FPGACFG,0x001D,,,reserved,Reserved.,upsert
+FPGACFG,0x001E,,,reserved,Reserved.,upsert
+FPGACFG,0x001F,,,reserved,Reserved.,upsert
+PLLCFG,0x0020,,0x0000,c1_phase,Phase value for PLL output clock 1.,upsert
+PLLCFG,0x0021,,0x0001,pll_status,"PLL and phase-configuration status. Board-specific: adds a pllcfg_error status bit at bit 7, in addition to the common pllcfg_done/pllcfg_busy/phcfg_done/phcfg_err bits.",upsert
+PLLCFG,0x0022,,0x0000,pll_lock,PLL lock status (single PLL on this board).,upsert
+PLLCFG,0x0023,,0x0000,pll_ctrl,"PLL reconfiguration control: start triggers, PLL/counter index selection, and phase-shift direction/mode.",upsert
+PLLCFG,0x0024,,0x0000,cnt_phase,Counter phase value.,upsert
+PLLCFG,0x0025,,0x0000,pllcfg_vcodiv,"PLL VCO division control. Board-specific: only bit 7 (pllcfg_vcodiv) is wired; the loop-filter/charge-pump bits used on other boards are not implemented here.",upsert
+PLLCFG,0x0026,,0x0000,mn_bypass_ctrl,M/N counter bypass and odd-division control.,upsert
+PLLCFG,0x0027,,0x0000,c0..c4_byp_odddiv,"Counter bypass and odd-division control bits for C0..C4. Board-specific: this board's PLL reconfiguration block has 5 output counters (C0..C4), unlike the 8-counter (C0..C7) block used on other boards.",upsert
+PLLCFG,0x0028,,,reserved,Reserved.,upsert
+PLLCFG,0x0029,,,reserved,Reserved.,upsert
+PLLCFG,0x002A,,0x0000,n_cnt,N counter value.,upsert
+PLLCFG,0x002B,,0x0000,m_cnt,M counter value.,upsert
+PLLCFG,0x002C,,,reserved,Reserved.,upsert
+PLLCFG,0x002D,,,reserved,Reserved.,upsert
+PLLCFG,0x002E,,0x0000,c0_cnt,C0 counter value.,upsert
+PLLCFG,0x002F,,0x0000,c1_cnt,C1 counter value.,upsert
+PLLCFG,0x0030,,0x0000,c2_cnt,C2 counter value.,upsert
+PLLCFG,0x0031,,0x0000,c3_cnt,C3 counter value.,upsert
+PLLCFG,0x0032,,0x0000,c4_cnt,C4 counter value.,upsert
+PLLCFG,0x0033,0x003D,,reserved,Reserved.,upsert
+PLLCFG,0x003E,,0x0FFF,phcfg_samples,Number of samples to compare during automatic phase configuration.,upsert
+PLLCFG,0x003F,,0x0002,phcfg_step,Step size used during automatic phase configuration.,upsert
+TSTCFG,0x0060,,,reserved,Reserved.,upsert
+TSTCFG,0x0061,,0x0000,test_en,Test enable controls.,upsert
+TSTCFG,0x0062,,,reserved,Reserved.,upsert
+TSTCFG,0x0063,,0x0000,test_frc_err,Error insertion controls for tests.,upsert
+TSTCFG,0x0064,,,reserved,Reserved.,upsert
+TSTCFG,0x0065,,0x0000,test_cmplt,Test completion status bits.,upsert
+TSTCFG,0x0066,,,reserved,Reserved.,upsert
+TSTCFG,0x0067,,0x0000,test_rez,Test result bits.,upsert
+TSTCFG,0x0068,,,reserved,Reserved.,upsert
+TSTCFG,0x0069,,,fx3_clk_cnt,FX3 PCLK counter value.,upsert
+TSTCFG,0x006A,,,si5351c_clk7_cnt,"Si5351C CLK7 counter value. Board-specific: this board's SI5351C counters are addressed in descending order (0x6A=CLK7 .. 0x71=CLK0), unlike the ascending order (0x6A=CLK0 .. 0x71=CLK7) used on other boards.",upsert
+TSTCFG,0x006B,,,si5351c_clk6_cnt,Si5351C CLK6 counter value.,upsert
+TSTCFG,0x006C,,,si5351c_clk5_cnt,Si5351C CLK5 counter value.,upsert
+TSTCFG,0x006D,,,si5351c_clk3_cnt,Si5351C CLK3 counter value.,upsert
+TSTCFG,0x006E,,,reserved,Reserved (no Si5351C CLK4 counter on this board).,upsert
+TSTCFG,0x006F,,,si5351c_clk2_cnt,Si5351C CLK2 counter value.,upsert
+TSTCFG,0x0070,,,si5351c_clk1_cnt,Si5351C CLK1 counter value.,upsert
+TSTCFG,0x0071,,,si5351c_clk0_cnt,Si5351C CLK0 counter value.,upsert
+TSTCFG,0x0072,,,lmk_clk_cnt_l,LMK clock counter low word.,upsert
+TSTCFG,0x0073,,,lmk_clk_cnt_h,LMK clock counter high word.,upsert
+TSTCFG,0x0074,,,adf_muxout_cnt,ADF4002 MUXOUT transition count value.,upsert
+TSTCFG,0x0075,0x0076,,reserved,Reserved.,upsert
+TSTCFG,0x0077,,,ddr2_1_pnf_per_bit_l,"DDR2_1 data [15:0] pass/fail-per-bit result. Board-specific: LimeSDR-USB has WFM-player-driven DDR2 self-test registers not present on other boards.",upsert
+TSTCFG,0x0078,,,ddr2_1_pnf_per_bit_h,DDR2_1 data [31:16] pass/fail-per-bit result.,upsert
+TSTCFG,0x0079,,,reserved,Reserved.,upsert
+TSTCFG,0x007A,,,ddr2_2_tst_detail1,DDR2_2 test complete/pass/fail status bits.,upsert
+TSTCFG,0x007B,,,ddr2_2_pnf_per_bit_l,DDR2_2 data [15:0] pass/fail-per-bit result.,upsert
+TSTCFG,0x007C,,,ddr2_2_pnf_per_bit_h,DDR2_2 data [31:16] pass/fail-per-bit result.,upsert
+TSTCFG,0x007D,,,reserved,"Reserved on this board (TX test pattern I register is not implemented in LimeSDR-USB firmware).",upsert
+TSTCFG,0x007E,,,reserved,"Reserved on this board (TX test pattern Q register is not implemented in LimeSDR-USB firmware).",upsert
+TSTCFG,0x007F,,,reserved,Reserved.,upsert
+PERIPHCFG,0x00C0,,0x0000,board_gpio_ovrd,Board GPIO override control.,upsert
+PERIPHCFG,0x00C1,,,reserved,Reserved for GPIO.,upsert
+PERIPHCFG,0x00C2,,0x0000,board_gpio_rd,Board GPIO read value.,upsert
+PERIPHCFG,0x00C3,,,reserved,Reserved for GPIO.,upsert
+PERIPHCFG,0x00C4,,0x0000,board_gpio_dir,"Board GPIO direction control. Legacy convention (1=output) is inverted from the underlying gpio_io CSR's convention (0=output) by the firmware.",upsert
+PERIPHCFG,0x00C5,,,reserved,Reserved for GPIO.,upsert
+PERIPHCFG,0x00C6,,0x0000,board_gpio_val,Board GPIO output value control.,upsert
+PERIPHCFG,0x00C7,0x00C9,,reserved,Reserved.,upsert
+PERIPHCFG,0x00CA,,,reserved,"Reserved for this board. PERIPH_INPUT_SEL is defined in the shared register layout but not wired in LimeSDR-USB firmware (commented out in regremap.c).",upsert
+PERIPHCFG,0x00CB,,,reserved,Reserved.,upsert
+PERIPHCFG,0x00CC,,0x0000,periph_output_ovrd_0,Peripheral output override 0 (fan control override enable).,upsert
+PERIPHCFG,0x00CD,,0x0000,periph_output_val_0,Peripheral output value 0 (fan control value).,upsert
+PERIPHCFG,0x00CE,0x00D1,,reserved,Reserved.,upsert
+PERIPHCFG,0x00D2,,,reserved,"Reserved for this board. PERIPH_EN is defined in the shared register layout but not wired in LimeSDR-USB firmware (commented out in regremap.c).",upsert
+PERIPHCFG,0x00D3,,,reserved,"Reserved for this board. PERIPH_SEL is defined in the shared register layout but not wired in LimeSDR-USB firmware (commented out in regremap.c).",upsert
