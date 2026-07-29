@@ -122,6 +122,22 @@ class PSS_LimeSDR_Usb(LiteXModule):
             fan_default,
         ))
 
+        # RF loopback
+        lb_pads = platform.request("LB")
+        lb_bus  = Signal(8)
+        self.lb_io = IoOverrideTop(platform, name="lb", out_pads=lb_bus)
+        self.comb += [
+            lb_pads.TX1_L.eq(~lb_bus[0]),
+            lb_pads.TX1_H.eq( lb_bus[0]),
+            lb_pads.TX1_AT.eq(lb_bus[1]),
+            lb_pads.TX1_SH.eq(lb_bus[2]),
+            lb_pads.TX2_L.eq(~lb_bus[4]),
+            lb_pads.TX2_H.eq( lb_bus[4]),
+            lb_pads.TX2_AT.eq(lb_bus[5]),
+            lb_pads.TX2_SH.eq(lb_bus[6]),
+        ]
+        self.comb += self.lb_io.out_default.eq(0x00)
+
         # TST Top
         if add_ddr_modules:
             self.ddr_test_pads = platform.request("ddram",1)

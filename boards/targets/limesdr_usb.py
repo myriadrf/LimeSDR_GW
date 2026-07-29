@@ -283,6 +283,7 @@ class BaseSoC(SoCCore):
             # NOTE: both FX3 and WFMPlayer need usedw signals from their fifos to operate properly
             #       LiteX AsyncFifo does not have two level outputs, so two SyncFIFOs have to be used,
             #       one for each clock domain.
+            # TODO: See if it's possible to improve asyncFifo to avoid this workaround.
             self.wfm_fifo = ClockDomainsRenamer("lms_tx")(
                 ResetInserter()(stream.SyncFIFO([("data", 32)], depth=1024, buffered=True))
             )

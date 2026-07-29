@@ -60,6 +60,9 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x10:
         value = limetop_fpgacfg_txant_post_read();
         break;
+    case 0x17:
+        value = pss_lb_io_lb_out_override_val_read();
+        break;
     case 0x18:
         value = limetop_fpgacfg_reg18_read();
         break;
@@ -326,6 +329,10 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
     case 0x10:
         limetop_fpgacfg_txant_post_write(value);
+        break;
+    case 0x17:
+        pss_lb_io_lb_out_override_val_write(value);
+        pss_lb_io_lb_out_override_write(0xFF);
         break;
     case 0x13:
         limetop_lms7002_top_lms1_write(value);

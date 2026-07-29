@@ -72,9 +72,8 @@ void bsp_init(void)
     // Write new value to DAC
     bsp_analog_write(0,0,0,dac_val);
 
-
-
-    // TODO: Implement board initialization
+    // RF Loopback initialization
+    pss_lb_io_lb_out_override_write(0xFF);
 }
 
 void bsp_powerup(void)
