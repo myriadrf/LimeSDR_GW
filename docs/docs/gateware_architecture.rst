@@ -65,6 +65,24 @@ The core builds on the original LimeSDR USB HDL but fits seamlessly into LiteX's
 and Wishbone buses for communication. Firmware manages USB packet processing, FIFO reads/writes,
 and host interactions.
 
+.. rubric:: USB Interface (FX3)
+
+The LimeSDR USB uses the Cypress FX3 (CYUSB3014) for USB 3.0 connectivity. Unlike the FT601,
+the FX3 uses a flexible Slave FIFO interface (GPIF II) configured for high-speed data transfer.
+
+- **Interface**: 32-bit parallel data bus operating at 100MHz (``FX3_PCLK``), with internal
+  LiteX converters providing a 64-bit data path to match the LimeTop throughput.
+- **Sockets**: Utilizes 4 DMA sockets to segregate traffic:
+    - **Socket 0**: High-speed IQ Data (Host to FPGA)
+    - **Socket 1**: Low-speed Control (Host to FPGA)
+    - **Socket 2**: High-speed IQ Data (FPGA to Host)
+    - **Socket 3**: Low-speed Control (FPGA to Host)
+- **Performance**: Capable of sustained full-duplex USB 3.0 speeds required for wideband SDR
+  operations.
+
+The FPGA implementation handles the Slave FIFO protocol, bridging the FX3's parallel bus to the
+internal streaming and Wishbone interconnects.
+
 .. rubric:: PCIe Interface (LitePCIe)
 
 Boards such as LimeSDR XTRX use PCI Express, based on the open-source `LitePCIe` core (at
