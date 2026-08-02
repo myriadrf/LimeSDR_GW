@@ -142,10 +142,10 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
 #endif
     case 0x281:
-        value = limetop_rx_delay_mode_read() & 0xFFFF;
+        value = limetop_stream_start_controller_rx_delay_mode_read() & 0xFFFF;
         break;
     case 0x282:
-        value = limetop_tx_delay_mode_read() & 0xFFFF;
+        value = limetop_stream_start_controller_tx_delay_mode_read() & 0xFFFF;
         break;
 #ifdef TIMESOURCE_PRESENT
         // current time
@@ -333,10 +333,10 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
 #endif
     case 0x281:
-        limetop_rx_delay_mode_write(value);
+        limetop_stream_start_controller_rx_delay_mode_write(value);
         break;
     case 0x282:
-        limetop_tx_delay_mode_write(value);
+        limetop_stream_start_controller_tx_delay_mode_write(value);
         break;
 
     default:

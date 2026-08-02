@@ -211,7 +211,7 @@ class StreamStartController(LiteXModule):
 # LimeTop ------------------------------------------------------------------------------------------
 
 class LimeTop(LiteXModule):
-    def __init__(self, soc, platform, vendor, family,
+    def __init__(self, soc, platform, vendor, family = "none",
         # Configuration.
         double_channels_mode = False,
         one_chnl             = False,

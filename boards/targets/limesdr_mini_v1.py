@@ -337,16 +337,8 @@ class BaseSoC(SoCCore):
         if with_lms7002:
 
             self.comb += [
-                # LMS7002 <-> TstTop.
-                self.limetop.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
-                self.limetop.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
-                self.limetop.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
-
                 # General Periph <-> RXTX Top.
                 self.general_periph.tx_txant_en.eq(self.limetop.rxtx_top.tx_path.tx_txant_en),
-
-                # General Periph <-> LMS7002
-                self.limetop.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
             ]
 
         # Assign UART signals to general periph
@@ -383,7 +375,7 @@ class BaseSoC(SoCCore):
                 self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en),
                 # FT601 <-> RXTX Top.
                 self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.rxtx_top.rx_pct_fifo_aclrn_req),
-                self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
+                self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.stream_start_controller.rx_en),
             ]
 
         # Timing Constraints -----------------------------------------------------------------------
