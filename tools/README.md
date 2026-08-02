@@ -34,6 +34,7 @@ Tools for ensuring code quality and consistency across different hardware target
 | :--- | :--- | :--- | :--- |
 | **`check_bsp.py`** | Scans Board Support Package (BSP) C files for placeholders like `#error`, `TODO`, or unimplemented functions. Provides both CSV and GUI (Tkinter) summaries. | `python3 tools/check_bsp.py <bsp_dir>` | Quick health check of firmware portability when porting to a new hardware platform or tracking feature completeness. |
 | **`validate_regremap.py`** | Verifies the consistency of the register remapping logic between legacy LMS64C protocol (C source) and modern LiteX CSRs (CSV documentation). | `python3 tools/validate_regremap.py` | Ensuring that firmware refactors do not break compatibility with existing host-side software like LimeSuite. |
+| **`rebuild_targets.py`** | Automates the sequential rebuilding of multiple gateware targets. Supports golden image builds, custom target selection, and per-target logging. | `python3 tools/rebuild_targets.py --gold --dry-run` | Performing batch bitstream updates after major gateware or firmware changes while avoiding resource contention. |
 | **`generate_master_reg_list.py`** | Runs `make regmap-all` in the `docs` directory and aggregates register definitions from all board targets into a single master CSV list (`master_registers.csv`). | `python3 tools/generate_master_reg_list.py` | Generating unified register map documentation and identifying unused registers across the entire LimeSDR product family. |
 
 ### 4. Board-Specific Utilities
