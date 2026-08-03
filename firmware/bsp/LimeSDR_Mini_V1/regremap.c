@@ -31,9 +31,12 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x04:
         // value = limetop_fpgacfg_phase_reg_sel_read();
         break;
-    case 0x05:
-        // value = limetop_fpgacfg_drct_clk_en_read();
+#ifdef WITH_LMS7002
+    case 0x5:
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
+        value = value | ((limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
         break;
+#endif
     case 0x06:
         // value = limetop_fpgacfg_load_phase_read();
         break;
@@ -235,9 +238,12 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0x04:
         // limetop_fpgacfg_phase_reg_sel_write(value);
         break;
+#ifdef WITH_LMS7002
     case 0x05:
-        // limetop_fpgacfg_drct_clk_en_write(value);
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
         break;
+#endif
     case 0x06:
         // limetop_fpgacfg_load_phase_write(value);
         break;
