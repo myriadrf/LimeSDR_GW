@@ -73,6 +73,7 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("--targets", nargs="+", help="Specific targets to rebuild (e.g. limesdr_usb). Builds all if omitted.")
+    parser.add_argument("--list", action="store_true", help="List available targets and exit.")
     parser.add_argument("--logs-dir", default="build_logs", help="Directory where build logs will be stored.")
     parser.add_argument("--gold", action="store_true", help="Also build golden images for targets that support it.")
     parser.add_argument("--gold-first", action="store_true", help="Build all golden images before starting regular builds (requires --gold).")
@@ -85,6 +86,14 @@ def main():
         sys.exit(1)
 
     available_targets = discover_targets()
+
+    if args.list:
+        print("Available targets (from boards/targets/):")
+        for target in available_targets.keys():
+            print(f"  - {target}")
+        print("\nFormat for --targets:")
+        print(" ".join(available_targets.keys()))
+        sys.exit(0)
     
     if args.targets:
         selected_targets = {}
