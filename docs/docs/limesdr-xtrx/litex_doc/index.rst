@@ -41,10 +41,11 @@ Register Groups
     pcie_endpoint
     periphcfg
     ppsdo
+    rfsw_control
     spimaster
     sys_clock_test
-    timer0
     CNTRL
+    timer0
     vctcxo_tamer
 
 Indices and tables

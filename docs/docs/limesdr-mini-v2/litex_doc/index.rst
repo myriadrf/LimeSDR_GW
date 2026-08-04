@@ -20,13 +20,16 @@ Register Groups
 
     ctrl
     ft601
+    general_periph
     i2c0
     identifier_mem
-    limetop
     ppsdo
+    limetop
+    main
     spiflash
     spimaster
     timer0
+    tst_top
     uart
 
 Indices and tables

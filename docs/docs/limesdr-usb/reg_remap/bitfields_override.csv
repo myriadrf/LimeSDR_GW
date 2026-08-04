@@ -147,7 +147,7 @@ address,title,access,default,field,msb,lsb,values,description,op
 0x007C,ddr2_2_pnf_per_bit_h,R,,ddr2_2_pnf_per_bit_h,15,0,,DDR2_2 data [31:16] pass/fail-per-bit result.,upsert
 0x00C0,board_gpio_ovrd,R/W,0x0000,board_gpio_ovrd,7,0,"0=Dedicated function,1=Overridden by user",GPIO override bits for FPGA_GPIO[7:0].,upsert
 0x00C2,board_gpio_rd,R,0x0000,board_gpio_rd,7,0,"0=Low,1=High",GPIO readback bits for FPGA_GPIO[7:0].,upsert
-0x00C4,board_gpio_dir,R/W,0x0000,board_gpio_dir,7,0,"0=Input,1=Output","GPIO direction bits for FPGA_GPIO[7:0]. Board-specific: firmware inverts this legacy 1=output convention before writing it to the underlying gpio_io CSR, whose own convention is 0=output.",upsert
+0x00C4,board_gpio_dir,R/W,0x0000,board_gpio_dir,7,0,"0=Input,1=Output","GPIO direction bits for FPGA_GPIO[7:0]. ",upsert
 0x00C6,board_gpio_val,R/W,0x0000,board_gpio_val,7,0,"0=Low,1=High",GPIO output value bits for FPGA_GPIO[7:0].,upsert
 0x00CC,periph_output_ovrd_0,R/W,0x0000,periph_output_ovrd_0,0,0,"0=Dedicated,1=User controlled",Fan control override enable.,upsert
 0x00CD,periph_output_val_0,R/W,0x0000,periph_output_val_0,0,0,"0=OFF,1=ON",Fan control value.,upsert

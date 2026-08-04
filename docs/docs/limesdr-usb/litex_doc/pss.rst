@@ -243,14 +243,14 @@ PSS_GPIO_IO_GPIO_OVERRIDE_DIR
 
 `Address: 0xf0002800 + 0x1c = 0xf000281c`
 
-    GPIO override direction: 0: Output, 1: Input.
+    GPIO override direction: 1: Output, 0: Input.
 
     .. wavedrom::
         :caption: PSS_GPIO_IO_GPIO_OVERRIDE_DIR
 
         {
             "reg": [
-                {"name": "gpio_io_gpio_override_dir[7:0]", "attr": 'reset: 255', "bits": 8},
+                {"name": "gpio_io_gpio_override_dir[7:0]", "bits": 8},
                 {"bits": 24},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
@@ -261,7 +261,7 @@ PSS_GPIO_IO_GPIO_OVERRIDE_VAL
 
 `Address: 0xf0002800 + 0x20 = 0xf0002820`
 
-    GPIO Logic level: 0: High, 1: Low. (Dir must be set to output)
+    GPIO Logic level: 1: High, 0: Low. (Dir must be set to output)
 
     .. wavedrom::
         :caption: PSS_GPIO_IO_GPIO_OVERRIDE_VAL

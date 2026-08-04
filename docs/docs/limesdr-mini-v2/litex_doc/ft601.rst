@@ -29,7 +29,7 @@ FT601_FIFO_WDATA
         {
             "reg": [
                 {"name": "fifo_wdata[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -46,7 +46,7 @@ FT601_FIFO_RDATA
         {
             "reg": [
                 {"name": "fifo_rdata[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -65,7 +65,7 @@ FT601_FIFO_STATUS
                 {"name": "is_rdempty",  "bits": 1},
                 {"name": "is_wrfull",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -91,7 +91,7 @@ FT601_FIFO_CONTROL
             "reg": [
                 {"name": "reset",  "bits": 1},
                 {"bits": 31}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 

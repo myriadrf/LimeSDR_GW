@@ -28,7 +28,7 @@ CTRL_RESET
                 {"name": "soc_rst",  "type": 4, "bits": 1},
                 {"name": "cpu_rst",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -47,7 +47,7 @@ CTRL_SCRATCH
 
     Use this register as a scratch space to verify that software read/write accesses
     to the Wishbone/CSR bus are working correctly. The initial reset value of
-    0x1234578 can be used to verify endianness.
+    0x12345678 can be used to verify endianness.
 
     .. wavedrom::
         :caption: CTRL_SCRATCH
@@ -55,7 +55,7 @@ CTRL_SCRATCH
         {
             "reg": [
                 {"name": "scratch[31:0]", "attr": 'reset: 305419896', "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -72,7 +72,7 @@ CTRL_BUS_ERRORS
         {
             "reg": [
                 {"name": "bus_errors[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 

@@ -88,7 +88,10 @@ To clone the repository and set up the environment, run:
 
    git clone https://github.com/myriadrf/LimeSDR_GW.git
    cd LimeSDR_GW
-   git submodule update --init --recursive
+   # Inits top level submodules
+   git submodule update --init
+   # Inits submodules used by top level submodules
+   git submodule foreach 'git submodule update --init'
    
    # Install LiteX libraries and create virtual environment
    ./setup_litex.sh --install

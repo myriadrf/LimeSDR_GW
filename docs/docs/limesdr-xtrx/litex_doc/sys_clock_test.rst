@@ -7,17 +7,17 @@ Register Listing for SYS_CLOCK_TEST
 +--------------------------------------------------------------------+--------------------------------------------------+
 | Register                                                           | Address                                          |
 +====================================================================+==================================================+
-| :ref:`SYS_CLOCK_TEST_TEST_EN <SYS_CLOCK_TEST_TEST_EN>`             | :ref:`0xf000c000 <SYS_CLOCK_TEST_TEST_EN>`       |
+| :ref:`SYS_CLOCK_TEST_TEST_EN <SYS_CLOCK_TEST_TEST_EN>`             | :ref:`0xf000c800 <SYS_CLOCK_TEST_TEST_EN>`       |
 +--------------------------------------------------------------------+--------------------------------------------------+
-| :ref:`SYS_CLOCK_TEST_TEST_CNT <SYS_CLOCK_TEST_TEST_CNT>`           | :ref:`0xf000c004 <SYS_CLOCK_TEST_TEST_CNT>`      |
+| :ref:`SYS_CLOCK_TEST_TEST_CNT <SYS_CLOCK_TEST_TEST_CNT>`           | :ref:`0xf000c804 <SYS_CLOCK_TEST_TEST_CNT>`      |
 +--------------------------------------------------------------------+--------------------------------------------------+
-| :ref:`SYS_CLOCK_TEST_TEST_COMPLETE <SYS_CLOCK_TEST_TEST_COMPLETE>` | :ref:`0xf000c008 <SYS_CLOCK_TEST_TEST_COMPLETE>` |
+| :ref:`SYS_CLOCK_TEST_TEST_COMPLETE <SYS_CLOCK_TEST_TEST_COMPLETE>` | :ref:`0xf000c808 <SYS_CLOCK_TEST_TEST_COMPLETE>` |
 +--------------------------------------------------------------------+--------------------------------------------------+
 
 SYS_CLOCK_TEST_TEST_EN
 ^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000c000 + 0x0 = 0xf000c000`
+`Address: 0xf000c800 + 0x0 = 0xf000c800`
 
     1 - enable test, 0 - disable test
 
@@ -35,7 +35,7 @@ SYS_CLOCK_TEST_TEST_EN
 SYS_CLOCK_TEST_TEST_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000c000 + 0x4 = 0xf000c004`
+`Address: 0xf000c800 + 0x4 = 0xf000c804`
 
     Number of cycles counted during test
 
@@ -53,7 +53,7 @@ SYS_CLOCK_TEST_TEST_CNT
 SYS_CLOCK_TEST_TEST_COMPLETE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000c000 + 0x8 = 0xf000c008`
+`Address: 0xf000c800 + 0x8 = 0xf000c808`
 
     1 - test complete, 0 - test not complete
 

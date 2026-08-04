@@ -7,27 +7,27 @@ Register Listing for UART
 +------------------------------------------+-------------------------------------+
 | Register                                 | Address                             |
 +==========================================+=====================================+
-| :ref:`UART_RXTX <UART_RXTX>`             | :ref:`0xf0004800 <UART_RXTX>`       |
+| :ref:`UART_RXTX <UART_RXTX>`             | :ref:`0xf0006000 <UART_RXTX>`       |
 +------------------------------------------+-------------------------------------+
-| :ref:`UART_TXFULL <UART_TXFULL>`         | :ref:`0xf0004804 <UART_TXFULL>`     |
+| :ref:`UART_TXFULL <UART_TXFULL>`         | :ref:`0xf0006004 <UART_TXFULL>`     |
 +------------------------------------------+-------------------------------------+
-| :ref:`UART_RXEMPTY <UART_RXEMPTY>`       | :ref:`0xf0004808 <UART_RXEMPTY>`    |
+| :ref:`UART_RXEMPTY <UART_RXEMPTY>`       | :ref:`0xf0006008 <UART_RXEMPTY>`    |
 +------------------------------------------+-------------------------------------+
-| :ref:`UART_EV_STATUS <UART_EV_STATUS>`   | :ref:`0xf000480c <UART_EV_STATUS>`  |
+| :ref:`UART_EV_STATUS <UART_EV_STATUS>`   | :ref:`0xf000600c <UART_EV_STATUS>`  |
 +------------------------------------------+-------------------------------------+
-| :ref:`UART_EV_PENDING <UART_EV_PENDING>` | :ref:`0xf0004810 <UART_EV_PENDING>` |
+| :ref:`UART_EV_PENDING <UART_EV_PENDING>` | :ref:`0xf0006010 <UART_EV_PENDING>` |
 +------------------------------------------+-------------------------------------+
-| :ref:`UART_EV_ENABLE <UART_EV_ENABLE>`   | :ref:`0xf0004814 <UART_EV_ENABLE>`  |
+| :ref:`UART_EV_ENABLE <UART_EV_ENABLE>`   | :ref:`0xf0006014 <UART_EV_ENABLE>`  |
 +------------------------------------------+-------------------------------------+
-| :ref:`UART_TXEMPTY <UART_TXEMPTY>`       | :ref:`0xf0004818 <UART_TXEMPTY>`    |
+| :ref:`UART_TXEMPTY <UART_TXEMPTY>`       | :ref:`0xf0006018 <UART_TXEMPTY>`    |
 +------------------------------------------+-------------------------------------+
-| :ref:`UART_RXFULL <UART_RXFULL>`         | :ref:`0xf000481c <UART_RXFULL>`     |
+| :ref:`UART_RXFULL <UART_RXFULL>`         | :ref:`0xf000601c <UART_RXFULL>`     |
 +------------------------------------------+-------------------------------------+
 
 UART_RXTX
 ^^^^^^^^^
 
-`Address: 0xf0004800 + 0x0 = 0xf0004800`
+`Address: 0xf0006000 + 0x0 = 0xf0006000`
 
 
     .. wavedrom::
@@ -37,14 +37,14 @@ UART_RXTX
             "reg": [
                 {"name": "rxtx[7:0]", "bits": 8},
                 {"bits": 24},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
 UART_TXFULL
 ^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x4 = 0xf0004804`
+`Address: 0xf0006000 + 0x4 = 0xf0006004`
 
     TX FIFO Full.
 
@@ -55,14 +55,14 @@ UART_TXFULL
             "reg": [
                 {"name": "txfull", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
 UART_RXEMPTY
 ^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x8 = 0xf0004808`
+`Address: 0xf0006000 + 0x8 = 0xf0006008`
 
     RX FIFO Empty.
 
@@ -73,14 +73,14 @@ UART_RXEMPTY
             "reg": [
                 {"name": "rxempty", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
 UART_EV_STATUS
 ^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xc = 0xf000480c`
+`Address: 0xf0006000 + 0xc = 0xf000600c`
 
     This register contains the current raw level of the rx event trigger.  Writes to
     this register have no effect.
@@ -93,7 +93,7 @@ UART_EV_STATUS
                 {"name": "tx",  "bits": 1},
                 {"name": "rx",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -108,7 +108,7 @@ UART_EV_STATUS
 UART_EV_PENDING
 ^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x10 = 0xf0004810`
+`Address: 0xf0006000 + 0x10 = 0xf0006010`
 
     When a  rx event occurs, the corresponding bit will be set in this register.  To
     clear the Event, set the corresponding bit in this register.
@@ -121,7 +121,7 @@ UART_EV_PENDING
                 {"name": "tx",  "bits": 1},
                 {"name": "rx",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -138,7 +138,7 @@ UART_EV_PENDING
 UART_EV_ENABLE
 ^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x14 = 0xf0004814`
+`Address: 0xf0006000 + 0x14 = 0xf0006014`
 
     This register enables the corresponding rx events.  Write a ``0`` to this
     register to disable individual events.
@@ -151,7 +151,7 @@ UART_EV_ENABLE
                 {"name": "tx",  "bits": 1},
                 {"name": "rx",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -166,7 +166,7 @@ UART_EV_ENABLE
 UART_TXEMPTY
 ^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x18 = 0xf0004818`
+`Address: 0xf0006000 + 0x18 = 0xf0006018`
 
     TX FIFO Empty.
 
@@ -177,14 +177,14 @@ UART_TXEMPTY
             "reg": [
                 {"name": "txempty", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
 UART_RXFULL
 ^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x1c = 0xf000481c`
+`Address: 0xf0006000 + 0x1c = 0xf000601c`
 
     RX FIFO Full.
 
@@ -195,7 +195,7 @@ UART_RXFULL
             "reg": [
                 {"name": "rxfull", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
