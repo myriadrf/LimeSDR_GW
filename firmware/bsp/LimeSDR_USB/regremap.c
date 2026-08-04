@@ -248,9 +248,8 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = pss_gpio_io_gpio_val_read();
         break;
     case 0xC4:
-        // GPIO_DIR (legacy convention: 1 = Output). gpio_io's convention is 0 = Output,
-        // so it must be bit-inverted here.
-        value = (~pss_gpio_io_gpio_override_dir_read()) & 0xFF;
+        // GPIO_DIR 1 = Output
+        value = pss_gpio_io_gpio_override_dir_read() & 0xFF;
         break;
     case 0xC6:
         // GPIO_VAL: manual output value for FPGA_GPIO[i].
@@ -461,9 +460,8 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         pss_gpio_io_gpio_override_write(value & 0xFF);
         break;
     case 0xC4:
-        // GPIO_DIR (legacy convention: 1 = Output). gpio_io's convention is 0 = Output,
-        // so it must be bit-inverted here.
-        pss_gpio_io_gpio_override_dir_write((~value) & 0xFF);
+        // GPIO_DIR 1 = Output
+        pss_gpio_io_gpio_override_dir_write(value & 0xFF);
         break;
     case 0xC6:
         // GPIO_VAL: manual output value for FPGA_GPIO[i].

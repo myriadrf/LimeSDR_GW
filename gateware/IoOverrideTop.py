@@ -22,12 +22,13 @@ class IoOverrideTop(LiteXModule):
     - inout_pads (optional): bidirectional, tri-stated pads (e.g. FPGA_GPIO). Plain `dir`/
       `out_val` Signal inputs carry the caller-supplied default direction/value; `override`/
       `override_dir`/`override_val` CSRs let firmware force a direction/value; `val` CSRStatus
-      reads the current pad value.
+      reads the current pad value. 'in_val' signal can be used to expose pin value to other modules.
     - out_pads (optional): output-only pads (e.g. LEDs, Fan). A plain `out_default` Signal input
       carries the caller-supplied default value; `out_override`/`out_override_val` CSRs let
       firmware force a value.
-    - in_pads (optional): input-only pads. `in_val` CSRStatus reads the current pad value (no
-      override possible, since a physical input's electrical state cannot be forced).
+    - in_pads (optional): input-only pads. `val` CSRStatus reads the current pad value (no
+      override possible, since a physical input's electrical state cannot be forced). 'in_val'
+      signal can be used to expose pin value to other modules.
 
     `name` prefixes all CSRs of this instance, so multiple instances can coexist on the same SoC.
     """
@@ -45,44 +46,51 @@ class IoOverrideTop(LiteXModule):
         if inout_pads is not None:
             n = len(inout_pads)
 
-            self.dir     = Signal(n) # Default direction (0: Output, 1: Input), driven by the caller.
+            self.dir     = Signal(n) # Default direction (1: Output, 0: Input), driven by the caller.
             self.out_val = Signal(n) # Default output value, driven by the caller.
+            self.in_val  = Signal(n) # Actual at-pin current value
 
             self.override = CSRStorage(n, name=f"{name}_override",
                 description="GPIO Mode: 0: normal operation, 1: control is overriden."
             )
-            self.override_dir = CSRStorage(n, name=f"{name}_override_dir", reset=(2**n - 1),
-                description="GPIO override direction: 0: Output, 1: Input."
+            self.override_dir = CSRStorage(n, name=f"{name}_override_dir", reset=0,
+                description="GPIO override direction: 1: Output, 0: Input."
             )
             self.override_val = CSRStorage(n, name=f"{name}_override_val",
-                description="GPIO Logic level: 0: High, 1: Low. (Dir must be set to output)"
+                description="GPIO Logic level: 1: High, 0: Low. (Dir must be set to output)"
             )
             self.val = CSRStatus(n, name=f"{name}_val", description="GPIO current value")
 
             val_bits = []
             for i, pad in enumerate(inout_pads):
-                t = TSTriple()
-                self.specials += t.get_tristate(pad)
+                tristate_signal = TSTriple()
+                self.specials += tristate_signal.get_tristate(pad)
 
-                b = Signal()
-                val_bits.append(b)
+                bit = Signal()
+                val_bits.append(bit)
+
+                # Active direction (default or overridden)
+                active_dir = Signal()
+                self.comb += active_dir.eq(Mux(self.override.storage[i], self.override_dir.storage[i], self.dir[i]))
+
                 self.comb += [
                     If(self.override.storage[i],
-                        t.oe.eq(~self.override_dir.storage[i]),
-                        t.o.eq( self.override_val.storage[i]),
+                        tristate_signal.oe.eq(self.override_dir.storage[i]),
+                        tristate_signal.o.eq( self.override_val.storage[i]),
                     ).Else(
-                        t.oe.eq(~self.dir[i]),
-                        t.o.eq( self.out_val[i]),
+                        tristate_signal.oe.eq(self.dir[i]),
+                        tristate_signal.o.eq( self.out_val[i]),
                     ),
                     # Always return the actual value present on the pin regardless of the
                     # selected direction (returns the driven value if direction is Output).
-                    If(self.dir[i],
-                        b.eq(t.i),
+                    If(active_dir,
+                        bit.eq(tristate_signal.o),
                     ).Else(
-                        b.eq(t.o),
+                        bit.eq(tristate_signal.i),
                     ),
                 ]
             self.comb += self.val.status.eq(Cat(*val_bits))
+            self.comb += self.in_val.eq(self.val.status)
 
         # Out pads (output-only) -----------------------------------------------------------------
         if out_pads is not None:
@@ -108,5 +116,8 @@ class IoOverrideTop(LiteXModule):
 
         # In pads (input-only) -------------------------------------------------------------------
         if in_pads is not None:
-            self.in_val = CSRStatus(len(in_pads), name=f"{name}_in_val", description="Input current value")
-            self.comb += self.in_val.status.eq(in_pads)
+            self.in_val  = Signal(len(in_pads)) # Actual at-pin current value
+
+            self.val = CSRStatus(len(in_pads), name=f"{name}_in_val", description="Input current value")
+            self.comb += self.val.status.eq(in_pads)
+            self.comb += self.in_val.eq(self.val.status)

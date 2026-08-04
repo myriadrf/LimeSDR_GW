@@ -54,7 +54,7 @@ class PSS_LimeSDR_Usb(LiteXModule):
         # FPGA_GPIO[0:7] default (non-overridden) functions: all outputs.
         #   [0]=TX_TXANT_EN, [1]=RX_PLL_LOCKED, [2]=TX_PLL_LOCKED, [3]=TX_PCT_LOSS_FLG, [4:7]=Reserved (Low).
         self.comb += [
-            self.gpio_io.dir.eq(0),
+            self.gpio_io.dir.eq(Cat(1,1,1,1,0,0,0,0)),
             self.gpio_io.out_val.eq(Cat(
                 self.tx_txant_en, self.rx_pll_lock, self.tx_pll_lock, self.tx_pct_loss_flg,
                 0, 0, 0, 0,
