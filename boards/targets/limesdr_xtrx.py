@@ -545,15 +545,8 @@ class BaseSoC(SoCCore):
         ### Misc assignments
         # Stream delay signals
         self.comb += [
-            # self.limetop.fpgacfg.tx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
-            # self.limetop.fpgacfg.tx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
-            # self.limetop.fpgacfg.rx_en_delay_signal[0].eq(self.zda_parser.pps_rising),
-            # self.limetop.fpgacfg.rx_en_delay_signal[1].eq(self.zda_parser.pps_rising & self.zda_parser.time_valid),
-            # NOTE: using rx_path synced pps, because separate tx path enable is not used, should be fine
-            self.limetop.fpgacfg.tx_en_delay_signal[0].eq(self.limetop.rxtx_top.rx_path.pps_rising),
-            self.limetop.fpgacfg.tx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.gnsstop.zda_parser.time_valid),
-            self.limetop.fpgacfg.rx_en_delay_signal[0].eq(self.limetop.rxtx_top.rx_path.pps_rising),
-            self.limetop.fpgacfg.rx_en_delay_signal[1].eq(self.limetop.rxtx_top.rx_path.pps_rising & self.gnsstop.zda_parser.time_valid),
+            self.limetop.pps.eq(self.limetop.rxtx_top.rx_path.pps_rising),
+            self.limetop.pps_valid.eq(self.gnsstop.zda_parser.time_valid),
         ]
 
 
