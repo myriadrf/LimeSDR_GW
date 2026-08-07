@@ -120,7 +120,8 @@ class BaseSoC(SoCCore):
                  no_ddr            = False,
                  cpu_firmware   = None,
                  with_jtagbone     = False,
-                 with_cpu_debug    = False):
+                 with_cpu_debug    = False,
+                 no_ppsdo          = False):
         platform = limesdr_usb.Platform()
         platform.name        = "limesdr_usb"
         platform.vhd2v_force = False
@@ -146,12 +147,12 @@ class BaseSoC(SoCCore):
         no_ddr = no_ddr or with_cpu_debug
 
         if with_bios:
-            integrated_rom_size      = 0x4000
+            integrated_rom_size      = 0x4100
             integrated_rom_init      = []
-            integrated_main_ram_size = 0x4000
+            integrated_main_ram_size = 0x4100
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
         else:
-            integrated_rom_size      = 0x4000
+            integrated_rom_size      = 0x4100
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
@@ -232,6 +233,16 @@ class BaseSoC(SoCCore):
                                    add_ddr_modules=not no_ddr,
                                    wfm_infifo_usedw_width=self.FX3.ep01_0_rdusedw_width,
                                    )
+
+        # PPSDO ------------------------------------------------------------------------------------
+        if not no_ppsdo:
+            from gateware.LimePPSDO.src.ppsdo import PPSDO
+            self.ppsdo = PPSDO(
+                cd_rf    = "lmk",
+                with_csr = True
+            )
+            self.comb += self.ppsdo.pps.eq(self.pss.gpio_io.in_val[7])
+            self.ppsdo.add_sources(dac_bits=8, patch_fazyrv=True)
 
         # LimeTop -----------------------------------------------------------------------------------
         self.limetop  = LimeTop(self,
@@ -387,6 +398,7 @@ def main():
     parser.add_argument("--with-jtagbone",  action="store_true", help="Enable JTAGBone (wishbone-over-JTAG bus master) for gateware debugging / register monitoring with litex_server (mutually exclusive with --with-cpu-debug).")
     parser.add_argument("--with-cpu-debug", action="store_true", help="Enable spec-compliant RISC-V CPU debug over a dedicated JTAG tunnel (implies --no-ddr, mutually exclusive with --with-jtagbone).")
     parser.add_argument("--no-ddr",         action="store_true", help="Do not include DDR memory related modules. Useful for freeing resources when debugging")
+    parser.add_argument("--no-ppsdo",       action="store_true", help="Do not include PPSDO module.")
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
@@ -405,7 +417,8 @@ def main():
             with_jtagbone  = args.with_jtagbone,
             with_cpu_debug = args.with_cpu_debug,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
-            no_ddr         = args.no_ddr
+            no_ddr         = args.no_ddr,
+            no_ppsdo       = args.no_ppsdo
         )
 
         # soc.add_debug()

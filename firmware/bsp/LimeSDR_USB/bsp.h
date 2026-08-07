@@ -55,6 +55,7 @@
 #define BSP_ADF4002_CS        0
 #define BSP_DAC_SPIMASTER     1
 #define BSP_DAC_CS            1
+#define BSP_DAC_INDEX         0
 #define BSP_DAC_DEFAULT_VAL   125 // Default TCXO DAC value loaded when EEPROM is empty
 #define BSP_EEPROM_DAC_ADDR   0x0010 // Address in EEPROM memory where TCXO DAC value is stored
 
