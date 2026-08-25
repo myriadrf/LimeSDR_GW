@@ -52,16 +52,45 @@ To update the LimeSDR Mini V1, use the following sequence:
 Programming Cables
 ------------------
 
-For supported programming cables and hardware connection details, refer to the following hardware
-documentation section:
 
-- `Connecting LimeSDR Mini V2 board to FT2232H Mini Module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
+The FT2232H Mini Module provides a low-cost JTAG programming interface for LimeSDR Mini v1 and other devices.
 
-.. note::
+.. list-table:: Table 1. Tested JTAG Programming Cables
+   :header-rows: 1
+   :widths: 35 15 50
 
-   - The programming-cable guidance is the same for **LimeSDR Mini V1** and **LimeSDR Mini V2**.
-   - For this project, only the FT2232H Mini Module connection information from the linked hardware
-     documentation is relevant.
+   * - **Hardware**
+     - **Version**
+     - **Comment**
+   * - `FT2232H Mini Module <https://ftdichip.com/products/ft2232h-mini-module/>`_
+     -
+     - Compatible JTAG programming cable
+
+The FT2232H Mini Module costs approximately $20 from distributors such as Digi-Key and Mouser. JTAG uses four signals: TCK, TMS, TDI, and TDO. This setup uses FT2232H port A (0).
+
+FT2232H Mini Module preparation:
+
+* Connect CN3-1 to CN3-3 to supply VCC from USB VBUS.
+* Connect LimeSDR Mini v1 to the FT2232H Mini Module as specified in Table 2 and shown in Figure 1.
+
+.. table:: Table 2. LimeSDR Mini v1 board and FT2232H Mini module connections
+
+  +------------------------------------+---------------------------------+
+  | **LimeSDR Mini v1**                | **FT2232H Mini module**         |
+  +====================================+=================================+
+  | J3-1 (GND)                         | CN2-2 (GND)                     |
+  +------------------------------------+---------------------------------+
+  | J3-2 (FPGA_JTAG_TCK)               | CN2-7 (AD0)                     |
+  +------------------------------------+---------------------------------+
+  | J3-3 (FPGA_JTAG_TDO)               | CN2-9 (AD2)                     |
+  +------------------------------------+---------------------------------+
+  | J3-4 (FPGA_JTAG_TMS)               | CN2-12 (AD3)                    |
+  +------------------------------------+---------------------------------+
+  | J3-5 (FPGA_JTAG_TDI)               | CN2-10 (AD1)                    |
+  +------------------------------------+---------------------------------+
+  | J3-6 (VCC3P3)                      | CN2-11 (VIO)                    |
+  +------------------------------------+---------------------------------+
+
 
 Flashing Instructions
 ---------------------

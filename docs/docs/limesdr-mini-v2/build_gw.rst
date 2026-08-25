@@ -53,15 +53,48 @@ After generating the user bitstream, the following files are available:
 Programming Cables
 ------------------
 
-For supported programming cables and required hardware connections, refer to the following hardware
-documentation section:
+The FT2232H Mini Module provides a low-cost JTAG programming interface for LimeSDR Mini v2 and other Lattice FPGA devices.
 
-- `Connecting LimeSDR Mini V2 board to FT2232H Mini Module <https://limesdr-mini.myriadrf.org/documentation/jtag-programming#connecting-limesdr-mini-v2-board-to-ft2232h-mini-module>`_
+.. list-table:: Table 1. Tested JTAG Programming Cables
+   :header-rows: 1
+   :widths: 35 15 50
 
-.. note::
+   * - **Hardware**
+     - **Version**
+     - **Comment**
+   * - `FT2232H Mini Module <https://ftdichip.com/products/ft2232h-mini-module/>`_
+     -
+     - Compatible JTAG programming cable
 
-   Only the section covering the FT2232H Mini Module and the required hardware connections is
-   relevant for board programming with this project.
+The FT2232H Mini Module costs approximately $20 from distributors such as Digi-Key and Mouser. JTAG uses four signals: TCK, TMS, TDI, and TDO. This setup uses FT2232H port A (0).
+
+FT2232H Mini Module preparation:
+
+* Connect CN3-1 to CN3-3 to supply VCC from USB VBUS.
+* Connect LimeSDR Mini v2 to the FT2232H Mini Module as specified in Table 2 and shown in Figure 1.
+
+.. table:: Table 2. LimeSDR Mini v2 board and FT2232H Mini module connections
+
+  +------------------------------------+---------------------------------+
+  | **LimeSDR Mini v2**                | **FT2232H Mini module**         |
+  +====================================+=================================+
+  | J5-1 (GND)                         | CN2-2 (GND)                     |
+  +------------------------------------+---------------------------------+
+  | J5-2 (FPGA_JTAG_TCK)               | CN2-7 (AD0)                     |
+  +------------------------------------+---------------------------------+
+  | J5-3 (FPGA_JTAG_TDO)               | CN2-9 (AD2)                     |
+  +------------------------------------+---------------------------------+
+  | J5-4 (FPGA_JTAG_TMS)               | CN2-12 (AD3)                    |
+  +------------------------------------+---------------------------------+
+  | J5-5 (FPGA_JTAG_TDI)               | CN2-10 (AD1)                    |
+  +------------------------------------+---------------------------------+
+  | J5-6 (VCC3P3)                      | CN2-11 (VIO)                    |
+  +------------------------------------+---------------------------------+
+
+.. figure:: images/LimeSDR-Mini_v2.0_and_FT2232H_Mini_module_connections.jpg
+   :width: 600
+
+   Figure 1: LimeSDR Mini v2 board and FT2232H Mini module connections
 
 Flashing Instructions
 ---------------------
