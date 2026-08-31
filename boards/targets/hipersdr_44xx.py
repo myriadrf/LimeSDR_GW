@@ -78,6 +78,9 @@ TX_IN_PCT_HDR_SIZE   = 16
 TX_MAX_PCT_SIZE      = 8192  # Total payload RAM capacity in bytes
 TX_N_BUFF            = 16    # Metadata FIFO depth; does not increase payload RAM
 
+FPGA_CACHE_BASE      = 0x20000000
+FPGA_CACHE_SIZE      = 0x1000  # 4 KiB
+
 # CRG ----------------------------------------------------------------------------------------------
 
 class CRG(LiteXModule):
@@ -857,6 +860,13 @@ class BaseSoC(SoCCore):
         self.comb += self.bsp.isr_vect[1].eq(self.gpio_control.port_out_value_115.storage[8])  # Connecting PWR_LMS8_NRST bit to bsp isr
 
         self.irq.add("bsp")
+
+        self.add_ram(
+            name="fpga_cache",
+            origin=FPGA_CACHE_BASE,
+            size=FPGA_CACHE_SIZE,
+            mode="rw",
+        )
 
 
         #TODO: place it in gateware dir
