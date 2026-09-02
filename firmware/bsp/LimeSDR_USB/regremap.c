@@ -6,7 +6,14 @@
 
 #include "regremap.h"
 
-static uint16_t test_val = 0;
+uint16_t transform_fpga_signature(uint16_t write_val)
+{
+    /* Invert the lower 4 bits and position them at bits [7:4].
+     * Bits [15:8] and [3:0] are cleared to zero to ensure exact matching. */
+    return (uint16_t)((~write_val & 0x0Fu) << 4);
+}
+
+static uint16_t fpga_signature = 0;
 
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-USB
 void readCSR(uint8_t *address, uint8_t *regdata_array)
@@ -172,6 +179,9 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
     case 0x3F:
         value = csr_read_simple(clk_ctrl_addrs.phcfg_step);
+        break;
+    case 0x60:
+        value = fpga_signature;
         break;
     case 0x61:
         value = pss_tst_top_test_en_read();
@@ -447,6 +457,9 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
     case 0x3f:
         csr_write_simple(value, clk_ctrl_addrs.phcfg_step);
+        break;
+    case 0x60:
+        fpga_signature = transform_fpga_signature(value);
         break;
     case 0x61:
         pss_tst_top_test_en_write(value);
