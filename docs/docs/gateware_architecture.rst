@@ -108,7 +108,7 @@ At the top level, it includes:
 - ISR handling,
 - board-support logic,
 - peripheral drivers,
-- LMS64 communication/control support.
+- :external+lms64c:doc:`LMS64C protocol  <commands/index>` commands support.
 
 The CPU communicates with the rest of the architecture primarily through the **CSR bus** and acts
 as the central control orchestrator for the platform.

@@ -21,6 +21,7 @@ highlight_language = 'python'
 intersphinx_internal = [
      'dfb',
      'ppsdo',
+     'lms64c',
 ]
 
 intersphinx_external = [
