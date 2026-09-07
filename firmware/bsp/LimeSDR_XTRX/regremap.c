@@ -23,7 +23,10 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = limetop_fpgacfg_compile_rev_read();
         break;
     case 0x3:
-        value = 0x2;
+        // Register returns hw and bom versions of 3 bit length, software expects 4 bit length
+        // have to move data around.
+        value = limetop_fpgacfg_bom_hw_ver_read();
+
         break;
     case 0x5:
         value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;

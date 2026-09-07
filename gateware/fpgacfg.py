@@ -62,7 +62,7 @@ class FPGACfg(LiteXModule):
         self.board_id          = CSRStatus(16,  reset=board_id)
         self.major_rev         = CSRStatus(16,  reset=major_rev)
         self.compile_rev       = CSRStatus(16,  reset=compile_rev)
-        self.bom_hw_ver    = CSRStatus(16,  reset=0)
+        self.bom_hw_ver        = CSRStatus(16,  reset=0)
 
         # Interface config (7-15)
         self._ch_en            = CSRStorage(4,  reset=0b1111,

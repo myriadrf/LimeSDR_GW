@@ -2,6 +2,8 @@
 
 static uint8_t serial_otp_unlock_key = 0;
 
+uint16_t g_bsp_hw_ver;
+
 litei2c_regs I2C0_REGS = {.master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
                           .master_addr_addr     = CSR_I2C0_MASTER_ADDR_ADDR,
                           .master_settings_addr = CSR_I2C0_MASTER_SETTINGS_ADDR,
@@ -30,6 +32,10 @@ void bsp_init(void)
             bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00) >> 8, BSP_DAC_DEFAULT_VAL & 0xff);
         }
     }
+    // Read actual hardware version from register and store it in global variable
+    g_bsp_hw_ver = limetop_fpgacfg_bom_hw_ver_read();
+    // HW_VER is bits 0-2
+    g_bsp_hw_ver &= 0x000B;
 }
 
 void bsp_powerup(void)
