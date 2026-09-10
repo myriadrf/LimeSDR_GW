@@ -132,6 +132,10 @@ def main():
             "override": root / "docs" / "docs" / "limesdr-xtrx" / "reg_remap",
             "c_file": root / "firmware" / "bsp" / "LimeSDR_XTRX" / "regremap.c"
         },
+        "ca23": {
+            "override": root / "docs" / "docs" / "ca23" / "reg_remap",
+            "c_file": root / "firmware" / "bsp" / "CA23" / "regremap.c"
+        },
         "limesdr-mini-v1": {
             "override": root / "docs" / "docs" / "limesdr-mini-v1" / "reg_remap",
             "c_file": root / "firmware" / "bsp" / "LimeSDR_Mini_V1" / "regremap.c"

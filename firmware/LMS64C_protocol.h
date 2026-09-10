@@ -43,6 +43,7 @@ enum eLMS_DEV
     LMS_DEV_XTRX                  = 27,
     LMS_DEV_HIPERSDR_44xx         = 31,
     LMS_DEV_SSDR                  = 32,
+    LMS_DEV_CA23                  = 33,
 
     LMS_DEV_COUNT
 };

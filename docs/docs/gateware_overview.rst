@@ -13,6 +13,7 @@ Recommended Reading Order
    Board-specific architecture/implementation pages:
 
    - :doc:`limesdr_xtrx`
+   - :doc:`ca23`
    - :doc:`limesdr_mini_v1`
    - :doc:`limesdr_mini_v2`
    - :doc:`limesdr_usb`
@@ -30,6 +31,7 @@ Recommended Reading Order
    firmware_toolchains
    update_and_recovery
    limesdr_xtrx
+   ca23
    limesdr_mini_v1
    limesdr_mini_v2
    limesdr_usb

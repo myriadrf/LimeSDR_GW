@@ -35,3 +35,4 @@ class BoardIDs(IntEnum):
     LIME_SDR_MINI = 0x0011
     SSDR = 32
     HIPER = 31
+    CA23 = 27 # uses same id as xtrx

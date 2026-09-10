@@ -117,6 +117,10 @@ Supported Boards
      - v1.2+
      - Mini PCIe SDR board
      - Xilinx Vivado
+   * - CA23
+     - v1.x
+     - PCIe SDR board
+     - Xilinx Vivado
    * - LimeSDR Mini V1
      - v1.x
      - USB SDR board

@@ -28,6 +28,22 @@ regmap-xtrx:
 		--title "LimeSDR XTRX Host Register Reference" \
 		--label-prefix xtrx
 
+.PHONY: regmap-ca23
+regmap-ca23:
+	@python3 tools/regmap_merge_csv.py \
+		--common-dir docs/common_host_regs \
+		--override-dir docs/ca23/reg_remap \
+		--out-modules /tmp/regmap/ca23_regmap_modules.csv \
+		--out-registers /tmp/regmap/ca23_regmap_registers.csv \
+		--out-bitfields /tmp/regmap/ca23_regmap_bitfields.csv
+	@python3 tools/regmap_csv_to_rst.py \
+		--modules-csv /tmp/regmap/ca23_regmap_modules.csv \
+		--registers-csv /tmp/regmap/ca23_regmap_registers.csv \
+		--bitfields-csv /tmp/regmap/ca23_regmap_bitfields.csv \
+		--output docs/ca23/reg_remap/ca23_regremap_from_csv.rst \
+		--title "CA23 Host Register Reference" \
+		--label-prefix ca23
+
 .PHONY: regmap-hipersdr-44xx
 regmap-hipersdr-44xx:
 	@python3 tools/regmap_merge_csv.py \
@@ -61,7 +77,7 @@ regmap-ssdr-rev2:
 		--label-prefix ssdr_rev2
 
 .PHONY: regmap-all
-regmap-all: regmap-xtrx regmap-hipersdr-44xx regmap-ssdr-rev2 regmap-mini-v1 regmap-mini-v2 regmap-usb
+regmap-all: regmap-xtrx regmap-ca23 regmap-hipersdr-44xx regmap-ssdr-rev2 regmap-mini-v1 regmap-mini-v2 regmap-usb
 
 .PHONY: regmap-mini-v1
 regmap-mini-v1:
