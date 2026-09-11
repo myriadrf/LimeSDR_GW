@@ -4,18 +4,6 @@ static uint8_t serial_otp_unlock_key = 0;
 
 uint16_t g_bsp_hw_ver;
 
-litei2c_regs I2C0_REGS = {.master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
-                          .master_addr_addr     = CSR_I2C0_MASTER_ADDR_ADDR,
-                          .master_settings_addr = CSR_I2C0_MASTER_SETTINGS_ADDR,
-                          .master_status_addr   = CSR_I2C0_MASTER_STATUS_ADDR,
-                          .master_rxtx_addr     = CSR_I2C0_MASTER_RXTX_ADDR};
-
-litei2c_regs I2C1_REGS = {.master_active_addr   = CSR_I2C1_MASTER_ACTIVE_ADDR,
-                          .master_addr_addr     = CSR_I2C1_MASTER_ADDR_ADDR,
-                          .master_settings_addr = CSR_I2C1_MASTER_SETTINGS_ADDR,
-                          .master_status_addr   = CSR_I2C1_MASTER_STATUS_ADDR,
-                          .master_rxtx_addr     = CSR_I2C1_MASTER_RXTX_ADDR};
-
 void bsp_init(void)
 {
     bsp_powerup();
@@ -34,151 +22,12 @@ void bsp_init(void)
     }
     // Read actual hardware version from register and store it in global variable
     g_bsp_hw_ver = limetop_fpgacfg_bom_hw_ver_read();
-    // HW_VER is bits 0-2
-    g_bsp_hw_ver &= 0x000B;
+    g_bsp_hw_ver &= 0x000F;
 }
 
 void bsp_powerup(void)
 {
-    printf("Initializing DC-DC switching regulators...\n");
-
-    unsigned char adr;
-    unsigned char dat;
-
-    printf("PMICs Initialization...\n");
-    printf("-----------------------\n");
-
-    printf("FPGA_I2C1 PMIC: Check ID ");
-    adr = 0x01;
-    LP8758_read_reg(&I2C0_REGS, adr, &dat);
-    if (dat != 0xe0) {
-        printf("KO, exiting.\n");
-    } else {
-        printf("OK.\n");
-
-        printf("PMIC: Enable Buck0.\n");
-        adr = 0x02;
-        dat = 0x88;
-        LP8758_write_reg(&I2C0_REGS, adr, dat);
-
-        printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
-        adr = 0x03;
-        dat = 0xD2;
-        LP8758_write_reg(&I2C0_REGS, adr, dat);
-
-        printf("PMIC: Enable Buck1.\n");
-        adr = 0x04;
-        dat = 0x88;
-        LP8758_write_reg(&I2C0_REGS, adr, dat);
-
-        printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
-        adr = 0x05;
-        dat = 0xD2;
-        LP8758_write_reg(&I2C0_REGS, adr, dat);
-
-        printf("PMIC: Enable Buck2.\n");
-        adr = 0x06;
-        dat = 0x88;
-        LP8758_write_reg(&I2C0_REGS, adr, dat);
-
-        printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
-        adr = 0x07;
-        dat = 0xD2;
-        LP8758_write_reg(&I2C0_REGS, adr, dat);
-
-        printf("PMIC: Enable Buck3.\n");
-        adr = 0x08;
-        dat = 0x88;
-        LP8758_write_reg(&I2C0_REGS, adr, dat);
-
-        printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
-        adr = 0x09;
-        dat = 0xD2;
-        LP8758_write_reg(&I2C0_REGS, adr, dat);
-
-        printf("PMIC: Set Buck1 to 3.3V.\n");
-        adr = 0x0C;
-        dat = 0xFC;
-        LP8758_write_reg(&I2C0_REGS, adr, dat);
-
-        busy_wait(1);
-    }
-
-    printf("FPGA_I2C2 PMIC: Check ID ");
-    adr = 0x01;
-    LP8758_read_reg(&I2C1_REGS, adr, &dat);
-    if (dat != 0xe0) {
-        printf("KO, exiting.\n");
-    } else {
-        printf("OK.\n");
-
-        printf("PMIC: Enable Buck0.\n");
-        adr = 0x02;
-        dat = 0x88;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: ILIM0=2.5A, SLEW_RATE0=10mV/uS.\n");
-        adr = 0x03;
-        dat = 0xD2;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: Enable Buck1.\n");
-        adr = 0x04;
-        dat = 0x88;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: ILIM1=2.5A, SLEW_RATE1=10mV/uS.\n");
-        adr = 0x05;
-        dat = 0xD2;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: Enable Buck2.\n");
-        adr = 0x06;
-        dat = 0x88;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: ILIM2=2.5A, SLEW_RATE2=10mV/uS.\n");
-        adr = 0x07;
-        dat = 0xD2;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: Enable Buck3.\n");
-        adr = 0x08;
-        dat = 0x88;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: ILIM3=2.5A, SLEW_RATE3=10mV/uS.\n");
-        adr = 0x09;
-        dat = 0xD2;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: Set Buck0 to 1.5V.\n");
-        adr = 0x0A;
-        dat = 0xA2;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: Set Buck1 to 3.3V.\n");
-        adr = 0x0C;
-        dat = 0xFC;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: Set Buck2 to 1.75V.\n");
-        adr = 0x0E;
-        dat = 0xAF;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: Set Buck3 to 2.05V.\n");
-        adr = 0x10;
-        dat = 0xBE;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        printf("PMIC: Clear INT_BUCK_2_3 Status.\n");
-        adr = 0x1A;
-        dat = 0xFF;
-        LP8758_write_reg(&I2C1_REGS, adr, dat);
-
-        busy_wait(1);
-    }
+    // CA23 power supplies operate autonomously
 }
 
 void bsp_shutdown(void)
@@ -186,32 +35,19 @@ void bsp_shutdown(void)
     // No implementation intended for this board
 }
 
-static void bsp_isr(void)
-{
-    // BSP isr controller not implemented in this board's gw
-    // TODO: Update this if it gets implemented
-}
-
 void bsp_isr_init(void)
 {
     // BSP isr controller not implemented in this board's gw
-    // TODO: Update this if it gets implemented
 }
 
 void bsp_process_irqs(void)
 {
     // BSP isr controller not implemented in this board's gw
-    // TODO: Update this if it gets implemented
 }
 
 void bsp_delay_ms(unsigned int ms)
 {
-    // TODO: Check if delay is reasonably accurate
-
-    // Implement platform-specific delay
-    // Example: busy wait or use a hardware timer
     while (ms--) {
-        // rough CPU delay loop (not accurate)
         for (volatile int i = 0; i < 1000; i++)
             ;
     }
@@ -223,7 +59,6 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command)
     uint16_t lms1_val;
     if (check_val == 0)
         return 1;
-    uint32_t read_value;
     switch (command) {
         case LMS_RST_DEACTIVATE:
             lms1_val = limetop_lms7002_top_lms1_read();
@@ -258,6 +93,9 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command)
             lms1_val |= 2;
             limetop_lms7002_top_lms1_write(lms1_val);
             return 0;
+
+        default:
+            return 1;
     }
 }
 
@@ -297,26 +135,23 @@ uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id)
 
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb)
 {
-    //TODO: Create drivers for both devices, do not use direct litei2c functions
     if (channel == 0) {
-        uint16_t val     = 0;
-        uint8_t *val_ptr = (uint8_t *)&val;
-        litei2c_a8d16_read_register(&I2C0_REGS, BSP_I2C_DAC_ADDR, 0x00, &val);
-        *value_lsb = val_ptr[0];
-        *value_msb = val_ptr[1];
+        // Channel 0: TCXO DAC value
+        uint16_t val = 0;
+        bsp_vctcxo_permanent_dac_read((uint8_t *)&val);
+        if (val == 0xFFFF) {
+            val = BSP_DAC_DEFAULT_VAL;
+        }
+        *value_lsb = val & 0xFF;
+        *value_msb = (val >> 8) & 0xFF;
+        *unit      = 0x00;
         return STATUS_COMPLETED_CMD;
     }
     if (channel == 1) {
-        uint16_t converted_value;
-        uint8_t *val_ptr = (uint8_t *)&converted_value;
-        litei2c_a8d16_read_register(&I2C0_REGS, BSP_I2C_TEMP_SENSOR_ADDR, 0x00, &converted_value);
-        converted_value = converted_value >> 4;
-        converted_value = converted_value * 10;
-        converted_value = converted_value >> 4;
-
-        *value_lsb = val_ptr[0];
-        *value_msb = val_ptr[1];
-        *unit = 0x50;
+        // Channel 1: Temperature telemetry - dummy 0xDEADBEEF with unit 0x50
+        *value_lsb = 0xEF;
+        *value_msb = 0xBE;
+        *unit      = 0x50;
         return STATUS_COMPLETED_CMD;
     }
     return STATUS_ERROR_CMD;
@@ -325,12 +160,12 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
 uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8_t value_lsb)
 {
     if (channel == 0 && unit == 0) {
-        // TCXO DAC, RAW units
-        uint16_t val     = 0;
-        uint8_t *val_ptr = (uint8_t *)&val;
-        val_ptr[0]       = value_lsb;
-        val_ptr[1]       = value_msb;
-        litei2c_a8d16_write_register(&I2C0_REGS, BSP_I2C_DAC_ADDR, 0x30, val);
+        // TCXO DAC, RAW units (16-bit AD5662 SPI DAC: 24-bit write frame)
+        uint8_t dac_data[3];
+        dac_data[0] = 0x00; // Normal power mode (PD[1:0] = 00)
+        dac_data[1] = value_msb;
+        dac_data[2] = value_lsb;
+        bsp_spi_transfer(BSP_DAC_SPIMASTER, 0, dac_data, 3, 0, NULL);
         return STATUS_COMPLETED_CMD;
     }
     return STATUS_ERROR_CMD;
@@ -387,9 +222,8 @@ void bsp_vctcxo_permanent_dac_write(uint8_t *data)
 uint8_t
 bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count)
 {
-    // Check if the operation is going to be performed on EEPROM #1 and
+    // Check if the operation is going to be performed on target 3 (EEPROM simulation) and
     // that it's specifically being used to read VCTCXO DAC value
-    // NOTE: condition for IF is copied from previous implementation, might need review
     if (data_count == 2 && target == 3 && progmode == 0 && offset == BSP_EEPROM_DAC_ADDR) {
         bsp_vctcxo_permanent_dac_read(data);
         return STATUS_COMPLETED_CMD;
@@ -400,9 +234,8 @@ bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targe
 uint8_t
 bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count)
 {
-    // Check if the operation is going to be performed on EEPROM #1 and
+    // Check if the operation is going to be performed on target 3 (EEPROM simulation) and
     // that it's specifically being used to store VCTCXO DAC value
-    // NOTE: condition for IF is copied from previous implementation, might need review
     if (data_count == 2 && target == 3 && progmode == 0 && offset == BSP_EEPROM_DAC_ADDR) {
         bsp_vctcxo_permanent_dac_write(data);
         return STATUS_COMPLETED_CMD;
@@ -443,10 +276,8 @@ uint8_t bsp_spi_transfer(
         packed_mosi = (packed_mosi << 8) | mosidata[i];
     }
 
-    // LiteX SPIMaster in 'raw' mode (default) shifts out from the MSB of its data_width.
-    // We must left-align our data to the core's width.
     switch (master) {
-    case 0: // 32-bit data_width
+    case 0: // LMS7002M SPI: 32-bit data_width
         packed_mosi <<= (4 - transfer_len) * 8;
         spimaster_cs_write(cs_mask);
         cdelay(1);
@@ -459,12 +290,23 @@ uint8_t bsp_spi_transfer(
         recv_val = spimaster_miso_read();
         break;
 
+    case 1: // AD5662 DAC SPI: 24-bit data_width
+        packed_mosi <<= (3 - transfer_len) * 8;
+        spimaster1_cs_write(cs_mask);
+        cdelay(1);
+        while ((spimaster1_status_read() & 0x1) == 0) {
+        }
+        spimaster1_mosi_write(packed_mosi);
+        spimaster1_control_write(bits * SPI_LENGTH | SPI_START);
+        while ((spimaster1_status_read() & 0x1) == 0) {
+        }
+        recv_val = spimaster1_miso_read();
+        break;
+
     default:
         return 1;
     }
 
-    // LiteX SPIMaster captures MISO into the LSBs of the register.
-    // If we want 'recv_data_len' bytes, they are in recv_val[recv_data_len*8-1:0].
     if (misodata && recv_data_len > 0) {
         for (int i = recv_data_len - 1; i >= 0; i--) {
             misodata[i] = recv_val & 0xFF;

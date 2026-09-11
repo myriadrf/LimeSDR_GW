@@ -27,10 +27,10 @@
 /*-----------------------------------------------------------------------*/
 /* Peripheral Includes                                                   */
 /*-----------------------------------------------------------------------*/
-#include "LP8758.h"
+#include "AD56xx.h"
 #include "Xil_clk_drp.h"
 #include "fpga_flash_qspi.h"
-#include "litei2c.h"
+#include "spimaster.h"
 #include "regremap.h"
 
 /*-----------------------------------------------------------------------*/
@@ -45,26 +45,20 @@ extern uint16_t g_bsp_hw_ver;
 #define BSP_EXP_BOARD  EXP_BOARD_UNSUPPORTED
 #define BSP_FW_VER     11 // New main.c/bsp structure
 
-/* I2C Addresses */
-#define BSP_I2C_DAC_ADDR    0x4C
-#define BSP_I2C_TEMP_SENSOR_ADDR  0x4B
-#define BSP_I2C_LP8758_ADDR 0x60
-#define BSP_I2C_LM75_ADDR   0x48
-#define BSP_I2C_EEPROM_ADDR 0x50
-#define BSP_EEPROM_DAC_ADDR 0x0010 // Address in EEPROM memory where TCXO DAC value is stored
+/* Memory Offsets */
+// Since there is no eeprom on the board and the flash is too large for the gw
+// we use the top of the flash instead of eeprom, thus the offset to last sector
+#define BSP_FLASH_STORAGE_OFFSET 0x01FF0000
+#define BSP_EEPROM_DAC_ADDR      0x0010 // Address in EEPROM memory where TCXO DAC value is stored
 
 /* SPI & Peripheral Config */
-#define BSP_DAC_INDEX 0
+#define BSP_DAC_SPIMASTER    1
+#define BSP_DAC_INDEX        0
 #define BSP_DAC_DEFAULT_VAL  46870 // Default TCXO DAC value loaded when EEPROM is empty
 
 /* LMS Specific IDs */
 #define BSP_MAX_ID_LMS7 1
 #define BSP_MAX_ID_LMS8 0
-
-/* Memory Offsets */
-// Since there is no eeprom on the board and the flash is too large for the gw
-// we use the top of the flash instead of eeprom, thus the offset to last sector
-#define BSP_FLASH_STORAGE_OFFSET 0x01FF0000
 
 /* OTP Keys & Addresses */
 #define BSP_OTP_UNLOCK_KEY     0x5A

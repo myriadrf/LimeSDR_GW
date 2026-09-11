@@ -50,7 +50,7 @@ from gateware.GNSSTop import GNSSTop
 from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
 from gateware.helpers import write_module_hierarchy_json
-from gateware.xtrx_rfsw import xtrx_rfsw
+from gateware.ca23_rfsw import ca23_rfsw
 from gateware.common import BoardIDs
 
 # Constants ----------------------------------------------------------------------------------------
@@ -127,6 +127,17 @@ class periphcfg_csr(LiteXModule):
         self.PERIPH_EN              = CSRStorage(16, reset=0)
         self.PERIPH_SEL             = CSRStorage(16, reset=0)
 
+        # Registers 20..23 (0x14..0x17)
+        self.PERIPH_20              = CSRStorage(16, reset=0, description="RX1_SW [7:0], TRX1_SW [15:8]")
+        self.PERIPH_21              = CSRStorage(16, reset=0, description="TRX1_ANT_SW [7:0]")
+        self.PERIPH_22              = CSRStorage(16, reset=0, description="RX2_SW [7:0], TRX2_SW [15:8]")
+        self.PERIPH_23              = CSRStorage(16, reset=0, description="TRX2_ANT_SW [7:0]")
+
+        self.PERIPH_20_RD           = CSRStatus(16, description="Readback: TRX1_SW [15:8], RX1_SW [7:0]")
+        self.PERIPH_21_RD           = CSRStatus(16, description="Readback: 0 [15:8], TRX1_ANT_SW [7:0]")
+        self.PERIPH_22_RD           = CSRStatus(16, description="Readback: TRX2_SW [15:8], RX2_SW [7:0]")
+        self.PERIPH_23_RD           = CSRStatus(16, description="Readback: 0 [15:8], TRX2_ANT_SW [7:0]")
+
 # BaseSoC -----------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
@@ -146,9 +157,8 @@ class BaseSoC(SoCCore):
         "xadc"        : 16,  # 11
         "dna"         : 17,  # 12
 
-        # CA23.
-        "i2c0"        : 18,
-        "i2c1"        : 19,
+        # CA23 AD5662 SPI DAC.
+        "spimaster1"  : 18,
 
         "ppsdo"       : 22,
         # CNTRL
@@ -304,9 +314,9 @@ class BaseSoC(SoCCore):
             #self.flash_cs_n = GPIOOut(platform.request("flash_cs_n"))
             self.flash      = S7SPIFlash(platform.request("spiflash"), sys_clk_freq, 4e6)
 
-        # Leds GPIO. -------------------------------------------------------------------------------
-        gpio_top_led = platform.request("user_led2")
-        self.gpio = GpioTop(platform, gpio_top_led)
+        # GPIO -------------------------------------------------------------------------------------
+        fpga_gpio = platform.request("fpga_gpio")
+        self.gpio = GpioTop(platform, fpga_gpio)
 
         # XADC -------------------------------------------------------------------------------------
         self.xadc = XADC()
@@ -348,31 +358,6 @@ class BaseSoC(SoCCore):
         )
         platform.add_false_path_constraints(self.crg.cd_sys.clk, self.pcie_phy.cd_pcie.clk)
 
-        # I2C Bus0 ---------------------------------------------------------------------------------
-        # - Temperature Sensor (TMP108  @ 0x4a) Lime: (TMP1075 @ 0x4b).
-        # - PMIC-LMS           (LP8758  @ 0x60).
-        # - VCTCXO DAC         Rev4: (MCP4725 @ 0x62) Rev5: (DAC60501 @ 0x4b) Lime: (AD5693 @ 0x4c).
-        self.i2c0 = LiteI2C(sys_clk_freq=sys_clk_freq,pads=platform.request("i2c", 0),clock_domain="sys")
-
-        # I2C Bus1 ---------------------------------------------------------------------------------
-        # PMIC-FPGA (LP8758 @ 0x60).
-        self.i2c1 = LiteI2C(sys_clk_freq=sys_clk_freq,pads=platform.request("i2c", 1),clock_domain="sys")
-
-        # PMIC-FPGA --------------------------------------------------------------------------------
-        # Buck0: 1.0V VCCINT + 1.0V MGTAVCC.
-        # Buck1: 1.8V/3.3V VCCIO (DIGPRVDD2/DIGPRVDD3/DIGPRPOC + VDD18_TXBUF of LMS + Bank 0/14/16/34/35 of FPGA).
-        # Buck2: 1.2V MGTAVTT + 1.2V VDLMS (VDD12_DIG / VDD_SPI_BUF / DVDD_SXR / DVDD_SXT / DVDD_CGEN).
-        # Buck3: 1.8V VCCAUX  + 1.8V VDLMS (VDD18_DIG).
-
-        # PMIC-LMS ---------------------------------------------------------------------------------
-        # Buck0: +2.05V (used as input to 1.8V LDO for LMS analog 1.8V).
-        # Buck1: +3.3V rail.
-        # Buck2: +1.75V (used as input to 1.4V LDO for LMS analog 1.4V).
-        # Buck3: +1.5V  (used as input to 1.25V LDO for LMS analog 1.25V).
-
-        # Aux -------------------------------------------------------------------------------------
-        self.aux = AUX(platform.request("aux"))
-
         # Timing Constraints/False Paths -----------------------------------------------------------
         platform.toolchain.pre_placement_commands.append(
             "set_clock_groups "
@@ -392,16 +377,7 @@ class BaseSoC(SoCCore):
         )
 
         # LimeTOP ----------------------------------------------------------------------------------
-        # Revision Pads with 4-bit padding (MSB = 0)
         revision_pads = platform.request("revision")
-        padded_revision_pads = Record([
-            ("HW_VER",  4),
-            ("BOM_VER", 4),
-        ])
-        self.comb += [
-            padded_revision_pads.HW_VER.eq(Cat(revision_pads.HW_VER, 0)),
-            padded_revision_pads.BOM_VER.eq(Cat(revision_pads.BOM_VER, 0)),
-        ]
 
         self.limetop = LimeTop(self, platform, vendor="xilinx",
             # Configuration.
@@ -423,14 +399,10 @@ class BaseSoC(SoCCore):
             # GOLD image can be recocgnized by 0xDEAD in major and compile revisions
             major_rev            =  MajorRevision if not gold_img else 0xDEAD,
             compile_rev          =  CompileRevision if not gold_img else 0xDEAD,
-            revision_pads        =  padded_revision_pads,
+            revision_pads        =  revision_pads,
             # TODO: maybe it's possible to implement check automatically?
             soc_has_timesource   = True,
         )
-        # VCTCXO -----------------------------------------------------------------------------------
-        vctcxo_pads = platform.request("vctcxo")
-        self.comb  += vctcxo_pads.sel.eq(self.limetop.fpgacfg.ext_clk)
-        self.comb  += vctcxo_pads.en.eq(self.limetop.fpgacfg.tcxo_en)
 
         self.comb += self.limetop.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
@@ -442,31 +414,95 @@ class BaseSoC(SoCCore):
 
         self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
 
-        # RF Switches -------------------------------------------------------------------------------
-        rfsw_pads         = platform.request("rf_switches")
-        self.rfsw_control = xtrx_rfsw(platform, rfsw_pads)
-        #self.comb += rfsw_pads.tx.eq(1)
-        self.comb +=  self.rfsw_control.AUTO_IN.eq(self.limetop.lms7002_top.tx_ant_en)
+        # MIPI RFFE RF Switches & TDD --------------------------------------------------------------
+        mipi_pads = {
+            "rx1_rf":   platform.request("rx1_rf_sw"),
+            "trx1_rf":  platform.request("trx1_rf_sw"),
+            "trx1_ant": platform.request("trx1_ant_sw"),
+            "rx2_rf":   platform.request("rx2_rf_sw"),
+            "trx2_rf":  platform.request("trx2_rf_sw"),
+            "trx2_ant": platform.request("trx2_ant_sw"),
+        }
+        tdd_pad = platform.request("rf_sw_tdd")
+        self.rfsw_control = ca23_rfsw(platform, mipi_pads, tdd_pad)
+        self.comb += self.rfsw_control.AUTO_IN.eq(self.limetop.lms7002_top.tx_ant_en)
+
+        self.comb += [
+            self.rfsw_control.rx1_data_in.eq(self.periphcfg.PERIPH_20.storage[0:8]),
+            self.rfsw_control.trx1_data_in.eq(self.periphcfg.PERIPH_20.storage[8:16]),
+            self.rfsw_control.trx1_ant_data_in.eq(self.periphcfg.PERIPH_21.storage[0:8]),
+            self.rfsw_control.rx2_data_in.eq(self.periphcfg.PERIPH_22.storage[0:8]),
+            self.rfsw_control.trx2_data_in.eq(self.periphcfg.PERIPH_22.storage[8:16]),
+            self.rfsw_control.trx2_ant_data_in.eq(self.periphcfg.PERIPH_23.storage[0:8]),
+
+            self.periphcfg.PERIPH_20_RD.status.eq(Cat(self.rfsw_control.rx1_data_out, self.rfsw_control.trx1_data_out)),
+            self.periphcfg.PERIPH_21_RD.status.eq(Cat(self.rfsw_control.trx1_ant_data_out, Constant(0, 8))),
+            self.periphcfg.PERIPH_22_RD.status.eq(Cat(self.rfsw_control.rx2_data_out, self.rfsw_control.trx2_data_out)),
+            self.periphcfg.PERIPH_23_RD.status.eq(Cat(self.rfsw_control.trx2_ant_data_out, Constant(0, 8))),
+        ]
+
+        # AD5662 SPI DAC ---------------------------------------------------------------------------
+        dac_pads = platform.request("vctcxo_dac_spi")
+        dac_spi_pads = Record([
+            ("clk",  1),
+            ("mosi", 1),
+            ("cs_n", 1),
+            ("miso", 1),
+        ])
+        self.comb += [
+            dac_pads.clk.eq(dac_spi_pads.clk),
+            dac_pads.mosi.eq(dac_spi_pads.mosi),
+            dac_pads.cs_n.eq(dac_spi_pads.cs_n),
+            dac_spi_pads.miso.eq(0),
+        ]
+        self.add_spi_master(name="spimaster1", pads=dac_spi_pads, data_width=24, spi_clk_freq=1e6)
 
         # LMS SPI -----------------------------------------------------------------------------------
-
         self.add_spi_master(name="spimaster", pads=platform.request("lms7002m_spi"), data_width=32, spi_clk_freq=1e6)
 
         # Interrupt --------------------------------------------------------------------------------
-
         self.irq.add("limetop")
 
-        # GPS serial connected to LimeUART0
+        # GNSS Module & PPS ------------------------------------------------------------------------
         self.pps_internal = Signal()
         from litex.soc.cores.uart import UARTPHY
         from litex.soc.cores.uart import UART
 
-        self.gps_pads       = platform.request("gps")
-        gnss_uart_pads = self.platform.request("gps_serial", loose=True)
+        gnss_pads = platform.request("gnss")
+        self.comb += [
+            gnss_pads.reset.eq(1),  # Active-low reset driven high
+            gnss_pads.extint.eq(0), # Active-high extint driven low
+        ]
+
+        gnss_uart_pads = platform.request("gnss_serial")
         gnss_uart_phy  = UARTPHY(gnss_uart_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
         pcie_uart0     = UART(gnss_uart_phy, tx_fifo_depth=64, rx_fifo_depth=16, rx_fifo_rx_we=True)
-        self.add_module(name=f"PCIE_UART0_phy", module=gnss_uart_phy)
+        self.add_module(name="PCIE_UART0_phy", module=gnss_uart_phy)
         self.add_module(name="PCIE_UART0", module=pcie_uart0)
+
+        # Sync outputs & PPS selection
+        rpi_sync_out_pad = platform.request("rpi_sync_out")
+        sync_out1_pad    = platform.request("fpga_sync_out1")
+        sync_out2_pad    = platform.request("fpga_sync_out2")
+        self.comb += [
+            If(self.periphcfg.PERIPH_INPUT_SEL_0.storage[0:2] == 0b01,
+                self.pps_internal.eq(rpi_sync_out_pad)
+            ).Else(
+                self.pps_internal.eq(gnss_pads.tpulse)
+            ),
+            sync_out1_pad.eq(gnss_pads.tpulse),
+            sync_out2_pad.eq(gnss_pads.tpulse),
+        ]
+
+        # M.2 Interface Pin Tie-Offs
+        m2_pads = platform.request("m2")
+        self.comb += [
+            m2_pads.devslp.eq(0),
+            m2_pads.w_disable_2.eq(1),
+            m2_pads.dpr.eq(0),
+            m2_pads.reset.eq(1),
+            m2_pads.fcp_off.eq(1),
+        ]
 
         # Get UTC time from GNSS, assign UTC data to timestamp logic in rx_path
         self.gnsstop = GNSSTop(self)
@@ -493,32 +529,7 @@ class BaseSoC(SoCCore):
             , ref_clock_domain="sys", clock_target=10000000)
         self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
 
-        # VCTCXO tamer
-
-        synchro_pads = platform.request("synchro")
-        self.comb += [
-            If(self.periphcfg.PERIPH_INPUT_SEL_0.storage[0:1] == 0b01,
-                self.pps_internal.eq(synchro_pads.pps_in)
-            ).Else(
-                self.pps_internal.eq(self.gps_pads.pps)
-            )
-        ]
-
-
-        #pps_out(PPSO_GPIO2) is overriden by user and set to High Z by default.
-        #To pass through pps_internal: set 0x00C0(1) to '0'.
-        self.pps_out_tri = TSTriple()
-        self.specials += self.pps_out_tri.get_tristate(synchro_pads.pps_out)
-
-        self.comb += [
-            self.pps_out_tri.oe.eq((self.periphcfg.BOARD_GPIO_OVRD.storage[1]==0) | (self.periphcfg.BOARD_GPIO_DIR.storage[1]==1)),
-            self.pps_out_tri.o.eq(Mux(self.periphcfg.BOARD_GPIO_OVRD.storage[1],
-                                      self.periphcfg.BOARD_GPIO_VAL.storage[1],
-                                      self.pps_internal,
-                                      )),
-        ]
-
-
+        # VCTCXO tamer -----------------------------------------------------------------------------
         # Define a layout for vctcxo_tamer_pads
         vctcxo_tamer_layout        = [("tune_ref", 1)]  # 1-bit wide signal for tune_ref
         vctcxo_tamer_pads          = Record(vctcxo_tamer_layout)
@@ -550,10 +561,6 @@ class BaseSoC(SoCCore):
             self.limetop.pps.eq(self.limetop.rxtx_top.rx_path.pps_rising),
             self.limetop.pps_valid.eq(self.gnsstop.zda_parser.time_valid),
         ]
-
-
-        tdd_pads = platform.request_all("tdd_gpio")
-        self.comb += tdd_pads.eq(self.rfsw_control.TDD_OUT)
 
         # PPSDO ------------------------------------------------------------------------------------
         if with_ppsdo:
@@ -594,8 +601,6 @@ class BaseSoC(SoCCore):
             self.rfsw_control.tdd_manual_val.storage,
             self.rfsw_control.tdd_auto_en.storage,
             self.rfsw_control.tdd_invert.storage,
-            self.rfsw_control.rfsw_rx.storage,
-            self.rfsw_control.rfsw_tx.storage,
             self.rfsw_control.rfsw_auto_en.storage,
 
         ]

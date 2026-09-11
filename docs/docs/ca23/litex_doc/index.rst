@@ -1,3 +1,4 @@
+
 Documentation for ca23
 ======================
 
@@ -21,31 +22,29 @@ Register Groups
     icap
     pcie_phy
     pcie_msi
-    aux
-    pcie_dma0
     ctrl
+    pcie_dma0
     gnsstop
     gpio
     identifier_mem
     leds
     limetop
     lms_clock_test
+    pcie_endpoint
     PCIE_UART0
     PCIE_UART1
     flash
     xadc
     dna
-    i2c0
-    i2c1
-    pcie_endpoint
+    spimaster1
     periphcfg
-    ppsdo
     rfsw_control
     spimaster
+    ppsdo
     sys_clock_test
-    CNTRL
     timer0
     vctcxo_tamer
+    CNTRL
 
 Indices and tables
 ==================
@@ -53,3 +52,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+

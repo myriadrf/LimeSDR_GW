@@ -22,3 +22,7 @@ TSTCFG,0x007D,,0x0000,reserved,Reserved,upsert
 TSTCFG,0x007E,,0x0000,reserved,Reserved,upsert
 GNSSCFG,0x0100,,0x0000,reserved,Reserved,upsert
 GNSSCFG,0x0101,,0x0000,reserved,Reserved,upsert
+PERIPHCFG,0x0014,,0x0000,rx1_sw,RX1 MIPI RF switch control,upsert
+PERIPHCFG,0x0015,,0x0000,trx1_sw,TRX1 MIPI RF switch control,upsert
+PERIPHCFG,0x0016,,0x0000,trx1_ant_sw,TRX1 antenna MIPI RF switch control,upsert
+PERIPHCFG,0x0017,,0x0000,rx2_trx2_sw,RX2 and TRX2 MIPI RF switch control,upsert

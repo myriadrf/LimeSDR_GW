@@ -44,13 +44,23 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0xA:
         tmp   = limetop_fpgacfg_reg10_read();
         value = tmp & 0x03; //(tmp >> 1) & 0x01;
-        value |= rfsw_control_rfsw_rx_read() << 2;
-        value |= rfsw_control_rfsw_tx_read() << 4;
         value |= rfsw_control_tdd_manual_val_read() << 5;
         value |= rfsw_control_tdd_auto_en_read() << 6;
         value |= rfsw_control_tdd_invert_read() << 7;
         value |= (tmp & 0x200);
         value |= rfsw_control_rfsw_auto_en_read() << 11;
+        break;
+    case 0x14:
+        value = periphcfg_PERIPH_20_RD_read();
+        break;
+    case 0x15:
+        value = periphcfg_PERIPH_21_RD_read();
+        break;
+    case 0x16:
+        value = periphcfg_PERIPH_22_RD_read();
+        break;
+    case 0x17:
+        value = periphcfg_PERIPH_23_RD_read();
         break;
     case 0xF:
         value = limetop_fpgacfg_txant_pre_read();
@@ -295,13 +305,23 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         limetop_fpgacfg_reg10_write(reg);
         // limetop_lms7002_tx_en_write(value);
         // limetop_lms7002_rx_en_write(value);
-        rfsw_control_rfsw_rx_write((value & 0xC) >> 2);
-        rfsw_control_rfsw_tx_write((value & 0x10) >> 4);
         rfsw_control_tdd_manual_val_write((value & 0x20) >> 5);
         rfsw_control_tdd_auto_en_write((value & 0x40) >> 6);
         rfsw_control_tdd_invert_write((value & 0x80) >> 7);
         // limetop_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
         rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
+        break;
+    case 0x14:
+        periphcfg_PERIPH_20_write(value);
+        break;
+    case 0x15:
+        periphcfg_PERIPH_21_write(value);
+        break;
+    case 0x16:
+        periphcfg_PERIPH_22_write(value);
+        break;
+    case 0x17:
+        periphcfg_PERIPH_23_write(value);
         break;
     case 0xF:
         limetop_fpgacfg_txant_pre_write(value);

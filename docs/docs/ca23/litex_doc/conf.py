@@ -1,3 +1,4 @@
+
 project = 'ca23'
 copyright = '2026, Lime Microsystems'
 author = 'Lime Microsystems'
@@ -12,3 +13,5 @@ offline_wavedrom_js_path = "https://wavedrom.com/WaveDrom.js"
 html_theme = 'alabaster'
 html_static_path = ['_static']
 master_doc = 'index'
+
+
