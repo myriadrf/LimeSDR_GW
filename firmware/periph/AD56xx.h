@@ -10,6 +10,7 @@
 #define AD56XX_MODEL_AD5601 8
 #define AD56XX_MODEL_AD5611 10
 #define AD56XX_MODEL_AD5621 12
+#define AD56XX_MODEL_AD5662 16
 
 typedef enum {
     AD56XX_PWR_NORMAL = 0,      // Normal operation
@@ -19,11 +20,11 @@ typedef enum {
 } AD56XX_PowerMode;
 
 /**
- * @brief Writes to the AD5601/11/21 DAC, setting both value and power mode.
+ * @brief Writes to the AD5601/11/21/62 DAC, setting both value and power mode.
  * @param spi_master SPI master index.
  * @param spi_cs Chip select index.
- * @param value DAC value (8, 10, or 12-bit).
- * @param model DAC model (AD56XX_MODEL_AD5601, AD56XX_MODEL_AD5611, AD56XX_MODEL_AD5621).
+ * @param value DAC value (8, 10, 12, or 16-bit).
+ * @param model DAC model (AD56XX_MODEL_AD5601, AD56XX_MODEL_AD5611, AD56XX_MODEL_AD5621, AD56XX_MODEL_AD5662).
  * @param mode Power mode selection.
  */
 void ad56xx_write(uint8_t spi_master, uint8_t spi_cs, uint16_t value, uint8_t model, AD56XX_PowerMode mode);

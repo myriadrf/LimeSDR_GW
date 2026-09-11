@@ -2,6 +2,9 @@
 
 static uint8_t serial_otp_unlock_key = 0;
 
+static uint16_t dac_val     = 0;
+static uint8_t *dac_val_ptr = (uint8_t *)&dac_val;
+
 uint16_t g_bsp_hw_ver;
 
 void bsp_init(void)
@@ -135,16 +138,11 @@ uint16_t lms8001_spi_read(uint16_t addr, uint8_t periph_id)
 
 uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint8_t *value_lsb)
 {
-    if (channel == 0) {
-        // Channel 0: TCXO DAC value
-        uint16_t val = 0;
-        bsp_vctcxo_permanent_dac_read((uint8_t *)&val);
-        if (val == 0xFFFF) {
-            val = BSP_DAC_DEFAULT_VAL;
-        }
-        *value_lsb = val & 0xFF;
-        *value_msb = (val >> 8) & 0xFF;
+    if (channel == BSP_DAC_INDEX) {
+        // Channel 0: TCXO DAC value (return cached value)
         *unit      = 0x00;
+        *value_lsb = dac_val_ptr[0];
+        *value_msb = dac_val_ptr[1];
         return STATUS_COMPLETED_CMD;
     }
     if (channel == 1) {
@@ -159,13 +157,11 @@ uint8_t bsp_analog_read(uint8_t channel, uint8_t *unit, uint8_t *value_msb, uint
 
 uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8_t value_lsb)
 {
-    if (channel == 0 && unit == 0) {
-        // TCXO DAC, RAW units (16-bit AD5662 SPI DAC: 24-bit write frame)
-        uint8_t dac_data[3];
-        dac_data[0] = 0x00; // Normal power mode (PD[1:0] = 00)
-        dac_data[1] = value_msb;
-        dac_data[2] = value_lsb;
-        bsp_spi_transfer(BSP_DAC_SPIMASTER, 0, dac_data, 3, 0, NULL);
+    if (channel == BSP_DAC_INDEX && unit == 0) {
+        // TCXO DAC, RAW units (16-bit AD5662 SPI DAC)
+        dac_val_ptr[0] = value_lsb;
+        dac_val_ptr[1] = value_msb;
+        ad56xx_write(BSP_DAC_SPIMASTER, BSP_DAC_CS, dac_val, AD56XX_MODEL_AD5662, AD56XX_PWR_NORMAL);
         return STATUS_COMPLETED_CMD;
     }
     return STATUS_ERROR_CMD;
@@ -261,7 +257,7 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
  * @return 0 on success, 1 on error (invalid master or length).
  */
 uint8_t bsp_spi_transfer(
-    uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata)
+    uint8_t master, uint8_t cs, const uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata)
 {
     uint32_t recv_val = 0;
     uint32_t bits     = transfer_len * 8;

@@ -53,6 +53,7 @@ extern uint16_t g_bsp_hw_ver;
 
 /* SPI & Peripheral Config */
 #define BSP_DAC_SPIMASTER    1
+#define BSP_DAC_CS           0
 #define BSP_DAC_INDEX        0
 #define BSP_DAC_DEFAULT_VAL  46870 // Default TCXO DAC value loaded when EEPROM is empty
 
@@ -116,7 +117,7 @@ uint8_t bsp_lms_mcu_fw_wr(uint8_t prog_mode, uint8_t current_portion, const uint
 uint8_t bsp_program_flash(uint32_t current_portion, uint8_t data_cnt, const uint8_t *payload);
 
 /* General SPI Bus Transfers */
-uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata);
+uint8_t bsp_spi_transfer(uint8_t master, uint8_t cs, const uint8_t *mosidata, uint8_t transfer_len, uint8_t recv_data_len, uint8_t *misodata);
 
 /* Board Serial Number */
 uint8_t bsp_serial_read(uint8_t *data_field);
