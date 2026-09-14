@@ -198,15 +198,13 @@ int main(void)
             // Read packet from the FIFO
             LMS64C_getFifoData(glEp0Buffer_Rx, 64);
 #elif LMS64C_METHOD == LMS64C_METHOD_CSR
-            uint32_t read_value;
-
             /* Disable CNTRL irq while processing packet */
             CNTRL_ev_enable_write(CNTRL_ev_enable_read() & ~(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET));
             irq_setmask(irq_getmask() & ~(1 << CNTRL_INTERRUPT));
 
             lms64_packet_pending = 0;
             // printf("CNTRL PCT GOT!\n");
-            uint32_t *dest = (uint32_t *)glEp0Buffer_Tx;
+            uint32_t dest[sizeof(glEp0Buffer_Tx) / sizeof(uint32_t)];
 
             getLMS64Packet(glEp0Buffer_Rx, 64);
 #endif
@@ -271,10 +269,13 @@ int main(void)
                     // Clearing write bit in address field because we are not using SPI registers in LiteX implementation
                     cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
 
-                    writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
-                             &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+                    if (!writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
+                                  &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)])) {
+                        cmd_errors = 1;
+                        break;
+                    }
                 }
-                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                LMS_Ctrl_Packet_Tx->Header.Status = cmd_errors ? STATUS_ERROR_CMD : STATUS_COMPLETED_CMD;
                 break;
 
             case CMD_BRDSPI16_RD:
@@ -287,15 +288,15 @@ int main(void)
                     // write reg addr
                     cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
 
-                    readCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], reg_array);
+                    if (!readCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], reg_array)) {
+                        cmd_errors = 1;
+                        break;
+                    }
                     LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = reg_array[1];
                     LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = reg_array[0];
-
-                    //			printf("value: 0x%X\n", reg_array[0]);
-                    //			printf("value: 0x%X\n", reg_array[1]);
                 }
 
-                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                LMS_Ctrl_Packet_Tx->Header.Status = cmd_errors ? STATUS_ERROR_CMD : STATUS_COMPLETED_CMD;
                 break;
 
                 // COMMAND LMS7 WRITE
@@ -762,15 +763,15 @@ int main(void)
             }
 
 #if LMS64C_METHOD == LMS64C_METHOD_CSR
-            // Send response to the command
-            // for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
-            for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i) {
+            // Copy bytes into word objects instead of aliasing the packet buffer.
+            memcpy(dest, glEp0Buffer_Tx, sizeof(glEp0Buffer_Tx));
+
+            // Atomic CSR writes commit at the highest address; write it last.
+            for (int i = 0; i < 64 / sizeof(uint32_t); ++i) {
                 csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
             }
 
-            /* Clear all pending interrupts. */
-            CNTRL_ev_pending_write(CNTRL_ev_pending_read());
-            /* Reenable CNTRL irq */
+            /* Reenable delivery without clearing new requests arriving after response commit. */
             CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
             irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
 
@@ -864,38 +865,20 @@ void LMS64C_getFifoData(uint8_t *buf, uint8_t k)
 #if LMS64C_METHOD == LMS64C_METHOD_CSR
 void getLMS64Packet(uint8_t *buf, uint8_t k)
 {
-    uint8_t cnt    = 0;
-    uint32_t *dest = (uint32_t *)buf;
-    uint32_t temp_buffer[k / sizeof(uint32_t)];
-    uint8_t is_stable = 0;
+    uint32_t dest[k / sizeof(uint32_t)];
 
-    while (!is_stable) {
-        // Read the first buffer into temp_buffer
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
-            temp_buffer[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
-        }
-
-        // Read again into dest buffer
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
-            dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
-        }
-
-        // Compare the two buffers
-        is_stable = 1;
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
-            if (temp_buffer[cnt] != dest[cnt]) {
-                is_stable = 0;
-                break;
-            }
-        }
+    for (size_t i = 0; i < k / sizeof(uint32_t); ++i) {
+        dest[i] = csr_read_simple(CSR_CNTRL_CNTRL_ADDR + i * 4);
     }
+    memcpy(buf, dest, sizeof(dest));
 }
 
 static void lms64c_isr(void)
 {
+    /* Keep delivery masked until the main loop has committed the response. */
+    CNTRL_ev_enable_write(0);
+    CNTRL_ev_pending_write(1 << CSR_CNTRL_EV_PENDING_CNTRL_ISR_OFFSET);
     lms64_packet_pending = 1;
-    CNTRL_ev_pending_write(CNTRL_ev_pending_read());                  // Clear interrupt
-    CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET); // re-enable the event handler
 }
 
 static void lms64c_init(void)

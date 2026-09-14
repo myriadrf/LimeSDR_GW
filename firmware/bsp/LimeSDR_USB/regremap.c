@@ -16,7 +16,7 @@ uint16_t transform_fpga_signature(uint16_t write_val)
 static uint16_t fpga_signature = 0;
 
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-USB
-void readCSR(uint8_t *address, uint8_t *regdata_array)
+bool readCSR(uint8_t *address, uint8_t *regdata_array)
 {
     uint16_t value = 0;
     uint16_t addr  = ((uint16_t)address[0] << 8) | address[1];
@@ -55,12 +55,16 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x0c:
         value = pss_wfm_ch_en_read();
         break;
+#endif
     case 0x0d:
+#ifdef DDR_MODULES_PRESENT
         value = pss_wfm_smpl_width_read()&0x01;
         value |= (pss_wfm_play_read()&0x01)<<1;
         value |= (pss_wfm_load_read()&0x01)<<2;
-        break;
+#else
+        // Reserved when waveform playback is unavailable.
 #endif
+        break;
     case 0xF:
         value = limetop_fpgacfg_txant_pre_read();
         break;
@@ -282,16 +286,29 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0xD3:
         // value = periphcfg_PERIPH_SEL_read();
         break;
-    default:
+    case 0x0E:
+    case 0x28:
+    case 0xD1:
+    case 0x280:
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+        // Reserved: return zero for compatibility with SSDR/XTRX.
         break;
+
+    default:
+        return false;
     }
 
     regdata_array[0] = (uint8_t)(value & 0xFF);        // Byte 0 (LSB)
     regdata_array[1] = (uint8_t)((value >> 8) & 0xFF); // Byte 1
+    return true;
 }
 
 // To write and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-USB
-void writeCSR(uint8_t *address, uint8_t *wrdata_array)
+bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
 {
     uint16_t value = ((uint16_t)wrdata_array[0] << 8) | wrdata_array[1];
     uint16_t addr  = ((uint16_t)address[0] << 8) | address[1];
@@ -326,13 +343,17 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0x0C:
         pss_wfm_ch_en_write(value);
         break;
+#endif
     case 0x0D:
+#ifdef DDR_MODULES_PRESENT
         pss_wfm_smpl_width_write(value);
         pss_wfm_play_write((value >> 1)&0x1);
         limetop_lms7002_top_txiq_mux_sel_write((value >> 1)&0x1);
         pss_wfm_load_write((value >> 2)&0x1);
-        break;
+#else
+        // Reserved when waveform playback is unavailable.
 #endif
+        break;
     case 0xF:
         limetop_fpgacfg_txant_pre_write(value);
         break;
@@ -505,8 +526,23 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0xD3:
         // periphcfg_PERIPH_SEL_write(value);
         break;
+    case 0x0E:
+    case 0x28:
+    case 0xD1:
+    case 0xFF:
+    case 0x280:
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+    case 0x7FFF:
+        // Reserved: accept writes without changing hardware.
+        break;
+
     // TODO: Implement register remapping
     default:
-        break;
+        return false;
     }
+    return true;
 }

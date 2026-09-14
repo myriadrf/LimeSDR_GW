@@ -5,7 +5,7 @@
 #include "regremap.h"
 
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs
-void readCSR(uint8_t *address, uint8_t *regdata_array)
+bool readCSR(uint8_t *address, uint8_t *regdata_array)
 {
     uint16_t value = 0;
     uint32_t tmp;
@@ -48,6 +48,12 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value |= (tmp & 0x200);
         value |= rfsw_control_rfsw_auto_en_read() << 11;
         break;
+    case 0xD:
+        // Reserved: waveform playback control.
+        break;
+    case 0xE:
+    	// Reserved
+    	break;
     case 0xF:
         value = limetop_fpgacfg_txant_pre_read();
         break;
@@ -77,6 +83,12 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value |= csr_read_simple(clk_ctrl_addrs.pll_ind) << 3;
         value |= csr_read_simple(clk_ctrl_addrs.phcfg_mode) << 14;
         break;
+    case 0x24:
+        // Reserved
+        break;
+    case 0x25:
+    	// Reserved
+        break;
     case 0x26:
         value = csr_read_simple(clk_ctrl_addrs.vco_div_byp);
         value |= csr_read_simple(clk_ctrl_addrs.vco_mult_byp) << 2;
@@ -84,6 +96,9 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x27:
         value = csr_read_simple(clk_ctrl_addrs.c0_div_byp);
         value |= csr_read_simple(clk_ctrl_addrs.c1_div_byp) << 2;
+        break;
+    case 0x28:
+        // Reserved
         break;
     case 0x2A:
         value = csr_read_simple(clk_ctrl_addrs.vco_div_cnt);
@@ -112,6 +127,9 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0xCA:
         value = periphcfg_PERIPH_INPUT_SEL_0_read();
         break;
+    case 0xD1:
+        // Reserved
+        break;
     case 0xD2:
         value = periphcfg_PERIPH_EN_read();
         break;
@@ -135,12 +153,16 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x73:
         value = lms_clock_test_test_cnt_read() >> 16;
         break;
-#ifdef TIMESOURCE_PRESENT
-        // timesource registers
-    case 0x280:
-        value = limetop_rxtx_top_rx_path_timestamp_settings_read() & 0xFFFF;
+    case 0xFF:
+        value = lms_clock_test_test_cnt_read() >> 16;
         break;
+    case 0x280:
+#ifdef TIMESOURCE_PRESENT
+        value = limetop_rxtx_top_rx_path_timestamp_mixer_timestamp_settings_read() & 0xFFFF;
+#else
+        // Reserved: timestamp mode selection.
 #endif
+        break;
     case 0x281:
         value = limetop_stream_start_controller_rx_delay_mode_read() & 0xFFFF;
         break;
@@ -181,8 +203,16 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
 
 #endif
 
-    default:
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+        // Reserved: TX packet counter control and values.
         break;
+
+    default:
+        return false;
     }
 
     regdata_array[0] = (uint8_t)(value & 0xFF);        // Byte 0 (LSB)
@@ -190,10 +220,11 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     // Litex CSRs are 4byte words, LMS64C spi regs are 2byte - others unused.
     // regdata_array[2] = (uint8_t)((value >> 16) & 0xFF);  // Byte 2
     // regdata_array[3] = (uint8_t)((value >> 24) & 0xFF);  // Byte 3 (MSB)`
+    return true;
 }
 
 // To write and re-map old LMS64C protocol style SPI registers to Litex CSRs
-void writeCSR(uint8_t *address, uint8_t *wrdata_array)
+bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
 {
     uint16_t value          = (0x0000FFFF & (((uint32_t)wrdata_array[0] << 8) | ((uint32_t)wrdata_array[1])));
     uint8_t *value_byte_ptr = (uint8_t *)&value;
@@ -201,13 +232,6 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     uint32_t reg;
 
     switch (addr) {
-    case 0x3:
-        csr_write_simple((value & 1), clk_ctrl_addrs.pllcfg_start);
-        csr_write_simple((value & 2) >> 1, clk_ctrl_addrs.phcfg_start);
-        csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.pllrst_start);
-        csr_write_simple((value & 8) >> 3, clk_ctrl_addrs.pll_ind);
-        csr_write_simple((value & 0x4000) >> 14, clk_ctrl_addrs.phcfg_mode);
-        break;
     case 0x05:
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
@@ -244,6 +268,12 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         // limetop_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
         rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
         break;
+    case 0xD:
+        // Reserved: waveform playback control.
+        break;
+    case 0xE:
+    	// Reserved
+    	break;
     case 0xF:
         limetop_fpgacfg_txant_pre_write(value);
         break;
@@ -269,6 +299,12 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         csr_write_simple((value & 8) >> 3, clk_ctrl_addrs.pll_ind);
         csr_write_simple((value & 0x4000) >> 14, clk_ctrl_addrs.phcfg_mode);
         break;
+    case 0x24:
+        // Reserved
+        break;
+    case 0x25:
+    	//Reserved
+    	break;
     case 0x26:
         csr_write_simple((value & 1), clk_ctrl_addrs.vco_div_byp);
         csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.vco_mult_byp);
@@ -276,6 +312,9 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0x27:
         csr_write_simple((value & 1), clk_ctrl_addrs.c0_div_byp);
         csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.c1_div_byp);
+        break;
+    case 0x28:
+        // Reserved
         break;
     case 0x2A:
         // Check if either of the bytes are over 32. This is to prevent divider values larger than 64
@@ -316,6 +355,9 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0xCA:
         periphcfg_PERIPH_INPUT_SEL_0_write(value);
         break;
+    case 0xD1:
+        // Reserved
+        break;
     case 0xD2:
         periphcfg_PERIPH_EN_write(value);
         break;
@@ -326,20 +368,35 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         sys_clock_test_test_en_write(value & 0x1);
         lms_clock_test_test_en_write((value & 0x4) >> 2);
         break;
-#ifdef TIMESOURCE_PRESENT
-        // timesource registers
+    case 0xFF:
+    	//Reserved
+    	break;
     case 0x280:
-        limetop_rxtx_top_rx_path_timestamp_settings_write(value);
-        break;
+#ifdef TIMESOURCE_PRESENT
+        limetop_rxtx_top_rx_path_timestamp_mixer_timestamp_settings_write(value);
+#else
+        // Reserved: timestamp mode selection.
 #endif
+        break;
     case 0x281:
         limetop_stream_start_controller_rx_delay_mode_write(value);
         break;
     case 0x282:
         limetop_stream_start_controller_tx_delay_mode_write(value);
         break;
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+        // Reserved: TX packet counter control and values.
+        break;
+    case 0x7FFF:
+        // Reserved: module selection.
+        break;
 
     default:
-        break;
+        return false;
     }
+    return true;
 }

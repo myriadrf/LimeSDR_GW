@@ -7,7 +7,7 @@
 #include "regremap.h"
 
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-Mini-V2
-void readCSR(uint8_t *address, uint8_t *regdata_array)
+bool readCSR(uint8_t *address, uint8_t *regdata_array)
 {
     uint16_t value = 0;
     uint16_t addr  = ((uint16_t)address[0] << 8) | address[1];
@@ -164,17 +164,30 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = general_periph_periph_output_VAL_1_read();
         break;
 
+    case 0x24:
+    case 0x28:
+    case 0xD1:
+    case 0x280:
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+        // Reserved: return zero for compatibility with SSDR/XTRX.
+        break;
+
     default:
         printf("FRE: %04x\n", addr);
-        break;
+        return false;
     }
 
     regdata_array[0] = (uint8_t)(value & 0xFF);        // Byte 0 (LSB)
     regdata_array[1] = (uint8_t)((value >> 8) & 0xFF); // Byte 1
+    return true;
 }
 
 // To write and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-Mini-V2
-void writeCSR(uint8_t *address, uint8_t *wrdata_array)
+bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
 {
     uint16_t value = (((uint16_t)wrdata_array[0] << 8) | ((uint16_t)wrdata_array[1]));
     uint16_t addr  = ((uint16_t)address[0] << 8) | address[1];
@@ -318,10 +331,23 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     }
         break;
 
+    case 0xD1:
+    case 0xFF:
+    case 0x280:
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+    case 0x7FFF:
+        // Reserved: accept writes without changing hardware.
+        break;
+
     default:
         printf("FWE: %04x\n", addr);
-        break;
+        return false;
     }
+    return true;
 }
 
 uint16_t mini_get_bom_ver(void) {
