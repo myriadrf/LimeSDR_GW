@@ -98,6 +98,13 @@ _io = [
         IOStandard("LVCMOS33"),
     ),
 
+    # Revision.
+    ("revision", 0,
+        Subsignal("BOM_VER", Pins("J18 T18 V14")),
+        Subsignal("HW_VER",  Pins("V13 P18 K18")),
+        IOStandard("LVCMOS33"),
+    ),
+
     # GPS.
     ("gps", 0,
         Subsignal("rst", Pins("U18"), IOStandard("LVCMOS33")),
