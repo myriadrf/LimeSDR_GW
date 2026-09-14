@@ -100,8 +100,8 @@ _io = [
 
     # Revision.
     ("revision", 0,
-        Subsignal("BOM_VER", Pins("J18 T18 V14")),
-        Subsignal("HW_VER",  Pins("V13 P18 K18")),
+        Subsignal("BOM_VER", Pins("J18 T18 V14"), Misc("PULLUP=True")),
+        Subsignal("HW_VER",  Pins("V13 P18 K18"), Misc("PULLUP=True")),
         IOStandard("LVCMOS33"),
     ),
 
