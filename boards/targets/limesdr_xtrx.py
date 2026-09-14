@@ -100,7 +100,7 @@ class CRG(LiteXModule):
 # LMS Control CSR----------------------------------------------------------------------------------------
 class CNTRL_CSR(LiteXModule):
     def __init__(self, ndmas, nuart):
-        self.cntrl          = CSRStorage(512, 0)
+        self.cntrl          = CSRStorage(512, 0, atomic_write=True)
         self.enable         = CSRStorage()
         self.test           = CSRStorage(32)
         self.ndma           = CSRStatus(4, reset=ndmas)
@@ -109,11 +109,15 @@ class CNTRL_CSR(LiteXModule):
 
         # Create event manager for interrupt
         self.ev = EventManager()
-        self.ev.cntrl_isr = EventSourceProcess()
+        self.ev.cntrl_isr = EventSourcePulse()
         self.ev.finalize()
 
-        # Trigger interrupt when cntrl register is written
-        self.comb += self.ev.cntrl_isr.trigger.eq(self.cntrl.re)
+        # Big CSR word ordering places the header at [480:512]; status is byte 1.
+        # re accompanies the committed packet, so replies must not raise an event.
+        request_status = self.cntrl.storage[488:496]
+        self.comb += self.ev.cntrl_isr.trigger.eq(
+            self.cntrl.re & (request_status == 0)
+        )
 
 # periphcfg
 class periphcfg_csr(LiteXModule):
