@@ -78,6 +78,9 @@ TX_IN_PCT_HDR_SIZE   = 16
 TX_MAX_PCT_SIZE      = 8192  # Total payload RAM capacity in bytes
 TX_N_BUFF            = 16    # Metadata FIFO depth; does not increase payload RAM
 
+FPGA_CACHE_BASE      = 0x20000000
+FPGA_CACHE_SIZE      = 0x1000  # 4 KiB
+
 # CRG ----------------------------------------------------------------------------------------------
 
 class CRG(LiteXModule):
@@ -147,7 +150,7 @@ class CRG(LiteXModule):
 # LMS Control CSR----------------------------------------------------------------------------------------
 class CNTRL_CSR(LiteXModule):
     def __init__(self, ndmas, nuart):
-        self.cntrl          = CSRStorage(512, 0)
+        self.cntrl          = CSRStorage(512, 0, atomic_write=True)
         self.enable         = CSRStorage()
         self.test           = CSRStorage(32)
         self.ndma           = CSRStatus(4, reset=ndmas)
@@ -156,11 +159,15 @@ class CNTRL_CSR(LiteXModule):
 
         # Create event manager for interrupt
         self.ev = EventManager()
-        self.ev.cntrl_isr = EventSourceProcess()
+        self.ev.cntrl_isr = EventSourcePulse()
         self.ev.finalize()
 
-        # Trigger interrupt when cntrl register is written
-        self.comb += self.ev.cntrl_isr.trigger.eq(self.cntrl.re)
+        # Big CSR word ordering places the header at [480:512]; status is byte 1.
+        # re accompanies the committed packet, so replies must not raise an event.
+        request_status = self.cntrl.storage[488:496]
+        self.comb += self.ev.cntrl_isr.trigger.eq(
+            self.cntrl.re & (request_status == 0)
+        )
 
 # fpgacfg
 class fpgacfg_csr(LiteXModule):
@@ -857,6 +864,13 @@ class BaseSoC(SoCCore):
         self.comb += self.bsp.isr_vect[1].eq(self.gpio_control.port_out_value_115.storage[8])  # Connecting PWR_LMS8_NRST bit to bsp isr
 
         self.irq.add("bsp")
+
+        self.add_ram(
+            name="fpga_cache",
+            origin=FPGA_CACHE_BASE,
+            size=FPGA_CACHE_SIZE,
+            mode="rw",
+        )
 
 
         #TODO: place it in gateware dir

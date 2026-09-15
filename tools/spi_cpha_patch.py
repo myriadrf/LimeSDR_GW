@@ -185,8 +185,10 @@ def _spi_master_init_cpha(self, pads, data_width, sys_clk_freq, spi_clk_freq, wi
             mosi_data.eq(self.mosi),
             mosi_sel.eq((self.length-1) if mode == "aligned" else (data_width-1)),
         ).Elif(mosi_edge,
-            If(xfer_enable, pads.mosi.eq(mosi_array[mosi_sel])),
-            mosi_sel.eq(mosi_sel - 1)
+            If(xfer_enable,
+                pads.mosi.eq(mosi_array[mosi_sel]),
+                mosi_sel.eq(mosi_sel - 1)
+            )
         ),
     ]
 

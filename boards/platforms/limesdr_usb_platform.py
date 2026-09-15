@@ -245,12 +245,14 @@ class Platform(AlteraPlatform):
         self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/LMS7002_timing.sdc")
         self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/FX3_timing.sdc")
         self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/lms7_trx_timing.sdc")
-        self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/Clock_groups.sdc")
 
     def create_programmer(self, cable="ft2232", fpga_part="EP4CE40"):
         return OpenFPGALoader(cable=cable, fpga_part=fpga_part)
 
     def do_finalize(self, fragment):
+        # Clock groups should run after all module-level SDC constraints
+        self.toolchain.additional_sdc_commands.append("source ../../../gateware/board_specific/limesdr_usb/Clock_groups.sdc")
+
         # LMS_DIQ1_D Timing Delays (from QSF)
         try:
             self.lookup_request("LMS")

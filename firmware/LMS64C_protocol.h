@@ -140,6 +140,10 @@ enum eEXP_BOARD
 #define CMD_MEMORY_WR      0x8C
 #define CMD_MEMORY_RD      0x8D
 
+// CMD_MEMORY_WR/RD targets and modes
+#define CMD_MEMORY_TARGET_FPGA_CACHE 0x0004
+#define CMD_MEMORY_PROGMODE_RAW      0x00
+
 // status
 #define STATUS_COMPLETED_CMD         1 // Command successfully executed
 #define STATUS_UNKNOWN_CMD           2 // Unknown command

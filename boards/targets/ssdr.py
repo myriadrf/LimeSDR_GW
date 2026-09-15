@@ -92,7 +92,7 @@ class CRG(LiteXModule):
 # LMS Control CSR----------------------------------------------------------------------------------------
 class CNTRL_CSR(LiteXModule):
     def __init__(self, ndmas, nuart):
-        self.cntrl          = CSRStorage(512, 0)
+        self.cntrl          = CSRStorage(512, 0, atomic_write=True)
         self.enable         = CSRStorage()
         self.test           = CSRStorage(32)
         self.ndma           = CSRStatus(4, reset=ndmas)
@@ -101,11 +101,15 @@ class CNTRL_CSR(LiteXModule):
 
         # Create event manager for interrupt
         self.ev = EventManager()
-        self.ev.cntrl_isr = EventSourceProcess()
+        self.ev.cntrl_isr = EventSourcePulse()
         self.ev.finalize()
 
-        # Trigger interrupt when cntrl register is written
-        self.comb += self.ev.cntrl_isr.trigger.eq(self.cntrl.re)
+        # Big CSR word ordering places the header at [480:512]; status is byte 1.
+        # re accompanies the committed packet, so replies must not raise an event.
+        request_status = self.cntrl.storage[488:496]
+        self.comb += self.ev.cntrl_isr.trigger.eq(
+            self.cntrl.re & (request_status == 0)
+        )
 
 # periphcfg
 class periphcfg_csr(LiteXModule):
@@ -227,7 +231,7 @@ class BaseSoC(SoCCore):
             cpu_variant              = cpu_variant,
             integrated_rom_size      = integrated_rom_size,
             integrated_rom_init      = integrated_rom_init,
-            integrated_sram_ram_size = 0x0200,
+            integrated_sram_size     = 0x1000,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
             with_uart                = False,
@@ -623,6 +627,8 @@ class BaseSoC(SoCCore):
     # LiteScope Analyzer Probes --------------------------------------------------------------------
     def add_debug(self):
         analyzer_signals = [
+            self.CNTRL.cntrl.re,
+            self.CNTRL.cntrl.storage,
 
         ]
 

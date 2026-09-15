@@ -41,45 +41,45 @@ create_clock -name LMS_MCLK2_VIRT_5MHz		-period $LMS_MCLK2_period_5MHz
 
 #LMS TX PLL
 create_generated_clock 	-name  TX_PLLCLK_C0 \
-								-master [get_clocks LMS_MCLK1] \
+								-master_clock [get_clocks LMS_MCLK1] \
 								-source [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|inclk[0]] \
-								-phase 0 [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|clk[0]]
+								-phase 0 [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|clk[0]] -add
 								
 create_generated_clock 	-name   TX_PLLCLK_C1 \
-								-master [get_clocks LMS_MCLK1] \
+								-master_clock [get_clocks LMS_MCLK1] \
 								-source [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|inclk[0]] \
-								-phase 0 [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|clk[1]]
+								-phase 0 [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|clk[1]] -add
 								
 #LMS1_FCLK1 clock output pin 
 create_generated_clock -name LMS_FCLK1_PLL \
-								-master [get_clocks TX_PLLCLK_C0] \
+								-master_clock [get_clocks TX_PLLCLK_C0] \
 								-source [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|dataout*] \
 								[get_ports LMS_FCLK1]
 								
 create_generated_clock -name LMS_FCLK1_DRCT \
-								-master [get_clocks LMS_MCLK1_5MHZ] \
+								-master_clock [get_clocks LMS_MCLK1_5MHZ] \
 								-source [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|dataout*] \
 								[get_ports LMS_FCLK1] -add
 															
 #LMS RX PLL
 create_generated_clock -name RX_PLLCLK_C0 \
-								-master [get_clocks LMS_MCLK2] \
+								-master_clock [get_clocks LMS_MCLK2] \
 								-source [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|inclk[0]] \
-								-phase 0 [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|clk[0]]
+								-phase 0 [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|clk[0]] -add
 
 create_generated_clock -name RX_PLLCLK_C1 \
-								-master [get_clocks LMS_MCLK2] \
+								-master_clock [get_clocks LMS_MCLK2] \
 								-source [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|inclk[0]] \
-								-phase 0 [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|clk[1]]
+								-phase 0 [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|clk[1]] -add
 #								
 #LMS_FCLK2 clock 							
 create_generated_clock 	-name LMS_FCLK2_PLL \
-                        -master [get_clocks RX_PLLCLK_C0] \
+                        -master_clock [get_clocks RX_PLLCLK_C0] \
 								-source [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|dataout*] \
 								[get_ports {LMS_FCLK2}]
 
 create_generated_clock 	-name LMS_FCLK2_DRCT \
-                        -master [get_clocks LMS_MCLK2_5MHZ] \
+                        -master_clock [get_clocks LMS_MCLK2_5MHZ] \
 								-source [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|dataout*] \
 								[get_ports {LMS_FCLK2}] -add
 								

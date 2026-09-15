@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+from gateware.common import BoardIDs
 #
 # This file is part of LimeSDR_GW.
 #
@@ -245,7 +245,7 @@ class BaseSoC(SoCCore):
                                 TX_MAX_PCT_SIZE      = TX_PACKET_BUF_SIZE,
                                 TX_WITHTXIQ_MUX      = True,
                                 # FPGACFG.
-                                board_id             = 0x0011,
+                                board_id             = BoardIDs.LIME_SDR_USB,
                                 major_rev            = MajorRevision,
                                 compile_rev          = CompileRevision,
                                 revision_pads        = revision_pads,

@@ -25,3 +25,13 @@ def add_vhd2v_converter(platform, instance, files=[], force_convert=None, add_in
         add_instance   = add_instance,
         files          = files,
     )
+
+
+# Board ID's
+from enum import IntEnum
+class BoardIDs(IntEnum):
+    LIME_SDR_USB = 0x000E
+    LIME_SDR_XTRX = 27
+    LIME_SDR_MINI = 0x0011
+    SSDR = 32
+    HIPER = 31

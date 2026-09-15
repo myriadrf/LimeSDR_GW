@@ -23,6 +23,7 @@
 #include "LMS64C_protocol.h"
 #include "lime_litex_helpers.h"
 #include <generated/csr.h>
+#include <generated/mem.h>
 
 /*-----------------------------------------------------------------------*/
 /* Peripheral Includes                                                   */
@@ -98,6 +99,10 @@
 // Since there is no eeprom on the board and the flash is too large for the gw
 // we use the top of the flash instead of eeprom, thus the offset to last sector
 #define BSP_FLASH_STORAGE_OFFSET 0x01FF0000
+
+/* LMS64C CMD_MEMORY_WR/RD targets */
+#define BSP_MEM_TARGET_FPGA_CACHE CMD_MEMORY_TARGET_FPGA_CACHE
+#define BSP_MEM_PROGMODE_RAW      CMD_MEMORY_PROGMODE_RAW
 
 /* OTP Keys & Addresses */
 #define BSP_OTP_UNLOCK_KEY     0x5A

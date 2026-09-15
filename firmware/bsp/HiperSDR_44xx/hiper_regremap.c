@@ -5,7 +5,7 @@
 #include "hiper_regremap.h"
 
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs
-void readCSR(uint8_t *address, uint8_t *regdata_array)
+bool readCSR(uint8_t *address, uint8_t *regdata_array)
 {
     uint16_t value = 0;
     uint16_t addr  = ((uint16_t)address[0] << 8) | address[1];
@@ -188,8 +188,23 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x282:
     	value = limetop_stream_start_controller_tx_delay_mode_read() & 0xFFFF;
     	break;
-    default:
+    case 0x0D:
+    case 0x0E:
+    case 0x24:
+    case 0x25:
+    case 0x28:
+    case 0xD1:
+    case 0x280:
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+        // Reserved: return zero for compatibility with SSDR/XTRX.
         break;
+
+    default:
+        return false;
     }
 
     regdata_array[0] = (uint8_t)(value & 0xFF);        // Byte 0 (LSB)
@@ -197,10 +212,11 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     // Litex CSRs are 4byte words, LMS64C spi regs are 2byte - others unused.
     // regdata_array[2] = (uint8_t)((value >> 16) & 0xFF);  // Byte 2
     // regdata_array[3] = (uint8_t)((value >> 24) & 0xFF);  // Byte 3 (MSB)`
+    return true;
 }
 
 // To write and re-map old LMS64C protocol style SPI registers to Litex CSRs
-void writeCSR(uint8_t *address, uint8_t *wrdata_array)
+bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
 {
     uint16_t value          = (0x0000FFFF & (((uint32_t)wrdata_array[0] << 8) | ((uint32_t)wrdata_array[1])));
     uint8_t *value_byte_ptr = (uint8_t *)&value;
@@ -374,7 +390,25 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     	limetop_stream_start_controller_tx_delay_mode_write(value);
     	break;
 
-    default:
+    case 0x0D:
+    case 0x0E:
+    case 0x24:
+    case 0x25:
+    case 0x28:
+    case 0xD1:
+    case 0xFF:
+    case 0x280:
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+    case 0x7FFF:
+        // Reserved: accept writes without changing hardware.
         break;
+
+    default:
+        return false;
     }
+    return true;
 }

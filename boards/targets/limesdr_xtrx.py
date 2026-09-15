@@ -100,7 +100,7 @@ class CRG(LiteXModule):
 # LMS Control CSR----------------------------------------------------------------------------------------
 class CNTRL_CSR(LiteXModule):
     def __init__(self, ndmas, nuart):
-        self.cntrl          = CSRStorage(512, 0)
+        self.cntrl          = CSRStorage(512, 0, atomic_write=True)
         self.enable         = CSRStorage()
         self.test           = CSRStorage(32)
         self.ndma           = CSRStatus(4, reset=ndmas)
@@ -109,11 +109,15 @@ class CNTRL_CSR(LiteXModule):
 
         # Create event manager for interrupt
         self.ev = EventManager()
-        self.ev.cntrl_isr = EventSourceProcess()
+        self.ev.cntrl_isr = EventSourcePulse()
         self.ev.finalize()
 
-        # Trigger interrupt when cntrl register is written
-        self.comb += self.ev.cntrl_isr.trigger.eq(self.cntrl.re)
+        # Big CSR word ordering places the header at [480:512]; status is byte 1.
+        # re accompanies the committed packet, so replies must not raise an event.
+        request_status = self.cntrl.storage[488:496]
+        self.comb += self.ev.cntrl_isr.trigger.eq(
+            self.cntrl.re & (request_status == 0)
+        )
 
 # periphcfg
 class periphcfg_csr(LiteXModule):
@@ -401,6 +405,17 @@ class BaseSoC(SoCCore):
         )
 
         # LimeTOP ----------------------------------------------------------------------------------
+        # Revision Pads with 4-bit padding (MSB = 0)
+        revision_pads = platform.request("revision")
+        padded_revision_pads = Record([
+            ("HW_VER",  4),
+            ("BOM_VER", 4),
+        ])
+        self.comb += [
+            padded_revision_pads.HW_VER.eq(Cat(revision_pads.HW_VER, 0)),
+            padded_revision_pads.BOM_VER.eq(Cat(revision_pads.BOM_VER, 0)),
+        ]
+
         self.limetop = LimeTop(self, platform, vendor="xilinx",
             # Configuration.
             LMS_DIQ_WIDTH        = 12,
@@ -421,7 +436,7 @@ class BaseSoC(SoCCore):
             # GOLD image can be recocgnized by 0xDEAD in major and compile revisions
             major_rev            =  MajorRevision if not gold_img else 0xDEAD,
             compile_rev          =  CompileRevision if not gold_img else 0xDEAD,
-            revision_pads        = None,
+            revision_pads        =  padded_revision_pads,
             # TODO: maybe it's possible to implement check automatically?
             soc_has_timesource   = True,
         )

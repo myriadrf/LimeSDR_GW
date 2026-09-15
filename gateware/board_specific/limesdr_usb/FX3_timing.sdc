@@ -48,8 +48,11 @@ set FX3_ctl_out_min_dly [expr -$FX3_tH]
 #Base clocks
 ################################################################################
 
-#FX3 spi clock
-create_clock -period "1MHz" 			-name BRDG_SPI_clk	[get_ports BRDG_SPI_clk]
+#FX3 spi clock (if port exists)
+set brdg_spi_port [get_ports -nowarn BRDG_SPI_clk]
+if {[get_collection_size $brdg_spi_port] > 0} {
+	create_clock -period "1MHz" 			-name BRDG_SPI_clk	$brdg_spi_port
+}
 #FX3 GPIF clock
 create_clock -period $FX3_period 	-name FX3_PCLK			[get_ports FX3_PCLK]
 

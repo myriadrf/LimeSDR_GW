@@ -1,28 +1,60 @@
 ################################################################################
-#Asyncronous clocks
+# Asynchronous clocks
 ################################################################################
-# To clocks that are not related to each other
-set_clock_groups -asynchronous 	-group {SI_CLK0} \
-											-group {SI_CLK1} \
-											-group {SI_CLK2} \
-											-group {SI_CLK3} \
-											-group {SI_CLK5} \
-											-group {SI_CLK6} \
-											-group {SI_CLK7} \
-											-group {LMK_CLK} \
-											-group {BRDG_SPI_clk} \
-											-group {LMS_MCLK1} \
-                                 -group {LMS_MCLK1_5MHZ} \
-											-group {TX_PLLCLK_C0 } \
-											-group {TX_PLLCLK_C1 LMS_FCLK1_PLL} \
-                                 -group {LMS_FCLK1_DRCT } \
-                                 -group {LMS_MCLK2} \
-											-group {LMS_MCLK2_5MHZ} \
-											-group {RX_PLLCLK_C0} \
-											-group {RX_PLLCLK_C1 } \
-                                 -group {LMS_FCLK2_PLL} \
-                                 -group {LMS_FCLK2_DRCT } \
-											-group {FX3_PCLK FPGA_SPI0_SCLK_reg FPGA_SPI0_SCLK_out} \
-											-group {*|wfm_player|*|DDR2_ctrl_top_inst|ddr2_inst|ddr2_controller_phy_inst|ddr2_phy_inst|ddr2_phy_alt_mem_phy_inst|clk|pll|altpll_component|auto_generated|pll1|clk[1]} \
-											-group {*|tst_top|ddr2_tester|ddr2_inst|ddr2_controller_phy_inst|ddr2_phy_inst|ddr2_phy_alt_mem_phy_inst|clk|pll|altpll_component|auto_generated|pll1|clk[1]} 
+
+set group_count 0
+set cmd "set_clock_groups -asynchronous"
+
+proc add_clock_group {pattern_list} {
+	global cmd group_count
+	set clk_col [get_clocks -nowarn $pattern_list]
+	if {[get_collection_size $clk_col] > 0} {
+		set clk_names [list]
+		foreach_in_collection c $clk_col {
+			set cname [get_clock_info -name $c]
+			if {[lsearch -exact $clk_names $cname] == -1} {
+				lappend clk_names $cname
+			}
+		}
+		if {[llength $clk_names] > 0} {
+			append cmd " -group {" [join $clk_names " "] "}"
+			incr group_count
+		}
+	}
+}
+
+# Base clocks
+add_clock_group {SI_CLK0}
+add_clock_group {SI_CLK1}
+add_clock_group {SI_CLK2}
+add_clock_group {SI_CLK3}
+add_clock_group {SI_CLK5}
+add_clock_group {SI_CLK6}
+add_clock_group {SI_CLK7}
+add_clock_group {LMK_CLK}
+
+# LMS RF Transceiver clock domains
+add_clock_group {LMS_MCLK1 LMS_MCLK1_VIRT}
+add_clock_group {LMS_MCLK1_5MHZ LMS_MCLK1_VIRT_5MHz}
+add_clock_group {TX_PLLCLK_C0 *tx_pll_top*|*|pll1|clk[0] *tx_pll_top*clk[0]*}
+add_clock_group {TX_PLLCLK_C1 LMS_FCLK1_PLL *tx_pll_top*|*|pll1|clk[1] *tx_pll_top*clk[1]*}
+add_clock_group {LMS_FCLK1_DRCT}
+
+add_clock_group {LMS_MCLK2 LMS_MCLK2_VIRT}
+add_clock_group {LMS_MCLK2_5MHZ LMS_MCLK2_VIRT_5MHz}
+add_clock_group {RX_PLLCLK_C0 *rx_pll_top*|*|pll1|clk[0] *rx_pll_top*clk[0]*}
+add_clock_group {RX_PLLCLK_C1 *rx_pll_top*|*|pll1|clk[1] *rx_pll_top*clk[1]*}
+add_clock_group {LMS_FCLK2_PLL}
+add_clock_group {LMS_FCLK2_DRCT}
+
+# System / USB domain
+add_clock_group {FX3_PCLK FX3_PCLK_VIRT FX3_PCLK_VIRT_OUT FPGA_SPI0_SCLK_reg FPGA_SPI0_SCLK_out FPGA_SPI1_SCLK BRDG_SPI_clk}
+
+# DDR2 ALTMEMPHY memory controller domains
+add_clock_group {*wfm_player_top* *wfm_player*}
+add_clock_group {*ddr2_tester*}
+
+if {$group_count > 1} {
+	eval $cmd
+}
 											
