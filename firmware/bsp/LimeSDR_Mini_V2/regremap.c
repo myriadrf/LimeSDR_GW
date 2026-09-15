@@ -95,6 +95,18 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x22:
         value = csr_read_simple(clk_ctrl_addrs.pll_lock);
         break;
+#ifdef WITH_LMS7002
+    case 0x23:
+        value = 0;
+        value |= (csr_read_simple(clk_ctrl_addrs.pllcfg_start) & 0x1);
+        value |= (csr_read_simple(clk_ctrl_addrs.phcfg_start) & 0x1)  << 1;
+        value |= (csr_read_simple(clk_ctrl_addrs.pllrst_start) & 0x1) << 2;
+        value |= (csr_read_simple(clk_ctrl_addrs.pll_ind) & 0x1F)     << 3;
+        value |= (csr_read_simple(clk_ctrl_addrs.cnt_ind) & 0x1F)     << 8;
+        value |= (csr_read_simple(clk_ctrl_addrs.phcfg_updn) & 0x1)   << 13;
+        value |= (csr_read_simple(clk_ctrl_addrs.phcfg_mode) & 0x1)   << 14;
+        break;
+#endif
     case 0x25:
         value = 0b110110000;
         break;
@@ -258,13 +270,13 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
 
 #ifdef WITH_LMS7002
     case 0x23:
-        csr_write_simple(value & 0x1, clk_ctrl_addrs.pllcfg_start);
-        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.phcfg_start);
-        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.pllrst_start);
         csr_write_simple((value >> 3) & 0x1F, clk_ctrl_addrs.pll_ind);
         csr_write_simple((value >> 8) & 0x1F, clk_ctrl_addrs.cnt_ind);
         csr_write_simple((value >> 13) & 0x1, clk_ctrl_addrs.phcfg_updn);
         csr_write_simple((value >> 14) & 0x1, clk_ctrl_addrs.phcfg_mode);
+        csr_write_simple(value & 0x1, clk_ctrl_addrs.pllcfg_start);
+        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.phcfg_start);
+        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.pllrst_start);
         break;
 #endif
     case 0x24:
