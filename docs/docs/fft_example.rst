@@ -1,6 +1,6 @@
 Example: Adding an FFT Module
 -----------------------------
-To make it easier to understand how to add a custom module, an example is provided for the LimeSDR XTRX. In this example, a fixed-point FFT module is inserted in the data receive path so that the results of the Fourier transform are packed into packets instead of raw RF samples. Since LiteX provides a flexible framework for defining hardware configurations through command-line arguments, the ``--with-fft`` argument is used to modify rx_path and include an FFT example when building the project.
+To make it easier to understand how to add a custom module, an example is provided for LimeSDR XTRX and LimeSDR Mini V2 boards. In this example, a fixed-point FFT module is inserted in the data receive path so that the results of the Fourier transform are packed into packets instead of raw RF samples. Since LiteX provides a flexible framework for defining hardware configurations through command-line arguments, the ``--with-fft`` argument is used to modify rx_path and include an FFT example when building the project.
 
 If you want to try out the FFT module without modifying code, you could build the target with the following command:
 
@@ -20,10 +20,6 @@ All sources required for the example are located in `gateware/examples/fft`_. Th
   LiteX wrapper file incorporating the FFT module.
 - **limesdr_fft_samples.grc**
   A GNU Radio file containing blocks that scale, shift, and display the FFT data received from the board.
-- **xtrx.ini**
-  LimeSDR XTRX board setup file for GNU Radio
-- **mini.ini**
-  LimeSDR Mini V2 board setup file for GNU Radio
 
 In the standard design (see the `LimeSDR XTRX gateware description`_), raw samples are received by **lms7002_top** and then passed to **rx_path_top** for packetization. To reuse this logic and insert the FFT module, the FFT module should be placed between **lms7002_top** and **rx_path_top**.
 
@@ -90,7 +86,6 @@ After these modifications, build the project and program the board as described 
 
 The FFT results can be observed using the **limesdr_fft_samples.grc** file provided with the example. Ensure that you have up-to-date versions of GNU Radio and LimeSuiteNG installed.
 
-Before running flowgraph modify ``board_ini`` variable with correct setup file:
 
 .. figure:: images/grc_setup.png
    :width: 1000
@@ -103,9 +98,9 @@ If an RF cable is connected in a loopback configuration, linking the RX and TX o
    :alt: Screenshot of FFT output in GNU Radio with a signal at 1MHz visible.
 
 .. note::
-  **TX Gain**, **RX Gain** settings might differ for different boards.
+  **TX Gain**, **RX Gain** settings might differ for different boards and cables used.
 
-However, if no cable is connected, or the cable is connected improperly, the output should look like in figure below.
+However, if no cable is connected, the cable is connected improperly, or TX/RX gain is insufficient, the output should look like in figure below.
 
 .. figure:: images/fft_bad.png
    :width: 1000
