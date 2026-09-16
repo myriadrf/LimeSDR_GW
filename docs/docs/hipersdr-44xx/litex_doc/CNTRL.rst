@@ -61,7 +61,8 @@ CNTRL_CNTRL15
 
 `Address: 0xf000d000 + 0x0 = 0xf000d000`
 
-    Bits 480-511 of `CNTRL_CNTRL`.
+    Bits 480-511 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL15
@@ -78,7 +79,8 @@ CNTRL_CNTRL14
 
 `Address: 0xf000d000 + 0x4 = 0xf000d004`
 
-    Bits 448-479 of `CNTRL_CNTRL`.
+    Bits 448-479 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL14
@@ -95,7 +97,8 @@ CNTRL_CNTRL13
 
 `Address: 0xf000d000 + 0x8 = 0xf000d008`
 
-    Bits 416-447 of `CNTRL_CNTRL`.
+    Bits 416-447 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL13
@@ -112,7 +115,8 @@ CNTRL_CNTRL12
 
 `Address: 0xf000d000 + 0xc = 0xf000d00c`
 
-    Bits 384-415 of `CNTRL_CNTRL`.
+    Bits 384-415 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL12
@@ -129,7 +133,8 @@ CNTRL_CNTRL11
 
 `Address: 0xf000d000 + 0x10 = 0xf000d010`
 
-    Bits 352-383 of `CNTRL_CNTRL`.
+    Bits 352-383 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL11
@@ -146,7 +151,8 @@ CNTRL_CNTRL10
 
 `Address: 0xf000d000 + 0x14 = 0xf000d014`
 
-    Bits 320-351 of `CNTRL_CNTRL`.
+    Bits 320-351 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL10
@@ -163,7 +169,8 @@ CNTRL_CNTRL9
 
 `Address: 0xf000d000 + 0x18 = 0xf000d018`
 
-    Bits 288-319 of `CNTRL_CNTRL`.
+    Bits 288-319 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL9
@@ -180,7 +187,8 @@ CNTRL_CNTRL8
 
 `Address: 0xf000d000 + 0x1c = 0xf000d01c`
 
-    Bits 256-287 of `CNTRL_CNTRL`.
+    Bits 256-287 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL8
@@ -197,7 +205,8 @@ CNTRL_CNTRL7
 
 `Address: 0xf000d000 + 0x20 = 0xf000d020`
 
-    Bits 224-255 of `CNTRL_CNTRL`.
+    Bits 224-255 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL7
@@ -214,7 +223,8 @@ CNTRL_CNTRL6
 
 `Address: 0xf000d000 + 0x24 = 0xf000d024`
 
-    Bits 192-223 of `CNTRL_CNTRL`.
+    Bits 192-223 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL6
@@ -231,7 +241,8 @@ CNTRL_CNTRL5
 
 `Address: 0xf000d000 + 0x28 = 0xf000d028`
 
-    Bits 160-191 of `CNTRL_CNTRL`.
+    Bits 160-191 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL5
@@ -248,7 +259,8 @@ CNTRL_CNTRL4
 
 `Address: 0xf000d000 + 0x2c = 0xf000d02c`
 
-    Bits 128-159 of `CNTRL_CNTRL`.
+    Bits 128-159 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL4
@@ -265,7 +277,8 @@ CNTRL_CNTRL3
 
 `Address: 0xf000d000 + 0x30 = 0xf000d030`
 
-    Bits 96-127 of `CNTRL_CNTRL`.
+    Bits 96-127 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0`
+    is written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL3
@@ -282,7 +295,8 @@ CNTRL_CNTRL2
 
 `Address: 0xf000d000 + 0x34 = 0xf000d034`
 
-    Bits 64-95 of `CNTRL_CNTRL`.
+    Bits 64-95 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0` is
+    written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL2
@@ -299,7 +313,8 @@ CNTRL_CNTRL1
 
 `Address: 0xf000d000 + 0x38 = 0xf000d038`
 
-    Bits 32-63 of `CNTRL_CNTRL`.
+    Bits 32-63 of `CNTRL_CNTRL`. The value won't take effect until `CNTRL_CNTRL0` is
+    written.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL1
@@ -316,7 +331,8 @@ CNTRL_CNTRL0
 
 `Address: 0xf000d000 + 0x3c = 0xf000d03c`
 
-    Bits 0-31 of `CNTRL_CNTRL`.
+    Bits 0-31 of `CNTRL_CNTRL`. Writing this register triggers an update of
+    `CNTRL_CNTRL`.
 
     .. wavedrom::
         :caption: CNTRL_CNTRL0
@@ -456,12 +472,12 @@ CNTRL_EV_PENDING
         }
 
 
-+-------+-----------+-----------------------------------------------------------------------------+
-| Field | Name      | Description                                                                 |
-+=======+===========+=============================================================================+
-| [0]   | CNTRL_ISR | `1` if a `cntrl_isr` event occurred. This Event is triggered on **falling** |
-|       |           | edge.                                                                       |
-+-------+-----------+-----------------------------------------------------------------------------+
++-------+-----------+------------------------------------------------------------------------------+
+| Field | Name      | Description                                                                  |
++=======+===========+==============================================================================+
+| [0]   | CNTRL_ISR | `1` if a `cntrl_isr` event occurred. This Event is triggered on a **rising** |
+|       |           | edge.                                                                        |
++-------+-----------+------------------------------------------------------------------------------+
 
 CNTRL_EV_ENABLE
 ^^^^^^^^^^^^^^^

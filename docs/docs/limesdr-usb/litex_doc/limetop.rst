@@ -155,7 +155,7 @@ LIMETOP_FPGACFG_BOARD_ID
 
         {
             "reg": [
-                {"name": "fpgacfg_board_id[15:0]", "attr": 'reset: 17', "bits": 16},
+                {"name": "fpgacfg_board_id[15:0]", "attr": 'reset: 14', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
@@ -189,7 +189,7 @@ LIMETOP_FPGACFG_COMPILE_REV
 
         {
             "reg": [
-                {"name": "fpgacfg_compile_rev[15:0]", "attr": 'reset: 11', "bits": 16},
+                {"name": "fpgacfg_compile_rev[15:0]", "attr": 'reset: 12', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
