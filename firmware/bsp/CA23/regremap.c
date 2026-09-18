@@ -342,11 +342,11 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         csr_write_simple(value & 0x1FF, clk_ctrl_addrs.c1_phase);
         break;
     case 0x23:
+        csr_write_simple((value & 8) >> 3, clk_ctrl_addrs.pll_ind);
+        csr_write_simple((value & 0x4000) >> 14, clk_ctrl_addrs.phcfg_mode);
         csr_write_simple((value & 1), clk_ctrl_addrs.pllcfg_start);
         csr_write_simple((value & 2) >> 1, clk_ctrl_addrs.phcfg_start);
         csr_write_simple((value & 4) >> 2, clk_ctrl_addrs.pllrst_start);
-        csr_write_simple((value & 8) >> 3, clk_ctrl_addrs.pll_ind);
-        csr_write_simple((value & 0x4000) >> 14, clk_ctrl_addrs.phcfg_mode);
         break;
     case 0x26:
         csr_write_simple((value & 1), clk_ctrl_addrs.vco_div_byp);
