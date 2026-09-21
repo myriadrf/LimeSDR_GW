@@ -10,6 +10,7 @@ uint16_t g_bsp_hw_ver;
 void bsp_init(void)
 {
     bsp_powerup();
+    spimaster1_phase_write(1);
     {
         // Check if there is a value in permanent vctcxo memory
         // If there is, write it to runtime DAC
@@ -287,6 +288,7 @@ uint8_t bsp_spi_transfer(
         break;
 
     case 1: // AD5662 DAC SPI: 24-bit data_width
+        spimaster1_phase_write(1);
         packed_mosi <<= (3 - transfer_len) * 8;
         spimaster1_cs_write(cs_mask);
         cdelay(1);
