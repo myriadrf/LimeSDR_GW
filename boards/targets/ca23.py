@@ -521,7 +521,7 @@ class BaseSoC(SoCCore):
             self.limetop.time_day.eq    (self.gnsstop.zda_parser.time_day    ),
             self.limetop.time_month.eq  (self.gnsstop.zda_parser.time_month  ),
             self.limetop.time_year.eq   (self.gnsstop.zda_parser.time_year   ),
-            self.limetop.rxtx_top.rx_path.pps.eq(self.gnsstop.zda_parser.pps ),
+            self.limetop.rxtx_top.rx_path.pps.eq(self.pps_internal),
         ]
         # CLK Tests --------------------------------------------------------------------------------
 
@@ -563,7 +563,7 @@ class BaseSoC(SoCCore):
         ### Misc assignments
         # Stream delay signals
         self.comb += [
-            self.limetop.pps.eq(self.limetop.rxtx_top.rx_path.pps_rising),
+            self.limetop.pps.eq(self.pps_internal),
             self.limetop.pps_valid.eq(self.gnsstop.zda_parser.time_valid),
         ]
 
