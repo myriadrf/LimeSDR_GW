@@ -153,7 +153,6 @@ class BaseSoC(SoCCore):
         "pcie_msi"    : 3, #11
         "pcie_dma0"   : 5, #12
         "PCIE_UART0"  : 13,
-        "PCIE_UART1"  : 14,
 
         "flash"       : 15,  # 10
         "xadc"        : 16,  # 11
@@ -162,7 +161,6 @@ class BaseSoC(SoCCore):
         # CA23 AD5662 SPI DAC.
         "spimaster1"  : 18,
 
-        "ppsdo"       : 22,
         # CNTRL
         "CNTRL"       : 26,
 
@@ -177,7 +175,6 @@ class BaseSoC(SoCCore):
         with_cpu              = True, cpu_firmware=None,
         with_jtagbone         = True,
         with_bscan            = False,
-        with_ppsdo            = True,
         with_fft              = False,
         flash_boot            = False,
         gold_img              = False,
@@ -534,48 +531,12 @@ class BaseSoC(SoCCore):
             , ref_clock_domain="sys", clock_target=10000000)
         self.comb += self.lms_clock_test.RESET_N.eq(self.crg.pll.locked)
 
-        # VCTCXO tamer -----------------------------------------------------------------------------
-        # Define a layout for vctcxo_tamer_pads
-        vctcxo_tamer_layout        = [("tune_ref", 1)]  # 1-bit wide signal for tune_ref
-        vctcxo_tamer_pads          = Record(vctcxo_tamer_layout)
-        vctcxo_tamer_pads.tune_ref = self.pps_internal
-
-        from gateware.LimeDFB.legacy_rpcm_tamer.src.vctcxo_tamer_top import vctcxo_tamer_top
-        self.vctcxo_tamer = vctcxo_tamer_top(platform=platform,
-            vctcxo_tamer_pads = vctcxo_tamer_pads,
-            clk100_domain     = "sys",
-            vctcxo_clk_domain = "xo_fpga"
-        )
-        self.comb += self.vctcxo_tamer.RESET_N.eq(self.crg.pll.locked)
-
-        vctcxo_tamer_serial_layout = [("rx", 1),
-                                      ("tx", 1)]  # 1-bit wide signal for tune_ref
-        vctcxo_tamer_serial_pads = Record(vctcxo_tamer_serial_layout)
-        self.comb += vctcxo_tamer_serial_pads.rx.eq(self.vctcxo_tamer.UART_TX)
-        self.comb += self.vctcxo_tamer.UART_RX.eq(vctcxo_tamer_serial_pads.tx)
-
-        pcie_uart1_phy = UARTPHY(vctcxo_tamer_serial_pads, clk_freq=self.sys_clk_freq, baudrate=9600)
-        pcie_uart1     = UART(pcie_uart1_phy, tx_fifo_depth=16, rx_fifo_depth=16, rx_fifo_rx_we=True)
-        self.add_module(name=f"PCIE_UART1_phy", module=pcie_uart1_phy)
-        self.add_module(name="PCIE_UART1", module=pcie_uart1)
-
-
         ### Misc assignments
         # Stream delay signals
         self.comb += [
             self.limetop.pps.eq(self.pps_internal),
             self.limetop.pps_valid.eq(self.gnsstop.zda_parser.time_valid),
         ]
-
-        # PPSDO ------------------------------------------------------------------------------------
-        if with_ppsdo:
-            # Imports.
-            from gateware.LimePPSDO.src.ppsdo import PPSDO
-
-            # PPSDO Instance.
-            self.ppsdo = ppsdo = PPSDO(cd_sys="sys", cd_rf="xo_fpga", with_csr=True)
-            self.ppsdo.add_sources(dac_bits=16)
-            self.comb += ppsdo.pps.eq(self.pps_internal)
 
     # JTAG CPU Debug -------------------------------------------------------------------------------
 
@@ -658,9 +619,6 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
 
-    # PPSDO.
-    parser.add_argument("--no-ppsdo", action="store_true", help="Disable PPSDO support.")
-
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
 
@@ -689,7 +647,6 @@ def main():
             cpu_firmware          = None if prepare else "firmware/firmware.bin",
             with_jtagbone         = not args.with_bscan,
             with_bscan            = args.with_bscan,
-            with_ppsdo            = not args.no_ppsdo,
             with_fft              = args.with_fft,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,

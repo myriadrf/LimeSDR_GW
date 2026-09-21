@@ -32,18 +32,15 @@ Register Groups
     lms_clock_test
     pcie_endpoint
     PCIE_UART0
-    PCIE_UART1
+    periphcfg
     flash
     xadc
     dna
     spimaster1
-    periphcfg
     rfsw_control
     spimaster
-    ppsdo
     sys_clock_test
     timer0
-    vctcxo_tamer
     CNTRL
 
 Indices and tables
