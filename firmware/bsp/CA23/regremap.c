@@ -50,18 +50,6 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value |= (tmp & 0x200);
         value |= rfsw_control_rfsw_auto_en_read() << 11;
         break;
-    case 0x14:
-        value = periphcfg_PERIPH_20_RD_read();
-        break;
-    case 0x15:
-        value = periphcfg_PERIPH_21_RD_read();
-        break;
-    case 0x16:
-        value = periphcfg_PERIPH_22_RD_read();
-        break;
-    case 0x17:
-        value = periphcfg_PERIPH_23_RD_read();
-        break;
     case 0xF:
         value = limetop_fpgacfg_txant_pre_read();
         break;
@@ -134,6 +122,18 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
     case 0xD3:
         value = periphcfg_PERIPH_SEL_read();
+        break;
+    case 0xD4:
+        value = periphcfg_PERIPH_20_RD_read();
+        break;
+    case 0xD5:
+        value = periphcfg_PERIPH_21_RD_read();
+        break;
+    case 0xD6:
+        value = periphcfg_PERIPH_22_RD_read();
+        break;
+    case 0xD7:
+        value = periphcfg_PERIPH_23_RD_read();
         break;
     case 0x61:
         value = sys_clock_test_test_en_read();
@@ -314,18 +314,6 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         // limetop_lms7002_test_ptrn_en_write((value & 0x200) >> 9);
         rfsw_control_rfsw_auto_en_write((value & 0x800) >> 11);
         break;
-    case 0x14:
-        periphcfg_PERIPH_20_write(value);
-        break;
-    case 0x15:
-        periphcfg_PERIPH_21_write(value);
-        break;
-    case 0x16:
-        periphcfg_PERIPH_22_write(value);
-        break;
-    case 0x17:
-        periphcfg_PERIPH_23_write(value);
-        break;
     case 0xF:
         limetop_fpgacfg_txant_pre_write(value);
         break;
@@ -403,6 +391,18 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
     case 0xD3:
         periphcfg_PERIPH_SEL_write(value);
+        break;
+    case 0xD4:
+        periphcfg_PERIPH_20_write(value);
+        break;
+    case 0xD5:
+        periphcfg_PERIPH_21_write(value);
+        break;
+    case 0xD6:
+        periphcfg_PERIPH_22_write(value);
+        break;
+    case 0xD7:
+        periphcfg_PERIPH_23_write(value);
         break;
     case 0x61:
         sys_clock_test_test_en_write(value & 0x1);
