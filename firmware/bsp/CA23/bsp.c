@@ -170,32 +170,46 @@ uint8_t bsp_analog_write(uint8_t channel, uint8_t unit, uint8_t value_msb, uint8
 
 uint8_t bsp_gpio_dir_read(uint8_t *data, uint8_t offset)
 {
-    // Unsupported on CA23
+    if (offset == 0) {
+        *data = (uint8_t)(gpio_gpio_override_dir_read() & 0x0F);
+        return 0;
+    }
     return 1;
 }
 
 uint8_t bsp_gpio_dir_write(uint8_t data, uint8_t offset)
 {
-    // Unsupported on CA23
+    if (offset == 0) {
+        gpio_gpio_override_dir_write(data & 0x0F);
+        return 0;
+    }
     return 1;
 }
 
 uint8_t bsp_gpio_read(uint8_t *data, uint8_t offset)
 {
-    // Unsupported on CA23
+    if (offset == 0) {
+        *data = (uint8_t)(gpio_gpio_val_read() & 0x0F);
+        return 0;
+    }
     return 1;
 }
 
 uint8_t bsp_gpio_write(uint8_t data, uint8_t offset)
 {
-    // Unsupported on CA23
+    if (offset == 0) {
+        gpio_gpio_override_val_write(data & 0x0F);
+        return 0;
+    }
     return 1;
 }
 
 uint8_t bsp_gpio_get_cached(const uint8_t offset)
 {
-    // Unsupported on CA23
-    return 1;
+    if (offset == 0) {
+        return (uint8_t)(gpio_gpio_override_val_read() & 0x0F);
+    }
+    return 0;
 }
 
 void bsp_vctcxo_permanent_dac_read(uint8_t *data)

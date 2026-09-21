@@ -115,13 +115,16 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = csr_read_simple(clk_ctrl_addrs.phcfg_samples);
         break;
     case 0xC0:
-        value = periphcfg_BOARD_GPIO_OVRD_read();
+        value = gpio_gpio_override_read() & 0x0F;
+        break;
+    case 0xC2:
+        value = gpio_gpio_val_read() & 0x0F;
         break;
     case 0xC4:
-        value = periphcfg_BOARD_GPIO_DIR_read();
+        value = gpio_gpio_override_dir_read() & 0x0F;
         break;
     case 0xC6:
-        value = periphcfg_BOARD_GPIO_VAL_read();
+        value = gpio_gpio_override_val_read() & 0x0F;
         break;
     case 0xCA:
         value = periphcfg_PERIPH_INPUT_SEL_0_read();
@@ -384,13 +387,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
         csr_write_simple(value, clk_ctrl_addrs.phcfg_samples);
         break;
     case 0xC0:
-        periphcfg_BOARD_GPIO_OVRD_write(value);
+        gpio_gpio_override_write(value & 0x0F);
         break;
     case 0xC4:
-        periphcfg_BOARD_GPIO_DIR_write(value);
+        gpio_gpio_override_dir_write(value & 0x0F);
         break;
     case 0xC6:
-        periphcfg_BOARD_GPIO_VAL_write(value);
+        gpio_gpio_override_val_write(value & 0x0F);
         break;
     case 0xCA:
         periphcfg_PERIPH_INPUT_SEL_0_write(value);

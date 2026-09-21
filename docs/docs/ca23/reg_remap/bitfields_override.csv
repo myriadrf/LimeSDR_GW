@@ -38,3 +38,7 @@ address,title,access,default,field,msb,lsb,values,description,op
 0x028A,tx_time_mon_day_hrs,R,0x0000,hrs,4,0,,TX stream start time hours,upsert
 0x028B,tx_time_yrs,R,0x0000,Reserved,15,12,,,delete
 0x028B,tx_time_yrs,R,0x0000,yrs,11,0,,TX stream start time years,upsert
+0x00C0,board_gpio_ovrd,R/W,0x0000,board_gpio_ovrd,3,0,"0=Dedicated function,1=Overridden by user",GPIO override bits for FPGA_GPIO[3:0].,upsert
+0x00C2,board_gpio_rd,R,0x0000,board_gpio_rd,3,0,"0=Low,1=High",GPIO readback bits for FPGA_GPIO[3:0].,upsert
+0x00C4,board_gpio_dir,R/W,0x0000,board_gpio_dir,3,0,"0=Input,1=Output","GPIO direction bits for FPGA_GPIO[3:0] (1=output).",upsert
+0x00C6,board_gpio_val,R/W,0x0000,board_gpio_val,3,0,"0=Low,1=High",GPIO output value bits for FPGA_GPIO[3:0].,upsert

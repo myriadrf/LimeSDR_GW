@@ -354,18 +354,42 @@ PERIPHCFG Registers (``0x00C0`` - ``0x00D3``)
      - Default
      - Name
      - Description
-   * - :ref:`0x00C0 <ca23_reg_00c0>`
-     - ``0x0002``
-     - ``board_gpio_ovrd``
-     - GPIO override control. 0 = dedicated function, 1 = user override.
-   * - :ref:`0x00C1 <ca23_regmap_periphcfg>` - :ref:`0x00C3 <ca23_regmap_periphcfg>`
+   * - :ref:`0x0014 <ca23_regmap_periphcfg>`
      - ``0x0000``
+     - ``rx1_sw``
+     - RX1 MIPI RF switch control
+   * - :ref:`0x0015 <ca23_regmap_periphcfg>`
+     - ``0x0000``
+     - ``trx1_sw``
+     - TRX1 MIPI RF switch control
+   * - :ref:`0x0016 <ca23_regmap_periphcfg>`
+     - ``0x0000``
+     - ``trx1_ant_sw``
+     - TRX1 antenna MIPI RF switch control
+   * - :ref:`0x0017 <ca23_regmap_periphcfg>`
+     - ``0x0000``
+     - ``rx2_trx2_sw``
+     - RX2 and TRX2 MIPI RF switch control
+   * - :ref:`0x00C0 <ca23_reg_00c0>`
+     - ``0x0000``
+     - ``board_gpio_ovrd``
+     - Board GPIO override control.
+   * - :ref:`0x00C1 <ca23_regmap_periphcfg>`
+     -  
      - \-
-     - Reserved.
+     - Reserved for GPIO.
+   * - :ref:`0x00C2 <ca23_reg_00c2>`
+     - ``0x0000``
+     - ``board_gpio_rd``
+     - Board GPIO read value.
+   * - :ref:`0x00C3 <ca23_regmap_periphcfg>`
+     -  
+     - \-
+     - Reserved for GPIO.
    * - :ref:`0x00C4 <ca23_reg_00c4>`
      - ``0x0000``
      - ``board_gpio_dir``
-     - Onboard GPIO direction. 0 = input, 1 = output.
+     - Board GPIO direction control (1=output).
    * - :ref:`0x00C5 <ca23_regmap_periphcfg>`
      - ``0x0000``
      - \-
@@ -373,7 +397,7 @@ PERIPHCFG Registers (``0x00C0`` - ``0x00D3``)
    * - :ref:`0x00C6 <ca23_reg_00c6>`
      - ``0x0000``
      - ``board_gpio_val``
-     - GPIO output value. 0 = low, 1 = high.
+     - Board GPIO output value.
    * - :ref:`0x00C7 <ca23_regmap_periphcfg>` - :ref:`0x00C9 <ca23_regmap_periphcfg>`
      - ``0x0000``
      - \-
@@ -1450,13 +1474,14 @@ Address: ``0x0073`` | Default: ``0x0000`` | Access: R/W
 ``0x00C0`` - board_gpio_ovrd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Address: ``0x00C0`` | Default: ``0x0002`` | Access: R/W
+Address: ``0x00C0`` | Default: ``0x0000`` | Access: R/W
 
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "board_gpio_ovrd [7:0]"},
-     {"bits": 8, "name": "board_gpio_ovrd [15:8]"}
+     {"bits": 4, "name": "board_gpio_ovrd [3:0]"},
+     {"bits": 4, "name": "Reserved [7:4]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
    ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
@@ -1467,10 +1492,38 @@ Address: ``0x00C0`` | Default: ``0x0002`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
+   * - ``[3:0]``
      - ``board_gpio_ovrd``
-     - 0 = dedicated function, 1 = user override
-     - GPIO override control. Separate bits controls corresponding GPIO
+     - 0=Dedicated function,1=Overridden by user
+     - GPIO override bits for FPGA_GPIO[3:0].
+
+.. _ca23_reg_00c2:
+
+``0x00C2`` - board_gpio_rd
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x00C2`` | Default: ``0x0000`` | Access: R
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 4, "name": "board_gpio_rd [3:0]"},
+     {"bits": 4, "name": "Reserved [7:4]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[3:0]``
+     - ``board_gpio_rd``
+     - 0=Low,1=High
+     - GPIO readback bits for FPGA_GPIO[3:0].
 
 .. _ca23_reg_00c4:
 
@@ -1482,8 +1535,9 @@ Address: ``0x00C4`` | Default: ``0x0000`` | Access: R/W
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "board_gpio_dir [7:0]"},
-     {"bits": 8, "name": "board_gpio_dir [15:8]"}
+     {"bits": 4, "name": "board_gpio_dir [3:0]"},
+     {"bits": 4, "name": "Reserved [7:4]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
    ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
@@ -1494,10 +1548,10 @@ Address: ``0x00C4`` | Default: ``0x0000`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
+   * - ``[3:0]``
      - ``board_gpio_dir``
-     - 0 = input, 1 = output.
-     - Onboard GPIO direction.
+     - 0=Input,1=Output
+     - GPIO direction bits for FPGA_GPIO[3:0] (1=output).
 
 .. _ca23_reg_00c6:
 
@@ -1509,8 +1563,9 @@ Address: ``0x00C6`` | Default: ``0x0000`` | Access: R/W
 .. wavedrom::
 
    { "reg": [
-     {"bits": 8, "name": "board_gpio_val [7:0]"},
-     {"bits": 8, "name": "board_gpio_val [15:8]"}
+     {"bits": 4, "name": "board_gpio_val [3:0]"},
+     {"bits": 4, "name": "Reserved [7:4]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
    ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
 
 .. list-table::
@@ -1521,10 +1576,10 @@ Address: ``0x00C6`` | Default: ``0x0000`` | Access: R/W
      - Field
      - Values
      - Description
-   * - ``[15:0]``
+   * - ``[3:0]``
      - ``board_gpio_val``
-     - 0 = low, 1 = high.
-     - GPIO output value.
+     - 0=Low,1=High
+     - GPIO output value bits for FPGA_GPIO[3:0].
 
 .. _ca23_reg_00ca:
 

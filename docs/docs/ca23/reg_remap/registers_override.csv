@@ -26,3 +26,10 @@ PERIPHCFG,0x0014,,0x0000,rx1_sw,RX1 MIPI RF switch control,upsert
 PERIPHCFG,0x0015,,0x0000,trx1_sw,TRX1 MIPI RF switch control,upsert
 PERIPHCFG,0x0016,,0x0000,trx1_ant_sw,TRX1 antenna MIPI RF switch control,upsert
 PERIPHCFG,0x0017,,0x0000,rx2_trx2_sw,RX2 and TRX2 MIPI RF switch control,upsert
+PERIPHCFG,0x00C1,0x00C3,0x0000,reserved,Reserved.,delete
+PERIPHCFG,0x00C0,,0x0000,board_gpio_ovrd,Board GPIO override control.,upsert
+PERIPHCFG,0x00C1,,,reserved,Reserved for GPIO.,upsert
+PERIPHCFG,0x00C2,,0x0000,board_gpio_rd,Board GPIO read value.,upsert
+PERIPHCFG,0x00C3,,,reserved,Reserved for GPIO.,upsert
+PERIPHCFG,0x00C4,,0x0000,board_gpio_dir,Board GPIO direction control (1=output).,upsert
+PERIPHCFG,0x00C6,,0x0000,board_gpio_val,Board GPIO output value.,upsert

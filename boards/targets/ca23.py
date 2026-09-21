@@ -51,7 +51,7 @@ from litepcie.phy.s7pciephy import S7PCIEPHY
 from litescope import LiteScopeAnalyzer
 
 from gateware.aux      import AUX
-from gateware.GpioTop  import GpioTop
+from gateware.IoOverrideTop import IoOverrideTop
 from gateware.GNSSTop import GNSSTop
 from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
@@ -119,10 +119,6 @@ class CNTRL_CSR(LiteXModule):
 # periphcfg
 class periphcfg_csr(LiteXModule):
     def __init__(self):
-        self.BOARD_GPIO_OVRD        = CSRStorage(16, reset=2)
-        self.BOARD_GPIO_RD          = CSRStorage(16, reset=0)
-        self.BOARD_GPIO_DIR         = CSRStorage(16, reset=0)
-        self.BOARD_GPIO_VAL         = CSRStorage(16, reset=0)
         self.PERIPH_INPUT_SEL_0     = CSRStorage(16, reset=0)
         self.PERIPH_INPUT_RD_0      = CSRStorage(16, reset=0)
         self.PERIPH_INPUT_RD_1      = CSRStorage(16, reset=0)
@@ -321,8 +317,11 @@ class BaseSoC(SoCCore):
             self.flash      = S7SPIFlash(platform.request("spiflash"), sys_clk_freq, 4e6)
 
         # GPIO -------------------------------------------------------------------------------------
-        fpga_gpio = platform.request("fpga_gpio")
-        self.gpio = GpioTop(platform, fpga_gpio)
+        self.gpio = IoOverrideTop(platform, name="gpio", inout_pads=platform.request("fpga_gpio"))
+        self.comb += [
+            self.gpio.dir.eq(0),
+            self.gpio.out_val.eq(0),
+        ]
 
         # XADC -------------------------------------------------------------------------------------
         self.xadc = XADC()
