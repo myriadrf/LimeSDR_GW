@@ -108,12 +108,12 @@ class CRG(LiteXModule):
         rst125 = ResetSignal("pcie")
 
         # PLL.
-        self.pll = pll = USMMCM(speedgrade=-2)
+        self.pll = pll = USPMMCM(speedgrade=-2)
         self.comb += pll.reset.eq(rst125)
         pll.register_clkin(clk125, 250e6)
-        pll.create_clkout(self.cd_idelay, 200e6)
-        pll.create_clkout(self.cd_afe, 500e6)
-        pll.create_clkout(self.cd_jesd_freerun, 100e6)
+        pll.create_clkout(self.cd_jesd_freerun, 100e6, margin=0)
+        pll.create_clkout(self.cd_afe, 525e6, margin=0)
+
 
         self.pll_sys = pll_sys = USPLL(speedgrade=-2)
         pll_sys.register_clkin(clk125, 250e6)
@@ -879,11 +879,13 @@ class BaseSoC(SoCCore):
             # Write timing constraints.
             f.write("# Renaming generated clocks\n")
             f.write("create_generated_clock -name sys -source [get_pins PLLE2_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins PLLE2_ADV/CLKOUT0]\n\n")
-            f.write("create_generated_clock -name idelaye -source [get_pins PLLE2_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins PLLE2_ADV/CLKOUT1]\n\n")
-            f.write("create_generated_clock -name afe -source [get_pins PLLE2_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins PLLE2_ADV/CLKOUT2]\n\n")
+
+            f.write("create_generated_clock -name jesd_freerun -source [get_pins MMCME4_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins MMCME4_ADV/CLKOUT0]\n\n")
+            f.write("create_generated_clock -name afe -source [get_pins MMCME4_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins MMCME4_ADV/CLKOUT1]\n\n")
 
             f.write("set_clock_groups -name sys_async1 -asynchronous -group [get_clocks sys]\n\n")
             f.write("set_clock_groups -name sys_async2 -asynchronous -group [get_clocks afe]\n\n")
+            f.write("set_clock_groups -name sys_async3 -asynchronous -group [get_clocks jesd_freerun]\n\n")
             f.write("set_clock_groups -name 1pps -asynchronous -group [get_clocks fpga_1pps_clk]\n\n")
             f.write("set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]\n\n")
             # set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]
@@ -916,16 +918,18 @@ class BaseSoC(SoCCore):
     def add_debug(self):
 
         analyzer_signals = [
-            self.limetop.stream_start_controller.rx_en,
-            self.synchro_pads.pps_in,
-            self.limetop.stream_start_controller.rx_en_req,
-            self.limetop.stream_start_controller.ext_trigger,
-
+            self.limetop.rxtx_top.tx_path.pct_rd,
+            self.limetop.rxtx_top.tx_path.pct_clear,
+            self.limetop.rxtx_top.tx_path.pct_valid,
+            self.limetop.rxtx_top.tx_path.pct_header,
+            self.limetop.rxtx_top.tx_path.rx_sample_nr_sync,
+            self.limetop.rxtx_top.tx_path.pct_loss_flg,
+            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_read_state,
         ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 256,
-            clock_domain = "sys",
+            depth        = 512,
+            clock_domain = "afe",
             register     = True,
             csr_csv      = "analyzer.csv"
         )
