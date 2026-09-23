@@ -20,7 +20,6 @@ import argparse
 import shutil
 import subprocess
 
-from deps.litex.litex.soc.interconnect.stream import ClockDomainCrossing
 from gateware.LimeDFB.FX3.src.FX3 import FX3
 from gateware.LimeTop import LimeTop
 from gateware.board_specific.limesdr_usb.PSS_LimeSDR_Usb import PSS_LimeSDR_Usb
@@ -114,6 +113,9 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
+    SoCCore.csr_map = {
+        "ppsdo"       : 22,
+    }
     def __init__(self,
                  sys_clk_freq      = 100e6,
                  with_bios         = False,
@@ -214,7 +216,8 @@ class BaseSoC(SoCCore):
                        vendor="altera",
                        EP01_0_rwidth = HOST_TO_FPGA_DATA_WIDTH,
                        EP01_1_rwidth = WFM_DATA_WIDTH,
-                       EP81_wwidth   = FPGA_TO_HOST_DATA_WIDTH
+                       EP81_wwidth   = FPGA_TO_HOST_DATA_WIDTH,
+                       cd_source_1_rd = "lms_tx",
                        )
 
         # LMS SPI -----------------------------------------------------------------------------------
@@ -291,24 +294,12 @@ class BaseSoC(SoCCore):
                 self.limetop.lms7002_top.wfm_sink_h.eq(self.pss.wfm_player.diq_h),
             ]
             # FX3 <-> WFMPlayer
-            # NOTE: both FX3 and WFMPlayer need usedw signals from their fifos to operate properly
-            #       LiteX AsyncFifo does not have two level outputs, so two SyncFIFOs have to be used,
-            #       one for each clock domain.
-            # TODO: See if it's possible to improve asyncFifo to avoid this workaround.
-            self.wfm_fifo = ClockDomainsRenamer("lms_tx")(
-                ResetInserter()(stream.SyncFIFO([("data", 32)], depth=1024, buffered=True))
-            )
-            self.wfm_data_cdc = ClockDomainCrossing([("data",32)],"sys","lms_tx", depth=4)
-            # No CDC for clear signal, since it is actually in sys clock domain (unmodified fpacfg wfm_load signal passed through wfmplayer)
             self.comb += [
-                # --- CDC for wfm data
-                self.FX3.data_source_1.connect(self.wfm_data_cdc.sink, omit=["keep", "id", "dest", "user"]),
-                self.wfm_data_cdc.source.connect(self.wfm_fifo.sink),
-                self.wfm_fifo.source.connect(self.pss.wfm_player.sink, omit=["keep", "id", "dest", "user"]),
-                # --- FIFO level for burst management
-                self.pss.wfm_player.sink_usedw.eq(self.wfm_fifo.level),
+                # --- Direct stream connection to WFM player sink in lms_tx domain
+                self.FX3.data_source_1.connect(self.pss.wfm_player.sink, omit=["keep", "id", "dest", "user"]),
+                # --- FIFO level for burst management (read domain)
+                self.pss.wfm_player.sink_usedw.eq(self.FX3.data_source_1_level),
                 # --- Controls
-                self.wfm_fifo.reset.eq(~self.pss.wfm_player.wfm_infifo_reset_n),
                 self.FX3.data_source1_clr.eq  (~self.pss.wfm_player.wfm_infifo_reset_n),
                 self.FX3.data_source_sel.eq(self.pss.wfm_player.wfm_load)
             ]
