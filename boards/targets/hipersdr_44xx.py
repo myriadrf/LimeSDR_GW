@@ -30,6 +30,7 @@ from litejesd204b.common import JESD204BPhysicalSettings, JESD204BTransportSetti
 from migen import *
 
 from litex.gen import *
+from litex.gen.genlib.cdc import BusSynchronizer
 from migen.genlib.io import DifferentialInput
 from migen.genlib.resetsync import AsyncResetSynchronizer
 
@@ -415,9 +416,9 @@ class BaseSoC(SoCCore):
             self.add_jtag_cpu_debug()
 
         # ICAP -------------------------------------------------------------------------------------
-        #self.icap = ICAP()
+        self.icap = ICAP(primitive="ICAPE3")
         #self.icap.add_reload()
-        #self.icap.add_timing_constraints(platform, sys_clk_freq, self.crg.cd_sys.clk)
+        self.icap.add_timing_constraints(platform, sys_clk_freq, self.crg.cd_sys.clk)
 
         # SPIFlash ---------------------------------------------------------------------------------
         if flash_boot:
@@ -477,7 +478,7 @@ class BaseSoC(SoCCore):
         )
         self.add_pcie(phy=self.pcie_phy, address_width=64, data_width=self.pcie_phy.data_width, ndmas=1,
             with_dma_buffering    = True,
-            dma_buffering_depth   = 16384,
+            dma_buffering_depth   = 65536,
             max_pending_requests  = 16,
             with_dma_loopback     = False,
             with_dma_synchronizer = False,
@@ -914,10 +915,158 @@ class BaseSoC(SoCCore):
         self.platform.add_period_constraint(self.cd_jtag.clk, 1e9/20e6)
         self.platform.add_false_path_constraints(self.cd_jtag.clk, self.crg.cd_sys.clk)
 
-
     def add_debug(self):
+        from migen.genlib.cdc import BusSynchronizer, MultiReg
+        # -------------------------------------------------------------------------
+        # PCIe/SYS -> AFE debug CDC
+        # -------------------------------------------------------------------------
+
+        # DMA Reader internal completion FIFO level.
+        reader_fifo_level_sys = self.pcie_dma0.reader.data_fifo.level
+
+        self.submodules.dma_reader_fifo_level_cdc = BusSynchronizer(
+            len(reader_fifo_level_sys), "sys", "afe"
+        )
+
+        pcie_dma0_reader_fifo_level = Signal.like(
+            reader_fifo_level_sys,
+            name_override="pcie_dma0_reader_fifo_level"
+        )
+
+        self.comb += [
+            self.dma_reader_fifo_level_cdc.i.eq(reader_fifo_level_sys),
+            pcie_dma0_reader_fifo_level.eq(
+                self.dma_reader_fifo_level_cdc.o
+            ),
+        ]
+
+        # -------------------------------------------------------------------------
+        # DMA Buffering FIFO level.
+        # -------------------------------------------------------------------------
+
+        buffering_fifo_level_sys = \
+            self.pcie_dma0.buffering.reader_fifo_level
+
+        self.submodules.dma_buffering_fifo_level_cdc = BusSynchronizer(
+            len(buffering_fifo_level_sys), "sys", "afe"
+        )
+
+        pcie_dma0_buffering_fifo_level = Signal.like(
+            buffering_fifo_level_sys,
+            name_override="pcie_dma0_buffering_fifo_level"
+        )
+
+        self.comb += [
+            self.dma_buffering_fifo_level_cdc.i.eq(
+                buffering_fifo_level_sys
+            ),
+            pcie_dma0_buffering_fifo_level.eq(
+                self.dma_buffering_fifo_level_cdc.o
+            ),
+        ]
+
+        # -------------------------------------------------------------------------
+        # Buffering FIFO input handshake.
+        # -------------------------------------------------------------------------
+
+        pcie_dma0_buffering_sink_valid = Signal(
+            name="pcie_dma0_buffering_sink_valid"
+        )
+        pcie_dma0_buffering_sink_ready = Signal(
+            name="pcie_dma0_buffering_sink_ready"
+        )
+
+        self.specials += [
+            MultiReg(
+                self.pcie_dma0.buffering.reader_fifo_sink_valid,
+                pcie_dma0_buffering_sink_valid,
+                odomain="afe"
+            ),
+            MultiReg(
+                self.pcie_dma0.buffering.reader_fifo_sink_ready,
+                pcie_dma0_buffering_sink_ready,
+                odomain="afe"
+            ),
+        ]
+
+        # -------------------------------------------------------------------------
+        # Buffering FIFO output handshake.
+        # -------------------------------------------------------------------------
+
+        pcie_dma0_buffering_source_valid = Signal(
+            name="pcie_dma0_buffering_source_valid"
+        )
+        pcie_dma0_buffering_source_ready = Signal(
+            name="pcie_dma0_buffering_source_ready"
+        )
+
+        self.specials += [
+            MultiReg(
+                self.pcie_dma0.buffering.reader_fifo_source_valid,
+                pcie_dma0_buffering_source_valid,
+                odomain="afe"
+            ),
+            MultiReg(
+                self.pcie_dma0.buffering.reader_fifo_source_ready,
+                pcie_dma0_buffering_source_ready,
+                odomain="afe"
+            ),
+        ]
+
+        # -------------------------------------------------------------------------
+        # Final PCIe DMA output handshake.
+        # -------------------------------------------------------------------------
+
+        pcie_dma0_source_valid = Signal(
+            name="pcie_dma0_source_valid"
+        )
+        pcie_dma0_source_ready = Signal(
+            name="pcie_dma0_source_ready"
+        )
+
+        self.specials += [
+            MultiReg(
+                self.pcie_dma0.source.valid,
+                pcie_dma0_source_valid,
+                odomain="afe"
+            ),
+            MultiReg(
+                self.pcie_dma0.source.ready,
+                pcie_dma0_source_ready,
+                odomain="afe"
+            ),
+        ]
+
+        # -------------------------------------------------------------------------
+        # Explicit buffering FIFO empty indicator.
+        # Generate in SYS domain first, then synchronize to AFE.
+        # -------------------------------------------------------------------------
+
+        pcie_dma0_buffering_fifo_empty_sys = Signal(
+            name="pcie_dma0_buffering_fifo_empty_sys"
+        )
+
+        pcie_dma0_buffering_fifo_empty = Signal(
+            name="pcie_dma0_buffering_fifo_empty"
+        )
+
+        self.comb += \
+            pcie_dma0_buffering_fifo_empty_sys.eq(
+                buffering_fifo_level_sys == 0
+            )
+
+        self.specials += MultiReg(
+            pcie_dma0_buffering_fifo_empty_sys,
+            pcie_dma0_buffering_fifo_empty,
+            odomain="afe"
+        )
+
+        # -------------------------------------------------------------------------
+        # LiteScope signals.
+        # -------------------------------------------------------------------------
 
         analyzer_signals = [
+            # TX path.
             self.limetop.rxtx_top.tx_path.pct_rd,
             self.limetop.rxtx_top.tx_path.pct_clear,
             self.limetop.rxtx_top.tx_path.pct_valid,
@@ -925,13 +1074,38 @@ class BaseSoC(SoCCore):
             self.limetop.rxtx_top.tx_path.rx_sample_nr_sync,
             self.limetop.rxtx_top.tx_path.pct_loss_flg,
             self.limetop.rxtx_top.tx_path.txpct_fifo_debug_read_state,
+
+            # TX sample FIFO.
+            self.limetop.rxtx_top.tx_path.fifo_smpl_buff.sink.ready,
+            self.limetop.rxtx_top.tx_path.fifo_smpl_buff.sink.valid,
+            self.limetop.rxtx_top.tx_path.fifo_smpl_buff.level,
+
+            # PCIe DMA reader internal FIFO.
+            pcie_dma0_reader_fifo_level,
+
+            # PCIe DMA large buffering FIFO.
+            pcie_dma0_buffering_fifo_level,
+            pcie_dma0_buffering_fifo_empty,
+
+            # Data entering large buffering FIFO.
+            pcie_dma0_buffering_sink_valid,
+            pcie_dma0_buffering_sink_ready,
+
+            # Data leaving large buffering FIFO.
+            pcie_dma0_buffering_source_valid,
+            pcie_dma0_buffering_source_ready,
+
+            # Final DMA output.
+            pcie_dma0_source_valid,
+            pcie_dma0_source_ready,
         ]
 
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 512,
-            clock_domain = "afe",
-            register     = True,
-            csr_csv      = "analyzer.csv"
+        self.analyzer = LiteScopeAnalyzer(
+            analyzer_signals,
+            depth=512,
+            clock_domain="afe",
+            register=True,
+            csr_csv="analyzer.csv"
         )
     # SoC hierarchy JSON utilities -----------------------------------------------------------------
 
