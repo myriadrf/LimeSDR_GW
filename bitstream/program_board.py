@@ -72,7 +72,7 @@ BOARD_CONFIG = {
 
         "cables": {
             "default": "ft2232",
-            "supported": ("ft2232", "digilent_hs2"),
+            "supported": ("ft2232", "digilent_hs2", "digilent_hs3"),
         },
 
         "targets": {
