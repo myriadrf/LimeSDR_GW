@@ -7,23 +7,23 @@ Register Listing for I2C0
 +----------------------------------------------------+------------------------------------------+
 | Register                                           | Address                                  |
 +====================================================+==========================================+
-| :ref:`I2C0_PHY_SPEED_MODE <I2C0_PHY_SPEED_MODE>`   | :ref:`0xf0001000 <I2C0_PHY_SPEED_MODE>`  |
+| :ref:`I2C0_PHY_SPEED_MODE <I2C0_PHY_SPEED_MODE>`   | :ref:`0xf0001800 <I2C0_PHY_SPEED_MODE>`  |
 +----------------------------------------------------+------------------------------------------+
-| :ref:`I2C0_MASTER_ACTIVE <I2C0_MASTER_ACTIVE>`     | :ref:`0xf0001004 <I2C0_MASTER_ACTIVE>`   |
+| :ref:`I2C0_MASTER_ACTIVE <I2C0_MASTER_ACTIVE>`     | :ref:`0xf0001804 <I2C0_MASTER_ACTIVE>`   |
 +----------------------------------------------------+------------------------------------------+
-| :ref:`I2C0_MASTER_SETTINGS <I2C0_MASTER_SETTINGS>` | :ref:`0xf0001008 <I2C0_MASTER_SETTINGS>` |
+| :ref:`I2C0_MASTER_SETTINGS <I2C0_MASTER_SETTINGS>` | :ref:`0xf0001808 <I2C0_MASTER_SETTINGS>` |
 +----------------------------------------------------+------------------------------------------+
-| :ref:`I2C0_MASTER_ADDR <I2C0_MASTER_ADDR>`         | :ref:`0xf000100c <I2C0_MASTER_ADDR>`     |
+| :ref:`I2C0_MASTER_ADDR <I2C0_MASTER_ADDR>`         | :ref:`0xf000180c <I2C0_MASTER_ADDR>`     |
 +----------------------------------------------------+------------------------------------------+
-| :ref:`I2C0_MASTER_RXTX <I2C0_MASTER_RXTX>`         | :ref:`0xf0001010 <I2C0_MASTER_RXTX>`     |
+| :ref:`I2C0_MASTER_RXTX <I2C0_MASTER_RXTX>`         | :ref:`0xf0001810 <I2C0_MASTER_RXTX>`     |
 +----------------------------------------------------+------------------------------------------+
-| :ref:`I2C0_MASTER_STATUS <I2C0_MASTER_STATUS>`     | :ref:`0xf0001014 <I2C0_MASTER_STATUS>`   |
+| :ref:`I2C0_MASTER_STATUS <I2C0_MASTER_STATUS>`     | :ref:`0xf0001814 <I2C0_MASTER_STATUS>`   |
 +----------------------------------------------------+------------------------------------------+
 
 I2C0_PHY_SPEED_MODE
 ^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0001000 + 0x0 = 0xf0001000`
+`Address: 0xf0001800 + 0x0 = 0xf0001800`
 
 
     .. wavedrom::
@@ -33,14 +33,14 @@ I2C0_PHY_SPEED_MODE
             "reg": [
                 {"name": "phy_speed_mode[1:0]", "bits": 2},
                 {"bits": 30},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
 I2C0_MASTER_ACTIVE
 ^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0001000 + 0x4 = 0xf0001004`
+`Address: 0xf0001800 + 0x4 = 0xf0001804`
 
 
     .. wavedrom::
@@ -50,14 +50,14 @@ I2C0_MASTER_ACTIVE
             "reg": [
                 {"name": "master_active", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
 I2C0_MASTER_SETTINGS
 ^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0001000 + 0x8 = 0xf0001008`
+`Address: 0xf0001800 + 0x8 = 0xf0001808`
 
     I2C transfer settings
 
@@ -72,7 +72,7 @@ I2C0_MASTER_SETTINGS
                 {"bits": 5},
                 {"name": "recover",  "bits": 1},
                 {"bits": 15}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -91,7 +91,7 @@ I2C0_MASTER_SETTINGS
 I2C0_MASTER_ADDR
 ^^^^^^^^^^^^^^^^
 
-`Address: 0xf0001000 + 0xc = 0xf000100c`
+`Address: 0xf0001800 + 0xc = 0xf000180c`
 
 
     .. wavedrom::
@@ -101,14 +101,14 @@ I2C0_MASTER_ADDR
             "reg": [
                 {"name": "master_addr[6:0]", "bits": 7},
                 {"bits": 25},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
 I2C0_MASTER_RXTX
 ^^^^^^^^^^^^^^^^
 
-`Address: 0xf0001000 + 0x10 = 0xf0001010`
+`Address: 0xf0001800 + 0x10 = 0xf0001810`
 
 
     .. wavedrom::
@@ -117,14 +117,14 @@ I2C0_MASTER_RXTX
         {
             "reg": [
                 {"name": "master_rxtx[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
 I2C0_MASTER_STATUS
 ^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0001000 + 0x14 = 0xf0001014`
+`Address: 0xf0001800 + 0x14 = 0xf0001814`
 
 
     .. wavedrom::
@@ -140,7 +140,7 @@ I2C0_MASTER_STATUS
                 {"name": "tx_unfinished",  "bits": 1},
                 {"name": "rx_unfinished",  "bits": 1},
                 {"bits": 14}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 

@@ -241,7 +241,6 @@ class BaseSoC(SoCCore):
             source_clk_domain  = "sys",
             TX_N_BUFF          = TX_N_BUFF,
             TX_MAX_PCT_SIZE    = TX_MAX_PCT_SIZE,
-            TX_IN_PCT_HDR_SIZE = TX_IN_PCT_HDR_SIZE,
             with_rx_tx_top     = with_rx_tx_top,
 
             with_fft           = with_fft,
@@ -278,12 +277,12 @@ class BaseSoC(SoCCore):
             self.ft601.source.connect(self.limetop.sink),
             self.limetop.source.connect(self.ft601.sink),
             # FT601 <-> RXTX Top.
-            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.rxtx_top.rx_en),
-            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.rxtx_top.rx_en),
+            self.ft601.stream_fifo_fpga_pc_reset_n.eq(self.limetop.stream_start_controller.rx_en),
+            self.ft601.stream_fifo_pc_fpga_reset_n.eq(self.limetop.stream_start_controller.tx_en),
         ]
 
 
-        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.fpgacfg.rx_en)
+        self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.limetop.stream_start_controller.tx_en)
 
         rfsw_pads  = platform.request("RFSW")
         tx_lb_pads = platform.request("TX_LB")
@@ -337,16 +336,8 @@ class BaseSoC(SoCCore):
         self.tst_top = TstTop(platform, ClockSignal("ft601"), ClockSignal("lmk"))
 
         self.comb += [
-            # LMS7002 <-> TstTop.
-            self.limetop.lms7002_top.from_tstcfg_tx_tst_i.eq(self.tst_top.tx_tst_i),
-            self.limetop.lms7002_top.from_tstcfg_tx_tst_q.eq(self.tst_top.tx_tst_q),
-            self.limetop.lms7002_top.from_tstcfg_test_en.eq( self.tst_top.test_en),
-
             # General Periph <-> RXTX Top.
             self.general_periph.tx_txant_en.eq(self.limetop.rxtx_top.tx_path.tx_txant_en),
-
-            # General Periph <-> LMS7002
-            self.limetop.lms7002_top.periph_output_val_1.eq(self.general_periph.periph_output_val_1),
         ]
 
         # Assign UART signals to general periph

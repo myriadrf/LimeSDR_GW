@@ -16,8 +16,8 @@
 
 /* Note:
  * LM75 threshold registers:
- *   45.0°C = bytes {0x2D, 0x00} -> value 0x002D
- *   55.0°C = bytes {0x37, 0x00} -> value 0x0037
+ *   45.0°C = bytes {0x2D, 0x00} -> value 0x002D (DEC: 45)
+ *   55.0°C = bytes {0x37, 0x00} -> value 0x0037 (DEC: 55)
  */
 #define LM75_THYST_45C          0x2D00u
 #define LM75_TOS_55C            0x3700u

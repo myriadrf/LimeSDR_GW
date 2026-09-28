@@ -27,7 +27,7 @@ enum eLMS_DEV
     LMS_DEV_RFSPARK     = 11,           // LMS7002 EVB
     LMS_DEV_LMS6002USB  = 12,           // LM6002-USB (USB stick: FX3, FPGA, LMS6002, RaspberryPi con)
     LMS_DEV_RFESPARK    = 13,           // LMS7002 EVB
-    LMS_DEV_LIMESDR     = 14,           // SoDeRa USB, 32bit FX3, 2xRAM, LMS7
+    LMS_DEV_LIMESDR     = 14,           // LimeSDR-USB, 32bit FX3, 2xRAM, LMS7
     LMS_DEV_SODERA_PCIE,                // ??
     LMS_DEV_QSPARK,                     // 2x LMS // ??
     LMS_DEV_MINI = 17,                  // FTDI + MAX10 + LMS
@@ -139,6 +139,10 @@ enum eEXP_BOARD
 #define CMD_EXP_BRDSPI8_RD 0x82
 #define CMD_MEMORY_WR      0x8C
 #define CMD_MEMORY_RD      0x8D
+
+// CMD_MEMORY_WR/RD targets and modes
+#define CMD_MEMORY_TARGET_FPGA_CACHE 0x0004
+#define CMD_MEMORY_PROGMODE_RAW      0x00
 
 // status
 #define STATUS_COMPLETED_CMD         1 // Command successfully executed

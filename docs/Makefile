@@ -61,7 +61,7 @@ regmap-ssdr-rev2:
 		--label-prefix ssdr_rev2
 
 .PHONY: regmap-all
-regmap-all: regmap-xtrx regmap-hipersdr-44xx regmap-ssdr-rev2 regmap-mini-v1 regmap-mini-v2
+regmap-all: regmap-xtrx regmap-hipersdr-44xx regmap-ssdr-rev2 regmap-mini-v1 regmap-mini-v2 regmap-usb
 
 .PHONY: regmap-mini-v1
 regmap-mini-v1:
@@ -94,6 +94,22 @@ regmap-mini-v2:
 		--output docs/limesdr-mini-v2/reg_remap/mini_v2_regremap_from_csv.rst \
 		--title "LimeSDR Mini V2 Host Register Reference" \
 		--label-prefix mini_v2
+
+.PHONY: regmap-usb
+regmap-usb:
+	@python3 tools/regmap_merge_csv.py \
+		--common-dir docs/common_host_regs \
+		--override-dir docs/limesdr-usb/reg_remap \
+		--out-modules /tmp/regmap/usb_regmap_modules.csv \
+		--out-registers /tmp/regmap/usb_regmap_registers.csv \
+		--out-bitfields /tmp/regmap/usb_regmap_bitfields.csv
+	@python3 tools/regmap_csv_to_rst.py \
+		--modules-csv /tmp/regmap/usb_regmap_modules.csv \
+		--registers-csv /tmp/regmap/usb_regmap_registers.csv \
+		--bitfields-csv /tmp/regmap/usb_regmap_bitfields.csv \
+		--output docs/limesdr-usb/reg_remap/usb_regremap_from_csv.rst \
+		--title "LimeSDR USB Host Register Reference" \
+		--label-prefix usb
 
 .PHONY: help Makefile
 

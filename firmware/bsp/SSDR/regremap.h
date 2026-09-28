@@ -22,8 +22,9 @@ extern "C"
     volatile extern uint8_t var_pllcfg_start;
     volatile extern uint8_t var_pllrst_start;
 
-    void readCSR(uint8_t *address, uint8_t *regdata_array);
+    // Return false for unsupported addresses; failed reads leave output unchanged.
+    bool readCSR(uint8_t *address, uint8_t *regdata_array);
 
-    void writeCSR(uint8_t *address, uint8_t *regdata_array);
+    bool writeCSR(uint8_t *address, uint8_t *regdata_array);
 
 #endif /* REGREMAP_H_ */

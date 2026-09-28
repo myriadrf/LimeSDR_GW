@@ -7,7 +7,7 @@
 #include "regremap.h"
 
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-Mini-V2
-void readCSR(uint8_t *address, uint8_t *regdata_array)
+bool readCSR(uint8_t *address, uint8_t *regdata_array)
 {
     uint16_t value = 0;
     uint16_t addr  = ((uint16_t)address[0] << 8) | address[1];
@@ -95,6 +95,18 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x22:
         value = csr_read_simple(clk_ctrl_addrs.pll_lock);
         break;
+#ifdef WITH_LMS7002
+    case 0x23:
+        value = 0;
+        value |= (csr_read_simple(clk_ctrl_addrs.pllcfg_start) & 0x1);
+        value |= (csr_read_simple(clk_ctrl_addrs.phcfg_start) & 0x1)  << 1;
+        value |= (csr_read_simple(clk_ctrl_addrs.pllrst_start) & 0x1) << 2;
+        value |= (csr_read_simple(clk_ctrl_addrs.pll_ind) & 0x1F)     << 3;
+        value |= (csr_read_simple(clk_ctrl_addrs.cnt_ind) & 0x1F)     << 8;
+        value |= (csr_read_simple(clk_ctrl_addrs.phcfg_updn) & 0x1)   << 13;
+        value |= (csr_read_simple(clk_ctrl_addrs.phcfg_mode) & 0x1)   << 14;
+        break;
+#endif
     case 0x25:
         value = 0b110110000;
         break;
@@ -164,17 +176,30 @@ void readCSR(uint8_t *address, uint8_t *regdata_array)
         value = general_periph_periph_output_VAL_1_read();
         break;
 
+    case 0x24:
+    case 0x28:
+    case 0xD1:
+    case 0x280:
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+        // Reserved: return zero for compatibility with SSDR/XTRX.
+        break;
+
     default:
         printf("FRE: %04x\n", addr);
-        break;
+        return false;
     }
 
     regdata_array[0] = (uint8_t)(value & 0xFF);        // Byte 0 (LSB)
     regdata_array[1] = (uint8_t)((value >> 8) & 0xFF); // Byte 1
+    return true;
 }
 
 // To write and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-Mini-V2
-void writeCSR(uint8_t *address, uint8_t *wrdata_array)
+bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
 {
     uint16_t value = (((uint16_t)wrdata_array[0] << 8) | ((uint16_t)wrdata_array[1]));
     uint16_t addr  = ((uint16_t)address[0] << 8) | address[1];
@@ -245,13 +270,13 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
 
 #ifdef WITH_LMS7002
     case 0x23:
-        csr_write_simple(value & 0x1, clk_ctrl_addrs.pllcfg_start);
-        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.phcfg_start);
-        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.pllrst_start);
         csr_write_simple((value >> 3) & 0x1F, clk_ctrl_addrs.pll_ind);
         csr_write_simple((value >> 8) & 0x1F, clk_ctrl_addrs.cnt_ind);
         csr_write_simple((value >> 13) & 0x1, clk_ctrl_addrs.phcfg_updn);
         csr_write_simple((value >> 14) & 0x1, clk_ctrl_addrs.phcfg_mode);
+        csr_write_simple(value & 0x1, clk_ctrl_addrs.pllcfg_start);
+        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.phcfg_start);
+        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.pllrst_start);
         break;
 #endif
     case 0x24:
@@ -318,10 +343,23 @@ void writeCSR(uint8_t *address, uint8_t *wrdata_array)
     }
         break;
 
+    case 0xD1:
+    case 0xFF:
+    case 0x280:
+    case 0x7FE1:
+    case 0x7FE2:
+    case 0x7FE3:
+    case 0x7FE4:
+    case 0x7FE5:
+    case 0x7FFF:
+        // Reserved: accept writes without changing hardware.
+        break;
+
     default:
         printf("FWE: %04x\n", addr);
-        break;
+        return false;
     }
+    return true;
 }
 
 uint16_t mini_get_bom_ver(void) {

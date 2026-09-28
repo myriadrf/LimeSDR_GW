@@ -37,7 +37,7 @@ The **Lime_top Module** serves as a wrapper for the LMS7002M transceiver control
 - :ref:`RX Path Top Module <rx_path_top_module>` – Manages the receive path from the LMS7002M to the FPGA and host, packing IQ samples into packets and generating timestamps.
 - :ref:`TX Path Top Module <tx_path_top_module>` – Manages the transmit path from the host through the FPGA to the LMS7002M, unpacking IQ sample packets and handling stream synchronization with timestamps.
 
-.. figure:: limesdr-mini-v1/images/limetop_block_diagram.drawio.svg
+.. figure:: images/limetop_block_diagram.drawio.svg
    :width: 500
    :align: center
    :alt: Lime_top block diagram

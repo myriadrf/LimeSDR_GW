@@ -7,25 +7,25 @@ Register Listing for SPIMASTER
 +------------------------------------------------------+-------------------------------------------+
 | Register                                             | Address                                   |
 +======================================================+===========================================+
-| :ref:`SPIMASTER_CONTROL <SPIMASTER_CONTROL>`         | :ref:`0xf000b800 <SPIMASTER_CONTROL>`     |
+| :ref:`SPIMASTER_CONTROL <SPIMASTER_CONTROL>`         | :ref:`0xf000c000 <SPIMASTER_CONTROL>`     |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_STATUS <SPIMASTER_STATUS>`           | :ref:`0xf000b804 <SPIMASTER_STATUS>`      |
+| :ref:`SPIMASTER_STATUS <SPIMASTER_STATUS>`           | :ref:`0xf000c004 <SPIMASTER_STATUS>`      |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_MOSI <SPIMASTER_MOSI>`               | :ref:`0xf000b808 <SPIMASTER_MOSI>`        |
+| :ref:`SPIMASTER_MOSI <SPIMASTER_MOSI>`               | :ref:`0xf000c008 <SPIMASTER_MOSI>`        |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_MISO <SPIMASTER_MISO>`               | :ref:`0xf000b80c <SPIMASTER_MISO>`        |
+| :ref:`SPIMASTER_MISO <SPIMASTER_MISO>`               | :ref:`0xf000c00c <SPIMASTER_MISO>`        |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_CS <SPIMASTER_CS>`                   | :ref:`0xf000b810 <SPIMASTER_CS>`          |
+| :ref:`SPIMASTER_CS <SPIMASTER_CS>`                   | :ref:`0xf000c010 <SPIMASTER_CS>`          |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_LOOPBACK <SPIMASTER_LOOPBACK>`       | :ref:`0xf000b814 <SPIMASTER_LOOPBACK>`    |
+| :ref:`SPIMASTER_LOOPBACK <SPIMASTER_LOOPBACK>`       | :ref:`0xf000c014 <SPIMASTER_LOOPBACK>`    |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_CLK_DIVIDER <SPIMASTER_CLK_DIVIDER>` | :ref:`0xf000b818 <SPIMASTER_CLK_DIVIDER>` |
+| :ref:`SPIMASTER_CLK_DIVIDER <SPIMASTER_CLK_DIVIDER>` | :ref:`0xf000c018 <SPIMASTER_CLK_DIVIDER>` |
 +------------------------------------------------------+-------------------------------------------+
 
 SPIMASTER_CONTROL
 ^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000b800 + 0x0 = 0xf000b800`
+`Address: 0xf000c000 + 0x0 = 0xf000c000`
 
     SPI Control.
 
@@ -53,7 +53,7 @@ SPIMASTER_CONTROL
 SPIMASTER_STATUS
 ^^^^^^^^^^^^^^^^
 
-`Address: 0xf000b800 + 0x4 = 0xf000b804`
+`Address: 0xf000c000 + 0x4 = 0xf000c004`
 
     SPI Status.
 
@@ -88,7 +88,7 @@ SPIMASTER_STATUS
 SPIMASTER_MOSI
 ^^^^^^^^^^^^^^
 
-`Address: 0xf000b800 + 0x8 = 0xf000b808`
+`Address: 0xf000c000 + 0x8 = 0xf000c008`
 
     SPI MOSI data (MSB-first serialization).
 
@@ -105,7 +105,7 @@ SPIMASTER_MOSI
 SPIMASTER_MISO
 ^^^^^^^^^^^^^^
 
-`Address: 0xf000b800 + 0xc = 0xf000b80c`
+`Address: 0xf000c000 + 0xc = 0xf000c00c`
 
     SPI MISO data (MSB-first de-serialization).
 
@@ -122,7 +122,7 @@ SPIMASTER_MISO
 SPIMASTER_CS
 ^^^^^^^^^^^^
 
-`Address: 0xf000b800 + 0x10 = 0xf000b810`
+`Address: 0xf000c000 + 0x10 = 0xf000c010`
 
     SPI CS Chip-Select and Mode.
 
@@ -166,7 +166,7 @@ SPIMASTER_CS
 SPIMASTER_LOOPBACK
 ^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000b800 + 0x14 = 0xf000b814`
+`Address: 0xf000c000 + 0x14 = 0xf000c014`
 
     SPI Loopback Mode.
 
@@ -198,7 +198,7 @@ SPIMASTER_LOOPBACK
 SPIMASTER_CLK_DIVIDER
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000b800 + 0x18 = 0xf000b818`
+`Address: 0xf000c000 + 0x18 = 0xf000c018`
 
     SPI Clk Divider.
 

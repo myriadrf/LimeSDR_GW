@@ -2,6 +2,8 @@
 
 static uint8_t serial_otp_unlock_key = 0;
 
+uint16_t g_bsp_hw_ver;
+
 litei2c_regs I2C0_REGS = {.master_active_addr   = CSR_I2C0_MASTER_ACTIVE_ADDR,
                           .master_addr_addr     = CSR_I2C0_MASTER_ADDR_ADDR,
                           .master_settings_addr = CSR_I2C0_MASTER_SETTINGS_ADDR,
@@ -30,6 +32,10 @@ void bsp_init(void)
             bsp_analog_write(BSP_DAC_INDEX, 0x00, (BSP_DAC_DEFAULT_VAL & 0xff00) >> 8, BSP_DAC_DEFAULT_VAL & 0xff);
         }
     }
+    // Read actual hardware version from register and store it in global variable
+    g_bsp_hw_ver = limetop_fpgacfg_bom_hw_ver_read();
+    // HW_VER is bits 0-2
+    g_bsp_hw_ver &= 0x000B;
 }
 
 void bsp_powerup(void)
@@ -214,24 +220,44 @@ void bsp_delay_ms(unsigned int ms)
 int8_t lms_reset(uint8_t periph_id, uint8_t command)
 {
     uint8_t check_val = lms7002m_periph_id_check(periph_id);
+    uint16_t lms1_val;
     if (check_val == 0)
         return 1;
     uint32_t read_value;
-
     switch (command) {
-    case LMS_RST_DEACTIVATE:
-        // No implementation
-        return 1;
-    case LMS_RST_ACTIVATE:
-        // No implementation
-        return 1;
+        case LMS_RST_DEACTIVATE:
+            lms1_val = limetop_lms7002_top_lms1_read();
+            // Set bit 1 (reset) to 1
+            lms1_val |= 2;
+            limetop_lms7002_top_lms1_write(lms1_val);
+            return 0;
 
-    case LMS_RST_PULSE:
-        read_value = limetop_lms7002_top_lms1_read() & ~(1 << CSR_LIMETOP_LMS7002_TOP_LMS1_RESET_OFFSET);
-        limetop_lms7002_top_lms1_write(read_value);
-        read_value |= (1 << CSR_LIMETOP_LMS7002_TOP_LMS1_RESET_OFFSET);
-        limetop_lms7002_top_lms1_write(read_value);
-        return 0;
+        case LMS_RST_ACTIVATE:
+            lms1_val = limetop_lms7002_top_lms1_read();
+            // Set bit 1 (reset) to 0
+            lms1_val &= 0xFFFD;
+            limetop_lms7002_top_lms1_write(lms1_val);
+            return 0;
+
+        case LMS_RST_PULSE:
+            lms1_val = limetop_lms7002_top_lms1_read();
+            // Set bit 1 (reset) to 0
+            lms1_val &= 0xFFFD;
+            limetop_lms7002_top_lms1_write(lms1_val);
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            asm("nop");
+            // Set bit 1 (reset) to 1
+            lms1_val |= 2;
+            limetop_lms7002_top_lms1_write(lms1_val);
+            return 0;
     }
 }
 

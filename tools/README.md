@@ -34,6 +34,7 @@ Tools for ensuring code quality and consistency across different hardware target
 | :--- | :--- | :--- | :--- |
 | **`check_bsp.py`** | Scans Board Support Package (BSP) C files for placeholders like `#error`, `TODO`, or unimplemented functions. Provides both CSV and GUI (Tkinter) summaries. | `python3 tools/check_bsp.py <bsp_dir>` | Quick health check of firmware portability when porting to a new hardware platform or tracking feature completeness. |
 | **`validate_regremap.py`** | Verifies the consistency of the register remapping logic between legacy LMS64C protocol (C source) and modern LiteX CSRs (CSV documentation). | `python3 tools/validate_regremap.py` | Ensuring that firmware refactors do not break compatibility with existing host-side software like LimeSuite. |
+| **`rebuild_targets.py`** | Automates the sequential rebuilding of multiple gateware targets. Supports golden image builds, custom target selection, and per-target logging. | `python3 tools/rebuild_targets.py --gold --dry-run` | Performing batch bitstream updates after major gateware or firmware changes while avoiding resource contention. |
 | **`generate_master_reg_list.py`** | Runs `make regmap-all` in the `docs` directory and aggregates register definitions from all board targets into a single master CSV list (`master_registers.csv`). | `python3 tools/generate_master_reg_list.py` | Generating unified register map documentation and identifying unused registers across the entire LimeSDR product family. |
 
 ### 4. Board-Specific Utilities
@@ -42,6 +43,7 @@ Scripts tailored for specific LimeSDR hardware variants.
 | Script | Function Description | Usage Example | Use Case |
 | :--- | :--- | :--- | :--- |
 | **`limesdr_mini_v2_bitstream.py`** | Automates the post-processing of bitstreams for the Mini V2, including MCS file generation for SPI Flash and directory organization. | *Internal utility* | Preparing production-ready firmware packages for distribution and flashing. |
+| **`generate_sfl_svf.py`** | Regenerates the committed LimeSDR-USB Serial Flash Loader (SFL) configuration SVF (`gateware/board_specific/limesdr_usb/sfl_ep4ce40_020f40dd.svf`) from the SFL image shipped with the active Quartus installation. | `python3 tools/generate_sfl_svf.py` | Refreshing the device-specific SFL bridge SVF that the `--flash` build prepends to the `.jic`-derived flash operations (e.g. after a Quartus major-version upgrade). |
 | **`test_gpsdo_cli.py`** | A CLI tool that interfaces with the `limeCSR` utility to monitor and tune the GPSDO PID loop in real-time. Supports check, reset, enable, and disable modes. | `python3 tools/test_gpsdo_cli.py --check` | On-bench debugging of frequency stability, GNSS lock status, and regulation loop performance. |
 
 ## GNU Radio Companion Flowgraphs

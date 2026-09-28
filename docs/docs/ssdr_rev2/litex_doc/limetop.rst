@@ -13,189 +13,203 @@ Register Listing for LIMETOP
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
 | :ref:`LIMETOP_EV_ENABLE <LIMETOP_EV_ENABLE>`                                                                                             | :ref:`0xf0004808 <LIMETOP_EV_ENABLE>`                                               |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_GPO <LIMETOP_GPO>`                                                                                                         | :ref:`0xf000480c <LIMETOP_GPO>`                                                     |
+| :ref:`LIMETOP_FPGACFG_BOARD_ID <LIMETOP_FPGACFG_BOARD_ID>`                                                                               | :ref:`0xf000480c <LIMETOP_FPGACFG_BOARD_ID>`                                        |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_BOARD_ID <LIMETOP_FPGACFG_BOARD_ID>`                                                                               | :ref:`0xf0004810 <LIMETOP_FPGACFG_BOARD_ID>`                                        |
+| :ref:`LIMETOP_FPGACFG_MAJOR_REV <LIMETOP_FPGACFG_MAJOR_REV>`                                                                             | :ref:`0xf0004810 <LIMETOP_FPGACFG_MAJOR_REV>`                                       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_MAJOR_REV <LIMETOP_FPGACFG_MAJOR_REV>`                                                                             | :ref:`0xf0004814 <LIMETOP_FPGACFG_MAJOR_REV>`                                       |
+| :ref:`LIMETOP_FPGACFG_COMPILE_REV <LIMETOP_FPGACFG_COMPILE_REV>`                                                                         | :ref:`0xf0004814 <LIMETOP_FPGACFG_COMPILE_REV>`                                     |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_COMPILE_REV <LIMETOP_FPGACFG_COMPILE_REV>`                                                                         | :ref:`0xf0004818 <LIMETOP_FPGACFG_COMPILE_REV>`                                     |
+| :ref:`LIMETOP_FPGACFG_BOM_HW_VER <LIMETOP_FPGACFG_BOM_HW_VER>`                                                                           | :ref:`0xf0004818 <LIMETOP_FPGACFG_BOM_HW_VER>`                                      |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_RESERVED_03 <LIMETOP_FPGACFG_RESERVED_03>`                                                                         | :ref:`0xf000481c <LIMETOP_FPGACFG_RESERVED_03>`                                     |
+| :ref:`LIMETOP_FPGACFG_CH_EN <LIMETOP_FPGACFG_CH_EN>`                                                                                     | :ref:`0xf000481c <LIMETOP_FPGACFG_CH_EN>`                                           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_RESERVED_04 <LIMETOP_FPGACFG_RESERVED_04>`                                                                         | :ref:`0xf0004820 <LIMETOP_FPGACFG_RESERVED_04>`                                     |
+| :ref:`LIMETOP_FPGACFG_REG08 <LIMETOP_FPGACFG_REG08>`                                                                                     | :ref:`0xf0004820 <LIMETOP_FPGACFG_REG08>`                                           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_RESERVED_05 <LIMETOP_FPGACFG_RESERVED_05>`                                                                         | :ref:`0xf0004824 <LIMETOP_FPGACFG_RESERVED_05>`                                     |
+| :ref:`LIMETOP_FPGACFG_REG09 <LIMETOP_FPGACFG_REG09>`                                                                                     | :ref:`0xf0004824 <LIMETOP_FPGACFG_REG09>`                                           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_RESERVED_06 <LIMETOP_FPGACFG_RESERVED_06>`                                                                         | :ref:`0xf0004828 <LIMETOP_FPGACFG_RESERVED_06>`                                     |
+| :ref:`LIMETOP_FPGACFG_REG10 <LIMETOP_FPGACFG_REG10>`                                                                                     | :ref:`0xf0004828 <LIMETOP_FPGACFG_REG10>`                                           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_CH_EN <LIMETOP_FPGACFG_CH_EN>`                                                                                     | :ref:`0xf000482c <LIMETOP_FPGACFG_CH_EN>`                                           |
+| :ref:`LIMETOP_FPGACFG_WFM_CH_EN <LIMETOP_FPGACFG_WFM_CH_EN>`                                                                             | :ref:`0xf000482c <LIMETOP_FPGACFG_WFM_CH_EN>`                                       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_REG08 <LIMETOP_FPGACFG_REG08>`                                                                                     | :ref:`0xf0004830 <LIMETOP_FPGACFG_REG08>`                                           |
+| :ref:`LIMETOP_FPGACFG_REG13 <LIMETOP_FPGACFG_REG13>`                                                                                     | :ref:`0xf0004830 <LIMETOP_FPGACFG_REG13>`                                           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_REG09 <LIMETOP_FPGACFG_REG09>`                                                                                     | :ref:`0xf0004834 <LIMETOP_FPGACFG_REG09>`                                           |
+| :ref:`LIMETOP_FPGACFG_WFM_SMPL_WIDTH <LIMETOP_FPGACFG_WFM_SMPL_WIDTH>`                                                                   | :ref:`0xf0004834 <LIMETOP_FPGACFG_WFM_SMPL_WIDTH>`                                  |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_REG10 <LIMETOP_FPGACFG_REG10>`                                                                                     | :ref:`0xf0004838 <LIMETOP_FPGACFG_REG10>`                                           |
+| :ref:`LIMETOP_FPGACFG_SYNC_SIZE <LIMETOP_FPGACFG_SYNC_SIZE>`                                                                             | :ref:`0xf0004838 <LIMETOP_FPGACFG_SYNC_SIZE>`                                       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_WFM_CH_EN <LIMETOP_FPGACFG_WFM_CH_EN>`                                                                             | :ref:`0xf000483c <LIMETOP_FPGACFG_WFM_CH_EN>`                                       |
+| :ref:`LIMETOP_FPGACFG_TXANT_PRE <LIMETOP_FPGACFG_TXANT_PRE>`                                                                             | :ref:`0xf000483c <LIMETOP_FPGACFG_TXANT_PRE>`                                       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_REG13 <LIMETOP_FPGACFG_REG13>`                                                                                     | :ref:`0xf0004840 <LIMETOP_FPGACFG_REG13>`                                           |
+| :ref:`LIMETOP_FPGACFG_TXANT_POST <LIMETOP_FPGACFG_TXANT_POST>`                                                                           | :ref:`0xf0004840 <LIMETOP_FPGACFG_TXANT_POST>`                                      |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_WFM_SMPL_WIDTH <LIMETOP_FPGACFG_WFM_SMPL_WIDTH>`                                                                   | :ref:`0xf0004844 <LIMETOP_FPGACFG_WFM_SMPL_WIDTH>`                                  |
+| :ref:`LIMETOP_FPGACFG_REG18 <LIMETOP_FPGACFG_REG18>`                                                                                     | :ref:`0xf0004844 <LIMETOP_FPGACFG_REG18>`                                           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_SYNC_SIZE <LIMETOP_FPGACFG_SYNC_SIZE>`                                                                             | :ref:`0xf0004848 <LIMETOP_FPGACFG_SYNC_SIZE>`                                       |
+| :ref:`LIMETOP_FPGACFG_CLK_ENA <LIMETOP_FPGACFG_CLK_ENA>`                                                                                 | :ref:`0xf0004848 <LIMETOP_FPGACFG_CLK_ENA>`                                         |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_TXANT_PRE <LIMETOP_FPGACFG_TXANT_PRE>`                                                                             | :ref:`0xf000484c <LIMETOP_FPGACFG_TXANT_PRE>`                                       |
+| :ref:`LIMETOP_FPGACFG_SYNC_PULSE_PERIOD <LIMETOP_FPGACFG_SYNC_PULSE_PERIOD>`                                                             | :ref:`0xf000484c <LIMETOP_FPGACFG_SYNC_PULSE_PERIOD>`                               |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_TXANT_POST <LIMETOP_FPGACFG_TXANT_POST>`                                                                           | :ref:`0xf0004850 <LIMETOP_FPGACFG_TXANT_POST>`                                      |
+| :ref:`LIMETOP_STREAM_START_CONTROLLER_RX_DELAY_MODE <LIMETOP_STREAM_START_CONTROLLER_RX_DELAY_MODE>`                                     | :ref:`0xf0004850 <LIMETOP_STREAM_START_CONTROLLER_RX_DELAY_MODE>`                   |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_REG18 <LIMETOP_FPGACFG_REG18>`                                                                                     | :ref:`0xf0004854 <LIMETOP_FPGACFG_REG18>`                                           |
+| :ref:`LIMETOP_STREAM_START_CONTROLLER_TX_DELAY_MODE <LIMETOP_STREAM_START_CONTROLLER_TX_DELAY_MODE>`                                     | :ref:`0xf0004854 <LIMETOP_STREAM_START_CONTROLLER_TX_DELAY_MODE>`                   |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_CLK_ENA <LIMETOP_FPGACFG_CLK_ENA>`                                                                                 | :ref:`0xf0004858 <LIMETOP_FPGACFG_CLK_ENA>`                                         |
+| :ref:`LIMETOP_STREAM_START_CONTROLLER_TX_SYNC_MODE <LIMETOP_STREAM_START_CONTROLLER_TX_SYNC_MODE>`                                       | :ref:`0xf0004858 <LIMETOP_STREAM_START_CONTROLLER_TX_SYNC_MODE>`                    |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_FPGACFG_SYNC_PULSE_PERIOD <LIMETOP_FPGACFG_SYNC_PULSE_PERIOD>`                                                             | :ref:`0xf000485c <LIMETOP_FPGACFG_SYNC_PULSE_PERIOD>`                               |
+| :ref:`LIMETOP_LMS7002_TOP_LMS1 <LIMETOP_LMS7002_TOP_LMS1>`                                                                               | :ref:`0xf000485c <LIMETOP_LMS7002_TOP_LMS1>`                                        |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS_CTR_GPIO <LIMETOP_LMS7002_TOP_LMS_CTR_GPIO>`                                                               | :ref:`0xf0004860 <LIMETOP_LMS7002_TOP_LMS_CTR_GPIO>`                                |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_TXCLK_EN <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_TXCLK_EN>`                   | :ref:`0xf0004860 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_TXCLK_EN>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS1 <LIMETOP_LMS7002_TOP_LMS1>`                                                                               | :ref:`0xf0004864 <LIMETOP_LMS7002_TOP_LMS1>`                                        |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_RXCLK_EN <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_RXCLK_EN>`                   | :ref:`0xf0004864 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_RXCLK_EN>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_REG01 <LIMETOP_LMS7002_TOP_REG01>`                                                                             | :ref:`0xf0004868 <LIMETOP_LMS7002_TOP_REG01>`                                       |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_MODE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_MODE>`                         | :ref:`0xf0004868 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_MODE>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_REG03 <LIMETOP_LMS7002_TOP_REG03>`                                                                             | :ref:`0xf000486c <LIMETOP_LMS7002_TOP_REG03>`                                       |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_UPDN <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_UPDN>`                         | :ref:`0xf000486c <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_UPDN>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_CMP_START <LIMETOP_LMS7002_TOP_CMP_START>`                                                                     | :ref:`0xf0004870 <LIMETOP_LMS7002_TOP_CMP_START>`                                   |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_DONE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_DONE>`                         | :ref:`0xf0004870 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_DONE>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_CMP_LENGTH <LIMETOP_LMS7002_TOP_CMP_LENGTH>`                                                                   | :ref:`0xf0004874 <LIMETOP_LMS7002_TOP_CMP_LENGTH>`                                  |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_ERR <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_ERR>`                           | :ref:`0xf0004874 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_ERR>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_CMP_DONE <LIMETOP_LMS7002_TOP_CMP_DONE>`                                                                       | :ref:`0xf0004878 <LIMETOP_LMS7002_TOP_CMP_DONE>`                                    |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_DONE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_DONE>`                       | :ref:`0xf0004878 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_DONE>`            |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_CMP_ERROR <LIMETOP_LMS7002_TOP_CMP_ERROR>`                                                                     | :ref:`0xf000487c <LIMETOP_LMS7002_TOP_CMP_ERROR>`                                   |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_BUSY <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_BUSY>`                       | :ref:`0xf000487c <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_BUSY>`            |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_TXCLK_EN <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_TXCLK_EN>`                   | :ref:`0xf0004880 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_TXCLK_EN>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_START <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_START>`                     | :ref:`0xf0004880 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_START>`           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_RXCLK_EN <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_RXCLK_EN>`                   | :ref:`0xf0004884 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_RXCLK_EN>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_PHASE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_PHASE>`                           | :ref:`0xf0004884 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_PHASE>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_MODE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_MODE>`                         | :ref:`0xf0004888 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_MODE>`             |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_VCODIV <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_VCODIV>`                   | :ref:`0xf0004888 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_VCODIV>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_DONE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_DONE>`                         | :ref:`0xf000488c <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_DONE>`             |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_ODD_DIV <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_ODD_DIV>`                           | :ref:`0xf000488c <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_ODD_DIV>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_ERR <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_ERR>`                           | :ref:`0xf0004890 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_ERR>`              |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_DIV_BYP>`                           | :ref:`0xf0004890 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_DIV_BYP>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_DONE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_DONE>`                       | :ref:`0xf0004894 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_DONE>`            |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_ODD_DIV <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_ODD_DIV>`                           | :ref:`0xf0004894 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_ODD_DIV>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_BUSY <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_BUSY>`                       | :ref:`0xf0004898 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_BUSY>`            |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_DIV_BYP>`                           | :ref:`0xf0004898 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_DIV_BYP>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_START <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_START>`                     | :ref:`0xf000489c <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_START>`           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLRST_START <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLRST_START>`                     | :ref:`0xf000489c <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLRST_START>`           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLRST_START <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLRST_START>`                     | :ref:`0xf00048a0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLRST_START>`           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_IND <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_IND>`                               | :ref:`0xf00048a0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_IND>`                |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_IND <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_IND>`                               | :ref:`0xf00048a4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_IND>`                |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_IND <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_IND>`                               | :ref:`0xf00048a4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_IND>`                |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_START <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_START>`                       | :ref:`0xf00048a8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_START>`            |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_LOCK <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_LOCK>`                             | :ref:`0xf00048a8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_LOCK>`               |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_ERROR <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_ERROR>`                     | :ref:`0xf00048ac <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_ERROR>`           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_START <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_START>`                       | :ref:`0xf00048ac <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_START>`            |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_BYP>`                     | :ref:`0xf00048b0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_BYP>`           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_ERROR <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_ERROR>`                     | :ref:`0xf00048b0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_ERROR>`           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_BYP>`                       | :ref:`0xf00048b4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_BYP>`            |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_BYP>`                     | :ref:`0xf00048b4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_BYP>`           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_BYP>`                         | :ref:`0xf00048b8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_BYP>`             |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_BYP>`                       | :ref:`0xf00048b8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_BYP>`            |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_BYP>`                         | :ref:`0xf00048bc <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_BYP>`             |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_BYP>`                         | :ref:`0xf00048bc <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_BYP>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_CNT>`                       | :ref:`0xf00048c0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_CNT>`            |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_BYP>`                         | :ref:`0xf00048c0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_BYP>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_CNT>`                     | :ref:`0xf00048c4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_CNT>`           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_BYP>`                         | :ref:`0xf00048c4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_BYP>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT>`                         | :ref:`0xf00048c8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT>`             |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_BYP>`                         | :ref:`0xf00048c8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_BYP>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_CNT>`                         | :ref:`0xf00048cc <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_CNT>`             |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_BYP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_BYP>`                         | :ref:`0xf00048cc <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_BYP>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_PHASE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_PHASE>`                             | :ref:`0xf00048d0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_PHASE>`               |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_ODDDIV <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_ODDDIV>`                           | :ref:`0xf00048d0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_ODDDIV>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_SMPLS <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_SMPLS>`             | :ref:`0xf00048d4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_SMPLS>`       |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_ODDDIV <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_ODDDIV>`                           | :ref:`0xf00048d4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_ODDDIV>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_CSR_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_CSR_RESET>`                   | :ref:`0xf00048d8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_CSR_RESET>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_ODDDIV <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_ODDDIV>`                           | :ref:`0xf00048d8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_ODDDIV>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_RESET>`                   | :ref:`0xf00048dc <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_RESET>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_ODDDIV <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_ODDDIV>`                           | :ref:`0xf00048dc <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_ODDDIV>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED>`                 | :ref:`0xf00048e0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED>`         |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_ODDDIV <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_ODDDIV>`                           | :ref:`0xf00048e0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_ODDDIV>`              |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_READ <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_READ>`                     | :ref:`0xf00048e4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_READ>`           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_CNT>`                                   | :ref:`0xf00048e4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_CNT>`                  |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_WRITE <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_WRITE>`                   | :ref:`0xf00048e8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_WRITE>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_CNT>`                                   | :ref:`0xf00048e8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_CNT>`                  |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DRDY <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DRDY>`                     | :ref:`0xf00048ec <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DRDY>`           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_CNT>`                       | :ref:`0xf00048ec <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_CNT>`            |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_ADR <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_ADR>`                       | :ref:`0xf00048f0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_ADR>`            |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_CNT>`                     | :ref:`0xf00048f0 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_CNT>`           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_W <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_W>`                   | :ref:`0xf00048f4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_W>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT>`                         | :ref:`0xf00048f4 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_R <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_R>`                   | :ref:`0xf00048f8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_R>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_CNT>`                         | :ref:`0xf00048f8 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_CNT>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY>`             | :ref:`0xf00048fc <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY>`       |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_CNT>`                         | :ref:`0xf00048fc <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_CNT>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY_RESET>` | :ref:`0xf0004900 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY_RESET>` |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_CNT>`                         | :ref:`0xf0004900 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_CNT>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_CSR_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_CSR_RESET>`                   | :ref:`0xf0004904 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_CSR_RESET>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_CNT <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_CNT>`                         | :ref:`0xf0004904 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_CNT>`             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_RESET>`                   | :ref:`0xf0004908 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_RESET>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_PHASE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_PHASE>`                             | :ref:`0xf0004908 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_PHASE>`               |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_LOCKED <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_LOCKED>`                 | :ref:`0xf000490c <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_LOCKED>`         |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_SMPLS <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_SMPLS>`             | :ref:`0xf000490c <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_SMPLS>`       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_READ <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_READ>`                     | :ref:`0xf0004910 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_READ>`           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP>`               | :ref:`0xf0004910 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP>`        |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_WRITE <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_WRITE>`                   | :ref:`0xf0004914 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_WRITE>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_START <LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_START>`                                             | :ref:`0xf0004914 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_START>`                       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DRDY <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DRDY>`                     | :ref:`0xf0004918 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DRDY>`           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_DONE <LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_DONE>`                                               | :ref:`0xf0004918 <LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_DONE>`                        |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_ADR <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_ADR>`                       | :ref:`0xf000491c <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_ADR>`            |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_ERROR <LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_ERROR>`                                             | :ref:`0xf000491c <LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_ERROR>`                       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_W <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_W>`                   | :ref:`0xf0004920 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_W>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_CSR_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_CSR_RESET>`                   | :ref:`0xf0004920 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_CSR_RESET>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_R <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_R>`                   | :ref:`0xf0004924 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_R>`          |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_RESET>`                   | :ref:`0xf0004924 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_RESET>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY>`             | :ref:`0xf0004928 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY>`       |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED>`                 | :ref:`0xf0004928 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED>`         |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET>` | :ref:`0xf000492c <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET>` |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_READ <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_READ>`                     | :ref:`0xf000492c <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_READ>`           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RXTX_TOP_DDR2_1_STATUS <LIMETOP_RXTX_TOP_DDR2_1_STATUS>`                                                                   | :ref:`0xf0004930 <LIMETOP_RXTX_TOP_DDR2_1_STATUS>`                                  |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_WRITE <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_WRITE>`                   | :ref:`0xf0004930 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_WRITE>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_L <LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_L>`                                                     | :ref:`0xf0004934 <LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_L>`                           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DRDY <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DRDY>`                     | :ref:`0xf0004934 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DRDY>`           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_H <LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_H>`                                                     | :ref:`0xf0004938 <LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_H>`                           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_ADR <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_ADR>`                       | :ref:`0xf0004938 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_ADR>`            |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                                                             | :ref:`0xf000493c <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                               |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_W <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_W>`                   | :ref:`0xf000493c <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_W>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`         | :ref:`0xf0004940 <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`     |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_R <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_R>`                   | :ref:`0xf0004940 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_R>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RX_DELAY_MODE <LIMETOP_RX_DELAY_MODE>`                                                                                     | :ref:`0xf0004944 <LIMETOP_RX_DELAY_MODE>`                                           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY>`             | :ref:`0xf0004944 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY>`       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_TX_DELAY_MODE <LIMETOP_TX_DELAY_MODE>`                                                                                     | :ref:`0xf0004948 <LIMETOP_TX_DELAY_MODE>`                                           |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY_RESET>` | :ref:`0xf0004948 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY_RESET>` |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RFSW_CONTROL_TDD_MANUAL_VAL <LIMETOP_RFSW_CONTROL_TDD_MANUAL_VAL>`                                                         | :ref:`0xf000494c <LIMETOP_RFSW_CONTROL_TDD_MANUAL_VAL>`                             |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_CSR_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_CSR_RESET>`                   | :ref:`0xf000494c <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_CSR_RESET>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RFSW_CONTROL_TDD_AUTO_EN <LIMETOP_RFSW_CONTROL_TDD_AUTO_EN>`                                                               | :ref:`0xf0004950 <LIMETOP_RFSW_CONTROL_TDD_AUTO_EN>`                                |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_RESET>`                   | :ref:`0xf0004950 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_RESET>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RFSW_CONTROL_TDD_INVERT <LIMETOP_RFSW_CONTROL_TDD_INVERT>`                                                                 | :ref:`0xf0004954 <LIMETOP_RFSW_CONTROL_TDD_INVERT>`                                 |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_LOCKED <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_LOCKED>`                 | :ref:`0xf0004954 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_LOCKED>`         |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RFSW_CONTROL_RFSW_RX <LIMETOP_RFSW_CONTROL_RFSW_RX>`                                                                       | :ref:`0xf0004958 <LIMETOP_RFSW_CONTROL_RFSW_RX>`                                    |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_READ <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_READ>`                     | :ref:`0xf0004958 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_READ>`           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RFSW_CONTROL_RFSW_TX <LIMETOP_RFSW_CONTROL_RFSW_TX>`                                                                       | :ref:`0xf000495c <LIMETOP_RFSW_CONTROL_RFSW_TX>`                                    |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_WRITE <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_WRITE>`                   | :ref:`0xf000495c <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_WRITE>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RFSW_CONTROL_RFSW_AUTO_EN <LIMETOP_RFSW_CONTROL_RFSW_AUTO_EN>`                                                             | :ref:`0xf0004960 <LIMETOP_RFSW_CONTROL_RFSW_AUTO_EN>`                               |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DRDY <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DRDY>`                     | :ref:`0xf0004960 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DRDY>`           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RX_TIME_MIN_SEC <LIMETOP_RX_TIME_MIN_SEC>`                                                                                 | :ref:`0xf0004964 <LIMETOP_RX_TIME_MIN_SEC>`                                         |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_ADR <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_ADR>`                       | :ref:`0xf0004964 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_ADR>`            |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RX_TIME_MON_DAY_HRS <LIMETOP_RX_TIME_MON_DAY_HRS>`                                                                         | :ref:`0xf0004968 <LIMETOP_RX_TIME_MON_DAY_HRS>`                                     |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_W <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_W>`                   | :ref:`0xf0004968 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_W>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RX_TIME_YRS <LIMETOP_RX_TIME_YRS>`                                                                                         | :ref:`0xf000496c <LIMETOP_RX_TIME_YRS>`                                             |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_R <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_R>`                   | :ref:`0xf000496c <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_R>`          |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_TX_TIME_MIN_SEC <LIMETOP_TX_TIME_MIN_SEC>`                                                                                 | :ref:`0xf0004970 <LIMETOP_TX_TIME_MIN_SEC>`                                         |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY>`             | :ref:`0xf0004970 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY>`       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_TX_TIME_MON_DAY_HRS <LIMETOP_TX_TIME_MON_DAY_HRS>`                                                                         | :ref:`0xf0004974 <LIMETOP_TX_TIME_MON_DAY_HRS>`                                     |
+| :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET>` | :ref:`0xf0004974 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET>` |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_TX_TIME_YRS <LIMETOP_TX_TIME_YRS>`                                                                                         | :ref:`0xf0004978 <LIMETOP_TX_TIME_YRS>`                                             |
+| :ref:`LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                                                             | :ref:`0xf0004978 <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                               |
++------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| :ref:`LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`         | :ref:`0xf000497c <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`     |
++------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| :ref:`LIMETOP_RX_TIME_MIN_SEC <LIMETOP_RX_TIME_MIN_SEC>`                                                                                 | :ref:`0xf0004980 <LIMETOP_RX_TIME_MIN_SEC>`                                         |
++------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| :ref:`LIMETOP_RX_TIME_MON_DAY_HRS <LIMETOP_RX_TIME_MON_DAY_HRS>`                                                                         | :ref:`0xf0004984 <LIMETOP_RX_TIME_MON_DAY_HRS>`                                     |
++------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| :ref:`LIMETOP_RX_TIME_YRS <LIMETOP_RX_TIME_YRS>`                                                                                         | :ref:`0xf0004988 <LIMETOP_RX_TIME_YRS>`                                             |
++------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| :ref:`LIMETOP_TX_TIME_MIN_SEC <LIMETOP_TX_TIME_MIN_SEC>`                                                                                 | :ref:`0xf000498c <LIMETOP_TX_TIME_MIN_SEC>`                                         |
++------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| :ref:`LIMETOP_TX_TIME_MON_DAY_HRS <LIMETOP_TX_TIME_MON_DAY_HRS>`                                                                         | :ref:`0xf0004990 <LIMETOP_TX_TIME_MON_DAY_HRS>`                                     |
++------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| :ref:`LIMETOP_TX_TIME_YRS <LIMETOP_TX_TIME_YRS>`                                                                                         | :ref:`0xf0004994 <LIMETOP_TX_TIME_YRS>`                                             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
 
 LIMETOP_EV_STATUS
@@ -274,42 +288,10 @@ LIMETOP_EV_ENABLE
 | [0]   | CLK_CTRL_IRQ | Write a ``1`` to enable the ``clk_ctrl_irq`` Event |
 +-------+--------------+----------------------------------------------------+
 
-LIMETOP_GPO
-^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0xc = 0xf000480c`
-
-    GPO interface
-
-    .. wavedrom::
-        :caption: LIMETOP_GPO
-
-        {
-            "reg": [
-                {"name": "cpu_busy",  "bits": 1},
-                {"bits": 31}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-+-------+----------+---------------------------+
-| Field | Name     | Description               |
-+=======+==========+===========================+
-| [0]   | CPU_BUSY | CPU state.                |
-|       |          |                           |
-|       |          | +---------+-------------+ |
-|       |          | | Value   | Description | |
-|       |          | +=========+=============+ |
-|       |          | | ``0b0`` | IDLE.       | |
-|       |          | +---------+-------------+ |
-|       |          | | ``0b1`` | BUSY.       | |
-|       |          | +---------+-------------+ |
-+-------+----------+---------------------------+
-
 LIMETOP_FPGACFG_BOARD_ID
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x10 = 0xf0004810`
+`Address: 0xf0004800 + 0xc = 0xf000480c`
 
 
     .. wavedrom::
@@ -326,7 +308,7 @@ LIMETOP_FPGACFG_BOARD_ID
 LIMETOP_FPGACFG_MAJOR_REV
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x14 = 0xf0004814`
+`Address: 0xf0004800 + 0x10 = 0xf0004810`
 
 
     .. wavedrom::
@@ -343,7 +325,7 @@ LIMETOP_FPGACFG_MAJOR_REV
 LIMETOP_FPGACFG_COMPILE_REV
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x18 = 0xf0004818`
+`Address: 0xf0004800 + 0x14 = 0xf0004814`
 
 
     .. wavedrom::
@@ -351,75 +333,24 @@ LIMETOP_FPGACFG_COMPILE_REV
 
         {
             "reg": [
-                {"name": "fpgacfg_compile_rev[15:0]", "attr": 'reset: 8', "bits": 16},
+                {"name": "fpgacfg_compile_rev[15:0]", "attr": 'reset: 11', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
-LIMETOP_FPGACFG_RESERVED_03
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LIMETOP_FPGACFG_BOM_HW_VER
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x1c = 0xf000481c`
-
-
-    .. wavedrom::
-        :caption: LIMETOP_FPGACFG_RESERVED_03
-
-        {
-            "reg": [
-                {"name": "fpgacfg_reserved_03[15:0]", "bits": 16},
-                {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
-        }
-
-
-LIMETOP_FPGACFG_RESERVED_04
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x20 = 0xf0004820`
+`Address: 0xf0004800 + 0x18 = 0xf0004818`
 
 
     .. wavedrom::
-        :caption: LIMETOP_FPGACFG_RESERVED_04
+        :caption: LIMETOP_FPGACFG_BOM_HW_VER
 
         {
             "reg": [
-                {"name": "fpgacfg_reserved_04[15:0]", "bits": 16},
-                {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
-        }
-
-
-LIMETOP_FPGACFG_RESERVED_05
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x24 = 0xf0004824`
-
-
-    .. wavedrom::
-        :caption: LIMETOP_FPGACFG_RESERVED_05
-
-        {
-            "reg": [
-                {"name": "fpgacfg_reserved_05[15:0]", "bits": 16},
-                {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
-        }
-
-
-LIMETOP_FPGACFG_RESERVED_06
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x28 = 0xf0004828`
-
-
-    .. wavedrom::
-        :caption: LIMETOP_FPGACFG_RESERVED_06
-
-        {
-            "reg": [
-                {"name": "fpgacfg_reserved_06[15:0]", "bits": 16},
+                {"name": "fpgacfg_bom_hw_ver[15:0]", "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
@@ -428,7 +359,7 @@ LIMETOP_FPGACFG_RESERVED_06
 LIMETOP_FPGACFG_CH_EN
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x2c = 0xf000482c`
+`Address: 0xf0004800 + 0x1c = 0xf000481c`
 
     4b0001 - Channel A, 4b0010 - Channel B enabled, 4b0100 - Channel C enabled,
     4b1000 - Channel D enabled,2b1111 - Channels A, B, C, D Enabled
@@ -447,7 +378,7 @@ LIMETOP_FPGACFG_CH_EN
 LIMETOP_FPGACFG_REG08
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x30 = 0xf0004830`
+`Address: 0xf0004800 + 0x20 = 0xf0004820`
 
 
     .. wavedrom::
@@ -482,7 +413,7 @@ LIMETOP_FPGACFG_REG08
 LIMETOP_FPGACFG_REG09
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x34 = 0xf0004834`
+`Address: 0xf0004800 + 0x24 = 0xf0004824`
 
 
     .. wavedrom::
@@ -506,7 +437,7 @@ LIMETOP_FPGACFG_REG09
 LIMETOP_FPGACFG_REG10
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x38 = 0xf0004838`
+`Address: 0xf0004800 + 0x28 = 0xf0004828`
 
 
     .. wavedrom::
@@ -537,7 +468,7 @@ LIMETOP_FPGACFG_REG10
 LIMETOP_FPGACFG_WFM_CH_EN
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x3c = 0xf000483c`
+`Address: 0xf0004800 + 0x2c = 0xf000482c`
 
 
     .. wavedrom::
@@ -554,7 +485,7 @@ LIMETOP_FPGACFG_WFM_CH_EN
 LIMETOP_FPGACFG_REG13
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x40 = 0xf0004840`
+`Address: 0xf0004800 + 0x30 = 0xf0004830`
 
 
     .. wavedrom::
@@ -579,7 +510,7 @@ LIMETOP_FPGACFG_REG13
 LIMETOP_FPGACFG_WFM_SMPL_WIDTH
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x44 = 0xf0004844`
+`Address: 0xf0004800 + 0x34 = 0xf0004834`
 
 
     .. wavedrom::
@@ -596,7 +527,7 @@ LIMETOP_FPGACFG_WFM_SMPL_WIDTH
 LIMETOP_FPGACFG_SYNC_SIZE
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x48 = 0xf0004848`
+`Address: 0xf0004800 + 0x38 = 0xf0004838`
 
 
     .. wavedrom::
@@ -613,7 +544,7 @@ LIMETOP_FPGACFG_SYNC_SIZE
 LIMETOP_FPGACFG_TXANT_PRE
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x4c = 0xf000484c`
+`Address: 0xf0004800 + 0x3c = 0xf000483c`
 
 
     .. wavedrom::
@@ -630,7 +561,7 @@ LIMETOP_FPGACFG_TXANT_PRE
 LIMETOP_FPGACFG_TXANT_POST
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x50 = 0xf0004850`
+`Address: 0xf0004800 + 0x40 = 0xf0004840`
 
 
     .. wavedrom::
@@ -647,7 +578,7 @@ LIMETOP_FPGACFG_TXANT_POST
 LIMETOP_FPGACFG_REG18
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x54 = 0xf0004854`
+`Address: 0xf0004800 + 0x44 = 0xf0004844`
 
 
     .. wavedrom::
@@ -674,7 +605,7 @@ LIMETOP_FPGACFG_REG18
 LIMETOP_FPGACFG_CLK_ENA
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x58 = 0xf0004858`
+`Address: 0xf0004800 + 0x48 = 0xf0004848`
 
 
     .. wavedrom::
@@ -691,7 +622,7 @@ LIMETOP_FPGACFG_CLK_ENA
 LIMETOP_FPGACFG_SYNC_PULSE_PERIOD
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x5c = 0xf000485c`
+`Address: 0xf0004800 + 0x4c = 0xf000484c`
 
 
     .. wavedrom::
@@ -704,28 +635,114 @@ LIMETOP_FPGACFG_SYNC_PULSE_PERIOD
         }
 
 
-LIMETOP_LMS7002_TOP_LMS_CTR_GPIO
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LIMETOP_STREAM_START_CONTROLLER_RX_DELAY_MODE
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x60 = 0xf0004860`
+`Address: 0xf0004800 + 0x50 = 0xf0004850`
 
-    LMS Control GPIOs.
+    RX stream start mode
 
     .. wavedrom::
-        :caption: LIMETOP_LMS7002_TOP_LMS_CTR_GPIO
+        :caption: LIMETOP_STREAM_START_CONTROLLER_RX_DELAY_MODE
 
         {
             "reg": [
-                {"name": "lms7002_top_lms_ctr_gpio[3:0]", "bits": 4},
-                {"bits": 28},
+                {"name": "rx_del_sel",  "bits": 2},
+                {"bits": 30}
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
++-------+------------+---------------------------------------------------------------------------------------+
+| Field | Name       | Description                                                                           |
++=======+============+=======================================================================================+
+| [1:0] | RX_DEL_SEL | RX stream start mode                                                                  |
+|       |            |                                                                                       |
+|       |            | +----------+------------------------------------------------------------------------+ |
+|       |            | | Value    | Description                                                            | |
+|       |            | +==========+========================================================================+ |
+|       |            | | ``0b00`` | Start immediately when rx_en_req is asserted.                          | |
+|       |            | +----------+------------------------------------------------------------------------+ |
+|       |            | | ``0b01`` | Start on PPS rising edge after rx_en_req is asserted.                  | |
+|       |            | +----------+------------------------------------------------------------------------+ |
+|       |            | | ``0b10`` | Start on PPS rising edge with pps_valid=1 after rx_en_req is asserted. | |
+|       |            | +----------+------------------------------------------------------------------------+ |
+|       |            | | ``0b11`` | Start on external trigger rising edge after rx_en_req is asserted.     | |
+|       |            | +----------+------------------------------------------------------------------------+ |
++-------+------------+---------------------------------------------------------------------------------------+
+
+LIMETOP_STREAM_START_CONTROLLER_TX_DELAY_MODE
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x54 = 0xf0004854`
+
+    TX stream start mode
+
+    .. wavedrom::
+        :caption: LIMETOP_STREAM_START_CONTROLLER_TX_DELAY_MODE
+
+        {
+            "reg": [
+                {"name": "tx_del_sel",  "bits": 2},
+                {"bits": 30}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
++-------+------------+---------------------------------------------------------------------------------------+
+| Field | Name       | Description                                                                           |
++=======+============+=======================================================================================+
+| [1:0] | TX_DEL_SEL | TX stream start mode                                                                  |
+|       |            |                                                                                       |
+|       |            | +----------+------------------------------------------------------------------------+ |
+|       |            | | Value    | Description                                                            | |
+|       |            | +==========+========================================================================+ |
+|       |            | | ``0b00`` | Start immediately when tx_en_req is asserted.                          | |
+|       |            | +----------+------------------------------------------------------------------------+ |
+|       |            | | ``0b01`` | Start on PPS rising edge after tx_en_req is asserted.                  | |
+|       |            | +----------+------------------------------------------------------------------------+ |
+|       |            | | ``0b10`` | Start on PPS rising edge with pps_valid=1 after tx_en_req is asserted. | |
+|       |            | +----------+------------------------------------------------------------------------+ |
+|       |            | | ``0b11`` | Start on external trigger rising edge after tx_en_req is asserted.     | |
+|       |            | +----------+------------------------------------------------------------------------+ |
++-------+------------+---------------------------------------------------------------------------------------+
+
+LIMETOP_STREAM_START_CONTROLLER_TX_SYNC_MODE
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x58 = 0xf0004858`
+
+    TX/RX stream start synchronization mode
+
+    .. wavedrom::
+        :caption: LIMETOP_STREAM_START_CONTROLLER_TX_SYNC_MODE
+
+        {
+            "reg": [
+                {"name": "tx_sync_with_rx",  "attr": '1', "bits": 1},
+                {"bits": 31}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
++-------+-----------------+--------------------------------------------------------------------------+
+| Field | Name            | Description                                                              |
++=======+=================+==========================================================================+
+| [0]   | TX_SYNC_WITH_RX |                                                                          |
+|       |                 |                                                                          |
+|       |                 | +---------+------------------------------------------------------------+ |
+|       |                 | | Value   | Description                                                | |
+|       |                 | +=========+============================================================+ |
+|       |                 | | ``0b0`` | TX starts independently using tx_en_req and tx_delay_mode. | |
+|       |                 | +---------+------------------------------------------------------------+ |
+|       |                 | | ``0b1`` | TX follows RX. tx_en_req and tx_delay_mode are ignored.    | |
+|       |                 | +---------+------------------------------------------------------------+ |
++-------+-----------------+--------------------------------------------------------------------------+
+
 LIMETOP_LMS7002_TOP_LMS1
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x64 = 0xf0004864`
+`Address: 0xf0004800 + 0x5c = 0xf000485c`
 
 
     .. wavedrom::
@@ -760,135 +777,10 @@ LIMETOP_LMS7002_TOP_LMS1
 +-------+----------------+-------------+
 +-------+----------------+-------------+
 
-LIMETOP_LMS7002_TOP_REG01
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x68 = 0xf0004868`
-
-
-    .. wavedrom::
-        :caption: LIMETOP_LMS7002_TOP_REG01
-
-        {
-            "reg": [
-                {"name": "lms7002_top_reg01[15:0]", "attr": 'reset: 1', "bits": 16},
-                {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
-        }
-
-
-LIMETOP_LMS7002_TOP_REG03
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x6c = 0xf000486c`
-
-
-    .. wavedrom::
-        :caption: LIMETOP_LMS7002_TOP_REG03
-
-        {
-            "reg": [
-                {"name": "pllcfg_start",  "bits": 1},
-                {"name": "phcfg_start",  "bits": 1},
-                {"name": "pllrst_start",  "bits": 1},
-                {"name": "pll_ind",  "bits": 5},
-                {"name": "cnt_ind",  "bits": 5},
-                {"name": "phcfg_updn",  "bits": 1},
-                {"name": "phcfg_mode",  "bits": 1},
-                {"name": "phcfg_tst",  "bits": 1},
-                {"bits": 16}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-+--------+--------------+-------------+
-| Field  | Name         | Description |
-+========+==============+=============+
-+--------+--------------+-------------+
-+--------+--------------+-------------+
-+--------+--------------+-------------+
-+--------+--------------+-------------+
-+--------+--------------+-------------+
-+--------+--------------+-------------+
-+--------+--------------+-------------+
-+--------+--------------+-------------+
-
-LIMETOP_LMS7002_TOP_CMP_START
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x70 = 0xf0004870`
-
-    Start sample compare: 0: idle, 1 transition: start configuration
-
-    .. wavedrom::
-        :caption: LIMETOP_LMS7002_TOP_CMP_START
-
-        {
-            "reg": [
-                {"name": "lms7002_top_cmp_start", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-LIMETOP_LMS7002_TOP_CMP_LENGTH
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x74 = 0xf0004874`
-
-    Sample compare length
-
-    .. wavedrom::
-        :caption: LIMETOP_LMS7002_TOP_CMP_LENGTH
-
-        {
-            "reg": [
-                {"name": "lms7002_top_cmp_length[15:0]", "attr": 'reset: 61439', "bits": 16},
-                {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
-        }
-
-
-LIMETOP_LMS7002_TOP_CMP_DONE
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x78 = 0xf0004878`
-
-    Sample compare done: 0: Not done, 1: Done
-
-    .. wavedrom::
-        :caption: LIMETOP_LMS7002_TOP_CMP_DONE
-
-        {
-            "reg": [
-                {"name": "lms7002_top_cmp_done", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-LIMETOP_LMS7002_TOP_CMP_ERROR
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x7c = 0xf000487c`
-
-    Sample compare error: 0: No error, 1: Error
-
-    .. wavedrom::
-        :caption: LIMETOP_LMS7002_TOP_CMP_ERROR
-
-        {
-            "reg": [
-                {"name": "lms7002_top_cmp_error", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_TXCLK_EN
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x80 = 0xf0004880`
+`Address: 0xf0004800 + 0x60 = 0xf0004860`
 
     TX CLK source selection: 0: PLL, 1: Direct clock
 
@@ -906,7 +798,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_TXCLK_EN
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_RXCLK_EN
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x84 = 0xf0004884`
+`Address: 0xf0004800 + 0x64 = 0xf0004864`
 
     RX CLK source selection: 0: PLL, 1: Direct clock
 
@@ -924,7 +816,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_DRCT_RXCLK_EN
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_MODE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x88 = 0xf0004888`
+`Address: 0xf0004800 + 0x68 = 0xf0004868`
 
     Phase configuration mode: 0: Manual, 1: Auto
 
@@ -939,10 +831,28 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_MODE
         }
 
 
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_UPDN
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x6c = 0xf000486c`
+
+    Phase shift direction : 0: Down, 1: Up
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_UPDN
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_phcfg_updn", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_DONE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x8c = 0xf000488c`
+`Address: 0xf0004800 + 0x70 = 0xf0004870`
 
     Phase config done: 0: Not done, 1: Done
 
@@ -960,7 +870,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_DONE
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_ERR
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x90 = 0xf0004890`
+`Address: 0xf0004800 + 0x74 = 0xf0004874`
 
     Phase config error: 0: no error, 1: error
 
@@ -978,7 +888,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_ERR
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_DONE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x94 = 0xf0004894`
+`Address: 0xf0004800 + 0x78 = 0xf0004878`
 
     PLL configuration done: 0: Not done, 1: Done
 
@@ -996,7 +906,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_DONE
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_BUSY
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x98 = 0xf0004898`
+`Address: 0xf0004800 + 0x7c = 0xf000487c`
 
     Clock config busy: 0: Idle, 1: Busy
 
@@ -1014,7 +924,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_BUSY
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_START
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x9c = 0xf000489c`
+`Address: 0xf0004800 + 0x80 = 0xf0004880`
 
     Start PLL configuration: 0: idle, 0 to 1 transition: start configuration
 
@@ -1029,10 +939,118 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_START
         }
 
 
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_PHASE
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x84 = 0xf0004884`
+
+    Counter phase value
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_PHASE
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_cnt_phase[15:0]", "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_VCODIV
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x88 = 0xf0004888`
+
+    PLL VCO divider: 0: 0, 1: 1
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_VCODIV
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_pllcfg_vcodiv", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_ODD_DIV
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x8c = 0xf000488c`
+
+    M counter odd divider: 0: even, 1: odd
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_ODD_DIV
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_m_odd_div", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_DIV_BYP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x90 = 0xf0004890`
+
+    M counter divider bypass: 0: normal, 1: bypass
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_DIV_BYP
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_m_div_byp", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_ODD_DIV
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x94 = 0xf0004894`
+
+    N counter odd divider: 0: even, 1: odd
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_ODD_DIV
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_n_odd_div", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_DIV_BYP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x98 = 0xf0004898`
+
+    N counter divider bypass: 0: normal, 1: bypass
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_DIV_BYP
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_n_div_byp", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLRST_START
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xa0 = 0xf00048a0`
+`Address: 0xf0004800 + 0x9c = 0xf000489c`
 
     Start PLL reset: 0: idle, 0 to 1 transition: start configuration
 
@@ -1050,25 +1068,62 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLRST_START
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_IND
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xa4 = 0xf00048a4`
+`Address: 0xf0004800 + 0xa0 = 0xf00048a0`
 
-    PLL/MMCM index for reconfiguration: 0: TX PLL, 1: RX PLL
+    PLL index for reconfiguration
 
     .. wavedrom::
         :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_IND
 
         {
             "reg": [
-                {"name": "lms7002_top_lms7002_clk_clk_ctrl_pll_ind", "bits": 1},
-                {"bits": 31},
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_pll_ind[4:0]", "bits": 5},
+                {"bits": 27},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_IND
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xa4 = 0xf00048a4`
+
+    Counter index for reconfiguration: 0: All counters, 1 - M counter, 2 - C0
+    counter, 3 - C1 counter
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_CNT_IND
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_cnt_ind[4:0]", "bits": 5},
+                {"bits": 27},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_LOCK
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xa8 = 0xf00048a8`
+
+    PLL lock status array: 0: not locked, 1: locked
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLL_LOCK
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_pll_lock[15:0]", "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_START
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xa8 = 0xf00048a8`
+`Address: 0xf0004800 + 0xac = 0xf00048ac`
 
     Start phase configuration: 0: idle, 0 to 1 transition: start configuration
 
@@ -1086,7 +1141,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PHCFG_START
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_ERROR
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xac = 0xf00048ac`
+`Address: 0xf0004800 + 0xb0 = 0xf00048b0`
 
     PLL configuration error: 0: no error, 1: error
 
@@ -1104,7 +1159,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_ERROR
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_BYP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xb0 = 0xf00048b0`
+`Address: 0xf0004800 + 0xb4 = 0xf00048b4`
 
     PLL multiplier bypass: 0: do not bypass, 1: bypass
 
@@ -1122,7 +1177,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_BYP
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_BYP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xb4 = 0xf00048b4`
+`Address: 0xf0004800 + 0xb8 = 0xf00048b8`
 
     PLL divider bypass: 0: do not bypass, 1: bypass
 
@@ -1140,7 +1195,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_BYP
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_BYP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xb8 = 0xf00048b8`
+`Address: 0xf0004800 + 0xbc = 0xf00048bc`
 
     Clock output 0 divider bypass: 0: do not bypass, 1: bypass
 
@@ -1158,7 +1213,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_BYP
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_BYP
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xbc = 0xf00048bc`
+`Address: 0xf0004800 + 0xc0 = 0xf00048c0`
 
     Clock output 1 divider bypass: 0: do not bypass, 1: bypass
 
@@ -1173,10 +1228,190 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_BYP
         }
 
 
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_BYP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xc4 = 0xf00048c4`
+
+    Clock output 2 divider bypass: 0: do not bypass, 1: bypass
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_BYP
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c2_div_byp", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_BYP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xc8 = 0xf00048c8`
+
+    Clock output 3 divider bypass: 0: do not bypass, 1: bypass
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_BYP
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c3_div_byp", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_BYP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xcc = 0xf00048cc`
+
+    Clock output 4 divider bypass: 0: do not bypass, 1: bypass
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_BYP
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c4_div_byp", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_ODDDIV
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xd0 = 0xf00048d0`
+
+    Clock output 0 odd divider: 0: even, 1: odd
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_ODDDIV
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c0_odddiv", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_ODDDIV
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xd4 = 0xf00048d4`
+
+    Clock output 1 odd divider: 0: even, 1: odd
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_ODDDIV
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c1_odddiv", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_ODDDIV
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xd8 = 0xf00048d8`
+
+    Clock output 2 odd divider: 0: even, 1: odd
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_ODDDIV
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c2_odddiv", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_ODDDIV
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xdc = 0xf00048dc`
+
+    Clock output 3 odd divider: 0: even, 1: odd
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_ODDDIV
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c3_odddiv", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_ODDDIV
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xe0 = 0xf00048e0`
+
+    Clock output 4 odd divider: 0: even, 1: odd
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_ODDDIV
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c4_odddiv", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_CNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xe4 = 0xf00048e4`
+
+    PLL N counter values
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_N_CNT
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_n_cnt[15:0]", "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_CNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xe8 = 0xf00048e8`
+
+    PLL M counter values
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_M_CNT
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_m_cnt[15:0]", "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xc0 = 0xf00048c0`
+`Address: 0xf0004800 + 0xec = 0xf00048ec`
 
     PLL VCO divider counter values
 
@@ -1194,7 +1429,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_DIV_CNT
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xc4 = 0xf00048c4`
+`Address: 0xf0004800 + 0xf0 = 0xf00048f0`
 
     PLL VCO multiplier counter values
 
@@ -1212,7 +1447,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_VCO_MULT_CNT
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xc8 = 0xf00048c8`
+`Address: 0xf0004800 + 0xf4 = 0xf00048f4`
 
     Clock output 0 divider counter values
 
@@ -1230,7 +1465,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xcc = 0xf00048cc`
+`Address: 0xf0004800 + 0xf8 = 0xf00048f8`
 
     Clock output 1 divider counter values
 
@@ -1245,10 +1480,64 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_DIV_CNT
         }
 
 
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_CNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0xfc = 0xf00048fc`
+
+    Clock output 2 divider counter values
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C2_DIV_CNT
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c2_div_cnt[15:0]", "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_CNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x100 = 0xf0004900`
+
+    Clock output 3 divider counter values
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C3_DIV_CNT
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c3_div_cnt[15:0]", "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_CNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x104 = 0xf0004904`
+
+    Clock output 4 divider counter values
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C4_DIV_CNT
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_c4_div_cnt[15:0]", "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_PHASE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xd0 = 0xf00048d0`
+`Address: 0xf0004800 + 0x108 = 0xf0004908`
 
     Clock output 1 phase offset, in degrees
 
@@ -1266,7 +1555,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C1_PHASE
 LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_SMPLS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xd4 = 0xf00048d4`
+`Address: 0xf0004800 + 0x10c = 0xf000490c`
 
     Number of samples to use during auto phase configuration
 
@@ -1281,10 +1570,82 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_SMPLS
         }
 
 
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x110 = 0xf0004910`
+
+    Phase configuration step size
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_auto_phcfg_step[15:0]", "attr": 'reset: 2', "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_START
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x114 = 0xf0004914`
+
+    Start sample compare: 0: idle, 1 transition: start configuration
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_START
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_cmp_start", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_DONE
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x118 = 0xf0004918`
+
+    Sample compare done: 0: Not done, 1: Done
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_DONE
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_cmp_done", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_ERROR
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0004800 + 0x11c = 0xf000491c`
+
+    Sample compare error: 0: No error, 1: Error
+
+    .. wavedrom::
+        :caption: LIMETOP_LMS7002_TOP_LMS7002_CLK_CMP_ERROR
+
+        {
+            "reg": [
+                {"name": "lms7002_top_lms7002_clk_cmp_error", "bits": 1},
+                {"bits": 31},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_CSR_RESET
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xd8 = 0xf00048d8`
+`Address: 0xf0004800 + 0x120 = 0xf0004920`
 
 
     .. wavedrom::
@@ -1301,7 +1662,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_CSR_RESET
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_RESET
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xdc = 0xf00048dc`
+`Address: 0xf0004800 + 0x124 = 0xf0004924`
 
 
     .. wavedrom::
@@ -1318,7 +1679,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_RESET
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xe0 = 0xf00048e0`
+`Address: 0xf0004800 + 0x128 = 0xf0004928`
 
 
     .. wavedrom::
@@ -1335,7 +1696,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_LOCKED
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_READ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xe4 = 0xf00048e4`
+`Address: 0xf0004800 + 0x12c = 0xf000492c`
 
 
     .. wavedrom::
@@ -1352,7 +1713,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_READ
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_WRITE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xe8 = 0xf00048e8`
+`Address: 0xf0004800 + 0x130 = 0xf0004930`
 
 
     .. wavedrom::
@@ -1369,7 +1730,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_WRITE
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DRDY
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xec = 0xf00048ec`
+`Address: 0xf0004800 + 0x134 = 0xf0004934`
 
 
     .. wavedrom::
@@ -1386,7 +1747,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DRDY
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_ADR
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xf0 = 0xf00048f0`
+`Address: 0xf0004800 + 0x138 = 0xf0004938`
 
 
     .. wavedrom::
@@ -1403,7 +1764,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_ADR
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_W
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xf4 = 0xf00048f4`
+`Address: 0xf0004800 + 0x13c = 0xf000493c`
 
 
     .. wavedrom::
@@ -1420,7 +1781,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_W
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_R
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xf8 = 0xf00048f8`
+`Address: 0xf0004800 + 0x140 = 0xf0004940`
 
 
     .. wavedrom::
@@ -1437,7 +1798,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_DRP_DAT_R
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0xfc = 0xf00048fc`
+`Address: 0xf0004800 + 0x144 = 0xf0004944`
 
 
     .. wavedrom::
@@ -1454,7 +1815,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY_RESET
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x100 = 0xf0004900`
+`Address: 0xf0004800 + 0x148 = 0xf0004948`
 
 
     .. wavedrom::
@@ -1471,7 +1832,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL0_TX_MMCM_LATCHED_DRDY_RESET
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_CSR_RESET
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x104 = 0xf0004904`
+`Address: 0xf0004800 + 0x14c = 0xf000494c`
 
 
     .. wavedrom::
@@ -1488,7 +1849,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_CSR_RESET
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_RESET
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x108 = 0xf0004908`
+`Address: 0xf0004800 + 0x150 = 0xf0004950`
 
 
     .. wavedrom::
@@ -1505,7 +1866,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_RESET
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_LOCKED
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x10c = 0xf000490c`
+`Address: 0xf0004800 + 0x154 = 0xf0004954`
 
 
     .. wavedrom::
@@ -1522,7 +1883,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_LOCKED
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_READ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x110 = 0xf0004910`
+`Address: 0xf0004800 + 0x158 = 0xf0004958`
 
 
     .. wavedrom::
@@ -1539,7 +1900,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_READ
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_WRITE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x114 = 0xf0004914`
+`Address: 0xf0004800 + 0x15c = 0xf000495c`
 
 
     .. wavedrom::
@@ -1556,7 +1917,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_WRITE
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DRDY
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x118 = 0xf0004918`
+`Address: 0xf0004800 + 0x160 = 0xf0004960`
 
 
     .. wavedrom::
@@ -1573,7 +1934,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DRDY
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_ADR
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x11c = 0xf000491c`
+`Address: 0xf0004800 + 0x164 = 0xf0004964`
 
 
     .. wavedrom::
@@ -1590,7 +1951,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_ADR
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_W
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x120 = 0xf0004920`
+`Address: 0xf0004800 + 0x168 = 0xf0004968`
 
 
     .. wavedrom::
@@ -1607,7 +1968,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_W
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_R
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x124 = 0xf0004924`
+`Address: 0xf0004800 + 0x16c = 0xf000496c`
 
 
     .. wavedrom::
@@ -1624,7 +1985,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_DRP_DAT_R
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x128 = 0xf0004928`
+`Address: 0xf0004800 + 0x170 = 0xf0004970`
 
 
     .. wavedrom::
@@ -1641,7 +2002,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY
 LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x12c = 0xf000492c`
+`Address: 0xf0004800 + 0x174 = 0xf0004974`
 
 
     .. wavedrom::
@@ -1655,61 +2016,10 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET
         }
 
 
-LIMETOP_RXTX_TOP_DDR2_1_STATUS
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x130 = 0xf0004930`
-
-
-    .. wavedrom::
-        :caption: LIMETOP_RXTX_TOP_DDR2_1_STATUS
-
-        {
-            "reg": [
-                {"name": "rxtx_top_ddr2_1_status[2:0]", "bits": 3},
-                {"bits": 29},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_L
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x134 = 0xf0004934`
-
-
-    .. wavedrom::
-        :caption: LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_L
-
-        {
-            "reg": [
-                {"name": "rxtx_top_ddr2_1_pnf_per_bit_l[15:0]", "bits": 16},
-                {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
-        }
-
-
-LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_H
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x138 = 0xf0004938`
-
-
-    .. wavedrom::
-        :caption: LIMETOP_RXTX_TOP_DDR2_1_PNF_PER_BIT_H
-
-        {
-            "reg": [
-                {"name": "rxtx_top_ddr2_1_pnf_per_bit_h[15:0]", "bits": 16},
-                {"bits": 16},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
-        }
-
-
 LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x13c = 0xf000493c`
+`Address: 0xf0004800 + 0x178 = 0xf0004978`
 
     Packet Size in bytes,
 
@@ -1727,7 +2037,7 @@ LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE
 LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x140 = 0xf0004940`
+`Address: 0xf0004800 + 0x17c = 0xf000497c`
 
     Timestamp Settings
 
@@ -1756,186 +2066,10 @@ LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS
 |       |        | +---------+--------------------------------------------+ |
 +-------+--------+----------------------------------------------------------+
 
-LIMETOP_RX_DELAY_MODE
-^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x144 = 0xf0004944`
-
-    RX enable signal delay mode
-
-    .. wavedrom::
-        :caption: LIMETOP_RX_DELAY_MODE
-
-        {
-            "reg": [
-                {"name": "rx_del_sel",  "bits": 2},
-                {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-+-------+------------+-----------------------------------------+
-| Field | Name       | Description                             |
-+=======+============+=========================================+
-| [1:0] | RX_DEL_SEL | RX enable signal delay mode             |
-|       |            |                                         |
-|       |            | +---------+---------------------------+ |
-|       |            | | Value   | Description               | |
-|       |            | +=========+===========================+ |
-|       |            | | ``0b0`` | No Delay.                 | |
-|       |            | +---------+---------------------------+ |
-|       |            | | ``0b1`` | Delay until PPS           | |
-|       |            | +---------+---------------------------+ |
-|       |            | | ``0b2`` | Delay until PPS and Valid | |
-|       |            | +---------+---------------------------+ |
-+-------+------------+-----------------------------------------+
-
-LIMETOP_TX_DELAY_MODE
-^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x148 = 0xf0004948`
-
-    TX enable signal delay mode
-
-    .. wavedrom::
-        :caption: LIMETOP_TX_DELAY_MODE
-
-        {
-            "reg": [
-                {"name": "tx_del_sel",  "bits": 2},
-                {"bits": 30}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-+-------+------------+-----------------------------------------+
-| Field | Name       | Description                             |
-+=======+============+=========================================+
-| [1:0] | TX_DEL_SEL | TX enable signal delay mode             |
-|       |            |                                         |
-|       |            | +---------+---------------------------+ |
-|       |            | | Value   | Description               | |
-|       |            | +=========+===========================+ |
-|       |            | | ``0b0`` | No Delay.                 | |
-|       |            | +---------+---------------------------+ |
-|       |            | | ``0b1`` | Delay until PPS           | |
-|       |            | +---------+---------------------------+ |
-|       |            | | ``0b2`` | Delay until PPS and Valid | |
-|       |            | +---------+---------------------------+ |
-+-------+------------+-----------------------------------------+
-
-LIMETOP_RFSW_CONTROL_TDD_MANUAL_VAL
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x14c = 0xf000494c`
-
-    TDD Signal manual control value
-
-    .. wavedrom::
-        :caption: LIMETOP_RFSW_CONTROL_TDD_MANUAL_VAL
-
-        {
-            "reg": [
-                {"name": "rfsw_control_tdd_manual_val", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-LIMETOP_RFSW_CONTROL_TDD_AUTO_EN
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x150 = 0xf0004950`
-
-    0- TDD auto control disabled, 1-TDD auto control enabled
-
-    .. wavedrom::
-        :caption: LIMETOP_RFSW_CONTROL_TDD_AUTO_EN
-
-        {
-            "reg": [
-                {"name": "rfsw_control_tdd_auto_en", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-LIMETOP_RFSW_CONTROL_TDD_INVERT
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x154 = 0xf0004954`
-
-    0- TDD Control signal not inverted, 1- TDD Control signal inverted
-
-    .. wavedrom::
-        :caption: LIMETOP_RFSW_CONTROL_TDD_INVERT
-
-        {
-            "reg": [
-                {"name": "rfsw_control_tdd_invert", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-LIMETOP_RFSW_CONTROL_RFSW_RX
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x158 = 0xf0004958`
-
-    00- RF1 (WIDE), 01- RF2 (LOW), 10- RF3 (HIGH)
-
-    .. wavedrom::
-        :caption: LIMETOP_RFSW_CONTROL_RFSW_RX
-
-        {
-            "reg": [
-                {"name": "rfsw_control_rfsw_rx[1:0]", "bits": 2},
-                {"bits": 30},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-LIMETOP_RFSW_CONTROL_RFSW_TX
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x15c = 0xf000495c`
-
-    0- TX1_2 (BAND2), 1- TX1_1 (BAND1)
-
-    .. wavedrom::
-        :caption: LIMETOP_RFSW_CONTROL_RFSW_TX
-
-        {
-            "reg": [
-                {"name": "rfsw_control_rfsw_tx", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-LIMETOP_RFSW_CONTROL_RFSW_AUTO_EN
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0004800 + 0x160 = 0xf0004960`
-
-    0- RFSW Auto control disabled, 1- RFSW Auto control Enabled
-
-    .. wavedrom::
-        :caption: LIMETOP_RFSW_CONTROL_RFSW_AUTO_EN
-
-        {
-            "reg": [
-                {"name": "rfsw_control_rfsw_auto_en", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
 LIMETOP_RX_TIME_MIN_SEC
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x164 = 0xf0004964`
+`Address: 0xf0004800 + 0x180 = 0xf0004980`
 
     Time in minutes and seconds, when RX stream started
 
@@ -1962,7 +2096,7 @@ LIMETOP_RX_TIME_MIN_SEC
 LIMETOP_RX_TIME_MON_DAY_HRS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x168 = 0xf0004968`
+`Address: 0xf0004800 + 0x184 = 0xf0004984`
 
     Time in months, days and hours, when RX stream started
 
@@ -1992,7 +2126,7 @@ LIMETOP_RX_TIME_MON_DAY_HRS
 LIMETOP_RX_TIME_YRS
 ^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x16c = 0xf000496c`
+`Address: 0xf0004800 + 0x188 = 0xf0004988`
 
     Time in years, when RX stream started
 
@@ -2016,7 +2150,7 @@ LIMETOP_RX_TIME_YRS
 LIMETOP_TX_TIME_MIN_SEC
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x170 = 0xf0004970`
+`Address: 0xf0004800 + 0x18c = 0xf000498c`
 
     Time in minutes and seconds, when TX stream started
 
@@ -2043,7 +2177,7 @@ LIMETOP_TX_TIME_MIN_SEC
 LIMETOP_TX_TIME_MON_DAY_HRS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x174 = 0xf0004974`
+`Address: 0xf0004800 + 0x190 = 0xf0004990`
 
     Time in months, days and hours, when TX stream started
 
@@ -2073,7 +2207,7 @@ LIMETOP_TX_TIME_MON_DAY_HRS
 LIMETOP_TX_TIME_YRS
 ^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0004800 + 0x178 = 0xf0004978`
+`Address: 0xf0004800 + 0x194 = 0xf0004994`
 
     Time in years, when TX stream started
 

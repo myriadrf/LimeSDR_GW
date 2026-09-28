@@ -1064,9 +1064,22 @@ void bsp_vctcxo_permanent_dac_write(uint8_t *data)
     FlashQspi_CMD_PageProgramByte(BSP_FLASH_STORAGE_OFFSET + 1, &data[1]);
 }
 
+static uint8_t bsp_fpga_cache_bounds_ok(uint32_t offset, uint8_t data_count)
+{
+#ifdef FPGA_CACHE_BASE
+    return data_count <= 32 && offset < FPGA_CACHE_SIZE && data_count <= (FPGA_CACHE_SIZE - offset);
+#else
+    (void)offset;
+    (void)data_count;
+    return 0;
+#endif
+}
+
 uint8_t
 bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count)
 {
+    (void)portion;
+
     // Check if the operation is going to be performed on EEPROM #1 and
     // that it's specifically being used to read VCTCXO DAC value
     // NOTE: condition for IF is copied from previous implementation, might need review
@@ -1074,12 +1087,27 @@ bsp_mem_read(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targe
         bsp_vctcxo_permanent_dac_read(data);
         return STATUS_COMPLETED_CMD;
     }
+
+    if (target == BSP_MEM_TARGET_FPGA_CACHE && progmode == BSP_MEM_PROGMODE_RAW) {
+        if (!bsp_fpga_cache_bounds_ok(offset, data_count))
+            return STATUS_RESOURCE_DENIED_CMD;
+
+#ifdef FPGA_CACHE_BASE
+        volatile uint8_t *cache = (volatile uint8_t *)FPGA_CACHE_BASE;
+        for (uint8_t i = 0; i < data_count; i++)
+            data[i] = cache[offset + i];
+        return STATUS_COMPLETED_CMD;
+#endif
+    }
+
     return STATUS_ERROR_CMD;
 }
 
 uint8_t
 bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t target, uint8_t *data, uint8_t data_count)
 {
+    (void)portion;
+
     // Check if the operation is going to be performed on EEPROM #1 and
     // that it's specifically being used to store VCTCXO DAC value
     // NOTE: condition for IF is copied from previous implementation, might need review
@@ -1087,6 +1115,19 @@ bsp_mem_write(uint32_t offset, uint32_t portion, uint8_t progmode, uint16_t targ
         bsp_vctcxo_permanent_dac_write(data);
         return STATUS_COMPLETED_CMD;
     }
+
+    if (target == BSP_MEM_TARGET_FPGA_CACHE && progmode == BSP_MEM_PROGMODE_RAW) {
+        if (!bsp_fpga_cache_bounds_ok(offset, data_count))
+            return STATUS_RESOURCE_DENIED_CMD;
+
+#ifdef FPGA_CACHE_BASE
+        volatile uint8_t *cache = (volatile uint8_t *)FPGA_CACHE_BASE;
+        for (uint8_t i = 0; i < data_count; i++)
+            cache[offset + i] = data[i];
+        return STATUS_COMPLETED_CMD;
+#endif
+    }
+
     return STATUS_ERROR_CMD;
 }
 

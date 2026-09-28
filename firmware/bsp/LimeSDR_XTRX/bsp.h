@@ -38,8 +38,10 @@
 /*-----------------------------------------------------------------------*/
 
 /* Device Information */
+extern uint16_t g_bsp_hw_ver;
+
 #define BSP_DEV_TYPE   LMS_DEV_XTRX
-#define BSP_HW_VER     2
+#define BSP_HW_VER     g_bsp_hw_ver
 #define BSP_EXP_BOARD  EXP_BOARD_UNSUPPORTED
 #define BSP_FW_VER     11 // New main.c/bsp structure
 

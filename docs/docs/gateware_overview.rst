@@ -15,6 +15,7 @@ Recommended Reading Order
    - :doc:`limesdr_xtrx`
    - :doc:`limesdr_mini_v1`
    - :doc:`limesdr_mini_v2`
+   - :doc:`limesdr_usb`
    - :doc:`HiperSDR_44xx`
    - :doc:`ssdr_rev2`
 2. :doc:`Gateware Toolchains <gateware_toolchains>` and :doc:`Firmware Toolchains <firmware_toolchains>`: required build environments for FPGA synthesis and CPU firmware compilation.
@@ -31,6 +32,7 @@ Recommended Reading Order
    limesdr_xtrx
    limesdr_mini_v1
    limesdr_mini_v2
+   limesdr_usb
    HiperSDR_44xx
    ssdr_rev2
    addfeatures

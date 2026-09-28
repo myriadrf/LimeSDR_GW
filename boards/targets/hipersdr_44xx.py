@@ -30,6 +30,7 @@ from litejesd204b.common import JESD204BPhysicalSettings, JESD204BTransportSetti
 from migen import *
 
 from litex.gen import *
+from litex.gen.genlib.cdc import BusSynchronizer
 from migen.genlib.io import DifferentialInput
 from migen.genlib.resetsync import AsyncResetSynchronizer
 
@@ -78,21 +79,24 @@ TX_IN_PCT_HDR_SIZE   = 16
 TX_MAX_PCT_SIZE      = 8192  # Total payload RAM capacity in bytes
 TX_N_BUFF            = 16    # Metadata FIFO depth; does not increase payload RAM
 
+FPGA_CACHE_BASE      = 0x20000000
+FPGA_CACHE_SIZE      = 0x1000  # 4 KiB
+
 # CRG ----------------------------------------------------------------------------------------------
 
 class CRG(LiteXModule):
     def __init__(self, platform, sys_clk_freq):
         self.cd_sys    = ClockDomain()
-        #self.cd_idelay = ClockDomain()
+        self.cd_idelay = ClockDomain()
         self.cd_afe    = ClockDomain()
         self.cd_jesd_freerun = ClockDomain()
 
         self.cd_lms_rx = ClockDomain()
         self.cd_lms_tx = ClockDomain()
 
-        self.cd_fpga_sysref  = ClockDomain()
+        self.cd_fpga_sysref = ClockDomain()
         self.fpga_1pps_clk   = Signal()
-        self.cd_fpga_1pps    = ClockDomain()
+        self.cd_fpga_1pps   = ClockDomain()
         self.cd_fpga_1pps_2x = ClockDomain()
         self.cd_fpga_1pps_dsp = ClockDomain()
 
@@ -108,12 +112,12 @@ class CRG(LiteXModule):
         rst125 = ResetSignal("pcie")
 
         # PLL.
-        self.pll = pll = USMMCM(speedgrade=-2)
+        self.pll = pll = USPMMCM(speedgrade=-2)
         self.comb += pll.reset.eq(rst125)
         pll.register_clkin(clk125, 250e6)
-        #pll.create_clkout(self.cd_idelay, 200e6)
-        pll.create_clkout(self.cd_afe, 500e6)
-        pll.create_clkout(self.cd_jesd_freerun, 100e6)
+        pll.create_clkout(self.cd_jesd_freerun, 100e6, margin=0)
+        pll.create_clkout(self.cd_afe, 525e6, margin=0)
+
 
         self.pll_sys = pll_sys = USPLL(speedgrade=-2)
         pll_sys.register_clkin(clk125, 250e6)
@@ -122,8 +126,8 @@ class CRG(LiteXModule):
         # TODO: these do nothing for now, currently rely on manual constraints
         #       to make these work, add_period_constraint commands should be used first
         #       to establish clock names used in these commands
-        #platform.add_false_path_constraints(self.cd_sys.clk, self.cd_idelay.clk)
-        #platform.add_false_path_constraints(self.cd_sys.clk, self.cd_afe.clk)
+        platform.add_false_path_constraints(self.cd_sys.clk, self.cd_idelay.clk)
+        platform.add_false_path_constraints(self.cd_sys.clk, self.cd_afe.clk)
 
 
         # IDelayCtrl.
@@ -156,7 +160,7 @@ class CRG(LiteXModule):
 # LMS Control CSR----------------------------------------------------------------------------------------
 class CNTRL_CSR(LiteXModule):
     def __init__(self, ndmas, nuart):
-        self.cntrl          = CSRStorage(512, 0)
+        self.cntrl          = CSRStorage(512, 0, atomic_write=True)
         self.enable         = CSRStorage()
         self.test           = CSRStorage(32)
         self.ndma           = CSRStatus(4, reset=ndmas)
@@ -165,11 +169,15 @@ class CNTRL_CSR(LiteXModule):
 
         # Create event manager for interrupt
         self.ev = EventManager()
-        self.ev.cntrl_isr = EventSourceProcess()
+        self.ev.cntrl_isr = EventSourcePulse()
         self.ev.finalize()
 
-        # Trigger interrupt when cntrl register is written
-        self.comb += self.ev.cntrl_isr.trigger.eq(self.cntrl.re)
+        # Big CSR word ordering places the header at [480:512]; status is byte 1.
+        # re accompanies the committed packet, so replies must not raise an event.
+        request_status = self.cntrl.storage[488:496]
+        self.comb += self.ev.cntrl_isr.trigger.eq(
+            self.cntrl.re & (request_status == 0)
+        )
 
 # fpgacfg
 class fpgacfg_csr(LiteXModule):
@@ -417,9 +425,9 @@ class BaseSoC(SoCCore):
             self.add_jtag_cpu_debug()
 
         # ICAP -------------------------------------------------------------------------------------
-        #self.icap = ICAP()
+        self.icap = ICAP(primitive="ICAPE3")
         #self.icap.add_reload()
-        #self.icap.add_timing_constraints(platform, sys_clk_freq, self.crg.cd_sys.clk)
+        self.icap.add_timing_constraints(platform, sys_clk_freq, self.crg.cd_sys.clk)
 
         # SPIFlash ---------------------------------------------------------------------------------
         if flash_boot:
@@ -479,7 +487,7 @@ class BaseSoC(SoCCore):
         )
         self.add_pcie(phy=self.pcie_phy, address_width=64, data_width=self.pcie_phy.data_width, ndmas=1,
             with_dma_buffering    = True,
-            dma_buffering_depth   = 16384,
+            dma_buffering_depth   = 65536,
             max_pending_requests  = 16,
             with_dma_loopback     = False,
             with_dma_synchronizer = False,
@@ -546,7 +554,6 @@ class BaseSoC(SoCCore):
            rx_sys_clk_domain    = self.crg.cd_sys.name,
            TX_N_BUFF            = TX_N_BUFF,
            TX_MAX_PCT_SIZE      = TX_MAX_PCT_SIZE,
-           TX_IN_PCT_HDR_SIZE   = 16,
            tx_buffer_size       = self.pcie_phy.data_width * 4, #minimum tx cdc input buffer depth
 
            with_lms7002         = False,
@@ -566,12 +573,21 @@ class BaseSoC(SoCCore):
            soc_has_timesource   = False,
         )
 
+        self.synchro_pads = platform.request("synchro")
+
+        self.comb += [
+            self.synchro_pads.pps_out.eq(self.limetop.stream_start_controller.rx_en),
+            self.limetop.pps.eq(self.pps_internal),
+            self.limetop.pps_valid.eq(1),
+            self.limetop.ext_stream_trigger.eq(self.synchro_pads.pps_in),
+        ]
+
         self.comb += self.limetop.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
 
         ## PCIE DMA -> TX Path -> LMS7002 Pipeline.
         self.comb += [
            self.pcie_dma0.source.connect(self.limetop.sink, omit=["ready"]),
-           self.pcie_dma0.source.ready.eq((self.limetop.sink.ready & self.limetop.fpgacfg.rx_en) | ~self.pcie_dma0.reader.enable),
+           self.pcie_dma0.source.ready.eq((self.limetop.sink.ready & self.limetop.stream_start_controller.tx_en) | ~self.pcie_dma0.reader.enable),
         ]
 
         self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
@@ -686,8 +702,8 @@ class BaseSoC(SoCCore):
         ]
 
         self.comb +=[
-            self.afe.rx_en.eq(self.limetop.fpgacfg.rx_en),
-            self.afe.tx_en.eq(self.limetop.fpgacfg.rx_en),
+            self.afe.rx_en.eq(self.limetop.stream_start_controller.rx_en),
+            self.afe.tx_en.eq(self.limetop.stream_start_controller.tx_en),
         ]
 
         #self.afe_pads = platform.request("afe79xx_serdes_x4")
@@ -874,21 +890,28 @@ class BaseSoC(SoCCore):
 
         self.irq.add("bsp")
 
+        self.add_ram(
+            name="fpga_cache",
+            origin=FPGA_CACHE_BASE,
+            size=FPGA_CACHE_SIZE,
+            mode="rw",
+        )
+
 
         #TODO: place it in gateware dir
         timings_xdx_filename = "timing.xdc"
         with open(timings_xdx_filename, "w") as f:
             # Write timing constraints.
             f.write("# Renaming generated clocks\n")
-            f.write("create_generated_clock -name afe [get_pins -hierarchical \"*MMCME2_ADV/CLKOUT0\"]\n\n")
-            f.write("create_generated_clock -name jesd_freerun [get_pins -hierarchical \"*MMCME2_ADV/CLKOUT1\"]\n\n")
+            f.write("create_generated_clock -name sys -source [get_pins PLLE2_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins PLLE2_ADV/CLKOUT0]\n\n")
 
-            f.write("create_generated_clock -name sys [get_pins -hierarchical \"PLLE2_ADV/CLKOUT0\"]\n\n")
+            f.write("create_generated_clock -name jesd_freerun -source [get_pins MMCME4_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins MMCME4_ADV/CLKOUT0]\n\n")
+            f.write("create_generated_clock -name afe -source [get_pins MMCME4_ADV/CLKIN1] -master_clock [get_clocks pcie_clk] [get_pins MMCME4_ADV/CLKOUT1]\n\n")
 
             f.write("set_clock_groups -name sys_async1 -asynchronous -group [get_clocks sys]\n\n")
             f.write("set_clock_groups -name sys_async2 -asynchronous -group [get_clocks afe]\n\n")
             f.write("set_clock_groups -name sys_async3 -asynchronous -group [get_clocks jesd_freerun]\n\n")
-
+            f.write("set_clock_groups -name 1pps -asynchronous -group [get_clocks fpga_1pps_clk]\n\n")
             f.write("set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]\n\n")
             # set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]
             # f.write("set_clock_groups -name 1pps_double -asynchronous -group [get_clocks fpga_1pps_double_clk]\n\n")

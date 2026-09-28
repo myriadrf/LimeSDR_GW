@@ -147,6 +147,10 @@ def main():
         "ssdr_rev2": {
             "override": root / "docs" / "docs" / "ssdr_rev2" / "reg_remap",
             "c_file": root / "firmware" / "bsp" / "SSDR" / "regremap.c"
+        },
+        "limesdr-usb": {
+            "override": root / "docs" / "docs" / "limesdr-usb" / "reg_remap",
+            "c_file": root / "firmware" / "bsp" / "LimeSDR_USB" / "regremap.c"
         }
     }
     

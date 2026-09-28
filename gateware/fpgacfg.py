@@ -14,8 +14,7 @@ from litex.soc.interconnect.csr import *
 # FPGA Cfg -----------------------------------------------------------------------------------------
 
 class FPGACfg(LiteXModule):
-    def __init__(self, board_id, major_rev, compile_rev, pads=None, soc_has_timesource=False):
-        self.soc_has_timesource= soc_has_timesource
+    def __init__(self, board_id, major_rev, compile_rev, pads=None):
 
         # Export.
         # -------
@@ -63,7 +62,7 @@ class FPGACfg(LiteXModule):
         self.board_id          = CSRStatus(16,  reset=board_id)
         self.major_rev         = CSRStatus(16,  reset=major_rev)
         self.compile_rev       = CSRStatus(16,  reset=compile_rev)
-        self.bom_hw_ver    = CSRStatus(16,  reset=0)
+        self.bom_hw_ver        = CSRStatus(16,  reset=0)
 
         # Interface config (7-15)
         self._ch_en            = CSRStorage(4,  reset=0b1111,
@@ -148,40 +147,35 @@ class FPGACfg(LiteXModule):
             self.txant_post.eq(       self._txant_post.storage),
 
         ]
-        if self.soc_has_timesource:
-            # Stream delay logic
-            # Mode 0 uses no delay
-            # Mode 1 uses delay signal 0
-            # Mode 2 uses delay signal 1
-            # ...
-            # tx_en_delay and rx_en_delay are outputs of mux
-            self.sync += [
-                # Add option to delay stream start until a delay signal is pulsed high
-                If(self.tx_en_delay_mode != 0,[
-                    If(self.reg10.fields.tx_en == 0,[
-                        self.tx_en.eq(0),
-                    ]).Else([
-                        self.tx_en.eq(self.tx_en | tx_en_delay),
-                    ])
+
+        # Stream delay logic
+        # Mode 0 uses no delay
+        # Mode 1 uses delay signal 0
+        # Mode 2 uses delay signal 1
+        # ...
+        # tx_en_delay and rx_en_delay are outputs of mux
+        self.sync += [
+            # Add option to delay stream start until a delay signal is pulsed high
+            If(self.tx_en_delay_mode != 0,[
+                If(self.reg10.fields.tx_en == 0,[
+                    self.tx_en.eq(0),
                 ]).Else([
-                    self.tx_en.eq(            self.reg10.fields.tx_en),
-                ]),
-                # Add option to delay stream start until a delay signal is pulsed high
-                If(self.rx_en_delay_mode != 0, [
-                    If(self.reg10.fields.rx_en == 0,[
-                        self.rx_en.eq(0),
-                    ]).Else([
-                        self.rx_en.eq(self.rx_en | rx_en_delay),
-                    ])
-                ]).Else([
-                    self.rx_en.eq(            self.reg10.fields.rx_en),
-                ]),
-            ]
-        else:
-            self.comb +=[
+                    self.tx_en.eq(self.tx_en | tx_en_delay),
+                ])
+            ]).Else([
                 self.tx_en.eq(            self.reg10.fields.tx_en),
+            ]),
+            # Add option to delay stream start until a delay signal is pulsed high
+            If(self.rx_en_delay_mode != 0, [
+                If(self.reg10.fields.rx_en == 0,[
+                    self.rx_en.eq(0),
+                ]).Else([
+                    self.rx_en.eq(self.rx_en | rx_en_delay),
+                ])
+            ]).Else([
                 self.rx_en.eq(            self.reg10.fields.rx_en),
-            ]
+            ]),
+        ]
 
         # Stream delay signal mux
         tx_cases = {

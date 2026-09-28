@@ -7,25 +7,25 @@ Register Listing for SPIMASTER
 +------------------------------------------------------+-------------------------------------------+
 | Register                                             | Address                                   |
 +======================================================+===========================================+
-| :ref:`SPIMASTER_CONTROL <SPIMASTER_CONTROL>`         | :ref:`0xf0003800 <SPIMASTER_CONTROL>`     |
+| :ref:`SPIMASTER_CONTROL <SPIMASTER_CONTROL>`         | :ref:`0xf0004800 <SPIMASTER_CONTROL>`     |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_STATUS <SPIMASTER_STATUS>`           | :ref:`0xf0003804 <SPIMASTER_STATUS>`      |
+| :ref:`SPIMASTER_STATUS <SPIMASTER_STATUS>`           | :ref:`0xf0004804 <SPIMASTER_STATUS>`      |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_MOSI <SPIMASTER_MOSI>`               | :ref:`0xf0003808 <SPIMASTER_MOSI>`        |
+| :ref:`SPIMASTER_MOSI <SPIMASTER_MOSI>`               | :ref:`0xf0004808 <SPIMASTER_MOSI>`        |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_MISO <SPIMASTER_MISO>`               | :ref:`0xf000380c <SPIMASTER_MISO>`        |
+| :ref:`SPIMASTER_MISO <SPIMASTER_MISO>`               | :ref:`0xf000480c <SPIMASTER_MISO>`        |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_CS <SPIMASTER_CS>`                   | :ref:`0xf0003810 <SPIMASTER_CS>`          |
+| :ref:`SPIMASTER_CS <SPIMASTER_CS>`                   | :ref:`0xf0004810 <SPIMASTER_CS>`          |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_LOOPBACK <SPIMASTER_LOOPBACK>`       | :ref:`0xf0003814 <SPIMASTER_LOOPBACK>`    |
+| :ref:`SPIMASTER_LOOPBACK <SPIMASTER_LOOPBACK>`       | :ref:`0xf0004814 <SPIMASTER_LOOPBACK>`    |
 +------------------------------------------------------+-------------------------------------------+
-| :ref:`SPIMASTER_CLK_DIVIDER <SPIMASTER_CLK_DIVIDER>` | :ref:`0xf0003818 <SPIMASTER_CLK_DIVIDER>` |
+| :ref:`SPIMASTER_CLK_DIVIDER <SPIMASTER_CLK_DIVIDER>` | :ref:`0xf0004818 <SPIMASTER_CLK_DIVIDER>` |
 +------------------------------------------------------+-------------------------------------------+
 
 SPIMASTER_CONTROL
 ^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0x0 = 0xf0003800`
+`Address: 0xf0004800 + 0x0 = 0xf0004800`
 
     SPI Control.
 
@@ -38,7 +38,7 @@ SPIMASTER_CONTROL
                 {"bits": 7},
                 {"name": "length",  "bits": 8},
                 {"bits": 16}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -53,7 +53,7 @@ SPIMASTER_CONTROL
 SPIMASTER_STATUS
 ^^^^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0x4 = 0xf0003804`
+`Address: 0xf0004800 + 0x4 = 0xf0004804`
 
     SPI Status.
 
@@ -65,7 +65,7 @@ SPIMASTER_STATUS
                 {"name": "done",  "bits": 1},
                 {"name": "mode",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -88,7 +88,7 @@ SPIMASTER_STATUS
 SPIMASTER_MOSI
 ^^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0x8 = 0xf0003808`
+`Address: 0xf0004800 + 0x8 = 0xf0004808`
 
     SPI MOSI data (MSB-first serialization).
 
@@ -98,14 +98,14 @@ SPIMASTER_MOSI
         {
             "reg": [
                 {"name": "mosi[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
 SPIMASTER_MISO
 ^^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0xc = 0xf000380c`
+`Address: 0xf0004800 + 0xc = 0xf000480c`
 
     SPI MISO data (MSB-first de-serialization).
 
@@ -115,14 +115,14 @@ SPIMASTER_MISO
         {
             "reg": [
                 {"name": "miso[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
 SPIMASTER_CS
 ^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0x10 = 0xf0003810`
+`Address: 0xf0004800 + 0x10 = 0xf0004810`
 
     SPI CS Chip-Select and Mode.
 
@@ -135,7 +135,7 @@ SPIMASTER_CS
                 {"bits": 14},
                 {"name": "mode",  "bits": 1},
                 {"bits": 15}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -166,7 +166,7 @@ SPIMASTER_CS
 SPIMASTER_LOOPBACK
 ^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0x14 = 0xf0003814`
+`Address: 0xf0004800 + 0x14 = 0xf0004814`
 
     SPI Loopback Mode.
 
@@ -177,7 +177,7 @@ SPIMASTER_LOOPBACK
             "reg": [
                 {"name": "mode",  "bits": 1},
                 {"bits": 31}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -198,7 +198,7 @@ SPIMASTER_LOOPBACK
 SPIMASTER_CLK_DIVIDER
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0003800 + 0x18 = 0xf0003818`
+`Address: 0xf0004800 + 0x18 = 0xf0004818`
 
     SPI Clk Divider.
 
@@ -209,7 +209,7 @@ SPIMASTER_CLK_DIVIDER
             "reg": [
                 {"name": "clk_divider[15:0]", "attr": 'reset: 8', "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 

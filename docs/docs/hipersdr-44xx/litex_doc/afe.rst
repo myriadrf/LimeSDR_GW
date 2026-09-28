@@ -59,6 +59,10 @@ Register Listing for AFE
 +------------------------------------------------------------------+-------------------------------------------------+
 | :ref:`AFE_RESAMPLER_MAX_VALUE <AFE_RESAMPLER_MAX_VALUE>`         | :ref:`0xf000d864 <AFE_RESAMPLER_MAX_VALUE>`     |
 +------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_INTERFACE_RATE <AFE_INTERFACE_RATE>`                   | :ref:`0xf000d868 <AFE_INTERFACE_RATE>`          |
++------------------------------------------------------------------+-------------------------------------------------+
+| :ref:`AFE_SHADOW_REG0 <AFE_SHADOW_REG0>`                         | :ref:`0xf000d86c <AFE_SHADOW_REG0>`             |
++------------------------------------------------------------------+-------------------------------------------------+
 
 AFE_REG00
 ^^^^^^^^^
@@ -75,7 +79,7 @@ AFE_REG00
                 {"name": "afe_trst",  "bits": 1},
                 {"name": "afe_sleep",  "bits": 1},
                 {"bits": 29}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -100,7 +104,7 @@ AFE_CORE_CTRL
                 {"name": "afe_core_rst_n",  "bits": 1},
                 {"name": "afe_init_trigger",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -124,7 +128,7 @@ AFE_RX_CTRL
                 {"name": "tiafe_rx_sync_reset",  "attr": '1', "bits": 1},
                 {"name": "rx_clr_sysref_realign_count",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -148,7 +152,7 @@ AFE_RX_CFG0
                 {"name": "tiafe_cfg_rx_lane_enabled",  "bits": 4},
                 {"name": "tiafe_cfg_rx_lane_polarity",  "bits": 4},
                 {"bits": 24}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -171,7 +175,7 @@ AFE_RX_CFG1
             "reg": [
                 {"name": "tiafe_cfg_rx_lane_map",  "bits": 16},
                 {"bits": 16}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -193,7 +197,7 @@ AFE_RX_CFG2
             "reg": [
                 {"name": "tiafe_cfg_rx_buffer_release_delay",  "bits": 10},
                 {"bits": 22}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -215,7 +219,7 @@ AFE_RX_CFG3
             "reg": [
                 {"name": "swap_iq",  "attr": '15', "bits": 4},
                 {"bits": 28}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -237,7 +241,7 @@ AFE_RX_STATUS0
             "reg": [
                 {"name": "jesd_rx_sysref_realign_count",  "bits": 4},
                 {"bits": 28}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -260,7 +264,7 @@ AFE_TX_CTRL
                 {"name": "tiafe_tx_sync_reset",  "attr": '1', "bits": 1},
                 {"name": "tx_clr_sysref_realign_count",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -284,7 +288,7 @@ AFE_TX_CFG0
                 {"name": "tiafe_cfg_tx_lane_enabled",  "bits": 4},
                 {"name": "tiafe_cfg_tx_lane_polarity",  "bits": 4},
                 {"bits": 24}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -307,7 +311,7 @@ AFE_TX_CFG1
             "reg": [
                 {"name": "tiafe_cfg_tx_lane_map",  "bits": 16},
                 {"bits": 16}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -329,7 +333,7 @@ AFE_TX_CFG3
             "reg": [
                 {"name": "swap_iq",  "attr": '15', "bits": 4},
                 {"bits": 28}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -351,7 +355,7 @@ AFE_TX_STATUS0
             "reg": [
                 {"name": "jesd_tx_sysref_realign_count",  "bits": 4},
                 {"bits": 28}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -374,7 +378,7 @@ AFE_CH_EN
             "reg": [
                 {"name": "ch_en[1:0]", "attr": 'reset: 3', "bits": 2},
                 {"bits": 30},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -392,7 +396,7 @@ AFE_SMPL_WIDTH
             "reg": [
                 {"name": "smpl_width[1:0]", "attr": 'reset: 2', "bits": 2},
                 {"bits": 30},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -410,7 +414,7 @@ AFE_PKT_SIZE
             "reg": [
                 {"name": "pkt_size[15:0]", "attr": 'reset: 253', "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -428,7 +432,7 @@ AFE_CORE_STATUS0
                 {"name": "xcvr_plls_locked",  "bits": 1},
                 {"name": "rx_all_lanes_locked",  "bits": 1},
                 {"bits": 30}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -452,7 +456,7 @@ AFE_DECIMATE_STAGE_COUNT
             "reg": [
                 {"name": "decimate_stage_count[2:0]", "bits": 3},
                 {"bits": 29},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -468,9 +472,9 @@ AFE_DECIMATE_BLANK0
 
         {
             "reg": [
-                {"name": "decimate_blank0", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+                {"name": "decimate_blank0[2:0]", "bits": 3},
+                {"bits": 29},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -486,9 +490,9 @@ AFE_DECIMATE_BLANK1
 
         {
             "reg": [
-                {"name": "decimate_blank1", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+                {"name": "decimate_blank1[2:0]", "bits": 3},
+                {"bits": 29},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -504,9 +508,9 @@ AFE_DECIMATE_BLANK2
 
         {
             "reg": [
-                {"name": "decimate_blank2", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+                {"name": "decimate_blank2[2:0]", "bits": 3},
+                {"bits": 29},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -524,7 +528,7 @@ AFE_INTERPOLATE_STAGE_COUNT
             "reg": [
                 {"name": "interpolate_stage_count[2:0]", "bits": 3},
                 {"bits": 29},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -540,9 +544,9 @@ AFE_INTERPOLATE_BLANK0
 
         {
             "reg": [
-                {"name": "interpolate_blank0", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+                {"name": "interpolate_blank0[2:0]", "bits": 3},
+                {"bits": 29},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -558,9 +562,9 @@ AFE_INTERPOLATE_BLANK1
 
         {
             "reg": [
-                {"name": "interpolate_blank1", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+                {"name": "interpolate_blank1[2:0]", "bits": 3},
+                {"bits": 29},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -576,9 +580,9 @@ AFE_INTERPOLATE_BLANK2
 
         {
             "reg": [
-                {"name": "interpolate_blank2", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+                {"name": "interpolate_blank2[2:0]", "bits": 3},
+                {"bits": 29},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -596,7 +600,41 @@ AFE_RESAMPLER_MAX_VALUE
             "reg": [
                 {"name": "resampler_max_value[3:0]", "bits": 4},
                 {"bits": 28},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
+        }
+
+
+AFE_INTERFACE_RATE
+^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf000d800 + 0x68 = 0xf000d868`
+
+    FPGA supported AFE79xx sample rate at the JESD interface level
+
+    .. wavedrom::
+        :caption: AFE_INTERFACE_RATE
+
+        {
+            "reg": [
+                {"name": "interface_rate[31:0]", "attr": 'reset: 491520000', "bits": 32}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
+AFE_SHADOW_REG0
+^^^^^^^^^^^^^^^
+
+`Address: 0xf000d800 + 0x6c = 0xf000d86c`
+
+    Host configured AFE79xx sample rate storage
+
+    .. wavedrom::
+        :caption: AFE_SHADOW_REG0
+
+        {
+            "reg": [
+                {"name": "shadow_reg0[31:0]", "bits": 32}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 

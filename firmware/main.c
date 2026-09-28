@@ -34,9 +34,22 @@
 
 #define LMS64C_METHOD_CSR  1
 #define LMS64C_METHOD_FTDI 2
+#define LMS64C_METHOD_FX3 3
 
-#if (LMS64C_METHOD != LMS64C_METHOD_CSR) && (LMS64C_METHOD != LMS64C_METHOD_FTDI)
+#if (LMS64C_METHOD != LMS64C_METHOD_CSR) && (LMS64C_METHOD != LMS64C_METHOD_FTDI) && (LMS64C_METHOD != LMS64C_METHOD_FX3)
 #    error "LMS64C_METHOD is set to an unsupported value."
+#endif
+
+#if LMS64C_METHOD == LMS64C_METHOD_FTDI
+#    define LMS64C_FIFO_STATUS_READ()    ft601_fifo_status_read()
+#    define LMS64C_FIFO_RDATA_READ()     ft601_fifo_rdata_read()
+#    define LMS64C_FIFO_WDATA_WRITE(v)   ft601_fifo_wdata_write(v)
+#    define LMS64C_FIFO_CONTROL_WRITE(v) ft601_fifo_control_write(v)
+#elif LMS64C_METHOD == LMS64C_METHOD_FX3
+#    define LMS64C_FIFO_STATUS_READ()    FX3_fifo_status_read()
+#    define LMS64C_FIFO_RDATA_READ()     FX3_fifo_rdata_read()
+#    define LMS64C_FIFO_WDATA_WRITE(v)   FX3_fifo_wdata_write(v)
+#    define LMS64C_FIFO_CONTROL_WRITE(v) FX3_fifo_control_write(v)
 #endif
 
 // Check one of the base addresses to make sure PLL's exist
@@ -54,9 +67,9 @@ CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIMETOP_LMS7002_TOP_
 #endif
 
 /********************** main.c function declarations **************************/
-// FTDI LMS64C Functions
-#if LMS64C_METHOD == LMS64C_METHOD_FTDI
-void FTDI_getFifoData(uint8_t *buf, uint8_t k);
+// FTDI & FX3 LMS64C Functions
+#if (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
+void LMS64C_getFifoData(uint8_t *buf, uint8_t k);
 #endif
 // CSR LMS64C Functions
 #if LMS64C_METHOD == LMS64C_METHOD_CSR
@@ -119,7 +132,7 @@ int main(void)
 #endif
 #if LMS64C_METHOD == LMS64C_METHOD_CSR
     lms64c_init();
-#elif LMS64C_METHOD == LMS64C_METHOD_FTDI
+#elif (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
     uint32_t dest_byte_reordered = 0;
     uint32_t *dest               = (uint32_t *)glEp0Buffer_Tx;
 #endif
@@ -127,19 +140,23 @@ int main(void)
     clk_cfg_irq_init();
 #endif
 
+#ifdef CSR_UART_BASE
     uart_init();
+#endif
     bsp_isr_init();
     bsp_init();
+#ifdef CSR_UART_BASE
     help();
     prompt();
+#endif
 
     while (1) {
         if (boot_img_en == 1) {
             bsp_program_mode2_boot_from_flash();
         }
         // LMS64C Method resolution
-#if LMS64C_METHOD == LMS64C_METHOD_FTDI
-        spirez               = ft601_fifo_status_read(); // Read FIFO Status
+#if (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
+        spirez               = LMS64C_FIFO_STATUS_READ(); // Read FIFO Status
         lms64_packet_pending = !(spirez & 0x01);
 #endif
 
@@ -154,7 +171,9 @@ int main(void)
         }
 #endif
 
+#ifdef CSR_UART_BASE
         console_service();
+#endif
 
         bsp_process_irqs();
 
@@ -171,21 +190,21 @@ int main(void)
             uint8_t reg_array[4];
             uint16_t addr;
             uint16_t val;
-#if LMS64C_METHOD == LMS64C_METHOD_FTDI
+#if (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
+#    ifdef CSR_MAIN_GPO_ADDR
             main_gpo_write(1);
+#    endif
 
             // Read packet from the FIFO
-            FTDI_getFifoData(glEp0Buffer_Rx, 64);
+            LMS64C_getFifoData(glEp0Buffer_Rx, 64);
 #elif LMS64C_METHOD == LMS64C_METHOD_CSR
-            uint32_t read_value;
-
             /* Disable CNTRL irq while processing packet */
             CNTRL_ev_enable_write(CNTRL_ev_enable_read() & ~(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET));
             irq_setmask(irq_getmask() & ~(1 << CNTRL_INTERRUPT));
 
             lms64_packet_pending = 0;
             // printf("CNTRL PCT GOT!\n");
-            uint32_t *dest = (uint32_t *)glEp0Buffer_Tx;
+            uint32_t dest[sizeof(glEp0Buffer_Tx) / sizeof(uint32_t)];
 
             getLMS64Packet(glEp0Buffer_Rx, 64);
 #endif
@@ -250,10 +269,13 @@ int main(void)
                     // Clearing write bit in address field because we are not using SPI registers in LiteX implementation
                     cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)], 7); // clear write bit
 
-                    writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
-                             &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)]);
+                    if (!writeCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 4)],
+                                  &LMS_Ctrl_Packet_Rx->Data_field[2 + (block * 4)])) {
+                        cmd_errors = 1;
+                        break;
+                    }
                 }
-                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                LMS_Ctrl_Packet_Tx->Header.Status = cmd_errors ? STATUS_ERROR_CMD : STATUS_COMPLETED_CMD;
                 break;
 
             case CMD_BRDSPI16_RD:
@@ -266,15 +288,15 @@ int main(void)
                     // write reg addr
                     cbi(LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], 7); // clear write bit
 
-                    readCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], reg_array);
+                    if (!readCSR(&LMS_Ctrl_Packet_Rx->Data_field[0 + (block * 2)], reg_array)) {
+                        cmd_errors = 1;
+                        break;
+                    }
                     LMS_Ctrl_Packet_Tx->Data_field[2 + (block * 4)] = reg_array[1];
                     LMS_Ctrl_Packet_Tx->Data_field[3 + (block * 4)] = reg_array[0];
-
-                    //			printf("value: 0x%X\n", reg_array[0]);
-                    //			printf("value: 0x%X\n", reg_array[1]);
                 }
 
-                LMS_Ctrl_Packet_Tx->Header.Status = STATUS_COMPLETED_CMD;
+                LMS_Ctrl_Packet_Tx->Header.Status = cmd_errors ? STATUS_ERROR_CMD : STATUS_COMPLETED_CMD;
                 break;
 
                 // COMMAND LMS7 WRITE
@@ -741,29 +763,31 @@ int main(void)
             }
 
 #if LMS64C_METHOD == LMS64C_METHOD_CSR
-            // Send response to the command
-            // for (int i = 0; i < 64 / sizeof(uint32_t); ++i)
-            for (int i = (64 / sizeof(uint32_t)) - 1; i >= 0; --i) {
+            // Copy bytes into word objects instead of aliasing the packet buffer.
+            memcpy(dest, glEp0Buffer_Tx, sizeof(glEp0Buffer_Tx));
+
+            // Atomic CSR writes commit at the highest address; write it last.
+            for (int i = 0; i < 64 / sizeof(uint32_t); ++i) {
                 csr_write_simple(dest[i], (CSR_CNTRL_CNTRL_ADDR + i * 4));
             }
 
-            /* Clear all pending interrupts. */
-            CNTRL_ev_pending_write(CNTRL_ev_pending_read());
-            /* Reenable CNTRL irq */
+            /* Reenable delivery without clearing new requests arriving after response commit. */
             CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET);
             irq_setmask(irq_getmask() | (1 << CNTRL_INTERRUPT));
 
-#elif LMS64C_METHOD == LMS64C_METHOD_FTDI
+#elif (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
             for (int i = 0; i < (64 / sizeof(uint32_t)); ++i) {
                 // dest_byte_reordered = ((dest[cnt] & 0x000000FF) <<24) | ((dest[cnt] & 0x0000FF00) <<8) | ((dest[cnt]
                 // & 0x00FF0000) >>8) | ((dest[cnt] & 0xFF000000) >>24);
                 dest_byte_reordered = dest[i];
-                ft601_fifo_wdata_write(dest_byte_reordered);
-                // printf("%ld\n", ft601_fifo_status_read());
+                LMS64C_FIFO_WDATA_WRITE(dest_byte_reordered);
+                // printf("%ld\n", LMS64C_FIFO_STATUS_READ());
             }
             // gpo_val = 0x0;
             //*gpo_reg = gpo_val;
+#    ifdef CSR_MAIN_GPO_ADDR
             main_gpo_write(0);
+#    endif
 #endif
         }
 
@@ -824,15 +848,15 @@ int main(void)
     }
 }
 
-#if LMS64C_METHOD == LMS64C_METHOD_FTDI
-void FTDI_getFifoData(uint8_t *buf, uint8_t k)
+#if (LMS64C_METHOD == LMS64C_METHOD_FTDI) || (LMS64C_METHOD == LMS64C_METHOD_FX3)
+void LMS64C_getFifoData(uint8_t *buf, uint8_t k)
 {
     uint8_t cnt       = 0;
     uint32_t *dest    = (uint32_t *)buf;
     uint32_t fifo_val = 0;
 
     for (cnt = 0; cnt < k / sizeof(uint32_t); ++cnt) {
-        fifo_val  = ft601_fifo_rdata_read();
+        fifo_val  = LMS64C_FIFO_RDATA_READ();
         dest[cnt] = fifo_val; // Read Data From Fifo
     }
 }
@@ -841,38 +865,20 @@ void FTDI_getFifoData(uint8_t *buf, uint8_t k)
 #if LMS64C_METHOD == LMS64C_METHOD_CSR
 void getLMS64Packet(uint8_t *buf, uint8_t k)
 {
-    uint8_t cnt    = 0;
-    uint32_t *dest = (uint32_t *)buf;
-    uint32_t temp_buffer[k / sizeof(uint32_t)];
-    uint8_t is_stable = 0;
+    uint32_t dest[k / sizeof(uint32_t)];
 
-    while (!is_stable) {
-        // Read the first buffer into temp_buffer
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
-            temp_buffer[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
-        }
-
-        // Read again into dest buffer
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
-            dest[cnt] = csr_read_simple((CSR_CNTRL_CNTRL_ADDR + cnt * 4));
-        }
-
-        // Compare the two buffers
-        is_stable = 1;
-        for (cnt = 0; cnt < k / sizeof(uint32_t); cnt++) {
-            if (temp_buffer[cnt] != dest[cnt]) {
-                is_stable = 0;
-                break;
-            }
-        }
+    for (size_t i = 0; i < k / sizeof(uint32_t); ++i) {
+        dest[i] = csr_read_simple(CSR_CNTRL_CNTRL_ADDR + i * 4);
     }
+    memcpy(buf, dest, sizeof(dest));
 }
 
 static void lms64c_isr(void)
 {
+    /* Keep delivery masked until the main loop has committed the response. */
+    CNTRL_ev_enable_write(0);
+    CNTRL_ev_pending_write(1 << CSR_CNTRL_EV_PENDING_CNTRL_ISR_OFFSET);
     lms64_packet_pending = 1;
-    CNTRL_ev_pending_write(CNTRL_ev_pending_read());                  // Clear interrupt
-    CNTRL_ev_enable_write(1 << CSR_CNTRL_EV_STATUS_CNTRL_ISR_OFFSET); // re-enable the event handler
 }
 
 static void lms64c_init(void)

@@ -7,13 +7,13 @@ Register Listing for VCTCXO_TAMER
 +----------------------------------------------------+------------------------------------------+
 | Register                                           | Address                                  |
 +====================================================+==========================================+
-| :ref:`VCTCXO_TAMER_CONTROL <VCTCXO_TAMER_CONTROL>` | :ref:`0xf000b800 <VCTCXO_TAMER_CONTROL>` |
+| :ref:`VCTCXO_TAMER_CONTROL <VCTCXO_TAMER_CONTROL>` | :ref:`0xf000c000 <VCTCXO_TAMER_CONTROL>` |
 +----------------------------------------------------+------------------------------------------+
 
 VCTCXO_TAMER_CONTROL
 ^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf000b800 + 0x0 = 0xf000b800`
+`Address: 0xf000c000 + 0x0 = 0xf000c000`
 
 
     .. wavedrom::

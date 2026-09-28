@@ -37,6 +37,7 @@ Register Groups
     dna
     i2c0
     pwr_ctrl
+    rfsw_control
     spimaster
     sys_clock_test
     timer0

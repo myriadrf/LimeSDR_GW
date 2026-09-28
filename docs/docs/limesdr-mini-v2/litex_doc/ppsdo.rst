@@ -50,7 +50,7 @@ PPSDO_ENABLE
             "reg": [
                 {"name": "enable", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -67,7 +67,7 @@ PPSDO_CONFIG_ONE_S_TARGET
         {
             "reg": [
                 {"name": "config_one_s_target[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -84,7 +84,7 @@ PPSDO_CONFIG_ONE_S_TOL
         {
             "reg": [
                 {"name": "config_one_s_tol[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -101,7 +101,7 @@ PPSDO_CONFIG_TEN_S_TARGET
         {
             "reg": [
                 {"name": "config_ten_s_target[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -118,7 +118,7 @@ PPSDO_CONFIG_TEN_S_TOL
         {
             "reg": [
                 {"name": "config_ten_s_tol[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -135,7 +135,7 @@ PPSDO_CONFIG_HUNDRED_S_TARGET
         {
             "reg": [
                 {"name": "config_hundred_s_target[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -152,7 +152,7 @@ PPSDO_CONFIG_HUNDRED_S_TOL
         {
             "reg": [
                 {"name": "config_hundred_s_tol[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -169,7 +169,7 @@ PPSDO_STATUS_ONE_S_ERROR
         {
             "reg": [
                 {"name": "status_one_s_error[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -186,7 +186,7 @@ PPSDO_STATUS_TEN_S_ERROR
         {
             "reg": [
                 {"name": "status_ten_s_error[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -203,7 +203,7 @@ PPSDO_STATUS_HUNDRED_S_ERROR
         {
             "reg": [
                 {"name": "status_hundred_s_error[31:0]", "bits": 32}
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -221,7 +221,7 @@ PPSDO_STATUS_DAC_TUNED_VAL
             "reg": [
                 {"name": "status_dac_tuned_val[15:0]", "bits": 16},
                 {"bits": 16},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 1 }, "options": {"hspace": 900, "bits": 32, "lanes": 1}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 
@@ -239,7 +239,7 @@ PPSDO_STATUS_ACCURACY
             "reg": [
                 {"name": "status_accuracy[3:0]", "bits": 4},
                 {"bits": 28},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -257,7 +257,7 @@ PPSDO_STATUS_PPS_ACTIVE
             "reg": [
                 {"name": "status_pps_active", "bits": 1},
                 {"bits": 31},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
@@ -275,7 +275,7 @@ PPSDO_STATUS_STATE
             "reg": [
                 {"name": "status_state[3:0]", "bits": 4},
                 {"bits": 28},
-            ], "config": {"hspace": 900, "bits": 32, "lanes": 4 }, "options": {"hspace": 900, "bits": 32, "lanes": 4}
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 

@@ -125,6 +125,10 @@ Supported Boards
      - v2.x
      - USB SDR board
      - Open-source flow with GHDL, Yosys, and nextpnr
+   * - LimeSDR USB
+     - v1.2+
+     - USB SDR board
+     - Intel Quartus
    * - HiperSDR-44xx
      - v2
      - PCIe SDR board
