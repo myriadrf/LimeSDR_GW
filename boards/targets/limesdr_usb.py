@@ -268,6 +268,7 @@ class BaseSoC(SoCCore):
 
                                 with_event_manager   = False,
                                 with_clk_cfg_irq     = False,
+                                unified_clk_csr      = True,
                                 )
 
         self.comb += [

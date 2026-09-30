@@ -61,8 +61,8 @@ PLL_ADDRS pll0_tx_addrs       = GENERATE_MMCM_DRP_ADDRS(CSR_LIMETOP_LMS7002_TOP_
 SMPL_CMP_ADDRS smpl_cmp_addrs = GENERATE_SMPL_CMP_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK);
 #endif
 // clk_ctrl_addrs is declared in regremap.h
-// Check one of the base addresses to make sure CLK CTRL exists
-#ifdef CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_C0_DIV_CNT_SIZE
+// Check legacy PLLCFG_DONE base address to make sure legacy disintegrated CLK CTRL exists
+#ifdef CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_PLLCFG_DONE_ADDR
 CLK_CTRL_ADDRS clk_ctrl_addrs = GENERATE_CLK_CTRL_ADDRS(CSR_LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL);
 #endif
 

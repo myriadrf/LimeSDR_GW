@@ -247,7 +247,7 @@ class LimeTop(LiteXModule):
         with_event_manager   = True,
         with_clk_cfg_irq     = True,
         soc_has_timesource   = False,
-
+        unified_clk_csr      = False,
 
         ):
 
@@ -306,6 +306,7 @@ class LimeTop(LiteXModule):
                 diq_width       = LMS_DIQ_WIDTH,
                 one_chnl        = one_chnl,
                 with_txiq_mux   = TX_WITHTXIQ_MUX,
+                unified_clk_csr = unified_clk_csr,
             )
         else:
             # Create ports to interface with rxtx top, if lms7002 is not used.
