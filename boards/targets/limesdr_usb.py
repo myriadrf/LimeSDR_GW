@@ -43,8 +43,8 @@ from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
 FPGA_TO_HOST_DATA_WIDTH = 64 # bus width connecting FX3 and Limetop
 HOST_TO_FPGA_DATA_WIDTH = 64 # bus width connecting FX3 and Limetop
 WFM_DATA_WIDTH          = 32 # bus width connecting FX3 and wfmplayer
-TX_MAX_BUF_PACKETS      = 16      # maximum number of buffered tx packets in Limetop (any size)
-TX_PACKET_BUF_SIZE      = 16384   # total size (in bytes) of tx packet buffer in Limetop
+TX_MAX_BUF_PACKETS      = 4      # maximum number of buffered tx packets in Limetop (any size)
+TX_PACKET_BUF_SIZE      = 4096*2   # total size (in bytes) of tx packet buffer in Limetop
 
 # CRG ----------------------------------------------------------------------------------------------
 
