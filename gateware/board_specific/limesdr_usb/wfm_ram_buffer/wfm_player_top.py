@@ -58,7 +58,8 @@ class WFMPlayerTop(LiteXModule):
         wfm_outfifo_size = 11,
         data_width       = 32,
         iq_width         = 12,
-        dcmpr_fifo_size  = 10
+        dcmpr_fifo_size  = 10,
+        with_traffic_gen = False
     ):
         # no support for other settings
         assert data_width == 32
@@ -103,6 +104,7 @@ class WFMPlayerTop(LiteXModule):
             p_data_width       = data_width,
             p_iq_width         = iq_width,
             p_dcmpr_fifo_size  = dcmpr_fifo_size,
+            p_with_traffic_gen = int(with_traffic_gen),
 
             # Inputs
             i_reset_n               = ~ResetSignal("sys"),

@@ -123,6 +123,7 @@ class BaseSoC(SoCCore):
                  cpu_firmware   = None,
                  with_jtagbone     = False,
                  with_cpu_debug    = False,
+                 with_ddr_test     = False,
                  no_ppsdo          = False):
         platform = limesdr_usb.Platform()
         platform.name        = "limesdr_usb"
@@ -234,6 +235,7 @@ class BaseSoC(SoCCore):
                                    revision_pads=revision_pads,
                                    fx3_busy=self.FX3.busy_out,
                                    add_ddr_modules=not no_ddr,
+                                   add_ddr_test=with_ddr_test,
                                    wfm_infifo_usedw_width=self.FX3.ep01_0_rdusedw_width,
                                    )
 
@@ -391,6 +393,7 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-jtagbone",  action="store_true", help="Enable JTAGBone (wishbone-over-JTAG bus master) for gateware debugging / register monitoring with litex_server (mutually exclusive with --with-cpu-debug).")
     parser.add_argument("--with-cpu-debug", action="store_true", help="Enable spec-compliant RISC-V CPU debug over a dedicated JTAG tunnel (implies --no-ddr, mutually exclusive with --with-jtagbone).")
+    parser.add_argument("--no-ddr-test",    action="store_true", help="Remove DDR2 self-test core. Useful for freeing resources when debugging")
     parser.add_argument("--no-ddr",         action="store_true", help="Do not include DDR memory related modules. Useful for freeing resources when debugging")
     parser.add_argument("--no-ppsdo",       action="store_true", help="Do not include PPSDO module.")
 
@@ -411,6 +414,7 @@ def main():
             with_jtagbone  = args.with_jtagbone,
             with_cpu_debug = args.with_cpu_debug,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
+            with_ddr_test  = not args.no_ddr_test,
             no_ddr         = args.no_ddr,
             no_ppsdo       = args.no_ppsdo
         )

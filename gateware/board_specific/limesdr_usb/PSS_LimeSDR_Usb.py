@@ -11,7 +11,7 @@ from litex.soc.interconnect.csr import *
 # PSS (Peripheral Support Subsystem) -----------------------------------------------------------------
 
 class PSS_LimeSDR_Usb(LiteXModule):
-    def __init__(self, soc, platform, sys_clk_freq, pll_ref_clk, revision_pads, fx3_busy, add_ddr_modules=True, wfm_infifo_usedw_width=11):
+    def __init__(self, soc, platform, sys_clk_freq, pll_ref_clk, revision_pads, fx3_busy, add_ddr_modules=True, add_ddr_test=False, wfm_infifo_usedw_width=11):
         self.platform = platform
 
         self.adf_muxout = platform.request("ADF_MUXOUT")
@@ -139,16 +139,16 @@ class PSS_LimeSDR_Usb(LiteXModule):
         self.comb += self.lb_io.out_default.eq(0x00)
 
         # TST Top
-        if add_ddr_modules:
+        if add_ddr_modules and add_ddr_test:
             self.ddr_test_pads = platform.request("ddram",1)
         else:
             self.ddr_test_pads = None
-        self.tst_top = TST_TOP_LimeSDR_USB(self.platform, add_ddr_test=add_ddr_modules, ddr_test_pads=self.ddr_test_pads)
+        self.tst_top = TST_TOP_LimeSDR_USB(self.platform, add_ddr_test=(add_ddr_modules and add_ddr_test), ddr_test_pads=self.ddr_test_pads)
         self.comb += self.tst_top.adf_muxout.eq(self.adf_muxout)
 
         if add_ddr_modules:
             soc.add_constant("DDR_MODULES_PRESENT")
-            self.add_sources_ddr(platform)
+            self.add_sources_ddr(platform, add_ddr_test=add_ddr_test)
 
             # wfmplayer
             self.wfm_load = CSRStorage(size=1, description="Load WFM data")
@@ -176,20 +176,22 @@ class PSS_LimeSDR_Usb(LiteXModule):
 
 
 
-    def add_sources_ddr(self, platform):
+    def add_sources_ddr(self, platform, add_ddr_test=False):
       # ---------------------------
-      ddr2_tester_files = [
-          "gateware/board_specific/limesdr_usb/wfm_ram_buffer/ddr2_tester.vhd",
-      ]
+      if add_ddr_test:
+          ddr2_tester_files = [
+              "gateware/board_specific/limesdr_usb/wfm_ram_buffer/ddr2_tester.vhd",
+          ]
 
-      for file in ddr2_tester_files:
-          platform.add_source(file)
+          for file in ddr2_tester_files:
+              platform.add_source(file)
 
       # ---------------------------
       ddr2_ips = [
-          "gateware/board_specific/limesdr_usb/ddr2_traffic_gen/ddr2_traffic_gen.qsys",
           "gateware/board_specific/limesdr_usb/ddr2/ddr2.qip",
       ]
+      if add_ddr_test:
+          ddr2_ips.append("gateware/board_specific/limesdr_usb/ddr2_traffic_gen/ddr2_traffic_gen.qsys")
 
       for ip in ddr2_ips:
           platform.add_ip(ip)

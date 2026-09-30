@@ -110,6 +110,13 @@ class TST_TOP_LimeSDR_USB(LiteXModule):
                                   o_fail                = self.ddr2_2_tst_fail.status,
                                   o_test_complete       = self.test_cmplt_ddr_test,
                                   )
+      else:
+        self.comb += [
+            self.test_cmplt_ddr_test.eq(0),
+            self.test_rez_ddr_test.eq(0),
+            self.ddr2_2_pnf_per_bit.status.eq(0),
+            self.ddr2_2_tst_fail.status.eq(0),
+        ]
 
 
 
