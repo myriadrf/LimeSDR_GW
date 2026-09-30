@@ -246,6 +246,14 @@ class Platform(AlteraPlatform):
         self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/FX3_timing.sdc")
         self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/lms7_trx_timing.sdc")
 
+        # RAM Style & Pass-through Logic constraints for simple_dual_port_ram (lime_txpct_fifo)
+        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*simple_dual_port_ram*ram*"')
+        self.add_platform_command('set_instance_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF -to "*simple_dual_port_ram*ram*"')
+        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*payload_mem_i*ram*"')
+        self.add_platform_command('set_instance_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF -to "*payload_mem_i*ram*"')
+        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*metadata_mem_i*ram*"')
+        self.add_platform_command('set_instance_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF -to "*metadata_mem_i*ram*"')
+
     def create_programmer(self, cable="ft2232", fpga_part="EP4CE40"):
         return OpenFPGALoader(cable=cable, fpga_part=fpga_part)
 

@@ -160,6 +160,14 @@ class Platform(AlteraPlatform):
         # TODO: The SDC file for LMS7002M is currently added directly in the platform. Find a cleaner way to add constraints without cluttering this file.
         self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/constraints/limesdr_mini_v1/LMS7002_timing.sdc")
 
+        # RAM Style & Pass-through Logic constraints for simple_dual_port_ram (lime_txpct_fifo)
+        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*simple_dual_port_ram*ram*"')
+        self.add_platform_command('set_instance_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF -to "*simple_dual_port_ram*ram*"')
+        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*payload_mem_i*ram*"')
+        self.add_platform_command('set_instance_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF -to "*payload_mem_i*ram*"')
+        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*metadata_mem_i*ram*"')
+        self.add_platform_command('set_instance_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF -to "*metadata_mem_i*ram*"')
+
 
 
     def create_programmer(self, cable="ft2232"):
