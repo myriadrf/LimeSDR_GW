@@ -155,7 +155,7 @@ class BaseSoC(SoCCore):
             integrated_main_ram_size = 0x4100
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
         else:
-            integrated_rom_size      = 0x4100
+            integrated_rom_size      = 0x3900
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
@@ -172,8 +172,8 @@ class BaseSoC(SoCCore):
             VexRiscvSMP.privileged_debug     = True
             VexRiscvSMP.hardware_breakpoints = 4
         else:
-            cpu_type    = "vexriscv"
-            cpu_variant = "minimal"
+            cpu_type    = "serv"
+            cpu_variant = "standard"
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-USB",
             ident_version            = True,
@@ -181,7 +181,7 @@ class BaseSoC(SoCCore):
             cpu_variant              = cpu_variant,
             integrated_rom_size      = integrated_rom_size,
             integrated_rom_init      = integrated_rom_init,
-            integrated_sram_size     = 0x2000,
+            integrated_sram_size     = 0x800,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
             with_uart                = False, #for now
