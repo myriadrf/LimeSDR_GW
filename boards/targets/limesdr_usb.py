@@ -243,9 +243,11 @@ class BaseSoC(SoCCore):
         if not no_ppsdo:
             from gateware.LimePPSDO.src.ppsdo import PPSDO
             self.ppsdo = PPSDO(
-                cd_rf      = "lmk",
-                with_csr   = True,
-                cpu_rftype = "BRAM_BP",
+                cd_sys       = "lmk",
+                sys_clk_freq = 30.72e6,
+                cd_rf        = "lmk",
+                with_csr     = True,
+                cpu_rftype   = "BRAM_BP",
             )
             self.comb += self.ppsdo.pps.eq(self.pss.gpio_io.in_val[7])
             self.ppsdo.add_sources(dac_bits=8)
