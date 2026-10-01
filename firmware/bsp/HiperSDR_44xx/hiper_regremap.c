@@ -263,6 +263,7 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
     default:
         return false;
     }
+    }
 
     regdata_array[0] = (uint8_t)(value & 0xFF);        // Byte 0 (LSB)
     regdata_array[1] = (uint8_t)((value >> 8) & 0xFF); // Byte 1
@@ -283,7 +284,7 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
     if (addr_in_range(addr, TXCHAINCFG_RANGE_BASE, TXCHAINCFG_RANGE_LAST)) {
         special_range_write(addr, value);
         printf("Special Write range hit: 0x%X\n", addr);
-        return;
+        return true;
     }
 
     switch (addr) {
