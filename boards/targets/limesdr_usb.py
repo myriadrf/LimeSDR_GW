@@ -206,6 +206,7 @@ class BaseSoC(SoCCore):
         # FX3
         self.FX3 = FX3(platform=platform,
                        pads=platform.request("FX3"),
+                       EP81_size     = 1024*8,
                        EP01_0_rwidth = HOST_TO_FPGA_DATA_WIDTH,
                        EP01_1_rwidth = WFM_DATA_WIDTH,
                        EP81_wwidth   = FPGA_TO_HOST_DATA_WIDTH,
