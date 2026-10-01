@@ -164,8 +164,8 @@ class BaseSoC(SoCCore):
             VexRiscvSMP.privileged_debug     = True
             VexRiscvSMP.hardware_breakpoints = 4
         else:
-            cpu_type    = "serv"
-            cpu_variant = "standard"
+            cpu_type    = "vexriscv"
+            cpu_variant = "minimal"
         SoCCore.__init__(self, platform, sys_clk_freq,
             ident                    = "LiteX SoC on LimeSDR-USB",
             ident_version            = True,
