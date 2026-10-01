@@ -56,8 +56,7 @@ class _CRG(LiteXModule):
 
         self.cd_sys   = ClockDomain()
         self.fx3_pclk = platform.request("FX3_PCLK")
-        # FX3 PCLK runs at 100MHz
-        platform.add_period_constraint(self.fx3_pclk, 1e9/100e6)
+        # FX3 PCLK runs at 100MHz (constrained in FX3_timing.sdc)
         self.specials += Instance("GLOBAL",
             i_in  = self.fx3_pclk,
             o_out = self.cd_sys.clk
@@ -68,46 +67,39 @@ class _CRG(LiteXModule):
         self.ext_gnd = platform.request("EXT_GND")
         self.specials += AsyncResetSynchronizer(self.cd_sys,self.ext_gnd)
 
+        # Base clocks (LMK_CLK at 30.72MHz, SI_CLK0..7 at 250MHz) are constrained in lms7_trx_timing.sdc.
         self.cd_lmk  = ClockDomain()
         self.clk_lmk = platform.request("LMK_CLK")
-        platform.add_period_constraint(self.clk_lmk, 1e9 / 30.72e6)
         self.comb += self.cd_lmk.clk.eq(self.clk_lmk)
 
         self.cd_si0 = ClockDomain()
         self.clk_si0 = platform.request("SI_CLK", 0)
-        platform.add_period_constraint(self.clk_si0, 1e9 / 250e6)
         self.comb += self.cd_si0.clk.eq(self.clk_si0)
 
         self.cd_si1 = ClockDomain()
         self.clk_si1 = platform.request("SI_CLK", 1)
-        platform.add_period_constraint(self.clk_si1, 1e9 / 250e6)
         self.comb += self.cd_si1.clk.eq(self.clk_si1)
 
         self.cd_si2 = ClockDomain()
         self.clk_si2 = platform.request("SI_CLK", 2)
-        platform.add_period_constraint(self.clk_si2, 1e9 / 250e6)
         self.comb += self.cd_si2.clk.eq(self.clk_si2)
 
         self.cd_si3 = ClockDomain()
         self.clk_si3 = platform.request("SI_CLK", 3)
-        platform.add_period_constraint(self.clk_si3, 1e9 / 250e6)
         self.comb += self.cd_si3.clk.eq(self.clk_si3)
 
         # No SI CLK 4
 
         self.cd_si5 = ClockDomain()
         self.clk_si5 = platform.request("SI_CLK", 5)
-        platform.add_period_constraint(self.clk_si5, 1e9 / 250e6)
         self.comb += self.cd_si5.clk.eq(self.clk_si5)
 
         self.cd_si6 = ClockDomain()
         self.clk_si6 = platform.request("SI_CLK", 6)
-        platform.add_period_constraint(self.clk_si6, 1e9 / 250e6)
         self.comb += self.cd_si6.clk.eq(self.clk_si6)
 
         self.cd_si7 = ClockDomain()
         self.clk_si7 = platform.request("SI_CLK", 7)
-        platform.add_period_constraint(self.clk_si7, 1e9 / 250e6)
         self.comb += self.cd_si7.clk.eq(self.clk_si7)
 
 # BaseSoC ------------------------------------------------------------------------------------------
@@ -214,7 +206,6 @@ class BaseSoC(SoCCore):
         # FX3
         self.FX3 = FX3(platform=platform,
                        pads=platform.request("FX3"),
-                       vendor="altera",
                        EP01_0_rwidth = HOST_TO_FPGA_DATA_WIDTH,
                        EP01_1_rwidth = WFM_DATA_WIDTH,
                        EP81_wwidth   = FPGA_TO_HOST_DATA_WIDTH,

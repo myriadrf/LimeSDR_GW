@@ -10,16 +10,21 @@ set_time_format -unit ns -decimal_places 3
 ################################################################################
 #Base clocks
 ################################################################################
-#Si5351C clocks
-create_clock -period "27MHz" 			-name SI_CLK0			[get_ports SI_CLK0]
-create_clock -period "27MHz" 			-name SI_CLK1			[get_ports SI_CLK1]
-create_clock -period "27MHz" 			-name SI_CLK2			[get_ports SI_CLK2]
-create_clock -period "27MHz" 			-name SI_CLK3			[get_ports SI_CLK3]
-create_clock -period "27MHz" 			-name SI_CLK5			[get_ports SI_CLK5]
-create_clock -period "27MHz" 			-name SI_CLK6			[get_ports SI_CLK6]
-create_clock -period "27MHz" 			-name SI_CLK7			[get_ports SI_CLK7]
+#Si5351C clocks (250MHz / 4.0ns)
+create_clock -period "250MHz" 			-name SI_CLK0			[get_ports SI_CLK0]
+create_clock -period "250MHz" 			-name SI_CLK1			[get_ports SI_CLK1]
+create_clock -period "250MHz" 			-name SI_CLK2			[get_ports SI_CLK2]
+create_clock -period "250MHz" 			-name SI_CLK3			[get_ports SI_CLK3]
+create_clock -period "250MHz" 			-name SI_CLK5			[get_ports SI_CLK5]
+create_clock -period "250MHz" 			-name SI_CLK6			[get_ports SI_CLK6]
+create_clock -period "250MHz" 			-name SI_CLK7			[get_ports SI_CLK7]
 #LMK clock buffer clock
 create_clock -period "30.72MHz"		-name LMK_CLK			[get_ports LMK_CLK]
+# PPS / External 10MHz reference clock on FPGA_GPIO[7] (10 MHz max / 100.0 ns period)
+set gpio7_port [get_ports -nowarn {FPGA_GPIO[7]}]
+if {[get_collection_size $gpio7_port] > 0} {
+	create_clock -period 100.000 		-name FPGA_GPIO_7		$gpio7_port
+}
 #FX3 spi clock (if port exists)
 set brdg_spi_port [get_ports -nowarn BRDG_SPI_clk]
 if {[get_collection_size $brdg_spi_port] > 0} {
@@ -110,7 +115,6 @@ if {[get_collection_size $spi0_out_clk] > 0} {
 set tck_port [get_ports -nowarn altera_reserved_tck]
 if {[get_collection_size $tck_port] > 0} {
 	create_clock -period 10MHz $tck_port
-	set_clock_groups -asynchronous -group {altera_reserved_tck}
 	set_input_delay -clock altera_reserved_tck -clock_fall .1 [get_ports -nowarn altera_reserved_tdi]
 	set_input_delay -clock altera_reserved_tck -clock_fall .1 [get_ports -nowarn altera_reserved_tms]
 	set_output_delay -clock altera_reserved_tck -clock_fall .1 [get_ports -nowarn altera_reserved_tdo]

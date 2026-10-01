@@ -2,10 +2,10 @@
 #Timing parameters
 ################################################################################
 #LMS7002
-	#LMS_MCLK2 period
-set LMS_MCLK1_period  		6.25
+	#LMS_MCLK1/2 nominal period (122.88MHz / 8.138ns)
+set LMS_MCLK1_period  		8.138
 set LMS_MCLK1_period_5MHz	200.0
-set LMS_MCLK2_period			6.25
+set LMS_MCLK2_period			8.138
 set LMS_MCLK2_period_5MHz	200.0
 	#Setup and hold times from datasheet
 set LMS_LMS7_Tsu				1.00
@@ -42,12 +42,12 @@ create_clock -name LMS_MCLK2_VIRT_5MHz		-period $LMS_MCLK2_period_5MHz
 #LMS TX PLL
 create_generated_clock 	-name  TX_PLLCLK_C0 \
 								-master_clock [get_clocks LMS_MCLK1] \
-								-source [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|inclk[0]] \
+								-source [get_ports LMS_MCLK1] \
 								-phase 0 [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|clk[0]] -add
 								
 create_generated_clock 	-name   TX_PLLCLK_C1 \
 								-master_clock [get_clocks LMS_MCLK1] \
-								-source [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|inclk[0]] \
+								-source [get_ports LMS_MCLK1] \
 								-phase 0 [get_pins -compatibility_mode *tx_pll_top*\|*\|*\|pll1|clk[1]] -add
 								
 #LMS1_FCLK1 clock output pin 
@@ -64,12 +64,12 @@ create_generated_clock -name LMS_FCLK1_DRCT \
 #LMS RX PLL
 create_generated_clock -name RX_PLLCLK_C0 \
 								-master_clock [get_clocks LMS_MCLK2] \
-								-source [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|inclk[0]] \
+								-source [get_ports LMS_MCLK2] \
 								-phase 0 [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|clk[0]] -add
 
 create_generated_clock -name RX_PLLCLK_C1 \
 								-master_clock [get_clocks LMS_MCLK2] \
-								-source [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|inclk[0]] \
+								-source [get_ports LMS_MCLK2] \
 								-phase 0 [get_pins -compatibility_mode *rx_pll_top*\|*\|*\|pll1|clk[1]] -add
 #								
 #LMS_FCLK2 clock 							
@@ -226,6 +226,12 @@ set_false_path -from [get_clocks {LMS_MCLK1_5MHZ}] -to [get_clocks {LMS_FCLK1_PL
 
 #To cut paths for RX interface clock mux
 set_false_path -from [get_clocks {LMS_MCLK2_VIRT_5MHz}] 		-to [get_clocks {RX_PLLCLK_C1}]
+
+# Direct delay chain false paths for base clocks (direct bypass only active in 5MHz mode)
+set dly_pins [get_pins -nowarn -compatibility_mode *dly_chain*|*]
+if {[get_collection_size $dly_pins] > 0} {
+	set_false_path -from [get_clocks -nowarn {LMS_MCLK1 LMS_MCLK2}] -through $dly_pins
+}
 
 
 
