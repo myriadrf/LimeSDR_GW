@@ -157,7 +157,7 @@ class PSS_LimeSDR_Usb(LiteXModule):
             self.wfm_ch_en = CSRStorage(size=2, description="WFM channel enable")
 
             self.wfm_ddr_pads = platform.request("ddram",0)
-            self.wfm_player = WFMPlayerTop(self.platform, self.wfm_ddr_pads, pll_ref_clk, wfm_infifo_size=wfm_infifo_usedw_width)
+            self.wfm_player = WFMPlayerTop(self.platform, self.wfm_ddr_pads, pll_ref_clk, wfm_infifo_size=wfm_infifo_usedw_width, with_traffic_gen=add_ddr_test)
 
             self.comb += [
                 self.wfm_player.wfm_load.eq(self.wfm_load.storage),
