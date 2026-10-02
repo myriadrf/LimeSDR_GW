@@ -19,6 +19,7 @@ LiteXMemoryPatcher(
 import os
 import sys
 import argparse
+import subprocess
 
 import litepcie.frontend.dma
 
@@ -275,6 +276,7 @@ class BaseSoC(SoCCore):
         flash_boot            = False,
         gold_img              = False,
         firmware_flash_offset = 0xA00000,
+        with_dpd              = False,
     ):
 
         # Platform ---------------------------------------------------------------------------------
@@ -656,15 +658,17 @@ class BaseSoC(SoCCore):
                            m_clk_domain=self.crg.cd_fpga_1pps.name,
                            demux_clk_domain=self.crg.cd_afe.name,
                            demux=True,
+                           with_dpd=with_dpd,
                            resampling_stages=0)
 
         self.comb += self.afe.jesd_freerun_clk.eq(self.crg.cd_jesd_freerun.clk)
 
 
 
-        TXDSP_MMAP_BASE = 0xf002_0000
-        TXDSP_MMAP_SIZE = 0x0002_0000
-        self.bus.add_slave(name="ram_mmap", slave=self.afe.dpd_capture_buffer.mmap, region=SoCRegion(origin=TXDSP_MMAP_BASE, size=TXDSP_MMAP_SIZE, cached=False,))
+        if with_dpd:
+            TXDSP_MMAP_BASE = 0xf002_0000
+            TXDSP_MMAP_SIZE = 0x0002_0000
+            self.bus.add_slave(name="ram_mmap", slave=self.afe.dpd_capture_buffer.mmap, region=SoCRegion(origin=TXDSP_MMAP_BASE, size=TXDSP_MMAP_SIZE, cached=False,))
 
         print("\nLiteX SoC bus regions:")
         for name, region in self.bus.regions.items():
@@ -954,15 +958,25 @@ class BaseSoC(SoCCore):
 
     def add_debug(self):
 
-        analyzer_signals = [
-            self.afe.dpd_capture_buffer.reset_n,
-            self.afe.dpd_capture_buffer.bram_write.web  ,
-            self.afe.dpd_capture_buffer.bram_write.enb  ,
-            self.afe.dpd_capture_buffer.bram_write.addrb,
-            self.afe.dpd_capture_buffer.bram_write.doutb,
-            self.afe.dpd_capture_buffer.bram_write.start_write,
-            self.afe.dpd_capture_buffer.bram_write.full,
-        ]
+        if hasattr(self.afe, "dpd_capture_buffer"):
+            analyzer_signals = [
+                self.afe.dpd_capture_buffer.reset_n,
+                self.afe.dpd_capture_buffer.bram_write.web  ,
+                self.afe.dpd_capture_buffer.bram_write.enb  ,
+                self.afe.dpd_capture_buffer.bram_write.addrb,
+                self.afe.dpd_capture_buffer.bram_write.doutb,
+                self.afe.dpd_capture_buffer.bram_write.start_write,
+                self.afe.dpd_capture_buffer.bram_write.full,
+            ]
+        else:
+            analyzer_signals = [
+                self.afe.tx_en,
+                self.afe.tx_conv.sink.valid,
+                self.afe.tx_conv.sink.ready,
+                self.afe.tx_conv.sink.data,
+                self.afe.tx_conv.source.valid,
+                self.afe.tx_conv.source.ready,
+            ]
 
         self.analyzer = LiteScopeAnalyzer(analyzer_signals,
             depth        = 2048,
@@ -1011,6 +1025,7 @@ def main():
     # SoC parameters.
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
+    parser.add_argument("--with-dpd",       action="store_true", help="Enable TX DSP, DPD, and the DPD capture buffer.")
 
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
@@ -1042,6 +1057,7 @@ def main():
             with_bscan            = args.with_bscan,
             with_ppsdo            = not args.no_ppsdo,
             with_fft              = args.with_fft,
+            with_dpd              = args.with_dpd,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,
             firmware_flash_offset = args.firmware_flash_offset,
@@ -1082,7 +1098,7 @@ def main():
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
                 f.write("BSP_PROJECT_DIR=bsp/HiperSDR_44xx\n")
-            os.system(f"cd firmware && make clean all")
+            subprocess.run(["make", "clean", "all"], cwd="firmware", check=True)
             # os.system(f"cd firmware/hiper/ && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
             bistream_output_dir = "bitstream/{}".format(soc.get_build_name())
             if not os.path.exists(bistream_output_dir):

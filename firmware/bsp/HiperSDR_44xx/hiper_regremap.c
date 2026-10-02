@@ -4,6 +4,7 @@
 
 #include "hiper_regremap.h"
 
+#ifdef CSR_AFE_TX_DSP_SPIMASTER_BOARD_SPI_STATUS_ADDR
 #define SPI_CS_HIGH (0 << 0)
 #define SPI_CS_LOW  (1 << 0)
 #define SPI_START   (1 << 0)
@@ -56,6 +57,7 @@ static void special_range_write(uint16_t addr, uint16_t val)
     while ((afe_tx_dsp_spimaster_board_spi_status_read() & 0x1) == 0)
         ;
 }
+#endif
 
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs
 bool readCSR(uint8_t *address, uint8_t *regdata_array)
@@ -64,10 +66,13 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
     uint16_t addr  = ((uint16_t)address[0] << 8) | address[1];
     uint32_t tmp;
 
+#ifdef CSR_AFE_TX_DSP_SPIMASTER_BOARD_SPI_STATUS_ADDR
 	if (addr_in_range(addr, TXCHAINCFG_RANGE_BASE, TXCHAINCFG_RANGE_LAST)) {
 		value = special_range_read(addr);
 		printf("Special Read range hit: 0x%X\n", addr);
-	} else {
+	} else
+#endif
+    {
     switch (addr) {
     case 0x0:
         value = fpgacfg_board_id_read();
@@ -281,11 +286,13 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
     uint16_t addr           = ((uint16_t)address[0] << 8) | address[1];
     uint32_t reg;
 
+#ifdef CSR_AFE_TX_DSP_SPIMASTER_BOARD_SPI_STATUS_ADDR
     if (addr_in_range(addr, TXCHAINCFG_RANGE_BASE, TXCHAINCFG_RANGE_LAST)) {
         special_range_write(addr, value);
         printf("Special Write range hit: 0x%X\n", addr);
         return true;
     }
+#endif
 
     switch (addr) {
     case 0x3:
