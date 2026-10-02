@@ -19,6 +19,7 @@ LiteXMemoryPatcher(
 import os
 import sys
 import argparse
+import subprocess
 
 import litepcie.frontend.dma
 
@@ -95,7 +96,10 @@ class CRG(LiteXModule):
         self.cd_lms_tx = ClockDomain()
 
         self.cd_fpga_sysref = ClockDomain()
+        self.fpga_1pps_clk   = Signal()
         self.cd_fpga_1pps   = ClockDomain()
+        self.cd_fpga_1pps_2x = ClockDomain()
+        self.cd_fpga_1pps_dsp = ClockDomain()
 
         vctcxo_ref = platform.request("gpio_d11")
         self.cd_vctcxo_ref = ClockDomain()
@@ -141,8 +145,14 @@ class CRG(LiteXModule):
         self.specials += [Instance("IBUFDS",
             i_I   = fpga_1pps_pads.p,
             i_IB  = fpga_1pps_pads.n,
-            o_O   = self.cd_fpga_1pps.clk,
+            o_O   = self.fpga_1pps_clk,
         )]
+
+        self.pll_afe = pll_afe = USPLL(speedgrade=-2)
+        pll_afe.register_clkin(self.fpga_1pps_clk, 245.76e6)
+        pll_afe.create_clkout(self.cd_fpga_1pps, 245.76e6)
+        pll_afe.create_clkout(self.cd_fpga_1pps_2x,  491.52e6)
+        pll_afe.create_clkout(self.cd_fpga_1pps_dsp, 491.52e6)
 
 
 
@@ -266,6 +276,7 @@ class BaseSoC(SoCCore):
         flash_boot            = False,
         gold_img              = False,
         firmware_flash_offset = 0xA00000,
+        with_dpd              = False,
     ):
 
         # Platform ---------------------------------------------------------------------------------
@@ -453,7 +464,7 @@ class BaseSoC(SoCCore):
         self.pcie_phy = USPPCIEPHY(platform, platform.request(f"pcie_x4"),
             speed="gen4",
             data_width  = 256,
-            bar0_size   = 0x40000,
+            bar0_size   = 0x80000,
             ip_name="pcie4c_uscale_plus",
             cd          = "sys",
         )
@@ -642,13 +653,30 @@ class BaseSoC(SoCCore):
                            platform=platform,
                            pads=self.afe_pads,
                            with_debug=False,
+                           sys_clk_freq = sys_clk_freq,
                            s_clk_domain=self.crg.cd_fpga_1pps.name,
                            m_clk_domain=self.crg.cd_fpga_1pps.name,
                            demux_clk_domain=self.crg.cd_afe.name,
                            demux=True,
+                           with_dpd=with_dpd,
                            resampling_stages=0)
 
         self.comb += self.afe.jesd_freerun_clk.eq(self.crg.cd_jesd_freerun.clk)
+
+
+
+        if with_dpd:
+            TXDSP_MMAP_BASE = 0xf002_0000
+            TXDSP_MMAP_SIZE = 0x0002_0000
+            self.bus.add_slave(name="ram_mmap", slave=self.afe.dpd_capture_buffer.mmap, region=SoCRegion(origin=TXDSP_MMAP_BASE, size=TXDSP_MMAP_SIZE, cached=False,))
+
+        print("\nLiteX SoC bus regions:")
+        for name, region in self.bus.regions.items():
+            origin = region.origin
+            size = region.size
+            end = origin + size - 1
+
+            print(f"{name:24s} 0x{origin:08x} - 0x{end:08x}  size=0x{size:x}")
 
         # self.debug_counter = Signal(8, reset=0)
         # # equivalent to self.sync.demux_clk_domain. That way does not work because
@@ -891,6 +919,18 @@ class BaseSoC(SoCCore):
             f.write("set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]\n\n")
             # set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pps_IBUF_inst/O]
             # f.write("set_clock_groups -name 1pps_double -asynchronous -group [get_clocks fpga_1pps_double_clk]\n\n")
+
+            f.write("# FPGA_1PPS 245.76Mhz\n")
+            f.write("create_clock -period 4.06901 -name fpga_1pps_clk [get_ports FPGA_1PPS_p]\n\n")
+
+            f.write("# Rename auto-derived pll_afe output clocks\n")
+            f.write("create_generated_clock -name afe_sys [get_pins -hierarchical \"*PLLE2_ADV_1/CLKOUT0\"]\n\n")
+            f.write("create_generated_clock -name afe_sys_2x [get_pins -hierarchical \"*PLLE2_ADV_1/CLKOUT1\"]\n\n")
+            f.write("create_generated_clock -name afe_dsp [get_pins -hierarchical \"*PLLE2_ADV_1/CLKOUT2\"]\n\n")
+
+            f.write("# Add AFE sys clocks to same clock group\n")
+            f.write("set_clock_groups -name afe_sys_async_group -asynchronous -group [get_clocks afe_sys ] -group [get_clocks afe_sys_2x] -group [get_clocks afe_dsp]\n\n")
+
         self.platform.add_source(timings_xdx_filename)
 
 
@@ -915,197 +955,34 @@ class BaseSoC(SoCCore):
         self.platform.add_period_constraint(self.cd_jtag.clk, 1e9/20e6)
         self.platform.add_false_path_constraints(self.cd_jtag.clk, self.crg.cd_sys.clk)
 
+
     def add_debug(self):
-        from migen.genlib.cdc import BusSynchronizer, MultiReg
-        # -------------------------------------------------------------------------
-        # PCIe/SYS -> AFE debug CDC
-        # -------------------------------------------------------------------------
 
-        # DMA Reader internal completion FIFO level.
-        reader_fifo_level_sys = self.pcie_dma0.reader.data_fifo.level
+        if hasattr(self.afe, "dpd_capture_buffer"):
+            analyzer_signals = [
+                self.afe.dpd_capture_buffer.reset_n,
+                self.afe.dpd_capture_buffer.bram_write.web  ,
+                self.afe.dpd_capture_buffer.bram_write.enb  ,
+                self.afe.dpd_capture_buffer.bram_write.addrb,
+                self.afe.dpd_capture_buffer.bram_write.doutb,
+                self.afe.dpd_capture_buffer.bram_write.start_write,
+                self.afe.dpd_capture_buffer.bram_write.full,
+            ]
+        else:
+            analyzer_signals = [
+                self.afe.tx_en,
+                self.afe.tx_conv.sink.valid,
+                self.afe.tx_conv.sink.ready,
+                self.afe.tx_conv.sink.data,
+                self.afe.tx_conv.source.valid,
+                self.afe.tx_conv.source.ready,
+            ]
 
-        self.submodules.dma_reader_fifo_level_cdc = BusSynchronizer(
-            len(reader_fifo_level_sys), "sys", "afe"
-        )
-
-        pcie_dma0_reader_fifo_level = Signal.like(
-            reader_fifo_level_sys,
-            name_override="pcie_dma0_reader_fifo_level"
-        )
-
-        self.comb += [
-            self.dma_reader_fifo_level_cdc.i.eq(reader_fifo_level_sys),
-            pcie_dma0_reader_fifo_level.eq(
-                self.dma_reader_fifo_level_cdc.o
-            ),
-        ]
-
-        # -------------------------------------------------------------------------
-        # DMA Buffering FIFO level.
-        # -------------------------------------------------------------------------
-
-        buffering_fifo_level_sys = \
-            self.pcie_dma0.buffering.reader_fifo_level
-
-        self.submodules.dma_buffering_fifo_level_cdc = BusSynchronizer(
-            len(buffering_fifo_level_sys), "sys", "afe"
-        )
-
-        pcie_dma0_buffering_fifo_level = Signal.like(
-            buffering_fifo_level_sys,
-            name_override="pcie_dma0_buffering_fifo_level"
-        )
-
-        self.comb += [
-            self.dma_buffering_fifo_level_cdc.i.eq(
-                buffering_fifo_level_sys
-            ),
-            pcie_dma0_buffering_fifo_level.eq(
-                self.dma_buffering_fifo_level_cdc.o
-            ),
-        ]
-
-        # -------------------------------------------------------------------------
-        # Buffering FIFO input handshake.
-        # -------------------------------------------------------------------------
-
-        pcie_dma0_buffering_sink_valid = Signal(
-            name="pcie_dma0_buffering_sink_valid"
-        )
-        pcie_dma0_buffering_sink_ready = Signal(
-            name="pcie_dma0_buffering_sink_ready"
-        )
-
-        self.specials += [
-            MultiReg(
-                self.pcie_dma0.buffering.reader_fifo_sink_valid,
-                pcie_dma0_buffering_sink_valid,
-                odomain="afe"
-            ),
-            MultiReg(
-                self.pcie_dma0.buffering.reader_fifo_sink_ready,
-                pcie_dma0_buffering_sink_ready,
-                odomain="afe"
-            ),
-        ]
-
-        # -------------------------------------------------------------------------
-        # Buffering FIFO output handshake.
-        # -------------------------------------------------------------------------
-
-        pcie_dma0_buffering_source_valid = Signal(
-            name="pcie_dma0_buffering_source_valid"
-        )
-        pcie_dma0_buffering_source_ready = Signal(
-            name="pcie_dma0_buffering_source_ready"
-        )
-
-        self.specials += [
-            MultiReg(
-                self.pcie_dma0.buffering.reader_fifo_source_valid,
-                pcie_dma0_buffering_source_valid,
-                odomain="afe"
-            ),
-            MultiReg(
-                self.pcie_dma0.buffering.reader_fifo_source_ready,
-                pcie_dma0_buffering_source_ready,
-                odomain="afe"
-            ),
-        ]
-
-        # -------------------------------------------------------------------------
-        # Final PCIe DMA output handshake.
-        # -------------------------------------------------------------------------
-
-        pcie_dma0_source_valid = Signal(
-            name="pcie_dma0_source_valid"
-        )
-        pcie_dma0_source_ready = Signal(
-            name="pcie_dma0_source_ready"
-        )
-
-        self.specials += [
-            MultiReg(
-                self.pcie_dma0.source.valid,
-                pcie_dma0_source_valid,
-                odomain="afe"
-            ),
-            MultiReg(
-                self.pcie_dma0.source.ready,
-                pcie_dma0_source_ready,
-                odomain="afe"
-            ),
-        ]
-
-        # -------------------------------------------------------------------------
-        # Explicit buffering FIFO empty indicator.
-        # Generate in SYS domain first, then synchronize to AFE.
-        # -------------------------------------------------------------------------
-
-        pcie_dma0_buffering_fifo_empty_sys = Signal(
-            name="pcie_dma0_buffering_fifo_empty_sys"
-        )
-
-        pcie_dma0_buffering_fifo_empty = Signal(
-            name="pcie_dma0_buffering_fifo_empty"
-        )
-
-        self.comb += \
-            pcie_dma0_buffering_fifo_empty_sys.eq(
-                buffering_fifo_level_sys == 0
-            )
-
-        self.specials += MultiReg(
-            pcie_dma0_buffering_fifo_empty_sys,
-            pcie_dma0_buffering_fifo_empty,
-            odomain="afe"
-        )
-
-        # -------------------------------------------------------------------------
-        # LiteScope signals.
-        # -------------------------------------------------------------------------
-
-        analyzer_signals = [
-            # TX path.
-            self.limetop.rxtx_top.tx_path.pct_rd,
-            self.limetop.rxtx_top.tx_path.pct_clear,
-            self.limetop.rxtx_top.tx_path.pct_valid,
-            self.limetop.rxtx_top.tx_path.pct_header,
-            self.limetop.rxtx_top.tx_path.rx_sample_nr_sync,
-            self.limetop.rxtx_top.tx_path.pct_loss_flg,
-            self.limetop.rxtx_top.tx_path.txpct_fifo_debug_read_state,
-
-            # TX sample FIFO.
-            self.limetop.rxtx_top.tx_path.fifo_smpl_buff.sink.ready,
-            self.limetop.rxtx_top.tx_path.fifo_smpl_buff.sink.valid,
-            self.limetop.rxtx_top.tx_path.fifo_smpl_buff.level,
-
-            # PCIe DMA reader internal FIFO.
-            pcie_dma0_reader_fifo_level,
-
-            # PCIe DMA large buffering FIFO.
-            pcie_dma0_buffering_fifo_level,
-            pcie_dma0_buffering_fifo_empty,
-
-            # Data entering large buffering FIFO.
-            pcie_dma0_buffering_sink_valid,
-            pcie_dma0_buffering_sink_ready,
-
-            # Data leaving large buffering FIFO.
-            pcie_dma0_buffering_source_valid,
-            pcie_dma0_buffering_source_ready,
-
-            # Final DMA output.
-            pcie_dma0_source_valid,
-            pcie_dma0_source_ready,
-        ]
-
-        self.analyzer = LiteScopeAnalyzer(
-            analyzer_signals,
-            depth=512,
-            clock_domain="afe",
-            register=True,
-            csr_csv="analyzer.csv"
+        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
+            depth        = 2048,
+            clock_domain = "fpga_1pps_2x",
+            register     = True,
+            csr_csv      = "analyzer.csv"
         )
     # SoC hierarchy JSON utilities -----------------------------------------------------------------
 
@@ -1148,6 +1025,7 @@ def main():
     # SoC parameters.
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-uartbone",  action="store_true", help="Enable UARTBone.")
+    parser.add_argument("--with-dpd",       action="store_true", help="Enable TX DSP, DPD, and the DPD capture buffer.")
 
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
@@ -1179,6 +1057,7 @@ def main():
             with_bscan            = args.with_bscan,
             with_ppsdo            = not args.no_ppsdo,
             with_fft              = args.with_fft,
+            with_dpd              = args.with_dpd,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,
             firmware_flash_offset = args.firmware_flash_offset,
@@ -1219,7 +1098,7 @@ def main():
                 f.write(f"TARGET={soc.platform.name.upper()}\n")
                 f.write(f"LINKER={linker}\n")
                 f.write("BSP_PROJECT_DIR=bsp/HiperSDR_44xx\n")
-            os.system(f"cd firmware && make clean all")
+            subprocess.run(["make", "clean", "all"], cwd="firmware", check=True)
             # os.system(f"cd firmware/hiper/ && make BUILD_DIR={builder.output_dir} TARGET={soc.platform.name.upper()} LINKER={linker} clean all")
             bistream_output_dir = "bitstream/{}".format(soc.get_build_name())
             if not os.path.exists(bistream_output_dir):
