@@ -74,6 +74,7 @@ _io = [
 
     # TDD RF Switch
     ("rf_sw_tdd", 0, Pins("U15"), IOStandard("LVCMOS33")),
+    ("rf_sw_tx",  0, Pins("W17"), IOStandard("LVCMOS33")),
 
     # MIPI RFFE RF Switches (Bank 34)
     ("mipi_rffe", 0, Subsignal("sclk", Pins("G3")), Subsignal("sdata", Pins("G2")), IOStandard("LVCMOS18")), # RX1_RF
@@ -93,7 +94,7 @@ _io = [
     # Revision & Status (Bank 14)
     ("revision", 0,
         Subsignal("BOM_VER", Pins("J18 T18 V14 V7")),
-        Subsignal("HW_VER",  Pins("V13 E19 K18 D17")),
+        Subsignal("HW_VER",  Pins("V13 E19 K18 D17"), Misc("PULLUP=True")),
         IOStandard("LVCMOS33"),
     ),
 
@@ -175,7 +176,6 @@ _io = [
     ("LMS", 0,
         # Control.
         Subsignal("RESET",             Pins("U19")),
-        Subsignal("CORE_LDO_EN",       Pins("W17")),
         Subsignal("RXEN",              Pins("W18")),
         Subsignal("TXEN",              Pins("W19")),
 

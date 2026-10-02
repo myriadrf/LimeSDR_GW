@@ -426,8 +426,19 @@ class BaseSoC(SoCCore):
             "trx2_ant": platform.request("trx2_ant_sw"),
         }
         tdd_pad = platform.request("rf_sw_tdd")
+        rf_sw_tx_pad = platform.request("rf_sw_tx")
         self.rfsw_control = ca23_rfsw(platform, mipi_pads, tdd_pad)
         self.comb += self.rfsw_control.AUTO_IN.eq(self.limetop.lms7002_top.tx_ant_en)
+
+        # W17 was LMS_CORE_LDO_EN on PCB < v1.2 (HW_VER < 2). On PCB >= v1.2 (HW_VER >= 2),
+        # it is RF_SW_TX and should be controlled the same way as FPGA_RF_SW_TDD (U15).
+        self.comb += [
+            If(revision_pads.HW_VER < 2,
+                rf_sw_tx_pad.eq(self.limetop.lms7002_top.lms1.fields.core_ldo_en)
+            ).Else(
+                rf_sw_tx_pad.eq(self.rfsw_control.TDD_OUT)
+            )
+        ]
 
         self.comb += [
             self.rfsw_control.rx1_data_in.eq(self.periphcfg.PERIPH_20.storage[0:8]),

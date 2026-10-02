@@ -45,10 +45,12 @@ class ca23_rfsw(LiteXModule):
             i_RX_RF_SW_IN        = Constant(0, 2),
             i_TX_RF_SW_IN        = Constant(0, 1),
             i_RF_SW_AUTO_ENANBLE = self.rfsw_auto_en.storage,
-            o_TDD_OUT            = tdd_pad,
+            o_TDD_OUT            = self.TDD_OUT,
             o_RX_RF_SW_OUT       = Signal(2),
             o_TX_RF_SW_OUT       = Signal(1)
         )
+
+        self.comb += tdd_pad.eq(self.TDD_OUT)
 
         # 6 MIPI RFFE switch signals
         self.rx1_data_in      = Signal(8)
