@@ -35,9 +35,13 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
         //TODO: check
         value = 0x2;
         break;
-    case 0x5:
-        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_read() & 0x1;
-        value = value | ((limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_read() & 0x1) << 1);
+    case 0x05:
+        /* LMS64C Register 0x0005: Direct Clock Control
+         * Bits:
+         *   [0] DRCT_TXCLK_EN: TX CLK source (0: PLL, 1: Direct clock)
+         *   [1] DRCT_RXCLK_EN: RX CLK source (0: PLL, 1: Direct clock)
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_drct_clk_ctrl_read() & 0x3;
         break;
     case 0x7:
         value = limetop_fpgacfg_ch_en_read();
@@ -112,77 +116,133 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
     }
     case 0x20:
-        value = csr_read_simple(clk_ctrl_addrs.c1_phase);
+        /* LMS64C Register 0x0020: C1 Phase Offset
+         * Bits [8:0]: Clock output 1 phase offset in degrees (0-360)
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_c1_phase_read() & 0x1FF;
         break;
     case 0x21:
-        value = csr_read_simple(clk_ctrl_addrs.pllcfg_done);
-        value |= csr_read_simple(clk_ctrl_addrs.pllcfg_busy) << 1;
-        value |= csr_read_simple(clk_ctrl_addrs.phcfg_done) << 2;
-        value |= csr_read_simple(clk_ctrl_addrs.phcfg_err) << 3;
-        value |= csr_read_simple(clk_ctrl_addrs.pllcfg_error) << 7;
+        /* LMS64C Register 0x0021: PLL & Phase Configuration Status
+         * Bits:
+         *   [0] PLLCFG_DONE:  PLL configuration done (0: Not done, 1: Done)
+         *   [1] PLLCFG_BUSY:  PLL configuration busy (0: Idle, 1: Busy)
+         *   [2] PHCFG_DONE:   Phase configuration done (0: Not done, 1: Done)
+         *   [3] PHCFG_ERR:    Phase configuration error (0: No error, 1: Error)
+         *   [7] PLLCFG_ERROR: PLL configuration error (0: No error, 1: Error)
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_status_read();
         break;
     case 0x22:
-        value = csr_read_simple(clk_ctrl_addrs.pll_lock);
+        /* LMS64C Register 0x0022: PLL Lock Status
+         * Bits [15:0]: Array of PLL locked flags (bit 0: TX PLL lock, bit 1: RX PLL lock)
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_lock_read();
         break;
     case 0x23:
-        value = csr_read_simple(clk_ctrl_addrs.pllcfg_start);
-        value |= csr_read_simple(clk_ctrl_addrs.phcfg_start) << 1;
-        value |= csr_read_simple(clk_ctrl_addrs.pllrst_start) << 2;
-        value |= csr_read_simple(clk_ctrl_addrs.pll_ind) << 3;
-        value |= csr_read_simple(clk_ctrl_addrs.cnt_ind) << 8;
-        value |= csr_read_simple(clk_ctrl_addrs.phcfg_updn) << 13;
-        value |= csr_read_simple(clk_ctrl_addrs.phcfg_mode) << 14;
+        /* LMS64C Register 0x0023: PLL & Phase Configuration Control
+         * Bits:
+         *   [0]    PLLCFG_START: Start PLL config (0 to 1 transition)
+         *   [1]    PHCFG_START:  Start phase config (0 to 1 transition)
+         *   [2]    PLLRST_START: Start PLL reset (0 to 1 transition)
+         *   [7:3]  PLL_IND:      PLL index for reconfiguration
+         *   [12:8] CNT_IND:      Counter index for reconfiguration (0: All, 1: M, 2: C0, 3: C1, etc.)
+         *   [13]   PHCFG_UPDN:   Phase shift direction (0: Down, 1: Up)
+         *   [14]   PHCFG_MODE:   Phase config mode (0: Manual, 1: Auto)
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_ctrl_read();
         break;
     case 0x24:
-        value = csr_read_simple(clk_ctrl_addrs.cnt_phase);
+        /* LMS64C Register 0x0024: Counter Phase Value
+         * Bits [15:0]: Phase step counter value
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_cnt_phase_read();
         break;
     case 0x25:
-        value = csr_read_simple(clk_ctrl_addrs.pllcfg_vcodiv) << 7;
+        /* LMS64C Register 0x0025: PLL VCO Divider Control
+         * Bits:
+         *   [7] PLLCFG_VCODIV: PLL VCO divider (0: disabled, 1: enabled)
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_vcodiv_read() & (1 << 7);
         break;
     case 0x26:
-        value = csr_read_simple(clk_ctrl_addrs.n_div_byp);
-        value |= csr_read_simple(clk_ctrl_addrs.n_odd_div) << 1;
-        value |= csr_read_simple(clk_ctrl_addrs.m_div_byp) << 2;
-        value |= csr_read_simple(clk_ctrl_addrs.m_odd_div) << 3;
+        /* LMS64C Register 0x0026: M and N Counter Divider Control
+         * Bits:
+         *   [0] N_DIV_BYP: N counter divider bypass (0: Normal, 1: Bypass)
+         *   [1] N_ODD_DIV: N counter odd divider (0: Even, 1: Odd)
+         *   [2] M_DIV_BYP: M counter divider bypass (0: Normal, 1: Bypass)
+         *   [3] M_ODD_DIV: M counter odd divider (0: Even, 1: Odd)
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_mn_div_ctrl_read() & 0xF;
         break;
     case 0x27:
-        value = csr_read_simple(clk_ctrl_addrs.c0_div_byp);
-        value |= csr_read_simple(clk_ctrl_addrs.c0_odddiv) << 1;
-        value |= csr_read_simple(clk_ctrl_addrs.c1_div_byp) << 2;
-        value |= csr_read_simple(clk_ctrl_addrs.c1_odddiv) << 3;
-        value |= csr_read_simple(clk_ctrl_addrs.c2_div_byp) << 4;
-        value |= csr_read_simple(clk_ctrl_addrs.c2_odddiv) << 5;
-        value |= csr_read_simple(clk_ctrl_addrs.c3_div_byp) << 6;
-        value |= csr_read_simple(clk_ctrl_addrs.c3_odddiv) << 7;
-        value |= csr_read_simple(clk_ctrl_addrs.c4_div_byp) << 8;
-        value |= csr_read_simple(clk_ctrl_addrs.c4_odddiv) << 9;
+        /* LMS64C Register 0x0027: C0-C4 Output Divider Control
+         * Bits:
+         *   [0] C0_DIV_BYP: Clock output 0 divider bypass (0: Normal, 1: Bypass)
+         *   [1] C0_ODDDIV:  Clock output 0 odd divider (0: Even, 1: Odd)
+         *   [2] C1_DIV_BYP: Clock output 1 divider bypass (0: Normal, 1: Bypass)
+         *   [3] C1_ODDDIV:  Clock output 1 odd divider (0: Even, 1: Odd)
+         *   [4] C2_DIV_BYP: Clock output 2 divider bypass (0: Normal, 1: Bypass)
+         *   [5] C2_ODDDIV:  Clock output 2 odd divider (0: Even, 1: Odd)
+         *   [6] C3_DIV_BYP: Clock output 3 divider bypass (0: Normal, 1: Bypass)
+         *   [7] C3_ODDDIV:  Clock output 3 odd divider (0: Even, 1: Odd)
+         *   [8] C4_DIV_BYP: Clock output 4 divider bypass (0: Normal, 1: Bypass)
+         *   [9] C4_ODDDIV:  Clock output 4 odd divider (0: Even, 1: Odd)
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_c_div_ctrl_read() & 0x3FF;
         break;
     case 0x2A:
-        value = csr_read_simple(clk_ctrl_addrs.n_cnt);
+        /* LMS64C Register 0x002A: N Counter Value
+         * Bits [15:0]: PLL N counter value
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_n_cnt_read();
         break;
     case 0x2B:
-        value = csr_read_simple(clk_ctrl_addrs.m_cnt);
+        /* LMS64C Register 0x002B: M Counter Value
+         * Bits [15:0]: PLL M counter value
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_m_cnt_read();
         break;
     case 0x2E:
-        value = csr_read_simple(clk_ctrl_addrs.c0_div_cnt);
+        /* LMS64C Register 0x002E: C0 Divider Counter Value
+         * Bits [15:0]: Clock output 0 divider counter value
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_c0_div_cnt_read();
         break;
     case 0x2F:
-        value = csr_read_simple(clk_ctrl_addrs.c1_div_cnt);
+        /* LMS64C Register 0x002F: C1 Divider Counter Value
+         * Bits [15:0]: Clock output 1 divider counter value
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_c1_div_cnt_read();
         break;
     case 0x30:
-        value = csr_read_simple(clk_ctrl_addrs.c2_div_cnt);
+        /* LMS64C Register 0x0030: C2 Divider Counter Value
+         * Bits [15:0]: Clock output 2 divider counter value
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_c2_div_cnt_read();
         break;
     case 0x31:
-        value = csr_read_simple(clk_ctrl_addrs.c3_div_cnt);
+        /* LMS64C Register 0x0031: C3 Divider Counter Value
+         * Bits [15:0]: Clock output 3 divider counter value
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_c3_div_cnt_read();
         break;
     case 0x32:
-        value = csr_read_simple(clk_ctrl_addrs.c4_div_cnt);
+        /* LMS64C Register 0x0032: C4 Divider Counter Value
+         * Bits [15:0]: Clock output 4 divider counter value
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_c4_div_cnt_read();
         break;
     case 0x3E:
-        value = csr_read_simple(clk_ctrl_addrs.phcfg_samples);
+        /* LMS64C Register 0x003E: Auto Phase Configuration Samples
+         * Bits [15:0]: Number of samples during auto phase search
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_smpls_read();
         break;
     case 0x3F:
-        value = csr_read_simple(clk_ctrl_addrs.phcfg_step);
+        /* LMS64C Register 0x003F: Auto Phase Configuration Step Size
+         * Bits [15:0]: Phase step size during auto phase search
+         */
+        value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_read();
         break;
     case 0x60:
         value = fpga_signature;
@@ -316,8 +376,12 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
 
     switch (addr) {
     case 0x05:
-        limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_TXCLK_EN_write((value & 0x1) >> 0);
-        limetop_lms7002_top_lms7002_clk_CLK_CTRL_DRCT_RXCLK_EN_write((value & 0x2) >> 1);
+        /* LMS64C Register 0x0005: Direct Clock Control
+         * Bits:
+         *   [0] DRCT_TXCLK_EN: TX CLK source (0: PLL, 1: Direct clock)
+         *   [1] DRCT_RXCLK_EN: RX CLK source (0: PLL, 1: Direct clock)
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_drct_clk_ctrl_write(value & 0x3);
         break;
     case 0x7:
         limetop_fpgacfg_ch_en_write(value);
@@ -417,67 +481,116 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
     }
     case 0x20:
-        csr_write_simple(value & 0x1FF, clk_ctrl_addrs.c1_phase);
+        /* LMS64C Register 0x0020: C1 Phase Offset
+         * Bits [8:0]: Clock output 1 phase offset in degrees (0-360)
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_c1_phase_write(value & 0x1FF);
         break;
     case 0x23:
-        csr_write_simple((value >> 3) & 0x1F, clk_ctrl_addrs.pll_ind);
-        csr_write_simple((value >> 8) & 0x1F, clk_ctrl_addrs.cnt_ind);
-        csr_write_simple((value >> 13) & 0x1, clk_ctrl_addrs.phcfg_updn);
-        csr_write_simple((value >> 14) & 0x1, clk_ctrl_addrs.phcfg_mode);
-        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.pllrst_start);
-        csr_write_simple(value & 0x1, clk_ctrl_addrs.pllcfg_start);
-        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.phcfg_start);
+        /* LMS64C Register 0x0023: PLL & Phase Configuration Control
+         * Bits:
+         *   [0]    PLLCFG_START: Start PLL config (0 to 1 transition)
+         *   [1]    PHCFG_START:  Start phase config (0 to 1 transition)
+         *   [2]    PLLRST_START: Start PLL reset (0 to 1 transition)
+         *   [7:3]  PLL_IND:      PLL index for reconfiguration
+         *   [12:8] CNT_IND:      Counter index for reconfiguration (0: All, 1: M, 2: C0, 3: C1, etc.)
+         *   [13]   PHCFG_UPDN:   Phase shift direction (0: Down, 1: Up)
+         *   [14]   PHCFG_MODE:   Phase config mode (0: Manual, 1: Auto)
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_ctrl_write(value & 0x7FFF);
         break;
     case 0x24:
-        csr_write_simple(value, clk_ctrl_addrs.cnt_phase);
+        /* LMS64C Register 0x0024: Counter Phase Value
+         * Bits [15:0]: Phase step counter value
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_cnt_phase_write(value);
         break;
     case 0x25:
-        csr_write_simple((value >> 7) & 0x1, clk_ctrl_addrs.pllcfg_vcodiv);
+        /* LMS64C Register 0x0025: PLL VCO Divider Control
+         * Bits:
+         *   [7] PLLCFG_VCODIV: PLL VCO divider (0: disabled, 1: enabled)
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_vcodiv_write(value & (1 << 7));
         break;
     case 0x26:
-        csr_write_simple(value & 0x1, clk_ctrl_addrs.n_div_byp);
-        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.n_odd_div);
-        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.m_div_byp);
-        csr_write_simple((value >> 3) & 0x1, clk_ctrl_addrs.m_odd_div);
+        /* LMS64C Register 0x0026: M and N Counter Divider Control
+         * Bits:
+         *   [0] N_DIV_BYP: N counter divider bypass (0: Normal, 1: Bypass)
+         *   [1] N_ODD_DIV: N counter odd divider (0: Even, 1: Odd)
+         *   [2] M_DIV_BYP: M counter divider bypass (0: Normal, 1: Bypass)
+         *   [3] M_ODD_DIV: M counter odd divider (0: Even, 1: Odd)
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_mn_div_ctrl_write(value & 0xF);
         break;
     case 0x27:
-        csr_write_simple(value & 0x1, clk_ctrl_addrs.c0_div_byp);
-        csr_write_simple((value >> 1) & 0x1, clk_ctrl_addrs.c0_odddiv);
-        csr_write_simple((value >> 2) & 0x1, clk_ctrl_addrs.c1_div_byp);
-        csr_write_simple((value >> 3) & 0x1, clk_ctrl_addrs.c1_odddiv);
-        csr_write_simple((value >> 4) & 0x1, clk_ctrl_addrs.c2_div_byp);
-        csr_write_simple((value >> 5) & 0x1, clk_ctrl_addrs.c2_odddiv);
-        csr_write_simple((value >> 6) & 0x1, clk_ctrl_addrs.c3_div_byp);
-        csr_write_simple((value >> 7) & 0x1, clk_ctrl_addrs.c3_odddiv);
-        csr_write_simple((value >> 8) & 0x1, clk_ctrl_addrs.c4_div_byp);
-        csr_write_simple((value >> 9) & 0x1, clk_ctrl_addrs.c4_odddiv);
+        /* LMS64C Register 0x0027: C0-C4 Output Divider Control
+         * Bits:
+         *   [0] C0_DIV_BYP: Clock output 0 divider bypass (0: Normal, 1: Bypass)
+         *   [1] C0_ODDDIV:  Clock output 0 odd divider (0: Even, 1: Odd)
+         *   [2] C1_DIV_BYP: Clock output 1 divider bypass (0: Normal, 1: Bypass)
+         *   [3] C1_ODDDIV:  Clock output 1 odd divider (0: Even, 1: Odd)
+         *   [4] C2_DIV_BYP: Clock output 2 divider bypass (0: Normal, 1: Bypass)
+         *   [5] C2_ODDDIV:  Clock output 2 odd divider (0: Even, 1: Odd)
+         *   [6] C3_DIV_BYP: Clock output 3 divider bypass (0: Normal, 1: Bypass)
+         *   [7] C3_ODDDIV:  Clock output 3 odd divider (0: Even, 1: Odd)
+         *   [8] C4_DIV_BYP: Clock output 4 divider bypass (0: Normal, 1: Bypass)
+         *   [9] C4_ODDDIV:  Clock output 4 odd divider (0: Even, 1: Odd)
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_c_div_ctrl_write(value & 0x3FF);
         break;
     case 0x2A:
-        csr_write_simple(value, clk_ctrl_addrs.n_cnt);
+        /* LMS64C Register 0x002A: N Counter Value
+         * Bits [15:0]: PLL N counter value
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_n_cnt_write(value);
         break;
     case 0x2B:
-        csr_write_simple(value, clk_ctrl_addrs.m_cnt);
+        /* LMS64C Register 0x002B: M Counter Value
+         * Bits [15:0]: PLL M counter value
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_m_cnt_write(value);
         break;
     case 0x2E:
-        csr_write_simple(value, clk_ctrl_addrs.c0_div_cnt);
+        /* LMS64C Register 0x002E: C0 Divider Counter Value
+         * Bits [15:0]: Clock output 0 divider counter value
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_c0_div_cnt_write(value);
         break;
     case 0x2F:
-        csr_write_simple(value, clk_ctrl_addrs.c1_div_cnt);
+        /* LMS64C Register 0x002F: C1 Divider Counter Value
+         * Bits [15:0]: Clock output 1 divider counter value
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_c1_div_cnt_write(value);
         break;
     case 0x30:
-        csr_write_simple(value, clk_ctrl_addrs.c2_div_cnt);
+        /* LMS64C Register 0x0030: C2 Divider Counter Value
+         * Bits [15:0]: Clock output 2 divider counter value
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_c2_div_cnt_write(value);
         break;
     case 0x31:
-        csr_write_simple(value, clk_ctrl_addrs.c3_div_cnt);
+        /* LMS64C Register 0x0031: C3 Divider Counter Value
+         * Bits [15:0]: Clock output 3 divider counter value
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_c3_div_cnt_write(value);
         break;
     case 0x32:
-        csr_write_simple(value, clk_ctrl_addrs.c4_div_cnt);
+        /* LMS64C Register 0x0032: C4 Divider Counter Value
+         * Bits [15:0]: Clock output 4 divider counter value
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_c4_div_cnt_write(value);
         break;
     case 0x3E:
-        csr_write_simple(value, clk_ctrl_addrs.phcfg_samples);
+        /* LMS64C Register 0x003E: Auto Phase Configuration Samples
+         * Bits [15:0]: Number of samples during auto phase search
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_smpls_write(value);
         break;
-    case 0x3f:
-        csr_write_simple(value, clk_ctrl_addrs.phcfg_step);
+    case 0x3F:
+        /* LMS64C Register 0x003F: Auto Phase Configuration Step Size
+         * Bits [15:0]: Phase step size during auto phase search
+         */
+        limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_write(value);
         break;
     case 0x60:
         fpga_signature = transform_fpga_signature(value);

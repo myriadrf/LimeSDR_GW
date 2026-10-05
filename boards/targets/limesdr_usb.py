@@ -20,7 +20,6 @@ import argparse
 import shutil
 import subprocess
 
-from deps.litex.litex.soc.interconnect.stream import ClockDomainCrossing
 from gateware.LimeDFB.FX3.src.FX3 import FX3
 from gateware.LimeTop import LimeTop
 from gateware.board_specific.limesdr_usb.PSS_LimeSDR_Usb import PSS_LimeSDR_Usb
@@ -45,7 +44,7 @@ FPGA_TO_HOST_DATA_WIDTH = 64 # bus width connecting FX3 and Limetop
 HOST_TO_FPGA_DATA_WIDTH = 64 # bus width connecting FX3 and Limetop
 WFM_DATA_WIDTH          = 32 # bus width connecting FX3 and wfmplayer
 TX_MAX_BUF_PACKETS      = 16      # maximum number of buffered tx packets in Limetop (any size)
-TX_PACKET_BUF_SIZE      = 16384   # total size (in bytes) of tx packet buffer in Limetop
+TX_PACKET_BUF_SIZE      = 1024*16   # total size (in bytes) of tx packet buffer in Limetop
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -57,8 +56,7 @@ class _CRG(LiteXModule):
 
         self.cd_sys   = ClockDomain()
         self.fx3_pclk = platform.request("FX3_PCLK")
-        # FX3 PCLK runs at 100MHz
-        platform.add_period_constraint(self.fx3_pclk, 1e9/100e6)
+        # FX3 PCLK runs at 100MHz (constrained in FX3_timing.sdc)
         self.specials += Instance("GLOBAL",
             i_in  = self.fx3_pclk,
             o_out = self.cd_sys.clk
@@ -69,58 +67,56 @@ class _CRG(LiteXModule):
         self.ext_gnd = platform.request("EXT_GND")
         self.specials += AsyncResetSynchronizer(self.cd_sys,self.ext_gnd)
 
+        # Base clocks (LMK_CLK at 30.72MHz, SI_CLK0..7 at 250MHz) are constrained in lms7_trx_timing.sdc.
         self.cd_lmk  = ClockDomain()
         self.clk_lmk = platform.request("LMK_CLK")
-        platform.add_period_constraint(self.clk_lmk, 1e9 / 30.72e6)
         self.comb += self.cd_lmk.clk.eq(self.clk_lmk)
 
         self.cd_si0 = ClockDomain()
         self.clk_si0 = platform.request("SI_CLK", 0)
-        platform.add_period_constraint(self.clk_si0, 1e9 / 250e6)
         self.comb += self.cd_si0.clk.eq(self.clk_si0)
 
         self.cd_si1 = ClockDomain()
         self.clk_si1 = platform.request("SI_CLK", 1)
-        platform.add_period_constraint(self.clk_si1, 1e9 / 250e6)
         self.comb += self.cd_si1.clk.eq(self.clk_si1)
 
         self.cd_si2 = ClockDomain()
         self.clk_si2 = platform.request("SI_CLK", 2)
-        platform.add_period_constraint(self.clk_si2, 1e9 / 250e6)
         self.comb += self.cd_si2.clk.eq(self.clk_si2)
 
         self.cd_si3 = ClockDomain()
         self.clk_si3 = platform.request("SI_CLK", 3)
-        platform.add_period_constraint(self.clk_si3, 1e9 / 250e6)
         self.comb += self.cd_si3.clk.eq(self.clk_si3)
 
         # No SI CLK 4
 
         self.cd_si5 = ClockDomain()
         self.clk_si5 = platform.request("SI_CLK", 5)
-        platform.add_period_constraint(self.clk_si5, 1e9 / 250e6)
         self.comb += self.cd_si5.clk.eq(self.clk_si5)
 
         self.cd_si6 = ClockDomain()
         self.clk_si6 = platform.request("SI_CLK", 6)
-        platform.add_period_constraint(self.clk_si6, 1e9 / 250e6)
         self.comb += self.cd_si6.clk.eq(self.clk_si6)
 
         self.cd_si7 = ClockDomain()
         self.clk_si7 = platform.request("SI_CLK", 7)
-        platform.add_period_constraint(self.clk_si7, 1e9 / 250e6)
         self.comb += self.cd_si7.clk.eq(self.clk_si7)
 
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
+    SoCCore.csr_map = {
+        "ppsdo"       : 22,
+    }
     def __init__(self,
                  sys_clk_freq      = 100e6,
                  with_bios         = False,
                  no_ddr            = False,
                  cpu_firmware   = None,
                  with_jtagbone     = False,
-                 with_cpu_debug    = False):
+                 with_cpu_debug    = False,
+                 with_ddr_test     = False,
+                 no_ppsdo          = False):
         platform = limesdr_usb.Platform()
         platform.name        = "limesdr_usb"
         platform.vhd2v_force = False
@@ -146,12 +142,12 @@ class BaseSoC(SoCCore):
         no_ddr = no_ddr or with_cpu_debug
 
         if with_bios:
-            integrated_rom_size      = 0x4000
+            integrated_rom_size      = 0x4100
             integrated_rom_init      = []
-            integrated_main_ram_size = 0x4000
+            integrated_main_ram_size = 0x4100
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
         else:
-            integrated_rom_size      = 0x4000
+            integrated_rom_size      = 0x3900
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
@@ -177,7 +173,7 @@ class BaseSoC(SoCCore):
             cpu_variant              = cpu_variant,
             integrated_rom_size      = integrated_rom_size,
             integrated_rom_init      = integrated_rom_init,
-            integrated_sram_size     = 0x2000,
+            integrated_sram_size     = 0x800,
             integrated_main_ram_size = integrated_main_ram_size,
             integrated_main_ram_init = integrated_main_ram_init,
             with_uart                = False, #for now
@@ -210,10 +206,11 @@ class BaseSoC(SoCCore):
         # FX3
         self.FX3 = FX3(platform=platform,
                        pads=platform.request("FX3"),
-                       vendor="altera",
+                       EP81_size     = 1024*8,
                        EP01_0_rwidth = HOST_TO_FPGA_DATA_WIDTH,
                        EP01_1_rwidth = WFM_DATA_WIDTH,
-                       EP81_wwidth   = FPGA_TO_HOST_DATA_WIDTH
+                       EP81_wwidth   = FPGA_TO_HOST_DATA_WIDTH,
+                       cd_source_1_rd = "lms_tx",
                        )
 
         # LMS SPI -----------------------------------------------------------------------------------
@@ -230,8 +227,23 @@ class BaseSoC(SoCCore):
                                    revision_pads=revision_pads,
                                    fx3_busy=self.FX3.busy_out,
                                    add_ddr_modules=not no_ddr,
+                                   add_ddr_test=with_ddr_test,
                                    wfm_infifo_usedw_width=self.FX3.ep01_0_rdusedw_width,
                                    )
+
+        # PPSDO ------------------------------------------------------------------------------------
+        if not no_ppsdo:
+            from gateware.LimePPSDO.src.ppsdo import PPSDO
+            self.ppsdo = PPSDO(
+                cd_sys       = "lmk",
+                sys_clk_freq = 30.72e6,
+                cd_rf        = "lmk",
+                with_csr     = True,
+                cpu_rftype   = "BRAM_BP",
+            )
+            self.comb += self.ppsdo.pps.eq(self.pss.gpio_io.in_val[7])
+            self.ppsdo.add_sources(dac_bits=8)
+            self.ppsdo.add_altera_platform_constraints(platform)
 
         # LimeTop -----------------------------------------------------------------------------------
         self.limetop  = LimeTop(self,
@@ -252,6 +264,7 @@ class BaseSoC(SoCCore):
 
                                 with_event_manager   = False,
                                 with_clk_cfg_irq     = False,
+                                unified_clk_csr      = True,
                                 )
 
         self.comb += [
@@ -280,24 +293,12 @@ class BaseSoC(SoCCore):
                 self.limetop.lms7002_top.wfm_sink_h.eq(self.pss.wfm_player.diq_h),
             ]
             # FX3 <-> WFMPlayer
-            # NOTE: both FX3 and WFMPlayer need usedw signals from their fifos to operate properly
-            #       LiteX AsyncFifo does not have two level outputs, so two SyncFIFOs have to be used,
-            #       one for each clock domain.
-            # TODO: See if it's possible to improve asyncFifo to avoid this workaround.
-            self.wfm_fifo = ClockDomainsRenamer("lms_tx")(
-                ResetInserter()(stream.SyncFIFO([("data", 32)], depth=1024, buffered=True))
-            )
-            self.wfm_data_cdc = ClockDomainCrossing([("data",32)],"sys","lms_tx", depth=4)
-            # No CDC for clear signal, since it is actually in sys clock domain (unmodified fpacfg wfm_load signal passed through wfmplayer)
             self.comb += [
-                # --- CDC for wfm data
-                self.FX3.data_source_1.connect(self.wfm_data_cdc.sink, omit=["keep", "id", "dest", "user"]),
-                self.wfm_data_cdc.source.connect(self.wfm_fifo.sink),
-                self.wfm_fifo.source.connect(self.pss.wfm_player.sink, omit=["keep", "id", "dest", "user"]),
-                # --- FIFO level for burst management
-                self.pss.wfm_player.sink_usedw.eq(self.wfm_fifo.level),
+                # --- Direct stream connection to WFM player sink in lms_tx domain
+                self.FX3.data_source_1.connect(self.pss.wfm_player.sink, omit=["keep", "id", "dest", "user"]),
+                # --- FIFO level for burst management (read domain)
+                self.pss.wfm_player.sink_usedw.eq(self.FX3.data_source_1_level),
                 # --- Controls
-                self.wfm_fifo.reset.eq(~self.pss.wfm_player.wfm_infifo_reset_n),
                 self.FX3.data_source1_clr.eq  (~self.pss.wfm_player.wfm_infifo_reset_n),
                 self.FX3.data_source_sel.eq(self.pss.wfm_player.wfm_load)
             ]
@@ -386,7 +387,9 @@ def main():
     parser.add_argument("--with-bios",      action="store_true", help="Enable LiteX BIOS.")
     parser.add_argument("--with-jtagbone",  action="store_true", help="Enable JTAGBone (wishbone-over-JTAG bus master) for gateware debugging / register monitoring with litex_server (mutually exclusive with --with-cpu-debug).")
     parser.add_argument("--with-cpu-debug", action="store_true", help="Enable spec-compliant RISC-V CPU debug over a dedicated JTAG tunnel (implies --no-ddr, mutually exclusive with --with-jtagbone).")
+    parser.add_argument("--no-ddr-test",    action="store_true", help="Remove DDR2 self-test core. Useful for freeing resources when debugging")
     parser.add_argument("--no-ddr",         action="store_true", help="Do not include DDR memory related modules. Useful for freeing resources when debugging")
+    parser.add_argument("--no-ppsdo",       action="store_true", help="Do not include PPSDO module.")
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
@@ -405,7 +408,9 @@ def main():
             with_jtagbone  = args.with_jtagbone,
             with_cpu_debug = args.with_cpu_debug,
             cpu_firmware   = None if prepare else "firmware/firmware.bin",
-            no_ddr         = args.no_ddr
+            with_ddr_test  = not args.no_ddr_test,
+            no_ddr         = args.no_ddr,
+            no_ppsdo       = args.no_ppsdo
         )
 
         # soc.add_debug()

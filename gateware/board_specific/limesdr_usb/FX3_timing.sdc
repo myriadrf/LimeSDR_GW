@@ -13,9 +13,6 @@ set FX3_period		10
 set FX3_tDS 2 
 set FX3_tDH 0.50
 
-set FX3_tDS 2 
-set FX3_tDH 0.50
-
 	#FX3 tRDS tWRS tAS tPES combined to FX3_tSU
 set FX3_tSU		2
 	#FX3 tRDH tWRH tAH tPEH combined to FX3_tH

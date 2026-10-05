@@ -11,7 +11,7 @@ RF processing, and peripheral management on the Intel/Altera Cyclone IV FPGA.
 - :ref:`Soft core CPU Module <soft_core_cpu_module_usb>` – VexRiscv CPU instance (minimal or standard).
 - :ref:`Lime_top Module <lime_top_module_usb>` – RF data path and LMS7002M digital interface.
 - :ref:`FX3 PHY Module <fx3_phy_module_usb>` – USB 3.0 Slave FIFO interface via Cypress FX3.
-- :ref:`PSS (Peripheral Support Subsystem) <pss_module_usb>` – Integrated board management (SPI, I2C, GPIO).
+- :ref:`PSS (Peripheral Support Subsystem) <pss_module_usb>` – Integrated board management (SPI, I2C, GPIO, DDR2 test, WFM).
 
 .. figure:: limesdr-usb/images/main_block_diagram.drawio.svg
    :width: 1000
@@ -92,26 +92,38 @@ Cypress FX3 USB 3.0 controller.
 
 PSS (Peripheral Support Subsystem)
 ----------------------------------
-The **PSS_LimeSDR_Usb** module encapsulates all board-specific low-speed peripherals. This
-pattern isolates the board-level logic from the generic SoC core.
+The **PSS_LimeSDR_Usb** module encapsulates all board-specific low-speed peripherals and test
+infrastructure. This pattern isolates board-level logic from the generic SoC core.
 
 - **fpga_spi1**: A dedicated SPI master for board peripherals.
 
-    - **AD5601 DAC**: Controlled using SPI Mode 1 to set the VCTCXO frequency.
+    - **AD5601 DAC**: Controlled using SPI Mode 1 to set the VCTCXO tune voltage .
     - **ADF4002 PLL**: Controlled using SPI Mode 0 for clock synchronization.
-- **I2C Master**: Controls the SI5351C clock generator, temperature sensors, and EEPROM.
+- **I2C Master**: Controls the SI5351C clock generator, temperature sensors, and EEPROM over a shared I2C bus.
 - **GPIO & LEDs**:
 
-    - Heartbeat LED and status indicators.
-    - Fan control logic.
-    - RF loopback switches.
+    - **FPGA_GPIO**: Default non-overridden assignments:
+        - ``FPGA_GPIO[0]``: TX antenna enable status (``TX_TXANT_EN``).
+        - ``FPGA_GPIO[1]``: RX PLL lock status (``RX_PLL_LOCKED``).
+        - ``FPGA_GPIO[2]``: TX PLL lock status (``TX_PLL_LOCKED``).
+        - ``FPGA_GPIO[3]``: TX packet loss flag (``TX_PCT_LOSS_FLG``).
+        - ``FPGA_GPIO[7]``: Dedicated external PPS reference input.
+        - Fully supports dynamic direction, override, and pin value control via ``IoOverrideTop`` CSRs.
+    - **LEDs & Fan**: Heartbeat LED (LED1 green), PLL lock indicators (LED1 red), ADF/DAC activity status (LED2), FX3 activity LED (LED3), and temperature-controlled fan driver (with CSR override).
+    - **RF Loopback**: Software-controlled RF loopback switches.
 - **WFM Player**: A DDR2-backed waveform playback engine (enabled when DDR is present).
 
-    - **Waveform Loading**: Data is received via the FX3 muxed path, stripped of packet headers by the payload extractor, and written to the on-board DDR2 memory.
+    - **Waveform Loading**: Data is received via the FX3 muxed path, stripped of packet headers by the payload extractor, and written to on-board DDR2 memory.
     - **Waveform Playback**: Stored samples are read from DDR2, passed through a decompressor, and streamed to the **LMS7002 Top** module for transmission.
+- **DDR2 Self-Test & Clock Counters (TSTCFG)**:
 
-Gateware Register Reference
----------------------------
+    - **DDR2 BIST Core**: Built-in Self-Test (BIST) and pseudorandom pattern generator for hardware-level read/write throughput validation and bit-error testing without host streaming.
+    - **Clock Frequency Counters**: Hardware transition counters for validating clock activity on FX3 PCLK, Si5351C outputs (CLK0–CLK3, CLK5–CLK7), LMK 30.72 MHz reference, and ADF4002 MUXOUT.
+    - **Register Mapping**: Accessible via legacy ``TSTCFG`` register space (addresses ``0x0060``–``0x007C``; see :ref:`usb_regmap_tstcfg`).
+    - **Resource Optimization**: Can be excluded at synthesis time with the ``--no-ddr-test`` build option to conserve FPGA logic and memory resources.
+
+Gateware Register Reference & Navigation
+----------------------------------------
 LimeSDR USB exposes registers through two access paths:
 
 - :doc:`Legacy FPGA SPI registers <limesdr-usb/reg_remap/usb_regremap_from_csv>`: legacy host registers used by existing software and previous gateware; planned to be replaced by LiteX CSR.
@@ -119,9 +131,12 @@ LimeSDR USB exposes registers through two access paths:
 
 During the migration phase, the host can continue accessing legacy FPGA SPI register addresses; firmware remaps these FPGA SPI register accesses to native LiteX CSR registers internally. The LiteX CSR map is the forward path for native SoC register access.
 
+For detailed gateware compilation, synthesis options, and device programming instructions, refer to the :doc:`LimeSDR USB Build Instructions <limesdr-usb/build_gw>`.
+
 .. toctree::
    :maxdepth: 3
    :hidden:
 
+   Build instructions <limesdr-usb/build_gw>
    Legacy FPGA SPI register reference <limesdr-usb/reg_remap/usb_regremap_from_csv>
    Register reference <limesdr-usb/litex_doc/index>

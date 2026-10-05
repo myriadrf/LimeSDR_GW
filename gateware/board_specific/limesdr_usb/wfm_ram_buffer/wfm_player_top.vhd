@@ -14,7 +14,8 @@ use ieee.numeric_std.all;
 -- ----------------------------------------------------------------------------
 entity wfm_player_top is
 	generic(
-			dev_family			: string  := "Cyclone IV E"; 
+			with_traffic_gen	: integer := 0;
+			dev_family			: string  := "Cyclone IV E";
 			--DDR2 controller parameters
 			cntrl_rate			: integer := 1; --1 - full rate, 2 - half rate
 			cntrl_bus_size		: integer := 16;
@@ -58,7 +59,8 @@ entity wfm_player_top is
 		dd_iq_l					   : out std_logic_vector(15 downto 0);
 --		dd_iq_h_uns				   : out std_logic_vector(15 downto 0);
 --		dd_iq_l_uns				   : out std_logic_vector(15 downto 0);
-
+
+
 		--DDR2 external memory signals	
 		mem_odt					   : out std_logic_vector (0 DOWNTO 0);
 		mem_cs_n					   : out std_logic_vector (0 DOWNTO 0);
@@ -406,6 +408,7 @@ wfm_player_inst : entity work.wfm_player
 -- ----------------------------------------------------------------------------
   DDR2_ctrl_top_inst : entity work.DDR2_ctrl_top 
 generic map (
+			with_traffic_gen	=> with_traffic_gen,
     		cntrl_rate			=> cntrl_rate, --1 - full rate, 2 - half rate
 			cntrl_bus_size		=> cntrl_bus_size,
 			addr_size			=> addr_size,

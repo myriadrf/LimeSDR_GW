@@ -26,6 +26,7 @@ Register Groups
     pss
     spimaster
     timer0
+    ppsdo
 
 Indices and tables
 ==================

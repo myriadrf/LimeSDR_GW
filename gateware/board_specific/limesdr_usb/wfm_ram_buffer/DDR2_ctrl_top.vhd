@@ -14,6 +14,7 @@ use ieee.numeric_std.all;
 -- ----------------------------------------------------------------------------
 entity DDR2_ctrl_top is
 		generic(
+			with_traffic_gen	: integer := 0;
 			cntrl_rate			: integer := 1; --1 - full rate, 2 - half rate
 			cntrl_bus_size		: integer := 16;
 			addr_size			: integer := 24;
@@ -383,6 +384,7 @@ DDR2_arb_inst :  DDR2_arb
 --    end process;
 
 
+gen_tgen : if with_traffic_gen = 1 generate
 traffic_gen_inst : ddr2_traffic_gen
 	port map (
 		avl_ready				=> ddr2_local_ready,
@@ -403,6 +405,34 @@ traffic_gen_inst : ddr2_traffic_gen
 		fail						=> fail,
 		test_complete			=> test_complete 
 	);	
+
+avl_addr 		<= tst_addr 		when begin_test='1' else ddr2arb_local_addr;
+avl_write_req	<=	tst_write_req 	when begin_test='1' else ddr2arb_local_write_req;
+avl_read_req	<=	tst_read_req 	when begin_test='1' else ddr2arb_local_read_req;
+avl_burstbegin <= tst_burstbegin when begin_test='1' else ddr2arb_local_burstbegin;
+avl_wdata		<= tst_wdata 		when begin_test='1' else ddr2arb_local_wdata;
+avl_be			<= tst_be 			when begin_test='1' else ddr2arb_local_be;
+avl_size			<= tst_size 		when begin_test='1' else ddr2arb_local_size;
+
+tst_rdata			<= avl_rdata(31 downto 1) & '0' when insert_error='1' else avl_rdata;
+tst_rdata_valid 	<= avl_rdata_valid when begin_test='1' else '0';
+end generate gen_tgen;
+
+gen_notgen : if with_traffic_gen = 0 generate
+	pnf_per_bit <= (others => '0');
+	pnf_per_bit_persist <= (others => '0');
+	pass <= '0';
+	fail <= '0';
+	test_complete <= '0';
+
+	avl_addr <= ddr2arb_local_addr;
+	avl_write_req <= ddr2arb_local_write_req;
+	avl_read_req <= ddr2arb_local_read_req;
+	avl_burstbegin <= ddr2arb_local_burstbegin;
+	avl_wdata <= ddr2arb_local_wdata;
+	avl_be <= ddr2arb_local_be;
+	avl_size <= ddr2arb_local_size;
+end generate gen_notgen;
 
 ddr2_inst : ddr2
 	PORT map (
@@ -441,19 +471,8 @@ ddr2_inst : ddr2
 		mem_dqs				=> mem_dqs 
 	);
 
-avl_addr 		<= tst_addr 		when begin_test='1' else ddr2arb_local_addr;
-avl_write_req	<=	tst_write_req 	when begin_test='1' else ddr2arb_local_write_req;
-avl_read_req	<=	tst_read_req 	when begin_test='1' else ddr2arb_local_read_req;
-avl_burstbegin <= tst_burstbegin when begin_test='1' else ddr2arb_local_burstbegin;
-avl_wdata		<= tst_wdata 		when begin_test='1' else ddr2arb_local_wdata;
-avl_be			<= tst_be 			when begin_test='1' else ddr2arb_local_be;
-avl_size			<= tst_size 		when begin_test='1' else ddr2arb_local_size;
-
 local_rdata				<= avl_rdata;
 local_rdata_valid 	<= avl_rdata_valid;
-
-tst_rdata			<= avl_rdata(31 downto 1) & '0' when insert_error='1' else avl_rdata;
-tst_rdata_valid 	<= avl_rdata_valid when begin_test='1' else '0';
 
 
 phy_clk<=ddr2_phy_clk;

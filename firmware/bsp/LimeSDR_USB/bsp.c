@@ -39,17 +39,17 @@ void bsp_init(void)
     // Set bit 1 (reset) to 1
     lms1_val |= 2;
     limetop_lms7002_top_lms1_write(lms1_val);
-    // Init pll control register values
-    csr_write_simple(0x0FFF, clk_ctrl_addrs.phcfg_samples);
-    csr_write_simple(0x0002, clk_ctrl_addrs.phcfg_step);
-    csr_write_simple(0x0001, clk_ctrl_addrs.vco_div_cnt);
-    csr_write_simple(0x0001, clk_ctrl_addrs.m_odd_div);
-    csr_write_simple(0x0001, clk_ctrl_addrs.n_odd_div);
-    csr_write_simple(0x0001, clk_ctrl_addrs.c0_odddiv);
-    csr_write_simple(0x0001, clk_ctrl_addrs.c1_odddiv);
-    csr_write_simple(0x0001, clk_ctrl_addrs.c2_odddiv);
-    csr_write_simple(0x0001, clk_ctrl_addrs.c3_odddiv);
-    csr_write_simple(0x0001, clk_ctrl_addrs.c4_odddiv);
+    // Init pll control register values using direct LiteX accessors for unified CSRs:
+    // Auto phase configuration samples (LMS64C 0x003E)
+    limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_smpls_write(0x0FFF);
+    // Auto phase configuration step size (LMS64C 0x003F)
+    limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_write(0x0002);
+    // M and N counter divider control (LMS64C 0x0026):
+    // [0] n_div_byp=0, [1] n_odd_div=1, [2] m_div_byp=0, [3] m_odd_div=1 -> 0x000A
+    limetop_lms7002_top_lms7002_clk_CLK_CTRL_mn_div_ctrl_write(0x000A);
+    // C0-C4 clock output divider control (LMS64C 0x0027):
+    // [0,2,4,6,8] c0-c4 div bypass=0, [1,3,5,7,9] c0-c4 odddiv=1 -> 0x02AA
+    limetop_lms7002_top_lms7002_clk_CLK_CTRL_c_div_ctrl_write(0x02AA);
 
     // Init Temperature sensor
     LM75_Init(&I2C_REGS,0);

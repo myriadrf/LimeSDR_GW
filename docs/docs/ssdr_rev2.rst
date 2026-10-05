@@ -1,7 +1,7 @@
 sSDR rev2
-============
+=========
 
-This section provides detailed information about the gateware implemented for the sSDR board.
+This section provides detailed information about the gateware implemented for the sSDR rev2 board.
 
 Main Block Diagram
 ------------------
@@ -17,7 +17,7 @@ The top-level file integrates the following main blocks:
 .. figure:: ssdr_rev2/images/main_block_diagram.drawio.svg
    :width: 1000
    :align: center
-   :alt: Main block diagram for LimeSDR XTRX
+   :alt: Main block diagram for sSDR rev2
 
 .. _soft_core_cpu_module:
 
@@ -72,9 +72,9 @@ The source code for LitePCIe is available at:
 
 .. _i2c_modules:
 
-I2C Modules
-^^^^^^^^^^^
-The **I2C0** module is instances of the ``I2CMaster`` class provided by LiteX. They are used for controlling onboard peripherals via the I2C protocol.
+I2C Module
+^^^^^^^^^^
+The **I2C0** module is an instance of the ``I2CMaster`` class provided by LiteX. It is used for controlling onboard peripherals via the I2C protocol.
 
 The source code can be found here:
 `I2CMaster in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/bitbang.py>`_
