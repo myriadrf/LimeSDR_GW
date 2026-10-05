@@ -95,10 +95,10 @@ Source code:
 
 Flash Module
 ------------
-The **Flash Module** is implemented using the ``S7SPIFlash`` class provided by LiteX. It enables access to the FPGA configuration FLASH memory.
+The **Flash Module** is implemented using `LiteSPI <https://github.com/litex-hub/litespi>`_ interfacing with the onboard Winbond ``W25Q128JV`` SPI NOR Flash memory. It enables access to the FPGA configuration FLASH memory.
 
 Source code:
-`S7SPIFlash in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi_flash.py>`_
+`LiteSPI on GitHub <https://github.com/litex-hub/litespi>`_
 
 
 Gateware Register Reference

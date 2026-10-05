@@ -1,7 +1,7 @@
 LimeSDR Mini V1
 ===============
 
-This section provides detailed information about the gateware implemented for the LimeSDR Mini V2 board.
+This section provides detailed information about the gateware implemented for the LimeSDR Mini V1 board.
 
 Main Block Diagram
 ------------------
@@ -16,7 +16,7 @@ The top-level file integrates the following main blocks:
 .. figure:: limesdr-mini-v1/images/main_block_diagram.drawio.svg
    :width: 1000
    :align: center
-   :alt: Main block diagram for LimeSDR Mini V2
+   :alt: Main block diagram for LimeSDR Mini V1
 
 .. _soft_core_cpu_module:
 
@@ -95,10 +95,11 @@ Source code:
 
 Flash Module
 ------------
-The **Flash Module** is implemented using the ``S7SPIFlash`` class provided by LiteX. It enables access to the FPGA configuration FLASH memory.
+The **Flash Module** is implemented using custom gateware classes ``Max10OnChipFlash`` and ``Max10DualCfg`` located locally within the repository. It enables access to the Altera MAX10 internal on-chip configuration FLASH memory (UFM/CFM) and dual-boot configuration controls.
 
 Source code:
-`S7SPIFlash in LiteX <https://github.com/enjoy-digital/litex/blob/master/litex/soc/cores/spi_flash.py>`_
+- `Max10OnChipFlash in gateware <https://github.com/myriadrf/LimeSDR_GW/blob/master/gateware/max10_onchipflash/max10_onchipflash.py>`_ (``gateware/max10_onchipflash/max10_onchipflash.py``)
+- `Max10DualCfg in gateware <https://github.com/myriadrf/LimeSDR_GW/blob/master/gateware/max10_dual_cfg/max10_dual_cfg.py>`_ (``gateware/max10_dual_cfg/max10_dual_cfg.py``)
 
 
 Gateware Register Reference
