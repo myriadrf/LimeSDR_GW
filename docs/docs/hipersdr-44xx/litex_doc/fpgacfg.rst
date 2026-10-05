@@ -141,7 +141,7 @@ FPGACFG_COMPILE_REV
 
         {
             "reg": [
-                {"name": "compile_rev[15:0]", "attr": 'reset: 10', "bits": 16},
+                {"name": "compile_rev[15:0]", "attr": 'reset: 12', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
