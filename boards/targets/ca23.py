@@ -483,7 +483,8 @@ class BaseSoC(SoCCore):
 
         gnss_pads = platform.request("gnss")
         self.comb += [
-            gnss_pads.reset.eq(1),  # Active-low reset driven high
+            gnss_pads.reset.eq(0),  # Temporary debug change - keep gnss chip in reset
+            # gnss_pads.reset.eq(1),  # Active-low reset driven high
             gnss_pads.extint.eq(0), # Active-high extint driven low
         ]
 
