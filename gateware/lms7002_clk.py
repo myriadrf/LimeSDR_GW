@@ -19,7 +19,7 @@ from litescope import LiteScopeAnalyzer
 # Clk Cfg Regs -------------------------------------------------------------------------------------
 
 class ClkCfgRegs(LiteXModule):
-    def __init__(self, use_status_regs=False):
+    def __init__(self, use_status_regs=False, unified_csr=False):
 
         # --------- Clocking CFG registers --------------------------------------------------------
         # Control registers
