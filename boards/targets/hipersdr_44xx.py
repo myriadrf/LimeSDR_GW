@@ -653,11 +653,9 @@ class BaseSoC(SoCCore):
                            platform=platform,
                            pads=self.afe_pads,
                            with_debug=False,
-                           sys_clk_freq = sys_clk_freq,
                            s_clk_domain=self.crg.cd_afe.name,
                            m_clk_domain=self.crg.cd_afe.name,
-                           with_dpd=with_dpd,
-                           resampling_stages=0)
+                           with_dpd=with_dpd)
 
         self.comb += self.afe.jesd_freerun_clk.eq(self.crg.cd_jesd_freerun.clk)
 
