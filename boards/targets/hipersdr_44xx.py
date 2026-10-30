@@ -67,6 +67,8 @@ from gateware.helpers import write_module_hierarchy_json
 from gateware.xtrx_rfsw import xtrx_rfsw
 from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
+from gateware.fpga_host_descriptor_table import FPGAHostDescriptorTable
+from gateware.rx_dma_counter import RXDMACounter
 
 
 # Constants ----------------------------------------------------------------------------------------
@@ -241,7 +243,7 @@ class BaseSoC(SoCCore):
         "pcie_msi"    : 3, #11
         "pcie_dma0"   : 5, #12
         "PCIE_UART0"  : 13,
-        "PCIE_UART1"  : 14,
+        "rx_host_tcd": 14,  # Unused second PCIe UART slot.
 
         "flash"       : 15,  # 10
         "xadc"        : 16,  # 11
@@ -277,6 +279,7 @@ class BaseSoC(SoCCore):
         gold_img              = False,
         firmware_flash_offset = 0xA00000,
         with_dpd              = False,
+        with_rx_dma_counter   = False,
     ):
 
         # Platform ---------------------------------------------------------------------------------
@@ -488,13 +491,26 @@ class BaseSoC(SoCCore):
             }
         )
         self.add_pcie(phy=self.pcie_phy, address_width=64, data_width=self.pcie_phy.data_width, ndmas=1,
-            with_dma_buffering    = True,
+            # Counter tests bypass the optional large FIFO so old prefetched
+            # payload cannot survive between independent test runs.
+            with_dma_buffering    = not with_rx_dma_counter,
             dma_buffering_depth   = 65536,
             max_pending_requests  = 16,
             with_dma_loopback     = False,
             with_dma_synchronizer = False,
+            with_dma_table        = True,
             with_msi              = True
         )
+        # Disabled by default. When enabled, this sequencer is the sole RX
+        # descriptor producer; it programs the unchanged LitePCIe table CSRs.
+        self.rx_host_tcd = FPGAHostDescriptorTable(
+            dma_base=self.mem_map["csr"] + self.csr_map["pcie_dma0"] * self.csr.paging,
+            depth=16, dma_table_depth=256, split_size=2048,
+            alignment=self.pcie_dma0.data_width // 8)
+        self.bus.add_master(name="rx_host_tcd", master=self.rx_host_tcd.bus)
+        self.comb += self.rx_host_tcd.child_retired.eq(
+            self.pcie_dma0.writer.table.source.valid & self.pcie_dma0.writer.table.source.ready)
+        self._map_pcie_dma_irqs()
         platform.add_false_path_constraints(self.crg.cd_sys.clk, self.pcie_phy.cd_pcie.clk)
 
         # I2C Bus1 ---------------------------------------------------------------------------------
@@ -584,7 +600,18 @@ class BaseSoC(SoCCore):
             self.limetop.ext_stream_trigger.eq(self.synchro_pads.pps_in),
         ]
 
-        self.comb += self.limetop.source.connect(self.pcie_dma0.sink, keep={"valid", "ready", "last", "data"}),
+        if with_rx_dma_counter:
+            self.rx_dma_counter = RXDMACounter(self.pcie_dma0.data_width)
+            self.comb += [
+                self.rx_dma_counter.source.connect(self.pcie_dma0.sink),
+                self.rx_dma_counter.enable.eq(
+                    self.limetop.fpgacfg.reg10.storage[0] & self.pcie_dma0.writer.enable),
+                self.rx_dma_counter.reset.eq(~self.pcie_dma0.writer.enable),
+                self.limetop.source.ready.eq(1),
+            ]
+        else:
+            self.comb += self.limetop.source.connect(self.pcie_dma0.sink,
+                keep={"valid", "ready", "last", "data"})
 
         ## PCIE DMA -> TX Path -> LMS7002 Pipeline.
         self.comb += [
@@ -955,34 +982,74 @@ class BaseSoC(SoCCore):
         self.platform.add_period_constraint(self.cd_jtag.clk, 1e9/20e6)
         self.platform.add_false_path_constraints(self.cd_jtag.clk, self.crg.cd_sys.clk)
 
+    def _map_pcie_dma_irqs(self):
+        # LiteX already assigned the MSI inputs in this module's comb list.
+        # Migen's later assignment takes priority for the RX bit only, retaining
+        # the original TX routing/constants on both older and newer LiteX APIs.
+        name = "PCIE_DMA0_WRITER"
+        index = sorted(self.msis).index(name)
+        self.msis[name] = Mux(
+            self.rx_host_tcd.busy.status,
+            self.rx_host_tcd.irq, self.pcie_dma0.writer.irq)
+        self.comb += self.pcie_msi.irqs[index].eq(self.msis[name])
 
     def add_debug(self):
+        # Compact descriptor/control trace. Read statistics through CSRs and
+        # validate payload in host memory to avoid routing wide data buses here.
+        dma_writer = self.pcie_dma0.writer
+        rx_desc = dma_writer.table.source
+        rx_data = self.pcie_dma0.sink
+        rx_write = dma_writer.port.source
+        host = self.rx_host_tcd
+        analyzer_signals = [host.fsm]
+        # Stable names and aliases for slices/expressions used as triggers.
+        debug_signals = {
+            "rx_host_enable": host.enable.storage,
+            "rx_host_busy": host.busy.status,
+            "rx_host_submit": host.submit.re,
+            "rx_host_accepted": host.accepted,
+            "rx_host_queue_ready": host.fifo.sink.ready,
+            "rx_host_queue_level": host.level.status,
+            "rx_host_active": host.active,
+            "rx_host_armed": host.armed,
+            "rx_host_fatal": host.fatal,
+            "rx_host_errors": host.errors.status[:11],
+            "rx_host_remaining": host.remaining,
+            "rx_host_channel": host.current_channel,
+            "rx_host_submitting": host.submitting,
+            "rx_host_inflight": host.inflight,
+            "rx_host_issued": host.issued,
+            "rx_host_child_retired": host.child_retired,
+            "rx_host_parent_done": host.parent_done,
+            "rx_host_wb_cyc": host.bus.cyc,
+            "rx_host_wb_ack": host.bus.ack,
+            "rx_host_wb_err": host.bus.err,
+            "rx_dma_enable": dma_writer.enable,
+            "rx_writer_desc_valid": rx_desc.valid,
+            "rx_writer_desc_ready": rx_desc.ready,
+            "rx_writer_desc_address": rx_desc.address,
+            "rx_writer_desc_length": rx_desc.length,
+            "rx_writer_desc_irq_disable": rx_desc.irq_disable,
+            "rx_writer_desc_last_disable": rx_desc.last_disable,
+            "rx_writer_table_level": dma_writer.table.level.status,
+            "rx_writer_input_valid": rx_data.valid,
+            "rx_writer_input_ready": rx_data.ready,
+            "rx_writer_pcie_valid": rx_write.valid,
+            "rx_writer_pcie_ready": rx_write.ready,
+            "rx_writer_irq": Mux(host.busy.status, host.irq, dma_writer.irq),
+        }
+        for name, value in debug_signals.items():
+            probe = Signal(len(value), name_override=name)
+            setattr(self, name, probe)
+            self.comb += probe.eq(value)
+            analyzer_signals.append(probe)
 
-        if hasattr(self.afe, "dpd_capture_buffer"):
-            analyzer_signals = [
-                self.afe.dpd_capture_buffer.reset_n,
-                self.afe.dpd_capture_buffer.bram_write.web  ,
-                self.afe.dpd_capture_buffer.bram_write.enb  ,
-                self.afe.dpd_capture_buffer.bram_write.addrb,
-                self.afe.dpd_capture_buffer.bram_write.doutb,
-                self.afe.dpd_capture_buffer.bram_write.start_write,
-                self.afe.dpd_capture_buffer.bram_write.full,
-            ]
-        else:
-            analyzer_signals = [
-                self.afe.tx_en,
-                self.afe.tx_conv.sink.valid,
-                self.afe.tx_conv.sink.ready,
-                self.afe.tx_conv.sink.data,
-                self.afe.tx_conv.source.valid,
-                self.afe.tx_conv.source.ready,
-            ]
-
-        self.analyzer = LiteScopeAnalyzer(analyzer_signals,
-            depth        = 2048,
-            clock_domain = "fpga_1pps_2x",
-            register     = True,
-            csr_csv      = "analyzer.csv"
+        self.analyzer = LiteScopeAnalyzer(
+            analyzer_signals,
+            depth=512,
+            clock_domain="sys",
+            register=True,
+            csr_csv="analyzer.csv"
         )
     # SoC hierarchy JSON utilities -----------------------------------------------------------------
 
@@ -1029,6 +1096,8 @@ def main():
 
     # Examples.
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
+    parser.add_argument("--with-rx-dma-counter", action="store_true",
+        help="Replace RX payload with consecutive 32-bit counter words for DMA tests.")
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
@@ -1058,6 +1127,7 @@ def main():
             with_ppsdo            = not args.no_ppsdo,
             with_fft              = args.with_fft,
             with_dpd              = args.with_dpd,
+            with_rx_dma_counter   = args.with_rx_dma_counter,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,
             firmware_flash_offset = args.firmware_flash_offset,
