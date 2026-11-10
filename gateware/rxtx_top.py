@@ -45,6 +45,7 @@ class RXTXTop(LiteXModule):
 
         # Misc parameters
         soc_has_timesource = False,
+        rx_path_factory   = None,
         ):
 
         assert fpgacfg_manager is not None
@@ -73,7 +74,8 @@ class RXTXTop(LiteXModule):
 
         # RX Path.
         # --------
-        self.rx_path = rx_path = RXPathTop(platform, fpgacfg_manager, rx_stream_en,
+        rx_path_class = RXPathTop if rx_path_factory is None else rx_path_factory
+        self.rx_path = rx_path = rx_path_class(platform, fpgacfg_manager, rx_stream_en,
             m_clk_domain       = rx_m_clk_domain,
             int_clk_domain     = rx_int_clk_domain,
             s_clk_domain       = rx_s_clk_domain,

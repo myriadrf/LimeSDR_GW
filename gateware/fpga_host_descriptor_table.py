@@ -46,7 +46,7 @@ class FPGAHostDescriptorTable(LiteXModule):
 
     def __init__(self, dma_base, depth=16, dma_table_depth=256,
                  split_size=2048, alignment=32, bus_timeout=1024,
-                 max_channels=16, with_payload_commands=False):
+                 max_channels=16, with_payload_commands=False, payload_block_samples=0):
         if not 2 <= depth <= 65535 or dma_table_depth < 1:
             raise ValueError("Invalid descriptor table depth")
         if not 1 <= max_channels <= 16:
@@ -59,6 +59,9 @@ class FPGAHostDescriptorTable(LiteXModule):
             raise ValueError("Invalid DMA CSR base or bus timeout")
 
         self.bus = bus = wishbone.Interface(data_width=32, address_width=32, addressing="word")
+        # Optional acquisition-path contract. Existing sequencer-only users keep
+        # the unrestricted v2 ABI. Change format only while both paths are reset.
+        self.payload_iq12 = Signal()
         self.child_retired = child_retired = Signal()
         self.irq = Signal()
         slot_bits = bits_for(depth - 1)
@@ -165,9 +168,29 @@ class FPGAHostDescriptorTable(LiteXModule):
                          (self.bytes_per_channel.storage == 0) |
                          ((self.bytes_per_channel.storage & (alignment - 1)) != 0) |
                          ((self.channel_count.storage > 1) & ~self.flags.storage[1]))
+        if payload_block_samples:
+            if payload_block_samples < 32 or payload_block_samples & (payload_block_samples - 1):
+                raise ValueError("payload_block_samples must be a power of two, at least 32")
+            # A packed block has 3*N bytes. After testing divisibility by N,
+            # test the quotient modulo three using its base-four digit sum.
+            # This avoids a general divider in the descriptor validation path.
+            shift = payload_block_samples.bit_length() - 1
+            quotient = self.bytes_per_channel.storage[shift:]
+            digit_sum = Signal(7)
+            self.comb += digit_sum.eq(sum(quotient[i:min(i+2, len(quotient))]
+                for i in range(0, len(quotient), 2)))
+            divisible_by_three = Constant(0)
+            for value in range(0, 3*((len(quotient)+1)//2)+1, 3):
+                divisible_by_three = divisible_by_three | (digit_sum == value)
+            basic_invalid = basic_invalid | Mux(self.payload_iq12,
+                ((self.bytes_per_channel.storage & (payload_block_samples-1)) != 0) | ~divisible_by_three,
+                (self.bytes_per_channel.storage & (payload_block_samples*4-1)) != 0)
         checked_address_invalid = (((staging_rd.dat_r & (alignment - 1)) != 0) |
             ((Cat(staging_rd.dat_r, Constant(0, 1)) + staged_length) > (1 << 64)))
         bad_chunk = (self.split_size.storage == 0) | ((self.split_size.storage & (alignment - 1)) != 0)
+        if payload_block_samples:
+            bad_chunk = bad_chunk | (self.split_size.storage != Mux(self.payload_iq12,
+                payload_block_samples * 3, payload_block_samples * 4))
 
         self.comb += [
             self.version.status.eq(self.VERSION),
@@ -321,7 +344,7 @@ class FPGAHostDescriptorTable(LiteXModule):
 
         # Optional ordered payload commands. A queue slot is reserved before programming a child;
         # no other producer can consume it before the acknowledged native commit.
-        command_layout = [("channel", channel_bits), ("channel_count", 5), ("length", 24),
+        command_layout = [("channel", channel_bits), ("channel_count", 5), ("length", 24), ("address", 64),
                           ("channel_offset", 32), ("block_offset", 32), ("block_length", 24),
                           ("channel_last", 1), ("block_last", 1), ("sequence", 32)]
         self.command = command = stream.Endpoint(command_layout)
@@ -333,9 +356,15 @@ class FPGAHostDescriptorTable(LiteXModule):
         command_room = Signal()
         commands_drained = Signal()
         if with_payload_commands:
-            self.command_fifo = commands = ResetInserter()(stream.SyncFIFO(command_layout, dma_table_depth))
+            # Register the read side: a wide asynchronous FIFO output otherwise
+            # puts its read-pointer mux in front of payload validation/metadata.
+            self.command_fifo = commands = ResetInserter()(stream.SyncFIFO(
+                command_layout, dma_table_depth, buffered=True))
             self.comb += [commands.reset.eq(reset_ok), commands.source.connect(command),
-                          command_room.eq(commands.sink.ready), commands_drained.eq(commands.level == 0)]
+                          # Buffered FIFOs have an extra output slot; preserve
+                          # the configured reservation limit including that slot.
+                          command_room.eq(commands.sink.ready & (commands.level < dma_table_depth)),
+                          commands_drained.eq(commands.level == 0)]
             command_sink = commands.sink
         else:
             # Diagnostic command pulses; ready is ignored when no payload scheduler is attached.
@@ -343,6 +372,7 @@ class FPGAHostDescriptorTable(LiteXModule):
             self.comb += [command_room.eq(1), commands_drained.eq(1)]
         self.comb += [
             command_sink.valid.eq(issued), command_sink.channel.eq(channel),
+            command_sink.address.eq(next_address),
             command_sink.channel_count.eq(channels), command_sink.length.eq(chunk_length),
             command_sink.channel_offset.eq(block_offset + fragment_offset),
             command_sink.block_offset.eq(block_offset), command_sink.block_length.eq(block_length),

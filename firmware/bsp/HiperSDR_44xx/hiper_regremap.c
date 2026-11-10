@@ -132,8 +132,11 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
         value |= value | ((fpgacfg_EXT_CLK_read() & 0x1) << 2);
         break;
     case 0x19:
-#ifdef CSR_LIMETOP_BASE
+#ifdef CSR_LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE_ADDR
         value = limetop_rxtx_top_rx_path_pkt_size_read();
+#else
+        // The HostTCD RX path has sample blocks, not legacy Lime packets.
+        return false;
 #endif
         break;
     case 0x20:
@@ -358,8 +361,10 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
         fpgacfg_EXT_CLK_write((value & 0x4) >> 2);
         break;
     case 0x19:
-#ifdef CSR_LIMETOP_BASE
+#ifdef CSR_LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE_ADDR
         limetop_rxtx_top_rx_path_pkt_size_write(value);
+#else
+        return false;
 #endif
         break;
     case 0x20:

@@ -69,6 +69,7 @@ from gateware.LimeTop  import LimeTop
 from gateware.Revision import *
 from gateware.fpga_host_descriptor_table import FPGAHostDescriptorTable
 from gateware.rx_dma_counter import RXDMACounter
+from gateware.LimeDFB.host_tcd_rx.src.host_tcd_rx import HostTCDRX
 
 
 # Constants ----------------------------------------------------------------------------------------
@@ -280,8 +281,11 @@ class BaseSoC(SoCCore):
         firmware_flash_offset = 0xA00000,
         with_dpd              = False,
         with_rx_dma_counter   = False,
+        with_host_tcd_rx      = False,
     ):
 
+        if with_host_tcd_rx and (with_rx_dma_counter or with_fft):
+            raise ValueError("HostTCD RX cannot be combined with the counter or FFT paths")
         # Platform ---------------------------------------------------------------------------------
         platform = {
             "hipersdr_44xx"         : hipersdr_44xx_platform.Platform(),
@@ -493,7 +497,7 @@ class BaseSoC(SoCCore):
         self.add_pcie(phy=self.pcie_phy, address_width=64, data_width=self.pcie_phy.data_width, ndmas=1,
             # Counter tests bypass the optional large FIFO so old prefetched
             # payload cannot survive between independent test runs.
-            with_dma_buffering    = not with_rx_dma_counter,
+            with_dma_buffering    = not (with_rx_dma_counter or with_host_tcd_rx),
             dma_buffering_depth   = 65536,
             max_pending_requests  = 16,
             with_dma_loopback     = False,
@@ -505,11 +509,15 @@ class BaseSoC(SoCCore):
         # descriptor producer; it programs the unchanged LitePCIe table CSRs.
         self.rx_host_tcd = FPGAHostDescriptorTable(
             dma_base=self.mem_map["csr"] + self.csr_map["pcie_dma0"] * self.csr.paging,
-            depth=16, dma_table_depth=256, split_size=2048,
-            alignment=self.pcie_dma0.data_width // 8)
+            depth=16, dma_table_depth=256, split_size=4096 if with_host_tcd_rx else 2048,
+            alignment=self.pcie_dma0.data_width // 8,
+            max_channels=4 if with_host_tcd_rx else 16,
+            with_payload_commands=with_host_tcd_rx,
+            payload_block_samples=1024 if with_host_tcd_rx else 0)
         self.bus.add_master(name="rx_host_tcd", master=self.rx_host_tcd.bus)
         self.comb += self.rx_host_tcd.child_retired.eq(
             self.pcie_dma0.writer.table.source.valid & self.pcie_dma0.writer.table.source.ready)
+        self.rx_metadata_irq = Signal()
         self._map_pcie_dma_irqs()
         platform.add_false_path_constraints(self.crg.cd_sys.clk, self.pcie_phy.cd_pcie.clk)
 
@@ -589,7 +597,20 @@ class BaseSoC(SoCCore):
            revision_pads        = None,
            # TODO: maybe it's possible to implement check automatically?
            soc_has_timesource   = False,
+           rx_path_factory      = HostTCDRX if with_host_tcd_rx else None,
         )
+
+        if with_host_tcd_rx:
+            rx = self.limetop.rxtx_top.rx_path
+            self.comb += [
+                self.rx_host_tcd.command.connect(rx.command),
+                self.rx_host_tcd.payload_iq12.eq(rx.active_iq12),
+                rx.child_retired.eq(self.rx_host_tcd.child_retired),
+                rx.flush_allowed.eq(~self.limetop.stream_start_controller.rx_en &
+                    ~self.rx_host_tcd.busy.status & ~self.pcie_dma0.writer.enable),
+                self.rx_metadata_irq.eq(rx.irq),
+            ]
+            self.add_constant("WITH_HOST_TCD_RX")
 
         self.synchro_pads = platform.request("synchro")
 
@@ -990,7 +1011,7 @@ class BaseSoC(SoCCore):
         index = sorted(self.msis).index(name)
         self.msis[name] = Mux(
             self.rx_host_tcd.busy.status,
-            self.rx_host_tcd.irq, self.pcie_dma0.writer.irq)
+            self.rx_host_tcd.irq, self.pcie_dma0.writer.irq) | getattr(self, "rx_metadata_irq", 0)
         self.comb += self.pcie_msi.irqs[index].eq(self.msis[name])
 
     def add_debug(self):
@@ -1098,6 +1119,8 @@ def main():
     parser.add_argument("--with-fft",       action="store_true", help="Enable FFT module examples.")
     parser.add_argument("--with-rx-dma-counter", action="store_true",
         help="Replace RX payload with consecutive 32-bit counter words for DMA tests.")
+    parser.add_argument("--with-host-tcd-rx", action="store_true",
+        help="Use channel-banked VHDL acquisition, IQ packing and timestamp completions.")
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
@@ -1128,6 +1151,7 @@ def main():
             with_fft              = args.with_fft,
             with_dpd              = args.with_dpd,
             with_rx_dma_counter   = args.with_rx_dma_counter,
+            with_host_tcd_rx      = args.with_host_tcd_rx,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,
             firmware_flash_offset = args.firmware_flash_offset,
