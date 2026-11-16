@@ -156,6 +156,12 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0xFF:
         value = lms_clock_test_test_cnt_read() >> 16;
         break;
+    case 0x200:
+        value = limetop_rxtx_top_tx_path_pct_buff_cnt_read();
+        break;
+    case 0x201:
+        value = limetop_rxtx_top_tx_path_payload_buff_cnt_read();
+        break;
     case 0x280:
 #ifdef TIMESOURCE_PRESENT
         value = limetop_rxtx_top_rx_path_timestamp_mixer_timestamp_settings_read() & 0xFFFF;
@@ -371,6 +377,12 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0xFF:
     	//Reserved
     	break;
+    case 0x200:
+        limetop_rxtx_top_tx_path_pct_buff_cnt_write(value);
+        break;
+    case 0x201:
+        limetop_rxtx_top_tx_path_payload_buff_cnt_write(value);
+        break;
     case 0x280:
 #ifdef TIMESOURCE_PRESENT
         limetop_rxtx_top_rx_path_timestamp_mixer_timestamp_settings_write(value);

@@ -19,6 +19,7 @@ Register Groups
     :maxdepth: 1
 
     uart
+    icap
     pcie_phy
     pcie_msi
     bsp

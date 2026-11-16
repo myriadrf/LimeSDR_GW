@@ -243,6 +243,18 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
 #endif
         break;
 
+    case 0x200:
+#ifdef CSR_LIMETOP_BASE
+        value = limetop_rxtx_top_tx_path_pct_buff_cnt_read();
+#endif
+        break;
+
+    case 0x201:
+#ifdef CSR_LIMETOP_BASE
+        value = limetop_rxtx_top_tx_path_payload_buff_cnt_read();
+#endif
+        break;
+
     case 0x281:
     	value = limetop_stream_start_controller_rx_delay_mode_read() & 0xFFFF;
     	break;
@@ -450,6 +462,18 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
 #ifdef CSR_AFE_DECIMATE_STAGE_COUNT_ADDR
         afe_decimate_stage_count_write(value);
         afe_interpolate_stage_count_write(value);
+#endif
+        break;
+
+    case 0x200:
+#ifdef CSR_LIMETOP_BASE
+        limetop_rxtx_top_tx_path_pct_buff_cnt_write(value);
+#endif
+        break;
+
+    case 0x201:
+#ifdef CSR_LIMETOP_BASE
+        limetop_rxtx_top_tx_path_payload_buff_cnt_write(value);
 #endif
         break;
 

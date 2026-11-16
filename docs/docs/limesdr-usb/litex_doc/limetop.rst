@@ -87,7 +87,11 @@ Register Listing for LIMETOP
 +------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------+
 | :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP>`   | :ref:`0xf000209c <LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP>`  |
 +------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                                                 | :ref:`0xf00020a0 <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                         |
+| :ref:`LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT <LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT>`                                         | :ref:`0xf00020a0 <LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT>`                     |
++------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------+
+| :ref:`LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT <LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT>`                                 | :ref:`0xf00020a4 <LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT>`                 |
++------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------+
+| :ref:`LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                                                 | :ref:`0xf00020a8 <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                         |
 +------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------+
 
 LIMETOP_FPGACFG_BOARD_ID
@@ -1028,10 +1032,49 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP
         }
 
 
+LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0002000 + 0xa0 = 0xf00020a0`
+
+    Extra packets to buffer before starting sync_dis streaming (0-255, clamped to
+    BUFF_COUNT-1). Streaming also starts once the TX buffer cannot accept more data.
+
+    .. wavedrom::
+        :caption: LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT
+
+        {
+            "reg": [
+                {"name": "rxtx_top_tx_path_pct_buff_cnt[7:0]", "bits": 8},
+                {"bits": 24},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
+LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0002000 + 0xa4 = 0xf00020a4`
+
+    Payload FIFO words (128-bit) to buffer before starting sync_dis streaming (0 =
+    no gating, clamped to buffer size). Streaming also starts once the TX buffer
+    cannot accept more data.
+
+    .. wavedrom::
+        :caption: LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT
+
+        {
+            "reg": [
+                {"name": "rxtx_top_tx_path_payload_buff_cnt[15:0]", "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
 LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002000 + 0xa0 = 0xf00020a0`
+`Address: 0xf0002000 + 0xa8 = 0xf00020a8`
 
     Packet Size in bytes,
 

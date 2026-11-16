@@ -28,6 +28,9 @@ Quick Navigation
    * - :ref:`GNSSCFG <xtrx_regmap_gnsscfg>`
      - ``0x0100`` - ``0x011F``
      - GNSS configuration and status (legacy)
+   * - :ref:`txpath_cfg <xtrx_regmap_txpath_cfg>`
+     - ``0x0200`` - ``0x021F``
+     - TX path configuration and stream-start buffering controls
    * - :ref:`TIMECFG <xtrx_regmap_timecfg>`
      - ``0x0280`` - ``0x029F``
      - GNSS time information and related
@@ -489,6 +492,32 @@ GNSSCFG Registers (``0x0100`` - ``0x011F``)
      - ``gnss_fix``
      - Combined fixes status
    * - :ref:`0x0115 <xtrx_regmap_gnsscfg>` - :ref:`0x011F <xtrx_regmap_gnsscfg>`
+     - ``0x0000``
+     - \-
+     - Reserved.
+
+.. _xtrx_regmap_txpath_cfg:
+
+txpath_cfg Registers (``0x0200`` - ``0x021F``)
+----------------------------------------------
+
+.. list-table:: txpath_cfg registers
+   :header-rows: 1
+   :widths: 10 12 20 58
+
+   * - Address
+     - Default
+     - Name
+     - Description
+   * - :ref:`0x0200 <xtrx_reg_0200>`
+     - ``0x0000``
+     - ``pct_buff_cnt``
+     - Extra packets to buffer before starting sync_dis output. Clamped to TX packet queue depth - 1; output also starts once the TX buffer cannot accept more data.
+   * - :ref:`0x0201 <xtrx_reg_0201>`
+     - ``0x0000``
+     - ``payload_buff_cnt``
+     - Payload FIFO words (128-bit) to buffer before starting sync_dis output (0 = disabled). Clamped to TX payload buffer size; output also starts once the TX buffer cannot accept more data.
+   * - :ref:`0x0202 <xtrx_regmap_txpath_cfg>` - :ref:`0x021F <xtrx_regmap_txpath_cfg>`
      - ``0x0000``
      - \-
      - Reserved.
@@ -2101,6 +2130,60 @@ Address: ``0x0114`` | Default: ``0x0000`` | Access: R
      - ``glgsa_fix``
      - 1=No fix, 2=2D, 3=3D
      - GLONASS fix status.
+
+.. _xtrx_reg_0200:
+
+``0x0200`` - pct_buff_cnt
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0200`` | Default: ``0x0000`` | Access: R/W
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "pct_buff_cnt [7:0]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[7:0]``
+     - ``pct_buff_cnt``
+     - 0..255
+     - Extra packets to buffer before starting sync_dis output. Clamped to TX packet queue depth - 1; output also starts once the TX buffer cannot accept more data.
+
+.. _xtrx_reg_0201:
+
+``0x0201`` - payload_buff_cnt
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0201`` | Default: ``0x0000`` | Access: R/W
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "payload_buff_cnt [7:0]"},
+     {"bits": 8, "name": "payload_buff_cnt [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:0]``
+     - ``payload_buff_cnt``
+     - 0..65535
+     - Payload FIFO words (128-bit) to buffer before starting sync_dis output (0 = disabled). Clamped to TX payload buffer size; output also starts once the TX buffer cannot accept more data.
 
 .. _xtrx_reg_0280:
 

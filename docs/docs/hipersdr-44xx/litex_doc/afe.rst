@@ -59,10 +59,6 @@ Register Listing for AFE
 +------------------------------------------------------------------+-------------------------------------------------+
 | :ref:`AFE_RESAMPLER_MAX_VALUE <AFE_RESAMPLER_MAX_VALUE>`         | :ref:`0xf000d864 <AFE_RESAMPLER_MAX_VALUE>`     |
 +------------------------------------------------------------------+-------------------------------------------------+
-| :ref:`AFE_INTERFACE_RATE <AFE_INTERFACE_RATE>`                   | :ref:`0xf000d868 <AFE_INTERFACE_RATE>`          |
-+------------------------------------------------------------------+-------------------------------------------------+
-| :ref:`AFE_SHADOW_REG0 <AFE_SHADOW_REG0>`                         | :ref:`0xf000d86c <AFE_SHADOW_REG0>`             |
-+------------------------------------------------------------------+-------------------------------------------------+
 
 AFE_REG00
 ^^^^^^^^^
@@ -447,7 +443,7 @@ AFE_DECIMATE_STAGE_COUNT
 
 `Address: 0xf000d800 + 0x44 = 0xf000d844`
 
-    Number of active decimator stages (0..4).
+    Number of active decimator stages (0..3).
 
     .. wavedrom::
         :caption: AFE_DECIMATE_STAGE_COUNT
@@ -519,7 +515,7 @@ AFE_INTERPOLATE_STAGE_COUNT
 
 `Address: 0xf000d800 + 0x54 = 0xf000d854`
 
-    Number of active interpolator stages (0..4).
+    Number of active interpolator stages (0..3).
 
     .. wavedrom::
         :caption: AFE_INTERPOLATE_STAGE_COUNT
@@ -601,40 +597,6 @@ AFE_RESAMPLER_MAX_VALUE
                 {"name": "resampler_max_value[3:0]", "bits": 4},
                 {"bits": 28},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-AFE_INTERFACE_RATE
-^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf000d800 + 0x68 = 0xf000d868`
-
-    FPGA supported AFE79xx sample rate at the JESD interface level
-
-    .. wavedrom::
-        :caption: AFE_INTERFACE_RATE
-
-        {
-            "reg": [
-                {"name": "interface_rate[31:0]", "attr": 'reset: 491520000', "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
-        }
-
-
-AFE_SHADOW_REG0
-^^^^^^^^^^^^^^^
-
-`Address: 0xf000d800 + 0x6c = 0xf000d86c`
-
-    Host configured AFE79xx sample rate storage
-
-    .. wavedrom::
-        :caption: AFE_SHADOW_REG0
-
-        {
-            "reg": [
-                {"name": "shadow_reg0[31:0]", "bits": 32}
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }
 
 

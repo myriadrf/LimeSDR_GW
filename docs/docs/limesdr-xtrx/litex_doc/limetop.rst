@@ -195,21 +195,25 @@ Register Listing for LIMETOP
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
 | :ref:`LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET>` | :ref:`0xf0005974 <LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET>` |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                                                             | :ref:`0xf0005978 <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                               |
+| :ref:`LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT <LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT>`                                                     | :ref:`0xf0005978 <LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT>`                           |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`         | :ref:`0xf000597c <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`     |
+| :ref:`LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT <LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT>`                                             | :ref:`0xf000597c <LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT>`                       |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RX_TIME_MIN_SEC <LIMETOP_RX_TIME_MIN_SEC>`                                                                                 | :ref:`0xf0005980 <LIMETOP_RX_TIME_MIN_SEC>`                                         |
+| :ref:`LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                                                             | :ref:`0xf0005980 <LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE>`                               |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RX_TIME_MON_DAY_HRS <LIMETOP_RX_TIME_MON_DAY_HRS>`                                                                         | :ref:`0xf0005984 <LIMETOP_RX_TIME_MON_DAY_HRS>`                                     |
+| :ref:`LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`         | :ref:`0xf0005984 <LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS>`     |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_RX_TIME_YRS <LIMETOP_RX_TIME_YRS>`                                                                                         | :ref:`0xf0005988 <LIMETOP_RX_TIME_YRS>`                                             |
+| :ref:`LIMETOP_RX_TIME_MIN_SEC <LIMETOP_RX_TIME_MIN_SEC>`                                                                                 | :ref:`0xf0005988 <LIMETOP_RX_TIME_MIN_SEC>`                                         |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_TX_TIME_MIN_SEC <LIMETOP_TX_TIME_MIN_SEC>`                                                                                 | :ref:`0xf000598c <LIMETOP_TX_TIME_MIN_SEC>`                                         |
+| :ref:`LIMETOP_RX_TIME_MON_DAY_HRS <LIMETOP_RX_TIME_MON_DAY_HRS>`                                                                         | :ref:`0xf000598c <LIMETOP_RX_TIME_MON_DAY_HRS>`                                     |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_TX_TIME_MON_DAY_HRS <LIMETOP_TX_TIME_MON_DAY_HRS>`                                                                         | :ref:`0xf0005990 <LIMETOP_TX_TIME_MON_DAY_HRS>`                                     |
+| :ref:`LIMETOP_RX_TIME_YRS <LIMETOP_RX_TIME_YRS>`                                                                                         | :ref:`0xf0005990 <LIMETOP_RX_TIME_YRS>`                                             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
-| :ref:`LIMETOP_TX_TIME_YRS <LIMETOP_TX_TIME_YRS>`                                                                                         | :ref:`0xf0005994 <LIMETOP_TX_TIME_YRS>`                                             |
+| :ref:`LIMETOP_TX_TIME_MIN_SEC <LIMETOP_TX_TIME_MIN_SEC>`                                                                                 | :ref:`0xf0005994 <LIMETOP_TX_TIME_MIN_SEC>`                                         |
++------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| :ref:`LIMETOP_TX_TIME_MON_DAY_HRS <LIMETOP_TX_TIME_MON_DAY_HRS>`                                                                         | :ref:`0xf0005998 <LIMETOP_TX_TIME_MON_DAY_HRS>`                                     |
++------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
+| :ref:`LIMETOP_TX_TIME_YRS <LIMETOP_TX_TIME_YRS>`                                                                                         | :ref:`0xf000599c <LIMETOP_TX_TIME_YRS>`                                             |
 +------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+
 
 LIMETOP_EV_STATUS
@@ -2016,10 +2020,49 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_PLL1_RX_MMCM_LATCHED_DRDY_RESET
         }
 
 
+LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0005800 + 0x178 = 0xf0005978`
+
+    Extra packets to buffer before starting sync_dis streaming (0-255, clamped to
+    BUFF_COUNT-1). Streaming also starts once the TX buffer cannot accept more data.
+
+    .. wavedrom::
+        :caption: LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT
+
+        {
+            "reg": [
+                {"name": "rxtx_top_tx_path_pct_buff_cnt[7:0]", "bits": 8},
+                {"bits": 24},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
+LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Address: 0xf0005800 + 0x17c = 0xf000597c`
+
+    Payload FIFO words (128-bit) to buffer before starting sync_dis streaming (0 =
+    no gating, clamped to buffer size). Streaming also starts once the TX buffer
+    cannot accept more data.
+
+    .. wavedrom::
+        :caption: LIMETOP_RXTX_TOP_TX_PATH_PAYLOAD_BUFF_CNT
+
+        {
+            "reg": [
+                {"name": "rxtx_top_tx_path_payload_buff_cnt[15:0]", "bits": 16},
+                {"bits": 16},
+            ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
+        }
+
+
 LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0005800 + 0x178 = 0xf0005978`
+`Address: 0xf0005800 + 0x180 = 0xf0005980`
 
     Packet Size in bytes,
 
@@ -2037,7 +2080,7 @@ LIMETOP_RXTX_TOP_RX_PATH_PKT_SIZE
 LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0005800 + 0x17c = 0xf000597c`
+`Address: 0xf0005800 + 0x184 = 0xf0005984`
 
     Timestamp Settings
 
@@ -2069,7 +2112,7 @@ LIMETOP_RXTX_TOP_RX_PATH_TIMESTAMP_MIXER_TIMESTAMP_SETTINGS
 LIMETOP_RX_TIME_MIN_SEC
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0005800 + 0x180 = 0xf0005980`
+`Address: 0xf0005800 + 0x188 = 0xf0005988`
 
     Time in minutes and seconds, when RX stream started
 
@@ -2096,7 +2139,7 @@ LIMETOP_RX_TIME_MIN_SEC
 LIMETOP_RX_TIME_MON_DAY_HRS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0005800 + 0x184 = 0xf0005984`
+`Address: 0xf0005800 + 0x18c = 0xf000598c`
 
     Time in months, days and hours, when RX stream started
 
@@ -2126,7 +2169,7 @@ LIMETOP_RX_TIME_MON_DAY_HRS
 LIMETOP_RX_TIME_YRS
 ^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0005800 + 0x188 = 0xf0005988`
+`Address: 0xf0005800 + 0x190 = 0xf0005990`
 
     Time in years, when RX stream started
 
@@ -2150,7 +2193,7 @@ LIMETOP_RX_TIME_YRS
 LIMETOP_TX_TIME_MIN_SEC
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0005800 + 0x18c = 0xf000598c`
+`Address: 0xf0005800 + 0x194 = 0xf0005994`
 
     Time in minutes and seconds, when TX stream started
 
@@ -2177,7 +2220,7 @@ LIMETOP_TX_TIME_MIN_SEC
 LIMETOP_TX_TIME_MON_DAY_HRS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0005800 + 0x190 = 0xf0005990`
+`Address: 0xf0005800 + 0x198 = 0xf0005998`
 
     Time in months, days and hours, when TX stream started
 
@@ -2207,7 +2250,7 @@ LIMETOP_TX_TIME_MON_DAY_HRS
 LIMETOP_TX_TIME_YRS
 ^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0005800 + 0x194 = 0xf0005994`
+`Address: 0xf0005800 + 0x19c = 0xf000599c`
 
     Time in years, when TX stream started
 

@@ -25,6 +25,9 @@ Quick Navigation
    * - :ref:`PERIPHCFG <ssdr_rev2_regmap_periphcfg>`
      - ``0x00C0`` - ``0x00D3``
      - GPIO and peripheral routing/enable controls
+   * - :ref:`txpath_cfg <ssdr_rev2_regmap_txpath_cfg>`
+     - ``0x0200`` - ``0x021F``
+     - TX path configuration and stream-start buffering controls
    * - :ref:`TIMECFG <ssdr_rev2_regmap_timecfg>`
      - ``0x0280`` - ``0x029F``
      - GNSS time information and related
@@ -388,6 +391,32 @@ PERIPHCFG Registers (``0x00C0`` - ``0x00D3``)
      - ``periph_en``
      - Peripheral enables: clock-out routing, GNSS reset, GNSS standby.
    * - :ref:`0x00D3 <ssdr_rev2_regmap_periphcfg>`
+     - ``0x0000``
+     - \-
+     - Reserved.
+
+.. _ssdr_rev2_regmap_txpath_cfg:
+
+txpath_cfg Registers (``0x0200`` - ``0x021F``)
+----------------------------------------------
+
+.. list-table:: txpath_cfg registers
+   :header-rows: 1
+   :widths: 10 12 20 58
+
+   * - Address
+     - Default
+     - Name
+     - Description
+   * - :ref:`0x0200 <ssdr_rev2_reg_0200>`
+     - ``0x0000``
+     - ``pct_buff_cnt``
+     - Extra packets to buffer before starting sync_dis output. Clamped to TX packet queue depth - 1; output also starts once the TX buffer cannot accept more data.
+   * - :ref:`0x0201 <ssdr_rev2_reg_0201>`
+     - ``0x0000``
+     - ``payload_buff_cnt``
+     - Payload FIFO words (128-bit) to buffer before starting sync_dis output (0 = disabled). Clamped to TX payload buffer size; output also starts once the TX buffer cannot accept more data.
+   * - :ref:`0x0202 <ssdr_rev2_regmap_txpath_cfg>` - :ref:`0x021F <ssdr_rev2_regmap_txpath_cfg>`
      - ``0x0000``
      - \-
      - Reserved.
@@ -1439,6 +1468,60 @@ Address: ``0x00D2`` | Default: ``0x0003`` | Access: R/W
      - ``PERIPH_EN``
      -  
      - Peripheral enables: clock-out routing, GNSS reset, GNSS standby.
+
+.. _ssdr_rev2_reg_0200:
+
+``0x0200`` - pct_buff_cnt
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0200`` | Default: ``0x0000`` | Access: R/W
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "pct_buff_cnt [7:0]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[7:0]``
+     - ``pct_buff_cnt``
+     - 0..255
+     - Extra packets to buffer before starting sync_dis output. Clamped to TX packet queue depth - 1; output also starts once the TX buffer cannot accept more data.
+
+.. _ssdr_rev2_reg_0201:
+
+``0x0201`` - payload_buff_cnt
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0201`` | Default: ``0x0000`` | Access: R/W
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "payload_buff_cnt [7:0]"},
+     {"bits": 8, "name": "payload_buff_cnt [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:0]``
+     - ``payload_buff_cnt``
+     - 0..65535
+     - Payload FIFO words (128-bit) to buffer before starting sync_dis output (0 = disabled). Clamped to TX payload buffer size; output also starts once the TX buffer cannot accept more data.
 
 .. _ssdr_rev2_reg_0281:
 

@@ -13,6 +13,7 @@ Compatibility table
    UTC timestamping <utc_timestamps>
    Synchronized stream start <en_delay>
    PPS Disciplined Oscillator (PPSDO) <ppsdo>
+   TX stream start buffering <tx_start_buffering>
 
 **Note:** This table specifies the *earliest* gw version that implements the feature for a specific board.
 Later GW versions might have improvements and/or bug fixes, it is recommended to use the latest version, if possible.
@@ -31,4 +32,7 @@ Later GW versions might have improvements and/or bug fixes, it is recommended to
 +------------------------------------+--------------+-----------------+-----------------+--------------+---------------+-----------+
 | :doc:`PPS Disciplined Oscillator   | v3.4         | --              | v3.4            | v3.13        | v3.6          | --        |
 | (PPSDO) <ppsdo>`                   |              |                 |                 |              |               |           |
++------------------------------------+--------------+-----------------+-----------------+--------------+---------------+-----------+
+| :doc:`TX stream start buffering    | v3.13        | v3.13           | v3.13           | v3.13        | v3.13         | v3.13     |
+| <tx_start_buffering>`              |              |                 |                 |              |               |           |
 +------------------------------------+--------------+-----------------+-----------------+--------------+---------------+-----------+

@@ -25,6 +25,9 @@ Quick Navigation
    * - :ref:`PERIPHCFG <usb_regmap_periphcfg>`
      - ``0x00C0`` - ``0x00D3``
      - GPIO override/readback and fan control
+   * - :ref:`txpath_cfg <usb_regmap_txpath_cfg>`
+     - ``0x0200`` - ``0x021F``
+     - TX path configuration and stream-start buffering controls
 
 .. _usb_regmap_fpgacfg:
 
@@ -481,6 +484,32 @@ PERIPHCFG Registers (``0x00C0`` - ``0x00D3``)
      -  
      - \-
      - Reserved for this board. PERIPH_SEL is defined in the shared register layout but not wired in LimeSDR-USB firmware (commented out in regremap.c).
+
+.. _usb_regmap_txpath_cfg:
+
+txpath_cfg Registers (``0x0200`` - ``0x021F``)
+----------------------------------------------
+
+.. list-table:: txpath_cfg registers
+   :header-rows: 1
+   :widths: 10 12 20 58
+
+   * - Address
+     - Default
+     - Name
+     - Description
+   * - :ref:`0x0200 <usb_reg_0200>`
+     - ``0x0000``
+     - ``pct_buff_cnt``
+     - Extra packets to buffer before starting sync_dis output. Clamped to TX packet queue depth - 1; output also starts once the TX buffer cannot accept more data.
+   * - :ref:`0x0201 <usb_reg_0201>`
+     - ``0x0000``
+     - ``payload_buff_cnt``
+     - Payload FIFO words (128-bit) to buffer before starting sync_dis output (0 = disabled). Clamped to TX payload buffer size; output also starts once the TX buffer cannot accept more data.
+   * - :ref:`0x0202 <usb_regmap_txpath_cfg>` - :ref:`0x021F <usb_regmap_txpath_cfg>`
+     - ``0x0000``
+     - \-
+     - Reserved.
 
 Register Bitfield Reference
 -------------------
@@ -2508,7 +2537,7 @@ Address: ``0x00C4`` | Default: ``0x0000`` | Access: R/W
    * - ``[7:0]``
      - ``board_gpio_dir``
      - 0=Input,1=Output
-     - GPIO direction bits for FPGA_GPIO[7:0]. Board-specific: firmware inverts this legacy 1=output convention before writing it to the underlying gpio_io CSR, whose own convention is 0=output.
+     - GPIO direction bits for FPGA_GPIO[7:0].
 
 .. _usb_reg_00c6:
 
@@ -2592,3 +2621,57 @@ Address: ``0x00CD`` | Default: ``0x0000`` | Access: R/W
      - ``periph_output_val_0``
      - 0=OFF,1=ON
      - Fan control value.
+
+.. _usb_reg_0200:
+
+``0x0200`` - pct_buff_cnt
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0200`` | Default: ``0x0000`` | Access: R/W
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "pct_buff_cnt [7:0]"},
+     {"bits": 8, "name": "Reserved [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[7:0]``
+     - ``pct_buff_cnt``
+     - 0..255
+     - Extra packets to buffer before starting sync_dis output. Clamped to TX packet queue depth - 1; output also starts once the TX buffer cannot accept more data.
+
+.. _usb_reg_0201:
+
+``0x0201`` - payload_buff_cnt
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Address: ``0x0201`` | Default: ``0x0000`` | Access: R/W
+
+.. wavedrom::
+
+   { "reg": [
+     {"bits": 8, "name": "payload_buff_cnt [7:0]"},
+     {"bits": 8, "name": "payload_buff_cnt [15:8]"}
+   ], "config": { "bits": 16, "lanes": 2, "hspace": 1150 } }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 22 26 40
+
+   * - Bit(s)
+     - Field
+     - Values
+     - Description
+   * - ``[15:0]``
+     - ``payload_buff_cnt``
+     - 0..65535
+     - Payload FIFO words (128-bit) to buffer before starting sync_dis output (0 = disabled). Clamped to TX payload buffer size; output also starts once the TX buffer cannot accept more data.

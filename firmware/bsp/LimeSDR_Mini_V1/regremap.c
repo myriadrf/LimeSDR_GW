@@ -219,6 +219,15 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
         value = general_periph_periph_output_VAL_1_read();
         break;
 
+#ifdef CSR_LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT_ADDR
+    case 0x200:
+        value = limetop_rxtx_top_tx_path_pct_buff_cnt_read();
+        break;
+    case 0x201:
+        value = limetop_rxtx_top_tx_path_payload_buff_cnt_read();
+        break;
+#endif
+
     case 0x28:
     case 0xD1:
     case 0x280:
@@ -407,6 +416,15 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
     case 0xcf:
         general_periph_periph_output_VAL_1_write(value);
         break;
+
+#ifdef CSR_LIMETOP_RXTX_TOP_TX_PATH_PCT_BUFF_CNT_ADDR
+    case 0x200:
+        limetop_rxtx_top_tx_path_pct_buff_cnt_write(value);
+        break;
+    case 0x201:
+        limetop_rxtx_top_tx_path_payload_buff_cnt_write(value);
+        break;
+#endif
 
     case 0x28:
     case 0xD1:

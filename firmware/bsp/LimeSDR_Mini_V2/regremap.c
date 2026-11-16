@@ -176,6 +176,13 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
         value = general_periph_periph_output_VAL_1_read();
         break;
 
+    case 0x200:
+        value = limetop_rxtx_top_tx_path_pct_buff_cnt_read();
+        break;
+    case 0x201:
+        value = limetop_rxtx_top_tx_path_payload_buff_cnt_read();
+        break;
+
     case 0x24:
     case 0x28:
     case 0xD1:
@@ -341,6 +348,13 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
             var |= (value & 1);
         }
     }
+        break;
+
+    case 0x200:
+        limetop_rxtx_top_tx_path_pct_buff_cnt_write(value);
+        break;
+    case 0x201:
+        limetop_rxtx_top_tx_path_payload_buff_cnt_write(value);
         break;
 
     case 0xD1:
