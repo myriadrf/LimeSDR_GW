@@ -4,4 +4,5 @@ PLLCFG,0x0020,0x003F,"PLL status, divider/multiplier values, phase configuration
 TSTCFG,0x0060,0x007F,"Clock/test control and status counters"
 PERIPHCFG,0x00C0,0x00D3,"GPIO and peripheral routing/enable controls"
 GNSSCFG,0x0100,0x011F,"GNSS configuration and status (legacy)"
+TXPATHCFG,0x0200,0x021F,"TX path configuration and stream-start buffering controls"
 MEMCFG,0xFFE0,0xFFFF,"Reserved memory-mapped window"

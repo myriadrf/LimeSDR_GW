@@ -96,4 +96,7 @@ PERIPHCFG,0x00CA,,0x0000,periph_input_sel,"PPS input source select. 0 = GNSS_1PP
 PERIPHCFG,0x00CB,0x00D1,0x0000,reserved,Reserved.,
 PERIPHCFG,0x00D2,,0x0003,periph_en,"Peripheral enables: clock-out routing, GNSS reset, GNSS standby.",
 PERIPHCFG,0x00D3,,0x0000,reserved,Reserved.,
+TXPATHCFG,0x0200,,0x0000,pct_buff_cnt,"Extra packets to buffer before starting sync_dis output. Clamped to TX packet queue depth - 1; output also starts once the TX buffer cannot accept more data.",
+TXPATHCFG,0x0201,,0x0000,payload_buff_cnt,"Payload FIFO words (128-bit) to buffer before starting sync_dis output (0 = disabled). Clamped to TX payload buffer size; output also starts once the TX buffer cannot accept more data.",
+TXPATHCFG,0x0202,0x021F,0x0000,reserved,Reserved.,
 MEMCFG,0xFFE0,0xFFFF,0x0000,reserved,All MEMCFG addresses in this documented range are reserved.,
