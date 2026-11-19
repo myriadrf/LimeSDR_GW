@@ -46,7 +46,11 @@ class FPGAHostDescriptorTable(LiteXModule):
 
     def __init__(self, dma_base, depth=16, dma_table_depth=256,
                  split_size=2048, alignment=32, bus_timeout=1024,
-                 max_channels=16, with_payload_commands=False, payload_block_samples=0):
+                 max_channels=16, with_payload_commands=False, payload_block_samples=0,
+                 load_only=False, capability_flags=0, tx_buffer_samples=0, tx_streaming=False,
+                 tx_buffer_slots=2):
+        if tx_buffer_samples and not 2 <= tx_buffer_slots <= 16:
+            raise ValueError("TX buffer slots must be from 2 through 16")
         if not 2 <= depth <= 65535 or dma_table_depth < 1:
             raise ValueError("Invalid descriptor table depth")
         if not 1 <= max_channels <= 16:
@@ -97,6 +101,24 @@ class FPGAHostDescriptorTable(LiteXModule):
         self.child_completed = CSRStatus(32, name="child_completed")              # 0x60
         self.rejected = CSRStatus(32, name="rejected")                            # 0x64
         self.ring_size = CSRStatus(bits_for(depth), name="ring_size")              # 0x68
+        if tx_buffer_samples:
+            self.timestamp_low = CSRStorage(32, name="timestamp_low")            # 0x6c
+            self.timestamp_high = CSRStorage(32, name="timestamp_high")          # 0x70
+            self.iq12 = CSRStorage(1, name="iq12")                                # 0x74
+            self.buffer_samples = CSRStatus(32, reset=tx_buffer_samples, name="buffer_samples")
+            self.buffer_slots = CSRStatus(32, reset=tx_buffer_slots, name="buffer_slots")  # 0x7c
+            self.playback_done = Signal()  # Current parent fully loaded, not played.
+            self.playback_retired = Signal()
+            self.playback_irq = Signal()
+            self.parent_command = stream.Endpoint([
+                ("length", 32), ("channels", 5), ("timestamp", 64), ("iq12", 1), ("irq_disable", 1)] +
+                ([("samples", 32), ("offset", 32), ("sequence", 32), ("parent_last", 1),
+                  ("skip", 1), ("parent_samples", 32)] if tx_streaming else []))
+            if tx_streaming:
+                self.samples_per_channel = CSRStorage(32, name="samples_per_channel")  # 0x80
+                self.preparation_ticks = CSRStorage(32, reset=tx_buffer_samples//2, name="preparation_ticks")  # 0x84
+                self.current_tick = Signal(64)  # Coherent, bounded-age snapshot from AFE.
+                self.payload_reset = Signal()
 
         self.active = active = Signal()
         self.armed = armed = Signal()
@@ -126,6 +148,9 @@ class FPGAHostDescriptorTable(LiteXModule):
         # A narrow parent queue holds slot references; addresses are read one channel at a time.
         layout = [("slot", slot_bits), ("length", 32), ("channels", 5),
                   ("irq_disable", 1), ("last_disable", 1)]
+        if tx_buffer_samples:
+            layout += [("timestamp", 64), ("iq12", 1)]
+            if tx_streaming: layout += [("samples", 32)]
         self.fifo = fifo = ResetInserter()(stream.SyncFIFO(layout, depth))
         self.fsm = fsm = FSM(reset_state="OFF")
         self.submit_fsm = sfsm = FSM(reset_state="IDLE")
@@ -140,6 +165,10 @@ class FPGAHostDescriptorTable(LiteXModule):
         addresses = Memory(64, depth * max_channels)
         addresses_wr = addresses.get_port(write_capable=True)
         addresses_rd = addresses.get_port()
+        # Observe the committed address copy, rather than CSR staging alone.
+        self.debug_address_write = addresses_wr.we
+        self.debug_address_index = addresses_wr.adr
+        self.debug_address_data = addresses_wr.dat_w
         self.specials += staging, staging_wr, staging_rd, addresses, addresses_wr, addresses_rd
 
         written = Signal(max_channels)
@@ -156,7 +185,9 @@ class FPGAHostDescriptorTable(LiteXModule):
         reset_requested = self.reset.re & self.reset.storage
         stopped = ~self.enable.storage & fsm.ongoing("OFF")
         reset_ok = reset_requested & stopped & ~submitting
-        mode_busy = self.loop_prog_n.re & (~stopped | submitting)
+        if tx_streaming: self.comb += self.payload_reset.eq(reset_ok)
+        mode_busy = self.loop_prog_n.re & (~stopped | submitting |
+            (self.loop_prog_n.storage if tx_buffer_samples else Constant(0)))
         mode_changed = self.loop_prog_n.re & stopped & ~submitting & (self.loop_prog_n.storage != loop_mode)
         recycling = fsm.ongoing("RECYCLE")
         submit_request = self.submit.re & self.submit.storage
@@ -168,6 +199,38 @@ class FPGAHostDescriptorTable(LiteXModule):
                          (self.bytes_per_channel.storage == 0) |
                          ((self.bytes_per_channel.storage & (alignment - 1)) != 0) |
                          ((self.channel_count.storage > 1) & ~self.flags.storage[1]))
+        if tx_buffer_samples:
+            # Packed IQ12 uses 3 bytes/sample and DMA uses 32-byte beats.
+            # Divisibility by 96 guarantees complete samples and complete beats.
+            stage_writes = stage_writes | self.timestamp_low.re | self.timestamp_high.re | self.iq12.re
+            packed_sum = Signal(6)
+            quotient = self.bytes_per_channel.storage[5:]
+            self.comb += packed_sum.eq(sum(quotient[i:min(i+2, len(quotient))]
+                for i in range(0, len(quotient), 2)))
+            divisible = Constant(0)
+            for value in range(0, 43, 3):
+                divisible = divisible | (packed_sum == value)
+            if tx_streaming:
+                stage_writes = stage_writes | self.samples_per_channel.re | self.split_size.re
+                n = self.samples_per_channel.storage
+                basic_invalid = basic_invalid | (n == 0) | ((n & (tx_buffer_samples-1)) != 0) | \
+                    (self.bytes_per_channel.storage != Mux(self.iq12.storage, n*3, n*4)) | \
+                    (self.split_size.storage != Mux(self.iq12.storage, tx_buffer_samples*3, tx_buffer_samples*4))
+                staged_samples = Signal(32)
+                self.sync += If(submit_request & ~submitting, staged_samples.eq(n))
+                self.comb += fifo.sink.samples.eq(staged_samples)
+            else:
+                basic_invalid = basic_invalid | Mux(self.iq12.storage,
+                    ~divisible | (self.bytes_per_channel.storage > tx_buffer_samples * 3),
+                    (self.bytes_per_channel.storage > tx_buffer_samples * 4))
+            staged_timestamp = Signal(64)
+            staged_iq12 = Signal()
+            self.sync += If(submit_request & ~submitting,
+                staged_timestamp.eq(Cat(self.timestamp_low.storage, self.timestamp_high.storage)),
+                staged_iq12.eq(self.iq12.storage))
+            self.comb += [fifo.sink.timestamp.eq(staged_timestamp), fifo.sink.iq12.eq(staged_iq12)]
+            # Timed parents execute once; replaying an old timestamp is invalid.
+            basic_invalid = basic_invalid | self.loop_prog_n.storage
         if payload_block_samples:
             if payload_block_samples < 32 or payload_block_samples & (payload_block_samples - 1):
                 raise ValueError("payload_block_samples must be a power of two, at least 32")
@@ -188,13 +251,15 @@ class FPGAHostDescriptorTable(LiteXModule):
         checked_address_invalid = (((staging_rd.dat_r & (alignment - 1)) != 0) |
             ((Cat(staging_rd.dat_r, Constant(0, 1)) + staged_length) > (1 << 64)))
         bad_chunk = (self.split_size.storage == 0) | ((self.split_size.storage & (alignment - 1)) != 0)
+        if tx_streaming: bad_chunk = Constant(0)  # Validated/snapshotted per submitted parent.
         if payload_block_samples:
             bad_chunk = bad_chunk | (self.split_size.storage != Mux(self.payload_iq12,
                 payload_block_samples * 3, payload_block_samples * 4))
 
         self.comb += [
-            self.version.status.eq(self.VERSION),
-            self.capabilities.status.eq(max_channels | (depth << 8) | (int(with_payload_commands) << 24)),
+            self.version.status.eq(3 if tx_streaming else self.VERSION),
+            self.capabilities.status.eq(max_channels | (depth << 8) | (int(with_payload_commands) << 24) |
+                                        (int(load_only) << 31) | capability_flags),
             submitting.eq(~sfsm.ongoing("IDLE")),
             self.submit_status.status.eq(Cat(submitting, last_accepted, last_rejected)),
             self.addresses_written.status.eq(written),
@@ -217,7 +282,7 @@ class FPGAHostDescriptorTable(LiteXModule):
             If(recycling, fifo.sink.valid.eq(1)),
         ]
         self.sync += [
-            If(self.loop_prog_n.re & stopped & ~submitting,
+            If(self.loop_prog_n.re & stopped & ~submitting & ~mode_busy,
                 loop_mode.eq(self.loop_prog_n.storage)),
             If(reset_ok | accepted,
                 written.eq(0)
@@ -320,7 +385,7 @@ class FPGAHostDescriptorTable(LiteXModule):
                 If(retire, retired_count.eq(retired_count + 1)),
                 If(issued & ~retire, inflight.eq(inflight + 1)
                 ).Elif(retire & ~issued, inflight.eq(inflight - 1)),
-                If(parent_done, completed.eq(completed + 1)),
+                If(self.playback_retired if tx_buffer_samples else parent_done, completed.eq(completed + 1)),
             ),
             If(bus_failure | unexpected, fatal.eq(1)),
             If(reset_ok | mode_changed,
@@ -332,7 +397,7 @@ class FPGAHostDescriptorTable(LiteXModule):
                         loop_index.eq(0), loop_count.eq(loop_count + 1)
                     ).Else(loop_index.eq(loop_index + 1)))
             ),
-            self.irq.eq(parent_done & ~irq_disable & ~fatal & ~unexpected),
+            self.irq.eq((self.playback_irq if tx_buffer_samples else (parent_done & ~irq_disable)) & ~fatal & ~unexpected),
         ]
 
         wait_count = Signal(max=bus_timeout)
@@ -341,6 +406,13 @@ class FPGAHostDescriptorTable(LiteXModule):
         self.sync += If(bus.cyc & bus.stb & ~bus.ack & ~bus.err,
             If(~timeout, wait_count.eq(wait_count + 1))
         ).Else(wait_count.eq(0))
+
+        # Timed TX can fetch ahead of playback; identify commands by fetch order.
+        command_sequence = completed
+        if tx_buffer_samples:
+            command_sequence = Signal(32)
+            self.sync += If(reset_ok, command_sequence.eq(0)
+                ).Elif(parent_done, command_sequence.eq(command_sequence + 1))
 
         # Optional ordered payload commands. A queue slot is reserved before programming a child;
         # no other producer can consume it before the acknowledged native commit.
@@ -378,7 +450,7 @@ class FPGAHostDescriptorTable(LiteXModule):
             command_sink.block_offset.eq(block_offset), command_sink.block_length.eq(block_length),
             command_sink.channel_last.eq(fragment_remaining == chunk_length),
             command_sink.block_last.eq((fragment_remaining == chunk_length) & (channel == channels - 1)),
-            command_sink.sequence.eq(completed),
+            command_sink.sequence.eq(command_sequence),
             command_sink.first.eq((block_offset == 0) & (channel == 0) & (fragment_offset == 0)),
             command_sink.last.eq((remaining == block_length) & (channel == channels - 1) &
                                  (fragment_remaining == chunk_length)),
@@ -401,28 +473,82 @@ class FPGAHostDescriptorTable(LiteXModule):
             fsm.act(name + "_GAP", If(fatal, NextState("FAULT")).Else(NextState(next_state)))
 
         fsm.act("OFF", If(fatal, NextState("FAULT")
-            ).Elif(self.enable.storage & ~reset_requested, NextState("DMA_DISABLE")))
+            ).Elif(self.enable.storage & ~reset_requested & ~Constant(int(load_only)), NextState("DMA_DISABLE")))
         transaction("DMA_DISABLE", self.DMA_ENABLE, 0, "DMA_IDLE")
         transaction("DMA_IDLE", self.DMA_ENABLE, 0, "DMA_RESET", read=True, condition=bus.dat_r[1])
         transaction("DMA_RESET", self.DMA_RESET, 1, "DMA_PROGRAM")
         transaction("DMA_PROGRAM", self.DMA_LOOP_PROG_N, 0, "DMA_ENABLE")
         transaction("DMA_ENABLE", self.DMA_ENABLE, 1, "IDLE", on_ack=[NextValue(armed, 1)])
+        parent_ready = Constant(1)
+        playback_pending = Constant(0)
+        stream_cursor = Signal(32)
+        stream_samples = Signal(32)
+        stream_timestamp = Signal(64)
+        stream_iq12 = Signal()
+        if tx_buffer_samples:
+            playback_pending = Signal(max=depth+2)
+            pc = self.parent_command
+            if tx_streaming:
+                shift = log2_int(tx_buffer_samples)
+                total_chunks = stream_samples >> shift
+                delta = Signal(64)
+                deadline = Signal(64)
+                needed = Signal(64)
+                candidate = Signal(32)
+                skip_target = Signal(32)
+                skip_bytes = Signal(32)
+                self.comb += [needed.eq((delta + tx_buffer_samples-1) >> shift),
+                    candidate.eq(Mux(delta[63], stream_cursor,
+                        Mux(needed > total_chunks, total_chunks, Mux(needed > stream_cursor, needed, stream_cursor)))),
+                    skip_bytes.eq(Mux(stream_iq12, (skip_target << shift)*3, (skip_target << shift)*4)),
+                    pc.valid.eq(fsm.ongoing("CHUNK_RESERVE") & ~fatal),
+                    pc.skip.eq(skip_target > stream_cursor),
+                    pc.samples.eq(Mux(pc.skip, (skip_target-stream_cursor) << shift, tx_buffer_samples)),
+                    pc.length.eq(Mux(pc.skip, 0, block_length)), pc.channels.eq(channels),
+                    pc.offset.eq(stream_cursor << shift), pc.timestamp.eq(stream_timestamp + (stream_cursor << shift)),
+                    pc.iq12.eq(stream_iq12), pc.irq_disable.eq(irq_disable),
+                    pc.sequence.eq(command_sequence), pc.parent_samples.eq(stream_samples),
+                    pc.parent_last.eq(Mux(pc.skip, skip_target == total_chunks, remaining == block_length))]
+                fsm.act("CHUNK_WAIT", If(fatal, NextState("FAULT")).Elif(pc.ready,
+                    NextValue(deadline, self.current_tick+self.preparation_ticks.storage), NextState("CHUNK_DELTA")))
+                fsm.act("CHUNK_DELTA", NextValue(delta, deadline-stream_timestamp), NextState("CHUNK_CHOOSE"))
+                fsm.act("CHUNK_CHOOSE", NextValue(skip_target, candidate), NextState("CHUNK_RESERVE"))
+                fsm.act("CHUNK_RESERVE", If(fatal, NextState("FAULT")).Elif(pc.valid & pc.ready,
+                    If(pc.skip, NextState("SKIP_ADVANCE")).Else(NextState("ADDRESS_READ"))))
+                fsm.act("SKIP_ADVANCE", If(fatal, NextState("FAULT")).Elif(self.playback_done &
+                    (inflight == 0) & commands_drained,
+                    NextValue(stream_cursor, skip_target), NextValue(block_offset, skip_bytes),
+                    NextValue(remaining, parent_length-skip_bytes), NextState("NEW_BLOCK")))
+                admission = fsm.ongoing("IDLE") & self.enable.storage & fifo.source.valid & ~fatal
+            else:
+                self.comb += [pc.valid.eq(fsm.ongoing("IDLE") & self.enable.storage &
+                    fifo.source.valid & ~bad_chunk & ~fatal), pc.length.eq(fifo.source.length),
+                    pc.channels.eq(fifo.source.channels), pc.timestamp.eq(fifo.source.timestamp),
+                    pc.iq12.eq(fifo.source.iq12), pc.irq_disable.eq(fifo.source.irq_disable)]
+                admission = pc.valid & pc.ready
+            self.sync += If(admission & ~self.playback_retired,
+                playback_pending.eq(playback_pending + 1)
+            ).Elif(self.playback_retired & ~admission, playback_pending.eq(playback_pending - 1))
+            parent_ready = Constant(1) if tx_streaming else pc.ready
         fsm.act("IDLE",
             If(fatal, NextState("FAULT")
-            ).Elif(~self.enable.storage, NextState("DMA_STOP")
-            ).Elif(fifo.source.valid & ~bad_chunk,
+            ).Elif(~self.enable.storage,
+                If(playback_pending == 0, NextState("DMA_STOP"))
+            ).Elif(fifo.source.valid & ~bad_chunk & parent_ready,
                 NextValue(active, 1), NextValue(active_slot, fifo.source.slot),
                 NextValue(parent_length, fifo.source.length), NextValue(remaining, fifo.source.length),
                 NextValue(channels, fifo.source.channels), NextValue(block_offset, 0),
-                NextValue(chunk_limit, self.split_size.storage),
+                NextValue(chunk_limit, Mux(fifo.source.iq12, tx_buffer_samples*3, tx_buffer_samples*4) if tx_streaming else self.split_size.storage),
                 NextValue(irq_disable, fifo.source.irq_disable), NextValue(last_disable, fifo.source.last_disable),
+                *([NextValue(stream_cursor, 0), NextValue(stream_samples, fifo.source.samples),
+                    NextValue(stream_timestamp, fifo.source.timestamp), NextValue(stream_iq12, fifo.source.iq12)] if tx_streaming else []),
                 NextState("NEW_BLOCK")))
         fsm.act("NEW_BLOCK",
             If(fatal, NextState("FAULT")
             ).Elif(remaining == 0, NextState("WAIT_PARENT")
             ).Else(
                 NextValue(block_length, Mux(remaining < chunk_limit, remaining, chunk_limit)),
-                NextValue(channel, 0), NextValue(fragment_offset, 0), NextState("ADDRESS_READ")))
+                NextValue(channel, 0), NextValue(fragment_offset, 0), NextState("CHUNK_WAIT" if tx_streaming else "ADDRESS_READ")))
         fsm.act("ADDRESS_READ", NextState("ADDRESS_LOAD"))
         fsm.act("ADDRESS_LOAD",
             NextValue(parent_address, addresses_rd.dat_r),
@@ -447,10 +573,11 @@ class FPGAHostDescriptorTable(LiteXModule):
                 NextValue(channel, channel + 1), NextValue(fragment_offset, 0), NextState("ADDRESS_READ")
             ).Else(
                 NextValue(remaining, remaining - block_length),
+                *([NextValue(stream_cursor, stream_cursor+1)] if tx_streaming else []),
                 NextValue(block_offset, block_offset + block_length), NextState("NEW_BLOCK")))
         fsm.act("WAIT_PARENT",
             If(fatal | unexpected, NextState("FAULT")
-            ).Elif((inflight == 0) & commands_drained,
+            ).Elif((inflight == 0) & commands_drained & (self.playback_done if tx_buffer_samples else Constant(1)),
                 parent_done.eq(1), NextValue(active, 0),
                 If(loop_mode, NextState("RECYCLE")).Else(NextState("IDLE"))))
         fsm.act("RECYCLE", If(fatal, NextState("FAULT")

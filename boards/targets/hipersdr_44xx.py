@@ -247,8 +247,8 @@ class BaseSoC(SoCCore):
         "rx_host_tcd": 14,  # Unused second PCIe UART slot.
 
         "flash"       : 15,  # 10
-        "xadc"        : 16,  # 11
-        "dna"         : 17,  # 12
+        "tx_host_tcd" : 16,  # Previously reserved for unused XADC.
+        "tx_fetch"    : 17,  # Previously reserved for unused DNA.
 
         # XTRX.
         "i2c0"        : 18,
@@ -282,8 +282,18 @@ class BaseSoC(SoCCore):
         with_dpd              = False,
         with_rx_dma_counter   = False,
         with_host_tcd_rx      = False,
+        with_host_tcd_tx_table = False,
+        with_host_tcd_tx_fetch = False,
+        with_host_tcd_tx_timed = False,
     ):
 
+        with_host_tcd_tx_table |= with_host_tcd_tx_fetch or with_host_tcd_tx_timed
+        if with_host_tcd_tx_timed and (with_host_tcd_tx_fetch or not with_host_tcd_rx):
+            raise ValueError("Timed TX requires HostTCD RX and excludes diagnostic TX fetch")
+        self.csr_map = dict(self.csr_map)
+        if with_host_tcd_tx_timed:
+            self.csr_map.pop("tx_fetch")
+            self.csr_map["tx_timed"] = 17
         if with_host_tcd_rx and (with_rx_dma_counter or with_fft):
             raise ValueError("HostTCD RX cannot be combined with the counter or FFT paths")
         # Platform ---------------------------------------------------------------------------------
@@ -497,7 +507,7 @@ class BaseSoC(SoCCore):
         self.add_pcie(phy=self.pcie_phy, address_width=64, data_width=self.pcie_phy.data_width, ndmas=1,
             # Counter tests bypass the optional large FIFO so old prefetched
             # payload cannot survive between independent test runs.
-            with_dma_buffering    = not (with_rx_dma_counter or with_host_tcd_rx),
+            with_dma_buffering    = not (with_rx_dma_counter or with_host_tcd_rx or with_host_tcd_tx_fetch or with_host_tcd_tx_timed),
             dma_buffering_depth   = 65536,
             max_pending_requests  = 16,
             with_dma_loopback     = False,
@@ -518,6 +528,38 @@ class BaseSoC(SoCCore):
         self.comb += self.rx_host_tcd.child_retired.eq(
             self.pcie_dma0.writer.table.source.valid & self.pcie_dma0.writer.table.source.ready)
         self.rx_metadata_irq = Signal()
+        if with_host_tcd_tx_table:
+            from gateware.fpga_host_tx_descriptor_table import FPGAHostTXDescriptorTable
+            self.tx_host_tcd = FPGAHostTXDescriptorTable(
+                dma_base=self.mem_map["csr"] + self.csr_map["pcie_dma0"] * self.csr.paging + 0x20,
+                depth=16, dma_table_depth=256, max_channels=4, split_size=4096,
+                load_only=not (with_host_tcd_tx_fetch or with_host_tcd_tx_timed),
+                timed=with_host_tcd_tx_timed,
+                streaming=with_host_tcd_tx_timed,
+                tx_buffer_samples=4096 if with_host_tcd_tx_timed else 0,
+                tx_buffer_slots=3 if with_host_tcd_tx_timed else 2,
+                with_payload_commands=with_host_tcd_tx_fetch or with_host_tcd_tx_timed)
+            if with_host_tcd_tx_timed:
+                from gateware.host_tcd_tx_timed import TXTimedBuffer
+                tx = self.tx_host_tcd
+                self.tx_timed = timed = TXTimedBuffer(tx.command.description.payload_layout,
+                    # Three complete BRAM slots reduce routing pressure and
+                    # leave up to two segment durations for prefetch.
+                    samples=4096, streaming=True, slots=3)
+                self.bus.add_master(name="tx_host_tcd", master=tx.bus)
+                self.comb += [tx.command.connect(timed.command), tx.parent_command.connect(timed.parent),
+                    tx.child_retired.eq(timed.retired), tx.playback_done.eq(timed.loaded),
+                    tx.playback_retired.eq(timed.done), tx.playback_irq.eq(timed.irq),
+                    tx.current_tick.eq(timed.now_sys), timed.clear_results.eq(tx.payload_reset)]
+            if with_host_tcd_tx_fetch:
+                from gateware.host_tcd_tx_fetch import TXFetchChecker
+                tx = self.tx_host_tcd
+                self.tx_fetch = check = TXFetchChecker(tx.command.description.payload_layout)
+                self.bus.add_master(name="tx_host_tcd", master=tx.bus)
+                self.comb += [tx.command.connect(check.command),
+                    tx.child_retired.eq(check.retired),
+                    check.idle.eq(~tx.busy.status & ~self.pcie_dma0.reader.enable)]
+            # Table-only builds retain execution inhibition and the legacy TX path.
         self._map_pcie_dma_irqs()
         platform.add_false_path_constraints(self.crg.cd_sys.clk, self.pcie_phy.cd_pcie.clk)
 
@@ -635,10 +677,19 @@ class BaseSoC(SoCCore):
                 keep={"valid", "ready", "last", "data"})
 
         ## PCIE DMA -> TX Path -> LMS7002 Pipeline.
-        self.comb += [
-           self.pcie_dma0.source.connect(self.limetop.sink, omit=["ready"]),
-           self.pcie_dma0.source.ready.eq((self.limetop.sink.ready & self.limetop.stream_start_controller.tx_en) | ~self.pcie_dma0.reader.enable),
-        ]
+        if with_host_tcd_tx_timed:
+            self.comb += [self.pcie_dma0.source.connect(self.tx_timed.sink,
+                keep={"valid", "ready", "data"}), self.limetop.sink.valid.eq(0),
+                self.tx_timed.rx_timestamp.eq(self.limetop.rxtx_top.rx_path.smpl_nr_cnt_out),
+                self.tx_timed.sample_tick.eq(self.limetop.phy_rx_sink.valid)]
+        elif with_host_tcd_tx_fetch:
+            self.comb += [self.pcie_dma0.source.connect(self.tx_fetch.sink,
+                keep={"valid", "ready", "data", "first", "last"}),self.limetop.sink.valid.eq(0)]
+        else:
+            self.comb += [
+                self.pcie_dma0.source.connect(self.limetop.sink, omit=["ready"]),
+                self.pcie_dma0.source.ready.eq((self.limetop.sink.ready & self.limetop.stream_start_controller.tx_en) | ~self.pcie_dma0.reader.enable),
+            ]
 
         self.comb += self.limetop.rxtx_top.tx_path.ext_reset_n.eq(self.pcie_dma0.reader.enable)
 
@@ -750,8 +801,13 @@ class BaseSoC(SoCCore):
 
         self.comb += [
             self.afe.source.connect(self.limetop.phy_rx_sink),
-            self.limetop.phy_tx_source.connect(self.afe.sink)
         ]
+        if with_host_tcd_tx_timed:
+            self.comb += [self.tx_timed.source.connect(self.afe.sink, keep={"valid", "ready", "data"}),
+                self.afe.sink.keep.eq(0xffff), self.afe.sink.last.eq(0),
+                self.limetop.phy_tx_source.ready.eq(1)]
+        else:
+            self.comb += self.limetop.phy_tx_source.connect(self.afe.sink)
 
         self.comb +=[
             self.afe.rx_en.eq(self.limetop.stream_start_controller.rx_en),
@@ -1013,6 +1069,11 @@ class BaseSoC(SoCCore):
             self.rx_host_tcd.busy.status,
             self.rx_host_tcd.irq, self.pcie_dma0.writer.irq) | getattr(self, "rx_metadata_irq", 0)
         self.comb += self.pcie_msi.irqs[index].eq(self.msis[name])
+        if hasattr(self, "tx_timed"):
+            name = "PCIE_DMA0_READER"
+            index = sorted(self.msis).index(name)
+            self.msis[name] = self.tx_host_tcd.irq
+            self.comb += self.pcie_msi.irqs[index].eq(self.msis[name])
 
     def add_debug(self):
         # Compact descriptor/control trace. Read statistics through CSRs and
@@ -1059,6 +1120,33 @@ class BaseSoC(SoCCore):
             "rx_writer_pcie_ready": rx_write.ready,
             "rx_writer_irq": Mux(host.busy.status, host.irq, dma_writer.irq),
         }
+        if hasattr(self, "tx_host_tcd"):
+            tx = self.tx_host_tcd
+            analyzer_signals += [tx.submit_fsm, tx.fsm]
+            debug_signals.update({
+                "tx_host_submit": tx.submit.re,
+                "tx_host_submitting": tx.submitting,
+                "tx_host_accepted": tx.accepted,
+                "tx_host_level": tx.level.status,
+                "tx_host_errors": tx.errors.status,
+                "tx_host_channels": tx.channel_count.storage,
+                "tx_host_bytes": tx.bytes_per_channel.storage,
+                "tx_host_flags": tx.flags.storage,
+                "tx_host_address_write": tx.debug_address_write,
+                "tx_host_address_index": tx.debug_address_index,
+                "tx_host_address_data": tx.debug_address_data,
+                "tx_host_enable": tx.enable.storage,
+                "tx_host_wb_cyc": tx.bus.cyc,
+            })
+            if hasattr(self, "tx_fetch"):
+                debug_signals.update({
+                    "tx_fetch_valid": self.tx_fetch.sink.valid,
+                    "tx_fetch_ready": self.tx_fetch.sink.ready,
+                    "tx_fetch_data": self.tx_fetch.sink.data,
+                    "tx_fetch_child_done": self.tx_fetch.retired,
+                    "tx_fetch_words": self.tx_fetch.words.status,
+                    "tx_fetch_mismatches": self.tx_fetch.mismatches.status,
+                })
         for name, value in debug_signals.items():
             probe = Signal(len(value), name_override=name)
             setattr(self, name, probe)
@@ -1121,6 +1209,12 @@ def main():
         help="Replace RX payload with consecutive 32-bit counter words for DMA tests.")
     parser.add_argument("--with-host-tcd-rx", action="store_true",
         help="Use channel-banked VHDL acquisition, IQ packing and timestamp completions.")
+    parser.add_argument("--with-host-tcd-tx-table", action="store_true",
+        help="Enable TX parent table loading and LiteScope probes; execution disabled.")
+    parser.add_argument("--with-host-tcd-tx-fetch", action="store_true",
+        help="Fetch TX descriptors into diagnostic data checker; no RF transmission.")
+    parser.add_argument("--with-host-tcd-tx-timed", action="store_true",
+        help="Fully buffer and schedule IQ12/IQ16 TX parents; requires --with-host-tcd-rx.")
 
     # Introspection.
     parser.add_argument("--no-soc-json",    action="store_true", help="Disable automatic SoC hierarchy JSON generation.")
@@ -1152,6 +1246,9 @@ def main():
             with_dpd              = args.with_dpd,
             with_rx_dma_counter   = args.with_rx_dma_counter,
             with_host_tcd_rx      = args.with_host_tcd_rx,
+            with_host_tcd_tx_table = args.with_host_tcd_tx_table,
+            with_host_tcd_tx_fetch = args.with_host_tcd_tx_fetch,
+            with_host_tcd_tx_timed = args.with_host_tcd_tx_timed,
             flash_boot            = args.flash_boot,
             gold_img              = args.gold,
             firmware_flash_offset = args.firmware_flash_offset,
