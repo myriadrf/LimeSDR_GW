@@ -57,7 +57,7 @@ endif
 vpath %.a $(PACKAGES:%=../%)
 
 firmware.elf: $(OBJECTS)
-	$(CC) $(LDFLAGS) -T $(LINKER) -N -o $@ \
+	$(CC) $(LDFLAGS) $(BSP_LDFLAGS) -T $(LINKER) -N -o $@ \
 		$(OBJECTS) \
 		$(PACKAGES:%=-L$(BUILD_DIR)/software/%) \
 		-Wl,--whole-archive \

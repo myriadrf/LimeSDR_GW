@@ -251,12 +251,42 @@ class Platform(AlteraPlatform):
         self.add_platform_command("set_global_assignment -name SDC_FILE ../../../gateware/board_specific/limesdr_usb/lms7_trx_timing.sdc")
 
         # RAM Style & Pass-through Logic constraints for simple_dual_port_ram (lime_txpct_fifo)
-        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*simple_dual_port_ram*ram*"')
-        self.add_platform_command('set_instance_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF -to "*simple_dual_port_ram*ram*"')
         self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*payload_mem_i*ram*"')
         self.add_platform_command('set_instance_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF -to "*payload_mem_i*ram*"')
-        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*metadata_mem_i*ram*"')
-        self.add_platform_command('set_instance_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF -to "*metadata_mem_i*ram*"')
+        # Packet metadata (16 x 87 bit) in logic: as M9K it takes 3 blocks for 1.4 kbit, and the
+        # EP4CE40 is M9K-bound with the DDR test core (~1.4k LE instead).
+        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE logic -to "*metadata_mem_i*ram*"')
+        # VexRiscv register file must stay in M9K: under M9K pressure Quartus converts it to logic
+        # and FX3_PCLK (sys) fails by several ns.
+        self.add_platform_command('set_instance_assignment -name RAMSTYLE_ATTRIBUTE M9K -to "*RegFilePlugin_regFile*"')
+
+    def get_verilog(self, *args, **kwargs):
+        """Add Quartus RAM attributes the LiteX memory emitter cannot express (M9K budget).
+
+        - CPU ROM byte lanes (rom_grainN, N x 8): max_depth 1024, so a 3072-deep lane is three
+          1024 x 8 M9K instead of four 4096 x 2 slices (-4 M9K for the 12 KB ROM).
+        - Every other LiteX memory of depth >= 16 and >= 1 kbit: ramstyle M9K. Close to the
+          block limit, Quartus synthesis otherwise leaves some of them (e.g. the 128 x 74 RX CDC
+          FIFO, the 16 x 130 TX sample buffer) in registers, and the design no longer fits the LABs.
+        """
+        import re
+        v = AlteraPlatform.get_verilog(self, *args, **kwargs)
+        n_rom = n_m9k = 0
+        def attr(m):
+            nonlocal n_rom, n_m9k
+            width, name, depth = int(m.group(1)) + 1, m.group(2), int(m.group(3)) + 1
+            if re.fullmatch(r"rom_grain\d+", name):
+                n_rom += 1
+                return '(* max_depth = 1024 *) ' + m.group(0)
+            if depth >= 16 and width * depth >= 1024:
+                n_m9k += 1
+                return '(* ramstyle = "M9K" *) ' + m.group(0)
+            return m.group(0)
+        src = re.sub(r"^reg \[(\d+):0\] (\w+)\[0:(\d+)\];$", attr, v.main_source, flags=re.M)
+        if n_rom != 4:
+            print(f"WARNING: limesdr_usb RAM attributes: {n_rom} ROM lanes found (expected 4).")
+        v.set_main_source(src)
+        return v
 
     def create_programmer(self, cable="ft2232", fpga_part="EP4CE40"):
         return OpenFPGALoader(cable=cable, fpga_part=fpga_part)

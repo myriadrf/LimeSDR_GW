@@ -27,7 +27,7 @@ from gateware.helpers import write_module_hierarchy_json
 from gateware.Revision import *
 from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
-from migen.genlib.cdc import MultiReg, BusSynchronizer
+from migen.genlib.cdc import MultiReg
 from litex.soc.interconnect.csr import CSRStatus, CSRStorage
 
 from litex.gen import *
@@ -104,89 +104,6 @@ class _CRG(LiteXModule):
         self.clk_si7 = platform.request("SI_CLK", 7)
         self.comb += self.cd_si7.clk.eq(self.clk_si7)
 
-# Stream diagnostics -------------------------------------------------------------------------------
-
-class StreamDiag(LiteXModule):
-    """Free-running stream counters for diagnostics (read through regremap 0x7FE2..0x7FEB).
-    All counters are cleared (and held at 0) while `clear` is 1 (regremap 0x7FE1 != 0)."""
-    def __init__(self, tx_sink, rx_source, tx_drop, tx_underrun_evt, tx_starved,
-                 rx_frame_valid, rx_iqsel_10, rx_iqsel_01, rx_d2p_sink,
-                 rx_ps_dbg, tx_ps_dbg, clk_ctrl):
-        self.clear            = CSRStorage(1, description="Hold all stream counters at 0.")
-        self.tx_words         = CSRStatus(32, description="Host->FPGA stream 64-bit words accepted (sys).")
-        self.rx_words         = CSRStatus(32, description="FPGA->host stream 64-bit words written to EP81 (sys).")
-        self.tx_drops         = CSRStatus(32, description="TX packets dropped (late timestamp), lms_tx.")
-        self.tx_underruns     = CSRStatus(32, description="TX underrun events (LMS7002_TX starved after stream start), lms_tx.")
-        self.tx_starved       = CSRStatus(32, description="TX frame requests not served after stream start (lms_tx).")
-        self.rx_frames        = CSRStatus(32, description="RX frames emitted by lms7002_rx (lms_rx).")
-        self.rx_iqsel_10      = CSRStatus(32, description="lms_rx cycles with captured IQSEL 1 (rising half) / 0 (falling half).")
-        self.rx_iqsel_01      = CSRStatus(32, description="lms_rx cycles with captured IQSEL 0 (rising half) / 1 (falling half).")
-        self.rx_ps_dbg        = CSRStatus(32, description="RX PLL last auto phase search: [31] error, [30] fail seen, [29:20] min, [19:10] max, [9:0] centre.")
-        self.tx_ps_dbg        = CSRStatus(32, description="TX PLL last auto phase search (same layout).")
-        self.rx_pll_events    = CSRStatus(32, description="RX PLL (index 1) events: [7:0] lock losses, [15:8] PLLRST_START, [23:16] PLLCFG_START, [31:24] PHCFG_START (saturating).")
-        self.rx_d2p_words     = CSRStatus(32, description="128-bit words accepted by the RX packetizer (lms_rx).")
-
-        # sys-domain counters
-        tx_w = Signal(32); rx_w = Signal(32)
-        self.sync += [
-            If(self.clear.storage, tx_w.eq(0), rx_w.eq(0)).Else(
-                If(tx_sink.valid & tx_sink.ready,  tx_w.eq(tx_w + 1)),
-                If(rx_source.valid & rx_source.ready, rx_w.eq(rx_w + 1)),
-            ),
-            self.tx_words.status.eq(tx_w),
-            self.rx_words.status.eq(rx_w),
-        ]
-        # lms_tx-domain counters, transferred with handshake bus synchronizers
-        clear_tx = Signal()
-        self.specials += MultiReg(self.clear.storage, clear_tx, odomain="lms_tx")
-        drops = Signal(32); unds = Signal(32); starv = Signal(32)
-        self.sync.lms_tx += If(clear_tx, drops.eq(0), unds.eq(0), starv.eq(0)).Else(
-            If(tx_drop,         drops.eq(drops + 1)),
-            If(tx_underrun_evt, unds.eq(unds + 1)),
-            If(tx_starved,      starv.eq(starv + 1)),
-        )
-        for name, sig in (("drops", drops), ("unds", unds), ("starv", starv)):
-            bs = BusSynchronizer(32, "lms_tx", "sys")
-            setattr(self, "bs_" + name, bs)
-            self.comb += bs.i.eq(sig)
-            tgt = {"drops": self.tx_drops, "unds": self.tx_underruns, "starv": self.tx_starved}[name]
-            self.comb += tgt.status.eq(bs.o)
-        # lms_rx-domain counters
-        clear_rx = Signal()
-        self.specials += MultiReg(self.clear.storage, clear_rx, odomain="lms_rx")
-        rxf = Signal(32); i10 = Signal(32); i01 = Signal(32); d2p = Signal(32)
-        self.sync.lms_rx += If(clear_rx, rxf.eq(0), i10.eq(0), i01.eq(0), d2p.eq(0)).Else(
-            If(rx_frame_valid,                     rxf.eq(rxf + 1)),
-            If(rx_iqsel_10,                        i10.eq(i10 + 1)),
-            If(rx_iqsel_01,                        i01.eq(i01 + 1)),
-            If(rx_d2p_sink.valid & rx_d2p_sink.ready, d2p.eq(d2p + 1)),
-        )
-        # Phase-search results (scan clock = sys) and RX PLL control events (sys).
-        self.comb += [self.rx_ps_dbg.status.eq(rx_ps_dbg), self.tx_ps_dbg.status.eq(tx_ps_dbg)]
-        rx_lock = Signal(); rx_lock_d = Signal()
-        self.specials += MultiReg(clk_ctrl.PLL_LOCK.status[1], rx_lock, odomain="sys")
-        rx_sel = Signal()
-        self.comb += rx_sel.eq(clk_ctrl.PLL_IND.storage == 1)
-        prev = {n: Signal(name=f"pll_{n}_d") for n in ("rst", "cfg", "ph")}
-        cnts = [Signal(8) for _ in range(4)]
-        bits = {"rst": clk_ctrl.PLLRST_START.storage, "cfg": clk_ctrl.PLLCFG_START.storage, "ph": clk_ctrl.PHCFG_START.storage}
-        def sat_inc(c): return If(c != 0xFF, c.eq(c + 1))
-        self.sync += [
-            rx_lock_d.eq(rx_lock),
-            [prev[n].eq(bits[n]) for n in prev],
-            If(self.clear.storage, [c.eq(0) for c in cnts]).Else(
-                If(rx_lock_d & ~rx_lock, sat_inc(cnts[0])),
-                If(rx_sel & bits["rst"] & ~prev["rst"], sat_inc(cnts[1])),
-                If(rx_sel & bits["cfg"] & ~prev["cfg"], sat_inc(cnts[2])),
-                If(rx_sel & bits["ph"]  & ~prev["ph"],  sat_inc(cnts[3])),
-            ),
-            self.rx_pll_events.status.eq(Cat(*cnts)),
-        ]
-        for name, sig, tgt in (("rxf", rxf, self.rx_frames), ("i10", i10, self.rx_iqsel_10), ("i01", i01, self.rx_iqsel_01), ("d2p", d2p, self.rx_d2p_words)):
-            bs = BusSynchronizer(32, "lms_rx", "sys")
-            setattr(self, "bs_" + name, bs)
-            self.comb += [bs.i.eq(sig), tgt.status.eq(bs.o)]
-
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
@@ -236,8 +153,15 @@ class BaseSoC(SoCCore):
             integrated_main_ram_size = 0x4100
             integrated_main_ram_init = [] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
         else:
-            integrated_rom_size      = 0x3A00 # +256 B for the stream diagnostics in regremap.c
+            # 12 KB = 3 M9K per ROM byte-lane (4 lanes x 3072 x 8). Anything above 0x3000 costs a
+            # 4th M9K per lane (+4 M9K), which the EP4CE40 cannot spare with the DDR test core,
+            # EP01 8 KB and EP81 16 KB. Firmware is built without printf/jump tables to fit (bsp.mak).
+            integrated_rom_size      = 0x3000
             integrated_rom_init      = [0] if cpu_firmware is None else get_mem_data(cpu_firmware, endianness="little")
+            if cpu_firmware is not None and 4 * len(integrated_rom_init) > integrated_rom_size:
+                raise ValueError(
+                    f"firmware ({4 * len(integrated_rom_init)} B) does not fit CPU ROM "
+                    f"({integrated_rom_size} B); see firmware/bsp/LimeSDR_USB/bsp.mak")
             integrated_main_ram_size = 0
             integrated_main_ram_init = []
 
@@ -293,8 +217,6 @@ class BaseSoC(SoCCore):
             self.add_jtag_cpu_debug()
 
         # FX3
-        if ep01_size > 4096 and with_ddr_test:
-            print("WARNING: --ep01-size 8192 with the DDR test core: M9K pressure, expect FX3_PCLK timing failure (use --no-ddr-test).")
         self.FX3 = FX3(platform=platform,
                        pads=platform.request("FX3"),
                        # Host->FPGA stream FIFO: 8 KB = two 4 KB packets, so the next GPIF read
@@ -302,8 +224,9 @@ class BaseSoC(SoCCore):
                        # buffer space (4 KB = single-buffered, legacy). The WFM load path keeps 4 KB.
                        EP01_size     = ep01_size,
                        EP01_1_size   = 4096,
-                       # FPGA->Host stream FIFO. The legacy (v2.x) gateware used 16 KB; 8 KB is what
-                       # fits with the DDR test core (16 KB = +8 M9K, use with --no-ddr-test).
+                       # FPGA->Host stream FIFO. The legacy (v2.x) gateware used 16 KB (+8 M9K over 8 KB);
+                       # it fits with the DDR test core thanks to the 12 KB CPU ROM and the RAM packing
+                       # in limesdr_usb_platform.get_verilog() / PPSDO altera_pack_memories().
                        EP81_size     = ep81_size,
                        EP01_0_rwidth = HOST_TO_FPGA_DATA_WIDTH,
                        EP01_1_rwidth = WFM_DATA_WIDTH,
@@ -383,21 +306,6 @@ class BaseSoC(SoCCore):
             self.pss.tx_txant_en.eq(self.limetop.lms7002_top.tx_ant_en),
             self.pss.tx_pct_loss_flg.eq(self.limetop.rxtx_top.tx_path.pct_loss_flg),
         ]
-        # Stream diagnostics (regremap 0x7FE1..0x7FEB).
-        self.stream_diag = StreamDiag(
-            tx_sink         = self.FX3.data_source,
-            rx_source       = self.limetop.source,
-            tx_drop         = self.limetop.rxtx_top.tx_path.pct_clear,
-            tx_underrun_evt = self.limetop.lms7002_top.tx_underrun_evt,
-            tx_starved      = self.limetop.lms7002_top.tx_starved,
-            rx_frame_valid  = self.limetop.lms7002_top.rx_frame_valid,
-            rx_iqsel_10     = self.limetop.lms7002_top.rx_iqsel_10,
-            rx_iqsel_01     = self.limetop.lms7002_top.rx_iqsel_01,
-            rx_d2p_sink     = self.limetop.rxtx_top.rx_path.data2packets_fsm.sink,
-            rx_ps_dbg       = self.limetop.lms7002_top.lms7002_clk.cycloneiv_pll.rxpll_ps_dbg,
-            tx_ps_dbg       = self.limetop.lms7002_top.lms7002_clk.cycloneiv_pll.txpll_ps_dbg,
-            clk_ctrl        = self.limetop.lms7002_top.lms7002_clk.CLK_CTRL,
-        )
 
         # WFMPlayer wiring. The WFM player is a DDR-backed feature, so the PSS only
         # instantiates it when DDR modules are present (add_ddr_modules / not no_ddr).
@@ -540,8 +448,8 @@ def main():
     parser.add_argument("--no-ddr-test",    action="store_true", help="Remove DDR2 self-test core. Useful for freeing resources when debugging")
     parser.add_argument("--no-ddr",         action="store_true", help="Do not include DDR memory related modules. Useful for freeing resources when debugging")
     parser.add_argument("--no-ppsdo",       action="store_true", help="Do not include PPSDO module.")
-    parser.add_argument("--ep01-size",      default=4096, type=int, choices=[4096, 8192], help="Host->FPGA stream FIFO size in bytes (4096 = single packet, legacy; 8192 = double-buffered, use with --no-ddr-test: with the DDR test core the extra 4 M9K push Quartus into implementing the CPU register file in logic and FX3_PCLK fails by ~2 ns).")
-    parser.add_argument("--ep81-size",      default=8192, type=int, choices=[8192, 16384], help="FPGA->Host stream FIFO size in bytes (16384 = legacy v2.x size, use with --no-ddr-test).")
+    parser.add_argument("--ep01-size",      default=4096, type=int, choices=[4096, 8192], help="Host->FPGA stream FIFO size in bytes (4096 = single packet, legacy; 8192 = double-buffered).")
+    parser.add_argument("--ep81-size",      default=8192, type=int, choices=[8192, 16384], help="FPGA->Host stream FIFO size in bytes (16384 = legacy v2.x size).")
     parser.add_argument("--diq1-slew",      default="9:0", help="Per-pin slew rate for LMS_DIQ1_D, e.g. '9:0' or '9:1,3:1' (0 = slowest, 2 = fastest; unlisted pins 2). Default '9:0': D9 switches ~0.4 ns early, slew 0 widens the TX window from ~2 to ~7 phase steps. '' = all pins 2.")
     parser.add_argument("--diq1-output-delay", default="legacy", choices=["uniform", "legacy"], help="LMS DIQ1/IQSEL1 output delay chain settings (legacy = 2021 per-pin QSF table).")
 
