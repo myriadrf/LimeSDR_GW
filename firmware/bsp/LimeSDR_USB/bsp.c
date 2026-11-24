@@ -166,6 +166,7 @@ int8_t lms_reset(uint8_t periph_id, uint8_t command)
         limetop_lms7002_top_lms1_write(lms1_val);
         return 0;
     }
+    return 1; /* unknown command (was undefined behaviour: no return value) */
 }
 
 int8_t lms7002m_periph_id_check(uint8_t periph_id)

@@ -15,6 +15,35 @@ uint16_t transform_fpga_signature(uint16_t write_val)
 
 static uint16_t fpga_signature = 0;
 
+/* LimeSuiteNG does not poll for the end of an automatic phase search on LimeSDR-USB:
+ * it sets PHCFG_START, sleeps a fixed 10 ms, clears PHCFG_START and goes on - reconfiguring
+ * the LMS test pattern and starting the other PLL's search, which shares the sample
+ * comparator. A search that is still running then measures the wrong data. Hold the
+ * PHCFG_START (and PLLCFG_START) clearing write until the gateware reports done, so the
+ * host's next command is only answered after the search has finished (the host waits up
+ * to 2 s for an LMS64C SPI reply). Timer0 (otherwise unused) times the wait. */
+#define PLLSTAT_PLLCFG_DONE 0x0001
+#define PLLSTAT_PHCFG_DONE  0x0004
+#define PLLCTRL_PLLCFG_START 0x0001
+#define PLLCTRL_PHCFG_START  0x0002
+#define PLLCTRL_PHCFG_MODE   0x4000
+
+static void wait_pll_status(uint32_t mask, uint32_t timeout_ms)
+{
+    timer0_en_write(0);
+    timer0_reload_write(0);
+    timer0_load_write(timeout_ms * (CONFIG_CLOCK_FREQUENCY / 1000));
+    timer0_en_write(1);
+    for (;;) {
+        if (limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_status_read() & mask)
+            break;
+        timer0_update_value_write(1);
+        if (timer0_value_read() == 0)
+            break;
+    }
+    timer0_en_write(0);
+}
+
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-USB
 bool readCSR(uint8_t *address, uint8_t *regdata_array)
 {
@@ -515,7 +544,16 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
          *   [13]   PHCFG_UPDN:   Phase shift direction (0: Down, 1: Up)
          *   [14]   PHCFG_MODE:   Phase config mode (0: Manual, 1: Auto)
          */
+    {
+        uint32_t prev = limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_ctrl_read();
+        /* Automatic phase search running and the host clears PHCFG_START: wait for done. */
+        if ((prev & PLLCTRL_PHCFG_START) && (prev & PLLCTRL_PHCFG_MODE) && !(value & PLLCTRL_PHCFG_START))
+            wait_pll_status(PLLSTAT_PHCFG_DONE, 1500);
+        /* PLL reconfiguration started and the host clears PLLCFG_START: wait for done. */
+        if ((prev & PLLCTRL_PLLCFG_START) && !(value & PLLCTRL_PLLCFG_START))
+            wait_pll_status(PLLSTAT_PLLCFG_DONE, 100);
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_ctrl_write(value & 0x7FFF);
+    }
         break;
     case 0x24:
         /* LMS64C Register 0x0024: Counter Phase Value
