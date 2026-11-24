@@ -265,20 +265,33 @@ class Platform(AlteraPlatform):
 
         - CPU ROM byte lanes (rom_grainN, N x 8): max_depth 1024, so a 3072-deep lane is three
           1024 x 8 M9K instead of four 4096 x 2 slices (-4 M9K for the 12 KB ROM).
-        - Every other LiteX memory of depth >= 16 and >= 1 kbit: ramstyle M9K. Close to the
+        With dense_ram_packing (builds without DDR, --no-ddr; DDR builds keep their packing):
+        - Memories of depth <= 16 and >= 1 kbit (16 x 130 TX sample buffer): ramstyle logic
+          (3 M9K saved; needs LAB headroom, fine without DDR, tight for the DDR-test build).
+        - 33..36-bit memories of depth >= 512 (FX3 stream FIFOs): max_depth 256 (256 x 36 blocks).
+        - Every other LiteX memory of depth > 16 and >= 1 kbit: ramstyle M9K. Close to the
           block limit, Quartus synthesis otherwise leaves some of them (e.g. the 128 x 74 RX CDC
-          FIFO, the 16 x 130 TX sample buffer) in registers, and the design no longer fits the LABs.
+          FIFO) in registers.
         """
         import re
         v = AlteraPlatform.get_verilog(self, *args, **kwargs)
         n_rom = n_m9k = 0
+        dense = getattr(self, "dense_ram_packing", False)
         def attr(m):
             nonlocal n_rom, n_m9k
             width, name, depth = int(m.group(1)) + 1, m.group(2), int(m.group(3)) + 1
             if re.fullmatch(r"rom_grain\d+", name):
                 n_rom += 1
                 return '(* max_depth = 1024 *) ' + m.group(0)
-            if depth >= 16 and width * depth >= 1024:
+            if dense and depth <= 16 and width * depth >= 1024:
+                # Shallow wide buffers (16 x 130 TX sample FIFO: 3 M9K for 2 kbit) go to registers.
+                return '(* ramstyle = "logic" *) ' + m.group(0)
+            if dense and depth >= 512 and 33 <= width <= 36:
+                # 32-bit stream FIFOs (+ last/first): 256 x 36 blocks, depth/256 M9K
+                # (2048 x 34 otherwise packs as 2048 x 4 slices, 9 M9K).
+                n_m9k += 1
+                return '(* ramstyle = "M9K", max_depth = 256 *) ' + m.group(0)
+            if depth >= (17 if dense else 16) and width * depth >= 1024:
                 n_m9k += 1
                 return '(* ramstyle = "M9K" *) ' + m.group(0)
             return m.group(0)

@@ -46,7 +46,7 @@ FPGA_TO_HOST_DATA_WIDTH = 64 # bus width connecting FX3 and Limetop
 HOST_TO_FPGA_DATA_WIDTH = 64 # bus width connecting FX3 and Limetop
 WFM_DATA_WIDTH          = 32 # bus width connecting FX3 and wfmplayer
 TX_MAX_BUF_PACKETS      = 16      # maximum number of buffered tx packets in Limetop (any size)
-TX_PACKET_BUF_SIZE      = 1024*16   # total size (in bytes) of tx packet buffer in Limetop
+TX_PACKET_BUF_SIZE      = 1024*16   # default total size (in bytes) of tx packet buffer in Limetop (--tx-buf-size)
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -121,10 +121,14 @@ class BaseSoC(SoCCore):
                  no_ppsdo          = False,
                  ep01_size         = 4096,
                  ep81_size         = 8192,
+                 tx_buf_size       = TX_PACKET_BUF_SIZE,
                  diq1_output_delay = "legacy",
                  diq1_slow_pins    = None):
         platform = limesdr_usb.Platform(diq1_output_delay=diq1_output_delay, diq1_slow_pins=diq1_slow_pins)
         platform.name        = "limesdr_usb"
+        # Builds without DDR (--no-ddr): denser RAM packing (16-deep buffers in logic, 256 x 36
+        # stream FIFO blocks, PPSDO ROM max_depth); see limesdr_usb_platform.get_verilog().
+        platform.dense_ram_packing = no_ddr
         platform.vhd2v_force = False
         platform.add_platform_command("set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008")
 
@@ -223,7 +227,8 @@ class BaseSoC(SoCCore):
                        # can start while the previous packet is still waiting for TX packet
                        # buffer space (4 KB = single-buffered, legacy). The WFM load path keeps 4 KB.
                        EP01_size     = ep01_size,
-                       EP01_1_size   = 4096,
+                       # 0 = no WFM load path (no DDR / WFM player in this build).
+                       EP01_1_size   = 0 if no_ddr else 4096,
                        # FPGA->Host stream FIFO. The legacy (v2.x) gateware used 16 KB (+8 M9K over 8 KB);
                        # it fits with the DDR test core thanks to the 12 KB CPU ROM and the RAM packing
                        # in limesdr_usb_platform.get_verilog() / PPSDO altera_pack_memories().
@@ -283,7 +288,7 @@ class BaseSoC(SoCCore):
                                 source_width         = FPGA_TO_HOST_DATA_WIDTH,
                                 rx_fixed_packet_size = True,
                                 TX_N_BUFF            = TX_MAX_BUF_PACKETS,
-                                TX_MAX_PCT_SIZE      = TX_PACKET_BUF_SIZE,
+                                TX_MAX_PCT_SIZE      = tx_buf_size,
                                 TX_WITHTXIQ_MUX      = True,
                                 # TX phase search: exercise both edge directions on every DIQ1 pin
                                 # (constant 0xAAA/0x555 left D9 rising at I->Q untested).
@@ -456,8 +461,9 @@ def main():
     parser.add_argument("--no-ddr-test",    action="store_true", help="Remove DDR2 self-test core. Useful for freeing resources when debugging")
     parser.add_argument("--no-ddr",         action="store_true", help="Do not include DDR memory related modules. Useful for freeing resources when debugging")
     parser.add_argument("--no-ppsdo",       action="store_true", help="Do not include PPSDO module.")
-    parser.add_argument("--ep01-size",      default=4096, type=int, choices=[4096, 8192], help="Host->FPGA stream FIFO size in bytes (4096 = single packet, legacy; 8192 = double-buffered).")
-    parser.add_argument("--ep81-size",      default=8192, type=int, choices=[8192, 16384], help="FPGA->Host stream FIFO size in bytes (16384 = legacy v2.x size).")
+    parser.add_argument("--ep01-size",      default=4096, type=int, choices=[4096, 8192, 16384], help="Host->FPGA stream FIFO size in bytes (4096 = single packet, legacy; 8192 = double-buffered). Default 4096. Sizes above the default need the RAM freed by --no-ddr.")
+    parser.add_argument("--ep81-size",      default=8192, type=int, choices=[8192, 16384, 32768], help="FPGA->Host stream FIFO size in bytes (16384 = legacy v2.x size). Default 8192. Sizes above the default need the RAM freed by --no-ddr.")
+    parser.add_argument("--tx-buf-size",    default=TX_PACKET_BUF_SIZE, type=int, choices=[16384, 32768, 40960, 49152, 65536], help="TX packet buffer (lime_txpct_fifo payload RAM) size in bytes. Default 16384. Sizes above the default need the RAM freed by --no-ddr (with --no-ddr: 40960 and --ep81-size 32768 fit; 49152 with 32768 does not).")
     parser.add_argument("--diq1-slew",      default="9:0", help="Per-pin slew rate for LMS_DIQ1_D, e.g. '9:0' or '9:1,3:1' (0 = slowest, 2 = fastest; unlisted pins 2). Default '9:0': D9 switches ~0.4 ns early, slew 0 widens the TX window from ~2 to ~7 phase steps. '' = all pins 2.")
     parser.add_argument("--diq1-output-delay", default="legacy", choices=["uniform", "legacy"], help="LMS DIQ1/IQSEL1 output delay chain settings (legacy = 2021 per-pin QSF table).")
 
@@ -483,6 +489,7 @@ def main():
             no_ppsdo       = args.no_ppsdo,
             ep01_size      = args.ep01_size,
             ep81_size      = args.ep81_size,
+            tx_buf_size    = args.tx_buf_size,
             diq1_output_delay = args.diq1_output_delay,
             diq1_slow_pins    = {int(p.split(':')[0]): int(p.split(':')[1]) for p in args.diq1_slew.split(',') if p},
         )
