@@ -46,8 +46,7 @@ class _StatusProxy:
 
 
 class ClkCfgRegs(LiteXModule):
-    # Reset value of the auto phase search step register (LMS64C 0x003F): (6:0) step size,
-    # (9:7) post-search bias, (12:10) edge refinement k (Cyclone IV pll_ps_fsm). Board targets
+    # Reset value of the auto phase search step size register (LMS64C 0x003F). Board targets
     # may change it before the SoC is built (host software does not write 0x003F).
     phcfg_step_reset = 0x002
 

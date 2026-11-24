@@ -58,7 +58,7 @@ PLLCFG,0x0031,,0x0000,c3_cnt,C3 counter value.,upsert
 PLLCFG,0x0032,,0x0000,c4_cnt,C4 counter value.,upsert
 PLLCFG,0x0033,0x003D,,reserved,Reserved.,upsert
 PLLCFG,0x003E,,0x0FFF,phcfg_samples,Number of samples to compare during automatic phase configuration.,upsert
-PLLCFG,0x003F,,0x0002,phcfg_step,Step size used during automatic phase configuration.,upsert
+PLLCFG,0x003F,,0x0001,phcfg_step,Step size used during automatic phase configuration.,upsert
 TSTCFG,0x0060,,,reserved,Reserved.,upsert
 TSTCFG,0x0061,,0x0000,test_en,Test enable controls.,upsert
 TSTCFG,0x0062,,,reserved,Reserved.,upsert

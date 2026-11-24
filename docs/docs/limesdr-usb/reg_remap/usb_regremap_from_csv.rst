@@ -1780,7 +1780,7 @@ Address: ``0x003E`` | Default: ``0x0FFF`` | Access: R/W
 ``0x003F`` - phcfg_step
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Address: ``0x003F`` | Default: ``0x0002`` | Access: R/W
+Address: ``0x003F`` | Default: ``0x0001`` | Access: R/W
 
 .. wavedrom::
 

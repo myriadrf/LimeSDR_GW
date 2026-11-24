@@ -27,20 +27,6 @@ static uint16_t fpga_signature = 0;
 #define PLLCTRL_PLLCFG_START 0x0001
 #define PLLCTRL_PHCFG_START  0x0002
 #define PLLCTRL_PHCFG_MODE   0x4000
-#define PLLCTRL_PLLRST_START 0x0004
-#define PLLCTRL_PHCFG_UPDN   0x2000
-#define PLLSTAT_PHCFG_ERR    0x0008
-#define PLL_IND_RX           1
-
-/* LimeSDR-USB only: fixed RX interface phase offset applied after every successful automatic
- * RX phase search, in PLL phase steps (Fvco/8 each, ~0.1 ns at Fvco = 1228.8 MHz).
- * The search centres on a window found with the AAA/555 test pattern. On this board that
- * window is wider than the window real data passes in (~45 vs ~6 steps at 122.88 MHz), and
- * its centre lands on the late edge of the real-data window: RX MIMO 61.44 MSPS then shows
- * ~2-4% corrupted runs (channel B I bit 1). Two steps earlier is clean (300/300 over three
- * builds/placements); the window is wider at lower rates, so the offset is safe there.
- * The phase-search readback (0x7FF4/5) still reports the search result before this offset. */
-#define RX_PHASE_OFFSET      (-2)
 
 static void wait_pll_status(uint32_t mask, uint32_t timeout_ms)
 {
@@ -56,31 +42,6 @@ static void wait_pll_status(uint32_t mask, uint32_t timeout_ms)
             break;
     }
     timer0_en_write(0);
-}
-
-/* Manual phase shift of the PLL/counter selected in ctrl (PLL_IND, CNT_IND) by steps
- * (negative = down/earlier). CNT_PHASE is restored afterwards: the automatic search takes
- * its rate-adaptive step size from it. Returns 0 on success, -1 if the shift did not complete. */
-static int pll_manual_step(uint32_t ctrl, int steps)
-{
-    uint32_t c, cnt;
-    int ok;
-    if (steps == 0)
-        return 0;
-    cnt = limetop_lms7002_top_lms7002_clk_CLK_CTRL_cnt_phase_read();
-    c = ctrl & ~(PLLCTRL_PLLCFG_START | PLLCTRL_PHCFG_START | PLLCTRL_PLLRST_START | PLLCTRL_PHCFG_MODE | PLLCTRL_PHCFG_UPDN);
-    if (steps > 0)
-        c |= PLLCTRL_PHCFG_UPDN;
-    else
-        steps = -steps;
-    limetop_lms7002_top_lms7002_clk_CLK_CTRL_cnt_phase_write((uint32_t)steps);
-    limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_ctrl_write(c);
-    limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_ctrl_write(c | PLLCTRL_PHCFG_START);
-    wait_pll_status(PLLSTAT_PHCFG_DONE, 50);
-    ok = (limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_status_read() & PLLSTAT_PHCFG_DONE) != 0;
-    limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_ctrl_write(c);
-    limetop_lms7002_top_lms7002_clk_CLK_CTRL_cnt_phase_write(cnt);
-    return ok ? 0 : -1;
 }
 
 // To read and re-map old LMS64C protocol style SPI registers to Litex CSRs for LimeSDR-USB
@@ -308,7 +269,7 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
     case 0x3F:
         /* LMS64C Register 0x003F: Auto Phase Configuration Step Size
-         * Bits [6:0]: step size, [9:7]: post-search bias (steps), [12:10]: edge refinement k, [14:13]: RX final point fraction (8/16,6/16,5/16,11/32), [15]: relaxed A/B check
+         * Bits [15:0]: Phase step size during auto phase search
          */
         value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_read();
         break;
@@ -434,7 +395,7 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x7FF4: /* RX PLL last auto phase search result, low/high 16 bits:  */
         value = ps_diag_rx_ps_dbg_read() & 0xFFFF;          /* [31] err [30] fail seen */
         break;                                                /* [29:20] min [19:10] max */
-    case 0x7FF5:                                              /* [9:0] final point       */
+    case 0x7FF5:                                              /* [9:0] window centre     */
         value = (ps_diag_rx_ps_dbg_read() >> 16) & 0xFFFF;
         break;
     case 0x7FF6: /* TX PLL, same layout */
@@ -586,15 +547,8 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
     {
         uint32_t prev = limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_ctrl_read();
         /* Automatic phase search running and the host clears PHCFG_START: wait for done. */
-        if ((prev & PLLCTRL_PHCFG_START) && (prev & PLLCTRL_PHCFG_MODE) && !(value & PLLCTRL_PHCFG_START)) {
+        if ((prev & PLLCTRL_PHCFG_START) && (prev & PLLCTRL_PHCFG_MODE) && !(value & PLLCTRL_PHCFG_START))
             wait_pll_status(PLLSTAT_PHCFG_DONE, 1500);
-            /* RX search finished without error: apply the fixed RX offset (see RX_PHASE_OFFSET). */
-            if (((prev >> 3) & 0x1F) == PLL_IND_RX) {
-                uint32_t st = limetop_lms7002_top_lms7002_clk_CLK_CTRL_pll_status_read();
-                if ((st & PLLSTAT_PHCFG_DONE) && !(st & PLLSTAT_PHCFG_ERR))
-                    pll_manual_step(prev, RX_PHASE_OFFSET);
-            }
-        }
         /* PLL reconfiguration started and the host clears PLLCFG_START: wait for done. */
         if ((prev & PLLCTRL_PLLCFG_START) && !(value & PLLCTRL_PLLCFG_START))
             wait_pll_status(PLLSTAT_PLLCFG_DONE, 100);
@@ -690,7 +644,7 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
     case 0x3F:
         /* LMS64C Register 0x003F: Auto Phase Configuration Step Size
-         * Bits [6:0]: step size, [9:7]: post-search bias (steps), [12:10]: edge refinement k, [14:13]: RX final point fraction (8/16,6/16,5/16,11/32), [15]: relaxed A/B check
+         * Bits [15:0]: Phase step size during auto phase search
          */
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_write(value);
         break;

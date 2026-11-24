@@ -102,7 +102,7 @@ address,title,access,default,field,msb,lsb,values,description,op
 0x0031,c3_cnt,R/W,0x0000,c3_cnt,15,0,,C3 counter (PLL output 3 divider) value.,upsert
 0x0032,c4_cnt,R/W,0x0000,c4_cnt,15,0,,C4 counter (PLL output 4 divider) value.,upsert
 0x003E,phcfg_samples,R/W,0x0FFF,phcfg_samples,15,0,,Number of samples to compare during automatic phase configuration.,upsert
-0x003F,phcfg_step,R/W,0x0002,phcfg_step,15,0,,Step size used during automatic phase configuration.,upsert
+0x003F,phcfg_step,R/W,0x0001,phcfg_step,15,0,,Step size used during automatic phase configuration.,upsert
 0x0061,test_en,R/W,0x0000,fx3_pclk_tst_en,0,0,"0=Disabled,1=Enabled",FX3 PCLK test enable.,upsert
 0x0061,,,,si5351c_tst_en,1,1,"0=Disabled,1=Enabled",Si5351C clock test enable.,upsert
 0x0061,,,,vctcxo_tst_en,2,2,"0=Disabled,1=Enabled",VCTCXO test enable.,upsert
