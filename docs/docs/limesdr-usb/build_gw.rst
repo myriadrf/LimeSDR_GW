@@ -30,6 +30,9 @@ Available Build Options
 - ``--no-ddr``: Disable DDR2 memory modules and DDR-backed features (e.g. WFM player) to free FPGA logic and RAM resources. Automatically implied when ``--with-cpu-debug`` is used.
 - ``--no-ddr-test``: Exclude the DDR2 Built-in Self-Test (BIST) core and pseudorandom pattern generator from the PSS module to save logic resources.
 - ``--no-ppsdo``: Exclude the PPS Disciplined Oscillator subsystem from synthesis to reduce Cyclone IV logic element (LE) utilization and routing congestion.
+- ``--ep01-size {4096,8192,16384}``: Host-to-FPGA (TX) stream FIFO size in bytes. Default 4096. Larger sizes need the RAM freed by ``--no-ddr`` (see below).
+- ``--ep81-size {8192,16384,32768}``: FPGA-to-host (RX) stream FIFO size in bytes. Default 8192. Larger sizes need the RAM freed by ``--no-ddr``.
+- ``--tx-buf-size {16384,32768,40960,49152,65536}``: TX packet buffer size in bytes. Default 16384. Larger sizes need the RAM freed by ``--no-ddr``.
 - ``--no-soc-json``: Disable automatic export/generation of the SoC module hierarchy JSON file (``soc_structure.json``).
 - ``--doc``: Generate LiteX SoC Sphinx documentation and build the HTML output.
 - ``--cable <cable>``: Specify the JTAG cable (default is ``ft2232``).
@@ -40,6 +43,54 @@ Available Build Options
 
    - ``--with-jtagbone`` and ``--with-cpu-debug`` are mutually exclusive because the Intel Cyclone IV FPGA provides only a single Virtual JTAG (``sld_virtual_jtag``) hardware IP instance.
    - Specifying ``--with-cpu-debug`` automatically disables DDR2 memory (``--no-ddr``) to preserve Cyclone IV EP4CE40 FPGA block RAM (M9K) and logic resources.
+
+Build Configurations
+--------------------
+
+**Default build.** ``python3 -m boards.targets.limesdr_usb --build`` includes the full feature
+set: the DDR2 memory controller, the WFM (waveform) player with its host-to-FPGA load path, and
+the DDR2 self-test core. It reaches every supported sample rate.
+
+**Builds without DDR2.** If the WFM player and DDR2 memory are not needed, ``--no-ddr`` removes
+them, together with the DDR2 self-test (it implies ``--no-ddr-test``). This frees about a third of
+the FPGA logic and block RAM. The build also packs the remaining RAM more densely. The freed
+resources leave room for larger stream buffers and give the fitter more placement and timing
+headroom. That headroom may add some stream robustness at the highest sample rates.
+
+**Stream buffer sizes.** ``--ep01-size``, ``--ep81-size`` and ``--tx-buf-size`` set the size of the
+USB stream FIFOs and of the TX packet buffer. Larger buffers give more tolerance to host-side
+scheduling delays. With a host configured as in the note below, the default sizes already reach
+the maximum sample rates. Sizes above the defaults need ``--no-ddr``. The largest tested
+combination is ``--no-ddr --ep01-size 8192 --ep81-size 32768 --tx-buf-size 40960``.
+
+Approximate resource use on the EP4CE40:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 52 16 16 16
+
+   * - Configuration
+     - M9K blocks
+     - Logic elements
+     - DDR2 / WFM player
+   * - Default
+     - ~87 %
+     - ~86 %
+     - Yes
+   * - ``--no-ddr``
+     - ~56 %
+     - ~57 %
+     - No
+   * - ``--no-ddr --ep01-size 8192 --ep81-size 32768 --tx-buf-size 40960``
+     - ~96 %
+     - ~60 %
+     - No
+
+.. note::
+
+   For the highest sample rates (61.44 MSPS SISO, 61.44 MSPS MIMO RX, 30.72 MSPS MIMO TX+RX), give
+   the host stream thread real-time scheduling priority (for example an ``rtprio`` limit in
+   ``/etc/security/limits.conf``). This applies to every build configuration.
 
 Programming Hardware
 --------------------

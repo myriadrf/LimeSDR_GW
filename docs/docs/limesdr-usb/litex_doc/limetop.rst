@@ -1026,7 +1026,7 @@ LIMETOP_LMS7002_TOP_LMS7002_CLK_CLK_CTRL_AUTO_PHCFG_STEP
 
         {
             "reg": [
-                {"name": "lms7002_top_lms7002_clk_clk_ctrl_auto_phcfg_step[15:0]", "attr": 'reset: 2', "bits": 16},
+                {"name": "lms7002_top_lms7002_clk_clk_ctrl_auto_phcfg_step[15:0]", "attr": 'reset: 4098', "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
         }

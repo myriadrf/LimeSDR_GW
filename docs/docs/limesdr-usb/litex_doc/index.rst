@@ -23,6 +23,7 @@ Register Groups
     fpga_spi1
     identifier_mem
     limetop
+    ps_diag
     pss
     spimaster
     timer0

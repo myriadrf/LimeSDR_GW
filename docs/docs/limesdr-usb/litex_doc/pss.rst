@@ -7,85 +7,77 @@ Register Listing for PSS
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
 | Register                                                                                 | Address                                                     |
 +==========================================================================================+=============================================================+
-| :ref:`PSS_I2C_PHY_SPEED_MODE <PSS_I2C_PHY_SPEED_MODE>`                                   | :ref:`0xf0002800 <PSS_I2C_PHY_SPEED_MODE>`                  |
+| :ref:`PSS_I2C_PHY_SPEED_MODE <PSS_I2C_PHY_SPEED_MODE>`                                   | :ref:`0xf0003000 <PSS_I2C_PHY_SPEED_MODE>`                  |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_I2C_MASTER_ACTIVE <PSS_I2C_MASTER_ACTIVE>`                                     | :ref:`0xf0002804 <PSS_I2C_MASTER_ACTIVE>`                   |
+| :ref:`PSS_I2C_MASTER_ACTIVE <PSS_I2C_MASTER_ACTIVE>`                                     | :ref:`0xf0003004 <PSS_I2C_MASTER_ACTIVE>`                   |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_I2C_MASTER_SETTINGS <PSS_I2C_MASTER_SETTINGS>`                                 | :ref:`0xf0002808 <PSS_I2C_MASTER_SETTINGS>`                 |
+| :ref:`PSS_I2C_MASTER_SETTINGS <PSS_I2C_MASTER_SETTINGS>`                                 | :ref:`0xf0003008 <PSS_I2C_MASTER_SETTINGS>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_I2C_MASTER_ADDR <PSS_I2C_MASTER_ADDR>`                                         | :ref:`0xf000280c <PSS_I2C_MASTER_ADDR>`                     |
+| :ref:`PSS_I2C_MASTER_ADDR <PSS_I2C_MASTER_ADDR>`                                         | :ref:`0xf000300c <PSS_I2C_MASTER_ADDR>`                     |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_I2C_MASTER_RXTX <PSS_I2C_MASTER_RXTX>`                                         | :ref:`0xf0002810 <PSS_I2C_MASTER_RXTX>`                     |
+| :ref:`PSS_I2C_MASTER_RXTX <PSS_I2C_MASTER_RXTX>`                                         | :ref:`0xf0003010 <PSS_I2C_MASTER_RXTX>`                     |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_I2C_MASTER_STATUS <PSS_I2C_MASTER_STATUS>`                                     | :ref:`0xf0002814 <PSS_I2C_MASTER_STATUS>`                   |
+| :ref:`PSS_I2C_MASTER_STATUS <PSS_I2C_MASTER_STATUS>`                                     | :ref:`0xf0003014 <PSS_I2C_MASTER_STATUS>`                   |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_GPIO_IO_GPIO_OVERRIDE <PSS_GPIO_IO_GPIO_OVERRIDE>`                             | :ref:`0xf0002818 <PSS_GPIO_IO_GPIO_OVERRIDE>`               |
+| :ref:`PSS_GPIO_IO_GPIO_OVERRIDE <PSS_GPIO_IO_GPIO_OVERRIDE>`                             | :ref:`0xf0003018 <PSS_GPIO_IO_GPIO_OVERRIDE>`               |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_GPIO_IO_GPIO_OVERRIDE_DIR <PSS_GPIO_IO_GPIO_OVERRIDE_DIR>`                     | :ref:`0xf000281c <PSS_GPIO_IO_GPIO_OVERRIDE_DIR>`           |
+| :ref:`PSS_GPIO_IO_GPIO_OVERRIDE_DIR <PSS_GPIO_IO_GPIO_OVERRIDE_DIR>`                     | :ref:`0xf000301c <PSS_GPIO_IO_GPIO_OVERRIDE_DIR>`           |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_GPIO_IO_GPIO_OVERRIDE_VAL <PSS_GPIO_IO_GPIO_OVERRIDE_VAL>`                     | :ref:`0xf0002820 <PSS_GPIO_IO_GPIO_OVERRIDE_VAL>`           |
+| :ref:`PSS_GPIO_IO_GPIO_OVERRIDE_VAL <PSS_GPIO_IO_GPIO_OVERRIDE_VAL>`                     | :ref:`0xf0003020 <PSS_GPIO_IO_GPIO_OVERRIDE_VAL>`           |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_GPIO_IO_GPIO_VAL <PSS_GPIO_IO_GPIO_VAL>`                                       | :ref:`0xf0002824 <PSS_GPIO_IO_GPIO_VAL>`                    |
+| :ref:`PSS_GPIO_IO_GPIO_VAL <PSS_GPIO_IO_GPIO_VAL>`                                       | :ref:`0xf0003024 <PSS_GPIO_IO_GPIO_VAL>`                    |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_CPU_BUSY <PSS_CPU_BUSY>`                                                       | :ref:`0xf0002828 <PSS_CPU_BUSY>`                            |
+| :ref:`PSS_CPU_BUSY <PSS_CPU_BUSY>`                                                       | :ref:`0xf0003028 <PSS_CPU_BUSY>`                            |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE <PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE>`         | :ref:`0xf000282c <PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE>`     |
+| :ref:`PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE <PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE>`         | :ref:`0xf000302c <PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE>`     |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE_VAL <PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE_VAL>` | :ref:`0xf0002830 <PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE_VAL>` |
+| :ref:`PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE_VAL <PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE_VAL>` | :ref:`0xf0003030 <PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE_VAL>` |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_LB_IO_LB_OUT_OVERRIDE <PSS_LB_IO_LB_OUT_OVERRIDE>`                             | :ref:`0xf0002834 <PSS_LB_IO_LB_OUT_OVERRIDE>`               |
+| :ref:`PSS_LB_IO_LB_OUT_OVERRIDE <PSS_LB_IO_LB_OUT_OVERRIDE>`                             | :ref:`0xf0003034 <PSS_LB_IO_LB_OUT_OVERRIDE>`               |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_LB_IO_LB_OUT_OVERRIDE_VAL <PSS_LB_IO_LB_OUT_OVERRIDE_VAL>`                     | :ref:`0xf0002838 <PSS_LB_IO_LB_OUT_OVERRIDE_VAL>`           |
+| :ref:`PSS_LB_IO_LB_OUT_OVERRIDE_VAL <PSS_LB_IO_LB_OUT_OVERRIDE_VAL>`                     | :ref:`0xf0003038 <PSS_LB_IO_LB_OUT_OVERRIDE_VAL>`           |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_TEST_EN <PSS_TST_TOP_TEST_EN>`                                         | :ref:`0xf000283c <PSS_TST_TOP_TEST_EN>`                     |
+| :ref:`PSS_TST_TOP_TEST_EN <PSS_TST_TOP_TEST_EN>`                                         | :ref:`0xf000303c <PSS_TST_TOP_TEST_EN>`                     |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_TEST_FRC_ERR <PSS_TST_TOP_TEST_FRC_ERR>`                               | :ref:`0xf0002840 <PSS_TST_TOP_TEST_FRC_ERR>`                |
+| :ref:`PSS_TST_TOP_TEST_FRC_ERR <PSS_TST_TOP_TEST_FRC_ERR>`                               | :ref:`0xf0003040 <PSS_TST_TOP_TEST_FRC_ERR>`                |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_TEST_CMPLT <PSS_TST_TOP_TEST_CMPLT>`                                   | :ref:`0xf0002844 <PSS_TST_TOP_TEST_CMPLT>`                  |
+| :ref:`PSS_TST_TOP_TEST_CMPLT <PSS_TST_TOP_TEST_CMPLT>`                                   | :ref:`0xf0003044 <PSS_TST_TOP_TEST_CMPLT>`                  |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_TEST_REZ <PSS_TST_TOP_TEST_REZ>`                                       | :ref:`0xf0002848 <PSS_TST_TOP_TEST_REZ>`                    |
+| :ref:`PSS_TST_TOP_TEST_REZ <PSS_TST_TOP_TEST_REZ>`                                       | :ref:`0xf0003048 <PSS_TST_TOP_TEST_REZ>`                    |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_DDR2_2_TST_FAIL <PSS_TST_TOP_DDR2_2_TST_FAIL>`                         | :ref:`0xf000284c <PSS_TST_TOP_DDR2_2_TST_FAIL>`             |
+| :ref:`PSS_TST_TOP_DDR2_2_TST_FAIL <PSS_TST_TOP_DDR2_2_TST_FAIL>`                         | :ref:`0xf000304c <PSS_TST_TOP_DDR2_2_TST_FAIL>`             |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_DDR2_2_PNF_PER_BIT <PSS_TST_TOP_DDR2_2_PNF_PER_BIT>`                   | :ref:`0xf0002850 <PSS_TST_TOP_DDR2_2_PNF_PER_BIT>`          |
+| :ref:`PSS_TST_TOP_DDR2_2_PNF_PER_BIT <PSS_TST_TOP_DDR2_2_PNF_PER_BIT>`                   | :ref:`0xf0003050 <PSS_TST_TOP_DDR2_2_PNF_PER_BIT>`          |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_DDR2_1_TST_FAIL <PSS_TST_TOP_DDR2_1_TST_FAIL>`                         | :ref:`0xf0002854 <PSS_TST_TOP_DDR2_1_TST_FAIL>`             |
+| :ref:`PSS_TST_TOP_DDR2_1_TST_FAIL <PSS_TST_TOP_DDR2_1_TST_FAIL>`                         | :ref:`0xf0003054 <PSS_TST_TOP_DDR2_1_TST_FAIL>`             |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_DDR2_1_PNF_PER_BIT <PSS_TST_TOP_DDR2_1_PNF_PER_BIT>`                   | :ref:`0xf0002858 <PSS_TST_TOP_DDR2_1_PNF_PER_BIT>`          |
+| :ref:`PSS_TST_TOP_DDR2_1_PNF_PER_BIT <PSS_TST_TOP_DDR2_1_PNF_PER_BIT>`                   | :ref:`0xf0003058 <PSS_TST_TOP_DDR2_1_PNF_PER_BIT>`          |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_FX3_CLK_CNT <PSS_TST_TOP_FX3_CLK_CNT>`                                 | :ref:`0xf000285c <PSS_TST_TOP_FX3_CLK_CNT>`                 |
+| :ref:`PSS_TST_TOP_FX3_CLK_CNT <PSS_TST_TOP_FX3_CLK_CNT>`                                 | :ref:`0xf000305c <PSS_TST_TOP_FX3_CLK_CNT>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_SI_CLK0_CNT <PSS_TST_TOP_SI_CLK0_CNT>`                                 | :ref:`0xf0002860 <PSS_TST_TOP_SI_CLK0_CNT>`                 |
+| :ref:`PSS_TST_TOP_SI_CLK0_CNT <PSS_TST_TOP_SI_CLK0_CNT>`                                 | :ref:`0xf0003060 <PSS_TST_TOP_SI_CLK0_CNT>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_SI_CLK1_CNT <PSS_TST_TOP_SI_CLK1_CNT>`                                 | :ref:`0xf0002864 <PSS_TST_TOP_SI_CLK1_CNT>`                 |
+| :ref:`PSS_TST_TOP_SI_CLK1_CNT <PSS_TST_TOP_SI_CLK1_CNT>`                                 | :ref:`0xf0003064 <PSS_TST_TOP_SI_CLK1_CNT>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_SI_CLK2_CNT <PSS_TST_TOP_SI_CLK2_CNT>`                                 | :ref:`0xf0002868 <PSS_TST_TOP_SI_CLK2_CNT>`                 |
+| :ref:`PSS_TST_TOP_SI_CLK2_CNT <PSS_TST_TOP_SI_CLK2_CNT>`                                 | :ref:`0xf0003068 <PSS_TST_TOP_SI_CLK2_CNT>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_SI_CLK3_CNT <PSS_TST_TOP_SI_CLK3_CNT>`                                 | :ref:`0xf000286c <PSS_TST_TOP_SI_CLK3_CNT>`                 |
+| :ref:`PSS_TST_TOP_SI_CLK3_CNT <PSS_TST_TOP_SI_CLK3_CNT>`                                 | :ref:`0xf000306c <PSS_TST_TOP_SI_CLK3_CNT>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_SI_CLK5_CNT <PSS_TST_TOP_SI_CLK5_CNT>`                                 | :ref:`0xf0002870 <PSS_TST_TOP_SI_CLK5_CNT>`                 |
+| :ref:`PSS_TST_TOP_SI_CLK5_CNT <PSS_TST_TOP_SI_CLK5_CNT>`                                 | :ref:`0xf0003070 <PSS_TST_TOP_SI_CLK5_CNT>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_SI_CLK6_CNT <PSS_TST_TOP_SI_CLK6_CNT>`                                 | :ref:`0xf0002874 <PSS_TST_TOP_SI_CLK6_CNT>`                 |
+| :ref:`PSS_TST_TOP_SI_CLK6_CNT <PSS_TST_TOP_SI_CLK6_CNT>`                                 | :ref:`0xf0003074 <PSS_TST_TOP_SI_CLK6_CNT>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_SI_CLK7_CNT <PSS_TST_TOP_SI_CLK7_CNT>`                                 | :ref:`0xf0002878 <PSS_TST_TOP_SI_CLK7_CNT>`                 |
+| :ref:`PSS_TST_TOP_SI_CLK7_CNT <PSS_TST_TOP_SI_CLK7_CNT>`                                 | :ref:`0xf0003078 <PSS_TST_TOP_SI_CLK7_CNT>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_LMK_CLK_CNT <PSS_TST_TOP_LMK_CLK_CNT>`                                 | :ref:`0xf000287c <PSS_TST_TOP_LMK_CLK_CNT>`                 |
+| :ref:`PSS_TST_TOP_LMK_CLK_CNT <PSS_TST_TOP_LMK_CLK_CNT>`                                 | :ref:`0xf000307c <PSS_TST_TOP_LMK_CLK_CNT>`                 |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_TST_TOP_ADF_MUXOUT_CNT <PSS_TST_TOP_ADF_MUXOUT_CNT>`                           | :ref:`0xf0002880 <PSS_TST_TOP_ADF_MUXOUT_CNT>`              |
-+------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_WFM_LOAD <PSS_WFM_LOAD>`                                                       | :ref:`0xf0002884 <PSS_WFM_LOAD>`                            |
-+------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_WFM_PLAY <PSS_WFM_PLAY>`                                                       | :ref:`0xf0002888 <PSS_WFM_PLAY>`                            |
-+------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_WFM_SMPL_WIDTH <PSS_WFM_SMPL_WIDTH>`                                           | :ref:`0xf000288c <PSS_WFM_SMPL_WIDTH>`                      |
-+------------------------------------------------------------------------------------------+-------------------------------------------------------------+
-| :ref:`PSS_WFM_CH_EN <PSS_WFM_CH_EN>`                                                     | :ref:`0xf0002890 <PSS_WFM_CH_EN>`                           |
+| :ref:`PSS_TST_TOP_ADF_MUXOUT_CNT <PSS_TST_TOP_ADF_MUXOUT_CNT>`                           | :ref:`0xf0003080 <PSS_TST_TOP_ADF_MUXOUT_CNT>`              |
 +------------------------------------------------------------------------------------------+-------------------------------------------------------------+
 
 PSS_I2C_PHY_SPEED_MODE
 ^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x0 = 0xf0002800`
+`Address: 0xf0003000 + 0x0 = 0xf0003000`
 
 
     .. wavedrom::
@@ -102,7 +94,7 @@ PSS_I2C_PHY_SPEED_MODE
 PSS_I2C_MASTER_ACTIVE
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x4 = 0xf0002804`
+`Address: 0xf0003000 + 0x4 = 0xf0003004`
 
 
     .. wavedrom::
@@ -119,7 +111,7 @@ PSS_I2C_MASTER_ACTIVE
 PSS_I2C_MASTER_SETTINGS
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x8 = 0xf0002808`
+`Address: 0xf0003000 + 0x8 = 0xf0003008`
 
     I2C transfer settings
 
@@ -153,7 +145,7 @@ PSS_I2C_MASTER_SETTINGS
 PSS_I2C_MASTER_ADDR
 ^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0xc = 0xf000280c`
+`Address: 0xf0003000 + 0xc = 0xf000300c`
 
 
     .. wavedrom::
@@ -170,7 +162,7 @@ PSS_I2C_MASTER_ADDR
 PSS_I2C_MASTER_RXTX
 ^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x10 = 0xf0002810`
+`Address: 0xf0003000 + 0x10 = 0xf0003010`
 
 
     .. wavedrom::
@@ -186,7 +178,7 @@ PSS_I2C_MASTER_RXTX
 PSS_I2C_MASTER_STATUS
 ^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x14 = 0xf0002814`
+`Address: 0xf0003000 + 0x14 = 0xf0003014`
 
 
     .. wavedrom::
@@ -223,7 +215,7 @@ PSS_I2C_MASTER_STATUS
 PSS_GPIO_IO_GPIO_OVERRIDE
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x18 = 0xf0002818`
+`Address: 0xf0003000 + 0x18 = 0xf0003018`
 
     GPIO Mode: 0: normal operation, 1: control is overriden.
 
@@ -241,7 +233,7 @@ PSS_GPIO_IO_GPIO_OVERRIDE
 PSS_GPIO_IO_GPIO_OVERRIDE_DIR
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x1c = 0xf000281c`
+`Address: 0xf0003000 + 0x1c = 0xf000301c`
 
     GPIO override direction: 1: Output, 0: Input.
 
@@ -259,7 +251,7 @@ PSS_GPIO_IO_GPIO_OVERRIDE_DIR
 PSS_GPIO_IO_GPIO_OVERRIDE_VAL
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x20 = 0xf0002820`
+`Address: 0xf0003000 + 0x20 = 0xf0003020`
 
     GPIO Logic level: 1: High, 0: Low. (Dir must be set to output)
 
@@ -277,7 +269,7 @@ PSS_GPIO_IO_GPIO_OVERRIDE_VAL
 PSS_GPIO_IO_GPIO_VAL
 ^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x24 = 0xf0002824`
+`Address: 0xf0003000 + 0x24 = 0xf0003024`
 
     GPIO current value
 
@@ -295,7 +287,7 @@ PSS_GPIO_IO_GPIO_VAL
 PSS_CPU_BUSY
 ^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x28 = 0xf0002828`
+`Address: 0xf0003000 + 0x28 = 0xf0003028`
 
     GPO interface
 
@@ -327,7 +319,7 @@ PSS_CPU_BUSY
 PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x2c = 0xf000282c`
+`Address: 0xf0003000 + 0x2c = 0xf000302c`
 
     Output Mode: 0: normal operation, 1: control is overriden.
 
@@ -345,7 +337,7 @@ PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE
 PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE_VAL
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x30 = 0xf0002830`
+`Address: 0xf0003000 + 0x30 = 0xf0003030`
 
     Output override value.
 
@@ -363,7 +355,7 @@ PSS_LED_FAN_IO_LED_FAN_OUT_OVERRIDE_VAL
 PSS_LB_IO_LB_OUT_OVERRIDE
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x34 = 0xf0002834`
+`Address: 0xf0003000 + 0x34 = 0xf0003034`
 
     Output Mode: 0: normal operation, 1: control is overriden.
 
@@ -381,7 +373,7 @@ PSS_LB_IO_LB_OUT_OVERRIDE
 PSS_LB_IO_LB_OUT_OVERRIDE_VAL
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x38 = 0xf0002838`
+`Address: 0xf0003000 + 0x38 = 0xf0003038`
 
     Output override value.
 
@@ -399,7 +391,7 @@ PSS_LB_IO_LB_OUT_OVERRIDE_VAL
 PSS_TST_TOP_TEST_EN
 ^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x3c = 0xf000283c`
+`Address: 0xf0003000 + 0x3c = 0xf000303c`
 
     Test enable
 
@@ -417,7 +409,7 @@ PSS_TST_TOP_TEST_EN
 PSS_TST_TOP_TEST_FRC_ERR
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x40 = 0xf0002840`
+`Address: 0xf0003000 + 0x40 = 0xf0003040`
 
     Test force error
 
@@ -435,7 +427,7 @@ PSS_TST_TOP_TEST_FRC_ERR
 PSS_TST_TOP_TEST_CMPLT
 ^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x44 = 0xf0002844`
+`Address: 0xf0003000 + 0x44 = 0xf0003044`
 
     Test complete
 
@@ -453,7 +445,7 @@ PSS_TST_TOP_TEST_CMPLT
 PSS_TST_TOP_TEST_REZ
 ^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x48 = 0xf0002848`
+`Address: 0xf0003000 + 0x48 = 0xf0003048`
 
     Test result
 
@@ -471,7 +463,7 @@ PSS_TST_TOP_TEST_REZ
 PSS_TST_TOP_DDR2_2_TST_FAIL
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x4c = 0xf000284c`
+`Address: 0xf0003000 + 0x4c = 0xf000304c`
 
     DDR2 2 test fail
 
@@ -489,7 +481,7 @@ PSS_TST_TOP_DDR2_2_TST_FAIL
 PSS_TST_TOP_DDR2_2_PNF_PER_BIT
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x50 = 0xf0002850`
+`Address: 0xf0003000 + 0x50 = 0xf0003050`
 
     DDR2 2 PNF per bit
 
@@ -506,7 +498,7 @@ PSS_TST_TOP_DDR2_2_PNF_PER_BIT
 PSS_TST_TOP_DDR2_1_TST_FAIL
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x54 = 0xf0002854`
+`Address: 0xf0003000 + 0x54 = 0xf0003054`
 
     DDR2 1 test fail
 
@@ -524,7 +516,7 @@ PSS_TST_TOP_DDR2_1_TST_FAIL
 PSS_TST_TOP_DDR2_1_PNF_PER_BIT
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x58 = 0xf0002858`
+`Address: 0xf0003000 + 0x58 = 0xf0003058`
 
     DDR2 1 PNF per bit
 
@@ -541,7 +533,7 @@ PSS_TST_TOP_DDR2_1_PNF_PER_BIT
 PSS_TST_TOP_FX3_CLK_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x5c = 0xf000285c`
+`Address: 0xf0003000 + 0x5c = 0xf000305c`
 
     FX3 clock counter
 
@@ -559,7 +551,7 @@ PSS_TST_TOP_FX3_CLK_CNT
 PSS_TST_TOP_SI_CLK0_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x60 = 0xf0002860`
+`Address: 0xf0003000 + 0x60 = 0xf0003060`
 
     Si5351C clock 0 counter
 
@@ -577,7 +569,7 @@ PSS_TST_TOP_SI_CLK0_CNT
 PSS_TST_TOP_SI_CLK1_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x64 = 0xf0002864`
+`Address: 0xf0003000 + 0x64 = 0xf0003064`
 
     Si5351C clock 1 counter
 
@@ -595,7 +587,7 @@ PSS_TST_TOP_SI_CLK1_CNT
 PSS_TST_TOP_SI_CLK2_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x68 = 0xf0002868`
+`Address: 0xf0003000 + 0x68 = 0xf0003068`
 
     Si5351C clock 2 counter
 
@@ -613,7 +605,7 @@ PSS_TST_TOP_SI_CLK2_CNT
 PSS_TST_TOP_SI_CLK3_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x6c = 0xf000286c`
+`Address: 0xf0003000 + 0x6c = 0xf000306c`
 
     Si5351C clock 3 counter
 
@@ -631,7 +623,7 @@ PSS_TST_TOP_SI_CLK3_CNT
 PSS_TST_TOP_SI_CLK5_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x70 = 0xf0002870`
+`Address: 0xf0003000 + 0x70 = 0xf0003070`
 
     Si5351C clock 5 counter
 
@@ -649,7 +641,7 @@ PSS_TST_TOP_SI_CLK5_CNT
 PSS_TST_TOP_SI_CLK6_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x74 = 0xf0002874`
+`Address: 0xf0003000 + 0x74 = 0xf0003074`
 
     Si5351C clock 6 counter
 
@@ -667,7 +659,7 @@ PSS_TST_TOP_SI_CLK6_CNT
 PSS_TST_TOP_SI_CLK7_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x78 = 0xf0002878`
+`Address: 0xf0003000 + 0x78 = 0xf0003078`
 
     Si5351C clock 7 counter
 
@@ -685,7 +677,7 @@ PSS_TST_TOP_SI_CLK7_CNT
 PSS_TST_TOP_LMK_CLK_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x7c = 0xf000287c`
+`Address: 0xf0003000 + 0x7c = 0xf000307c`
 
     LMK clock counter
 
@@ -703,7 +695,7 @@ PSS_TST_TOP_LMK_CLK_CNT
 PSS_TST_TOP_ADF_MUXOUT_CNT
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Address: 0xf0002800 + 0x80 = 0xf0002880`
+`Address: 0xf0003000 + 0x80 = 0xf0003080`
 
     ADF MUXOUT counter
 
@@ -715,78 +707,6 @@ PSS_TST_TOP_ADF_MUXOUT_CNT
                 {"name": "tst_top_adf_muxout_cnt[15:0]", "bits": 16},
                 {"bits": 16},
             ], "config": {"hspace": 400, "bits": 32, "lanes": 1 }, "options": {"hspace": 400, "bits": 32, "lanes": 1}
-        }
-
-
-PSS_WFM_LOAD
-^^^^^^^^^^^^
-
-`Address: 0xf0002800 + 0x84 = 0xf0002884`
-
-    Load WFM data
-
-    .. wavedrom::
-        :caption: PSS_WFM_LOAD
-
-        {
-            "reg": [
-                {"name": "wfm_load", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-PSS_WFM_PLAY
-^^^^^^^^^^^^
-
-`Address: 0xf0002800 + 0x88 = 0xf0002888`
-
-    Play WFM data
-
-    .. wavedrom::
-        :caption: PSS_WFM_PLAY
-
-        {
-            "reg": [
-                {"name": "wfm_play", "bits": 1},
-                {"bits": 31},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-PSS_WFM_SMPL_WIDTH
-^^^^^^^^^^^^^^^^^^
-
-`Address: 0xf0002800 + 0x8c = 0xf000288c`
-
-    WFM sample width
-
-    .. wavedrom::
-        :caption: PSS_WFM_SMPL_WIDTH
-
-        {
-            "reg": [
-                {"name": "wfm_smpl_width[1:0]", "bits": 2},
-                {"bits": 30},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
-        }
-
-
-PSS_WFM_CH_EN
-^^^^^^^^^^^^^
-
-`Address: 0xf0002800 + 0x90 = 0xf0002890`
-
-    WFM channel enable
-
-    .. wavedrom::
-        :caption: PSS_WFM_CH_EN
-
-        {
-            "reg": [
-                {"name": "wfm_ch_en[1:0]", "bits": 2},
-                {"bits": 30},
-            ], "config": {"hspace": 400, "bits": 32, "lanes": 4 }, "options": {"hspace": 400, "bits": 32, "lanes": 4}
         }
 
 
