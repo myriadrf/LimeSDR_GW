@@ -122,6 +122,8 @@ class BaseSoC(SoCCore):
                  ep01_size         = 4096,
                  ep81_size         = 8192,
                  tx_buf_size       = TX_PACKET_BUF_SIZE,
+                 edge_refine       = 0,
+                 phase_frac        = 0,
                  ctrl_poll_skip    = 0,
                  tx_burst2         = False,
                  ep01_idle_skip    = 0,
@@ -286,6 +288,10 @@ class BaseSoC(SoCCore):
         # Hold lms_tx / lms_rx in reset while the interface PLL is unlocked (start-up, PLL reconfig).
         from gateware.LimeDFB.lms7002.src.lms7002_top import LMS7002Top
         LMS7002Top.domain_rst_on_unlock = True
+        # TX/RX interface phase search edge refinement: reset value of LMS64C 0x003F
+        # (step 2, no bias, bits 12:10 = k); LimeSuiteNG does not write this register.
+        from gateware.lms7002_clk import ClkCfgRegs
+        ClkCfgRegs.phcfg_step_reset = 0x002 | ((edge_refine & 0x7) << 10) | ((phase_frac & 0x3) << 13)
         self.limetop  = LimeTop(self,
                                 platform             = platform,
                                 vendor               = "altera",
@@ -324,6 +330,19 @@ class BaseSoC(SoCCore):
             # PSS FPGA_GPIO default value <- TX antenna-enable / TX packet-loss flag.
             self.pss.tx_txant_en.eq(self.limetop.lms7002_top.tx_ant_en),
             self.pss.tx_pct_loss_flg.eq(self.limetop.rxtx_top.tx_path.pct_loss_flg),
+        ]
+
+        # Last automatic TX/RX interface phase search result, read by the host at
+        # LMS64C 0x7FF4/5 (RX) and 0x7FF6/7 (TX): [31] error, [30] failure seen,
+        # [29:20] window min, [19:10] window max, [9:0] final point before bias
+        # (step_cnt units = PLL phase steps from the search start, search direction).
+        _civ_pll = self.limetop.lms7002_top.lms7002_clk.cycloneiv_pll
+        self.ps_diag = LiteXModule()
+        self.ps_diag.rx_ps_dbg = CSRStatus(32, description="RX PLL last auto phase search result.")
+        self.ps_diag.tx_ps_dbg = CSRStatus(32, description="TX PLL last auto phase search result.")
+        self.comb += [
+            self.ps_diag.rx_ps_dbg.status.eq(_civ_pll.rxpll_ps_dbg),
+            self.ps_diag.tx_ps_dbg.status.eq(_civ_pll.txpll_ps_dbg),
         ]
 
         # WFMPlayer wiring. The WFM player is a DDR-backed feature, so the PSS only
@@ -378,6 +397,14 @@ class BaseSoC(SoCCore):
         self.platform.add_false_path_constraints(self.cd_jtag.clk, self.crg.cd_sys.clk)
 
     # LiteScope Analyzer Probes --------------------------------------------------------------------
+    # LiteX registers the Wishbone->CSR bridge only when the SoC has a LiteDRAM "sdram"
+    # (soc.py: register=hasattr(self, "sdram")), which this board never has. Unregistered,
+    # the CPU address goes combinationally through the bus arbiter grant and the CSR bank
+    # decode into the bank read-data register: the worst sys (FX3_PCLK) path in every fit.
+    # The registered bridge adds one cycle per CSR access, irrelevant for firmware.
+    def add_csr_bridge(self, name="csr", origin=None, register=False):
+        return SoCCore.add_csr_bridge(self, name=name, origin=origin, register=True)
+
     def add_debug(self):
         reset_sig = Signal()
         analyzer_signals = []
@@ -470,6 +497,8 @@ def main():
     parser.add_argument("--ep01-size",      default=4096, type=int, choices=[4096, 8192, 16384], help="Host->FPGA stream FIFO size in bytes (4096 = single packet, legacy; 8192 = double-buffered). Default 4096. Sizes above the default need the RAM freed by --no-ddr.")
     parser.add_argument("--ep81-size",      default=8192, type=int, choices=[8192, 16384, 32768], help="FPGA->Host stream FIFO size in bytes (16384 = legacy v2.x size). Default 8192. Sizes above the default need the RAM freed by --no-ddr.")
     parser.add_argument("--tx-buf-size",    default=TX_PACKET_BUF_SIZE, type=int, choices=[16384, 32768, 40960, 49152, 65536], help="TX packet buffer (lime_txpct_fifo payload RAM) size in bytes. Default 16384. Sizes above the default need the RAM freed by --no-ddr (with --no-ddr: 40960 and --ep81-size 32768 fit; 49152 with 32768 does not).")
+    parser.add_argument("--edge-refine", "--rx-edge-refine", dest="edge_refine", default=4, type=int, choices=range(8), help="TX/RX interface PLL phase search: after the coarse search, re-test each window edge with back-to-back compares for ~1.3 ms * 2^K without an error, moving it inward on any error, then centre (reset value of LMS64C 0x003F bits 12:10; 0 = legacy search). Default 4 (~21 ms per edge).")
+    parser.add_argument("--phase-frac", default=0, type=int, choices=range(4), help="TX/RX interface PLL phase search: final point within the (refined) passing window, measured from the first edge in the search direction (LimeSuiteNG searches up, so towards the early edge): 0 = 8/16 (centre, legacy), 1 = 6/16, 2 = 5/16, 3 = 11/32 (RX search only; reset value of LMS64C 0x003F bits 14:13). Default 0; the RX offset is applied by the firmware instead.")
     parser.add_argument("--ctrl-poll-skip", default=8, type=int, help="slaveFIFO: skip the EP8F control thread while it has nothing to send and poll EP0F only every N-th round (0 = off, legacy; 4 keeps the added control latency to ~4 GPIF rounds, ~85 us when both streams are saturated). Default 8 (RX MIMO 61.44 MSPS needs it).")
     parser.add_argument("--tx-burst2",      action="store_true", help="slaveFIFO: allow one extra EP01 (host->FPGA) burst per round when the TX buffer has room and the RX FIFO is below half. Experimental.")
     parser.add_argument("--ep01-idle-skip", default=4, type=int, help="slaveFIFO: once EP01 (host->FPGA data) was found empty on 64 consecutive visits, poll it only every N-th round until data arrives (0 = off). Frees GPIF time for RX-only streaming. Default 4.")
@@ -499,6 +528,8 @@ def main():
             ep01_size      = args.ep01_size,
             ep81_size      = args.ep81_size,
             tx_buf_size    = args.tx_buf_size,
+            edge_refine    = args.edge_refine,
+            phase_frac     = args.phase_frac,
             ctrl_poll_skip = args.ctrl_poll_skip,
             tx_burst2      = args.tx_burst2,
             ep01_idle_skip = args.ep01_idle_skip,

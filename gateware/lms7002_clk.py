@@ -46,6 +46,11 @@ class _StatusProxy:
 
 
 class ClkCfgRegs(LiteXModule):
+    # Reset value of the auto phase search step register (LMS64C 0x003F): (6:0) step size,
+    # (9:7) post-search bias, (12:10) edge refinement k (Cyclone IV pll_ps_fsm). Board targets
+    # may change it before the SoC is built (host software does not write 0x003F).
+    phcfg_step_reset = 0x002
+
     def __init__(self, use_status_regs=False, unified_csr=False):
         if unified_csr:
             # -------------------------------------------------------------------------------------
@@ -220,7 +225,7 @@ class ClkCfgRegs(LiteXModule):
                                                description="Number of samples to use during auto phase configuration (LMS64C 0x003E)")
 
             # LMS64C Register 0x003F: Auto Phase Configuration Step
-            self.auto_phcfg_step = CSRStorage(size=16, reset=0x002,
+            self.auto_phcfg_step = CSRStorage(size=16, reset=self.phcfg_step_reset,
                                               description="Phase configuration step size (LMS64C 0x003F)")
 
             # -------------------------------------------------------------------------------------
@@ -376,7 +381,7 @@ class ClkCfgRegs(LiteXModule):
                                        description="Clock output 1 phase offset, in degrees")
             self.Auto_PHcfg_smpls = CSRStorage(size=16, reset=0xEFFF,
                                                description="Number of samples to use during auto phase configuration")
-            self.Auto_PHcfg_step = CSRStorage(size=16, reset=0x002,description="Phase configuration step size")
+            self.Auto_PHcfg_step = CSRStorage(size=16, reset=self.phcfg_step_reset,description="Phase configuration step size")
 
 # Xilinx LMS MM-------------------------------------------------------------------------------------
 

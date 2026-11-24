@@ -240,7 +240,7 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
     case 0x3F:
         /* LMS64C Register 0x003F: Auto Phase Configuration Step Size
-         * Bits [6:0]: step size, [9:7]: post-search bias (steps), [15]: relaxed A/B check
+         * Bits [6:0]: step size, [9:7]: post-search bias (steps), [12:10]: edge refinement k, [14:13]: RX final point fraction (8/16,6/16,5/16,11/32), [15]: relaxed A/B check
          */
         value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_read();
         break;
@@ -362,6 +362,18 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
     case 0x7FE4:
     case 0x7FE5:
         // Reserved: return zero for compatibility with SSDR/XTRX.
+        break;
+    case 0x7FF4: /* RX PLL last auto phase search result, low/high 16 bits:  */
+        value = ps_diag_rx_ps_dbg_read() & 0xFFFF;          /* [31] err [30] fail seen */
+        break;                                                /* [29:20] min [19:10] max */
+    case 0x7FF5:                                              /* [9:0] final point       */
+        value = (ps_diag_rx_ps_dbg_read() >> 16) & 0xFFFF;
+        break;
+    case 0x7FF6: /* TX PLL, same layout */
+        value = ps_diag_tx_ps_dbg_read() & 0xFFFF;
+        break;
+    case 0x7FF7:
+        value = (ps_diag_tx_ps_dbg_read() >> 16) & 0xFFFF;
         break;
 
     default:
@@ -594,7 +606,7 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
     case 0x3F:
         /* LMS64C Register 0x003F: Auto Phase Configuration Step Size
-         * Bits [6:0]: step size, [9:7]: post-search bias (steps), [15]: relaxed A/B check
+         * Bits [6:0]: step size, [9:7]: post-search bias (steps), [12:10]: edge refinement k, [14:13]: RX final point fraction (8/16,6/16,5/16,11/32), [15]: relaxed A/B check
          */
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_write(value);
         break;
