@@ -234,7 +234,11 @@ _io = [
 class Platform(AlteraPlatform):
     create_rbf         = False
 
-    def __init__(self, device="EP4CE40F23C8", **kwargs):
+    def __init__(self, device="EP4CE40F23C8", diq1_output_delay="legacy", diq1_slow_pins=None, **kwargs):
+        assert diq1_output_delay in ("uniform", "legacy")
+        self.diq1_output_delay = diq1_output_delay
+        # {pin index: slew rate (0 slowest .. 2 fastest, default 2)} for LMS_DIQ1_D pins.
+        self.diq1_slow_pins    = dict(diq1_slow_pins or {})
         AlteraPlatform.__init__(self, device, _io, **kwargs)
 
         # FPGA device/bitstream parameters.
@@ -261,14 +265,34 @@ class Platform(AlteraPlatform):
         # Clock groups should run after all module-level SDC constraints
         self.toolchain.additional_sdc_commands.append("source ../../../gateware/board_specific/limesdr_usb/Clock_groups.sdc")
 
-        # LMS_DIQ1_D Timing Delays (from QSF)
+        # LMS_DIQ1_D / LMS_ENABLE_IQSEL1 output delay chain (TCO, 0 or 1 = ~0.44 ns).
+        # The TX interface phase is calibrated at run time (one PLL C1 phase for all 13 lines),
+        # so what matters is the skew between the lines, not the absolute delay.
+        # "legacy": per-pin values copied from the 2021 QSF (D5 and IQSEL1 unassigned, the
+        #   fitter picks 1). It splits the bus into two groups ~0.7-0.9 ns apart (slow model):
+        #   D1/D7/D8/D11 early, the rest late. STA (3.12 build, slow 85C) leaves only ~0.21 ns
+        #   of common data-valid window beyond the LMS Tsu+Th, against ~0.9-1.1 ns per group.
+        # "uniform": every line 1 (matches the 9 lines already at 1). Better in STA, but WORSE
+        #   on hardware (candidate f174186b, 61.44 MSPS SISO TX+RX full-period sweep: no clean
+        #   TX phase at all, D9 errors everywhere): the legacy split evidently compensates
+        #   board-level skew that STA does not model. Default is therefore "legacy".
         try:
             self.lookup_request("LMS")
-            diq1_delays = [1, 0, 1, 1, 1, None, 1, 0, 0, 1, 1, 0]
+            diq1_delays = {
+                "legacy"  : [1, 0, 1, 1, 1, None, 1, 0, 0, 1, 1, 0],
+                "uniform" : [1] * 12,
+            }[self.diq1_output_delay]
             for i, delay in enumerate(diq1_delays):
                 if delay is not None:
                     self.add_platform_command(f"set_instance_assignment -name CLOCK_TO_OUTPUT_DELAY {delay} -to LMS_DIQ1_D[{i}]")
-        except:
+            if self.diq1_output_delay == "uniform":
+                self.add_platform_command("set_instance_assignment -name CLOCK_TO_OUTPUT_DELAY 1 -to LMS_ENABLE_IQSEL1")
+            # Per-pin slew rate (experiment): hardware TX phase maps at 122.88 MHz show D9
+            # switching ~4 phase steps (~0.4 ns) earlier than every other DIQ1 line (its rising
+            # edge in the I half bounds the window). A slower slew delays its threshold crossing.
+            for i, slew in self.diq1_slow_pins.items():
+                self.add_platform_command(f"set_instance_assignment -name SLEW_RATE {slew} -to LMS_DIQ1_D[{i}]")
+        except ConstraintError:
             pass
 
         # CKN_CK_PAIR for DDRAM (from QSF)

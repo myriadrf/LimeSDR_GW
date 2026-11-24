@@ -226,6 +226,7 @@ class LimeTop(LiteXModule):
         TX_MAX_PCT_SIZE      = 8192, # Total tx packet buffer capacity in bytes
         tx_buffer_size       = 512, #TX buffer acts as CDC, so a minimum of 512 (4 cycles of 128bit) is required to instantiate the async FIFO
         TX_WITHTXIQ_MUX        = False,
+        TX_ALT_TEST_PTRN       = False, # see LMS7002Top(tx_alt_test_ptrn)
 
         with_lms7002         = True,
         # These clocks are only used if with_lms7002 is False
@@ -306,6 +307,7 @@ class LimeTop(LiteXModule):
                 diq_width       = LMS_DIQ_WIDTH,
                 one_chnl        = one_chnl,
                 with_txiq_mux   = TX_WITHTXIQ_MUX,
+                tx_alt_test_ptrn = TX_ALT_TEST_PTRN,
                 unified_clk_csr = unified_clk_csr,
             )
         else:

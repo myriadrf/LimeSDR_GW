@@ -41,9 +41,19 @@ void bsp_init(void)
     limetop_lms7002_top_lms1_write(lms1_val);
     // Init pll control register values using direct LiteX accessors for unified CSRs:
     // Auto phase configuration samples (LMS64C 0x003E)
-    limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_smpls_write(0x0FFF);
-    // Auto phase configuration step size (LMS64C 0x003F)
-    limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_write(0x0002);
+    // 512 frames per compare step: with the rate-adaptive step (<= ~64 compares per interface
+    // period) every search ends in a few ms, before LimeSuiteNG's fixed 10 ms wait expires
+    // (it does not poll PHCFG_DONE on LimeSDR-USB). Longer compares did not change the
+    // hardware TX/RX phase maps.
+    limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_smpls_write(0x01FF);
+    // Auto phase configuration (LMS64C 0x003F):
+    //   [6:0]  step size (1/8 VCO period; 4.5 deg at 122.88 MHz): 1, the TX window at
+    //          122.88 MHz is only a few steps wide.
+    //   [9:7]  post-search bias in steps (search direction): 2. Hardware TX phase maps
+    //          (candidates 3/4) put the search result ~2 steps below the window centre at
+    //          122.88 MHz (the search pattern sees D9's early edge as later than real data).
+    //   [15]   1 = relaxed channel A/B check in the TX search comparator (default 0, strict).
+    limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_write(0x0001 | (2 << 7));
     // M and N counter divider control (LMS64C 0x0026):
     // [0] n_div_byp=0, [1] n_odd_div=1, [2] m_div_byp=0, [3] m_odd_div=1 -> 0x000A
     limetop_lms7002_top_lms7002_clk_CLK_CTRL_mn_div_ctrl_write(0x000A);

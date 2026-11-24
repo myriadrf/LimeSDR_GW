@@ -240,7 +240,7 @@ bool readCSR(uint8_t *address, uint8_t *regdata_array)
         break;
     case 0x3F:
         /* LMS64C Register 0x003F: Auto Phase Configuration Step Size
-         * Bits [15:0]: Phase step size during auto phase search
+         * Bits [6:0]: step size, [9:7]: post-search bias (steps), [15]: relaxed A/B check
          */
         value = limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_read();
         break;
@@ -594,7 +594,7 @@ bool writeCSR(uint8_t *address, uint8_t *wrdata_array)
         break;
     case 0x3F:
         /* LMS64C Register 0x003F: Auto Phase Configuration Step Size
-         * Bits [15:0]: Phase step size during auto phase search
+         * Bits [6:0]: step size, [9:7]: post-search bias (steps), [15]: relaxed A/B check
          */
         limetop_lms7002_top_lms7002_clk_CLK_CTRL_auto_phcfg_step_write(value);
         break;
