@@ -122,6 +122,9 @@ class BaseSoC(SoCCore):
                  ep01_size         = 4096,
                  ep81_size         = 8192,
                  tx_buf_size       = TX_PACKET_BUF_SIZE,
+                 ctrl_poll_skip    = 0,
+                 tx_burst2         = False,
+                 ep01_idle_skip    = 0,
                  diq1_output_delay = "legacy",
                  diq1_slow_pins    = None):
         platform = limesdr_usb.Platform(diq1_output_delay=diq1_output_delay, diq1_slow_pins=diq1_slow_pins)
@@ -233,6 +236,9 @@ class BaseSoC(SoCCore):
                        # it fits with the DDR test core thanks to the 12 KB CPU ROM and the RAM packing
                        # in limesdr_usb_platform.get_verilog() / PPSDO altera_pack_memories().
                        EP81_size     = ep81_size,
+                       ctrl_poll_skip = ctrl_poll_skip,
+                       tx_burst2     = tx_burst2,
+                       data_out_idle_skip = ep01_idle_skip,
                        EP01_0_rwidth = HOST_TO_FPGA_DATA_WIDTH,
                        EP01_1_rwidth = WFM_DATA_WIDTH,
                        EP81_wwidth   = FPGA_TO_HOST_DATA_WIDTH,
@@ -464,6 +470,9 @@ def main():
     parser.add_argument("--ep01-size",      default=4096, type=int, choices=[4096, 8192, 16384], help="Host->FPGA stream FIFO size in bytes (4096 = single packet, legacy; 8192 = double-buffered). Default 4096. Sizes above the default need the RAM freed by --no-ddr.")
     parser.add_argument("--ep81-size",      default=8192, type=int, choices=[8192, 16384, 32768], help="FPGA->Host stream FIFO size in bytes (16384 = legacy v2.x size). Default 8192. Sizes above the default need the RAM freed by --no-ddr.")
     parser.add_argument("--tx-buf-size",    default=TX_PACKET_BUF_SIZE, type=int, choices=[16384, 32768, 40960, 49152, 65536], help="TX packet buffer (lime_txpct_fifo payload RAM) size in bytes. Default 16384. Sizes above the default need the RAM freed by --no-ddr (with --no-ddr: 40960 and --ep81-size 32768 fit; 49152 with 32768 does not).")
+    parser.add_argument("--ctrl-poll-skip", default=8, type=int, help="slaveFIFO: skip the EP8F control thread while it has nothing to send and poll EP0F only every N-th round (0 = off, legacy; 4 keeps the added control latency to ~4 GPIF rounds, ~85 us when both streams are saturated). Default 8 (RX MIMO 61.44 MSPS needs it).")
+    parser.add_argument("--tx-burst2",      action="store_true", help="slaveFIFO: allow one extra EP01 (host->FPGA) burst per round when the TX buffer has room and the RX FIFO is below half. Experimental.")
+    parser.add_argument("--ep01-idle-skip", default=4, type=int, help="slaveFIFO: once EP01 (host->FPGA data) was found empty on 64 consecutive visits, poll it only every N-th round until data arrives (0 = off). Frees GPIF time for RX-only streaming. Default 4.")
     parser.add_argument("--diq1-slew",      default="9:0", help="Per-pin slew rate for LMS_DIQ1_D, e.g. '9:0' or '9:1,3:1' (0 = slowest, 2 = fastest; unlisted pins 2). Default '9:0': D9 switches ~0.4 ns early, slew 0 widens the TX window from ~2 to ~7 phase steps. '' = all pins 2.")
     parser.add_argument("--diq1-output-delay", default="legacy", choices=["uniform", "legacy"], help="LMS DIQ1/IQSEL1 output delay chain settings (legacy = 2021 per-pin QSF table).")
 
@@ -490,6 +499,9 @@ def main():
             ep01_size      = args.ep01_size,
             ep81_size      = args.ep81_size,
             tx_buf_size    = args.tx_buf_size,
+            ctrl_poll_skip = args.ctrl_poll_skip,
+            tx_burst2      = args.tx_burst2,
+            ep01_idle_skip = args.ep01_idle_skip,
             diq1_output_delay = args.diq1_output_delay,
             diq1_slow_pins    = {int(p.split(':')[0]): int(p.split(':')[1]) for p in args.diq1_slew.split(',') if p},
         )
