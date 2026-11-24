@@ -294,6 +294,8 @@ class Platform(AlteraPlatform):
     def do_finalize(self, fragment):
         # Clock groups should run after all module-level SDC constraints
         self.toolchain.additional_sdc_commands.append("source ../../../gateware/board_specific/limesdr_usb/Clock_groups.sdc")
+        # Gray-pointer skew / net delay for the AsyncFIFO CDCs (cut by the clock groups above).
+        self.toolchain.additional_sdc_commands.append("source ../../../gateware/board_specific/limesdr_usb/CDC_constraints.sdc")
 
         # LMS_DIQ1_D / LMS_ENABLE_IQSEL1 output delay chain (TCO, 0 or 1 = ~0.44 ns).
         # The TX interface phase is calibrated at run time (one PLL C1 phase for all 13 lines),

@@ -267,6 +267,14 @@ class BaseSoC(SoCCore):
             self.ppsdo.add_altera_platform_constraints(platform)
 
         # LimeTop -----------------------------------------------------------------------------------
+        # Reset both sides of the TX input_buff / smpl_nr_fifo AsyncFIFOs (gray pointers included)
+        # with every TX stream stop, through per-domain reset synchronisers. Without it they are
+        # only reset at configuration, and an inconsistent pointer state survives all later streams.
+        from gateware.LimeDFB.tx_path_top.src.tx_path_top import TXPathTop
+        TXPathTop.cdc_stream_rst = True
+        # Hold lms_tx / lms_rx in reset while the interface PLL is unlocked (start-up, PLL reconfig).
+        from gateware.LimeDFB.lms7002.src.lms7002_top import LMS7002Top
+        LMS7002Top.domain_rst_on_unlock = True
         self.limetop  = LimeTop(self,
                                 platform             = platform,
                                 vendor               = "altera",
